@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -56,5 +54,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	hm.Serve(router, hm.ServerOpts{Port: cfg.Server.Port}, logger)
+	hm.Serve(router, hm.ServerOpts{Port: cfg.Server.Port}, stops, logger)
 }

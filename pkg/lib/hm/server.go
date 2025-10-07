@@ -7,13 +7,13 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 )
 
 // Serve starts an HTTP server and handles graceful shutdown.
-func Serve(router *chi.Mux, opts ServerOpts, log Logger) {
+// It also calls the provided stops functions during shutdown.
+func Serve(router *chi.Mux, opts ServerOpts, stops []func(context.Context) error, log Logger) {
 	srv := &http.Server{
 		Addr:    opts.Port,
 		Handler: router,
@@ -34,15 +34,8 @@ func Serve(router *chi.Mux, opts ServerOpts, log Logger) {
 
 	log.Info("Shutting down server...")
 
-	// Create a context with a timeout to allow outstanding requests to finish
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Error(fmt.Sprintf("server forced to shutdown: %v", err))
-	}
-
-	log.Info("Server exited gracefully.")
+	// Use internal hm.Shutdown for complete lifecycle management
+	Shutdown(srv, stops)
 }
 
 // ServerOpts holds server-related options.

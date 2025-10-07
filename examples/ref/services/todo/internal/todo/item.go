@@ -3,8 +3,8 @@ package todo
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/adrianpk/hatmax/pkg/lib/hm"
+	"github.com/google/uuid"
 )
 
 // Item represents a Item.
@@ -12,8 +12,8 @@ import (
 // hatmax:model
 type Item struct {
 	id        uuid.UUID `json:"id"`
-	Text string `json:"text"`
-	Done bool `json:"done"`
+	Text      string    `json:"text"`
+	Done      bool      `json:"done"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	CreatedBy uuid.UUID `json:"created_by"`
@@ -34,7 +34,6 @@ func (m *Item) EnsureID() {
 		m.id = hm.GenerateNewID()
 	}
 }
-
 
 // BeforeCreate sets the initial timestamps and createdBy for the model.
 func (m *Item) BeforeCreate() {

@@ -157,12 +157,35 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		}
 		fmt.Println("go.mod generated successfully.")
 
+		fmt.Println("Running post-generation cleanup...")
+		if err := modelGen.PostGenerationCleanup(); err != nil {
+			return fmt.Errorf("cannot run post-generation cleanup for service %s: %w", serviceName, err)
+		}
+		fmt.Println("Post-generation cleanup completed successfully.")
+
 		fmt.Println("Generating Makefile...")
 		if err := modelGen.GenerateMakefile(serviceName); err != nil {
 			return fmt.Errorf("cannot generate Makefile for service %s: %w", serviceName, err)
 		}
 		fmt.Println("Makefile generated successfully.")
+
+		fmt.Println("Generating deployment configurations...")
+		service := config.Services[serviceName]
+		deploymentGen, err := NewDeploymentGenerator(&config, outputDir, serviceName, &service, tmplFS)
+		if err != nil {
+			return fmt.Errorf("cannot create deployment generator for service %s: %w", serviceName, err)
+		}
+		if err := deploymentGen.GenerateNomadDeployments(); err != nil {
+			return fmt.Errorf("cannot generate deployment configurations for service %s: %w", serviceName, err)
+		}
+		fmt.Println("Deployment configurations generated successfully.")
 	}
+
+	fmt.Println("Generating monorepo-level deployment scripts...")
+	if err := generateMonorepoDeploymentScripts(outputDir); err != nil {
+		return fmt.Errorf("error generating monorepo deployment scripts: %w", err)
+	}
+	fmt.Println("Monorepo deployment scripts generated successfully.")
 
 	return nil
 }
@@ -198,4 +221,54 @@ func inferModulePath(outputDir string) string {
 	cleanDir := strings.ReplaceAll(outputDir, "/", "-")
 	cleanDir = strings.ReplaceAll(cleanDir, "_", "-")
 	return cleanDir
+}
+
+func generateMonorepoDeploymentScripts(outputDir string) error {
+	scriptsDir := filepath.Join(outputDir, "scripts")
+	if err := os.MkdirAll(scriptsDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create scripts directory: %w", err)
+	}
+
+	deployScript := `#!/bin/bash
+set -e
+
+echo "Deploying all services..."
+
+for job in deployments/nomad/jobs/*.nomad; do
+    if [ -f "$job" ]; then
+        echo "Deploying $(basename "$job")..."
+        nomad job run "$job"
+    fi
+done
+
+echo "All services deployed successfully!"
+`
+
+	deployFile := filepath.Join(scriptsDir, "deploy.sh")
+	if err := os.WriteFile(deployFile, []byte(deployScript), 0o755); err != nil {
+		return fmt.Errorf("failed to write deploy script: %w", err)
+	}
+
+	healthScript := `#!/bin/bash
+
+echo "Checking service health..."
+
+for job in deployments/nomad/jobs/*.nomad; do
+    service_name=$(basename "$job" .nomad)
+    echo "Checking $service_name..."
+    
+    if nomad job status "$service_name" | grep -q "Status.*running"; then
+        echo "✓ $service_name is running"
+    else
+        echo "✗ $service_name is not running"
+    fi
+done
+`
+
+	healthFile := filepath.Join(scriptsDir, "health-check.sh")
+	if err := os.WriteFile(healthFile, []byte(healthScript), 0o755); err != nil {
+		return fmt.Errorf("failed to write health check script: %w", err)
+	}
+
+	return nil
 }
