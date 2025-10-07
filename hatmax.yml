@@ -1,6 +1,25 @@
 version: 0.1
 name: "ref"
 package: "github.com/adrianpk/hatmax-ref"
+
+deployment:
+  platforms: [nomad]
+  nomad:
+    datacenter: dc1
+    consul_integration: true
+    traefik_integration: true
+    default_resources:
+      cpu: 256
+      memory: 128
+  infrastructure:
+    consul:
+      enabled: true
+      address: "127.0.0.1:8500"
+    traefik:
+      enabled: true
+      entrypoint: web
+      domain: "localhost"
+
 services:
   todo:
     kind: atom
@@ -9,6 +28,22 @@ services:
       enabled: true
       mode: development
       required_scopes: ["read:todos", "write:todos"]
+    deployment:
+      nomad:
+        port: 8080
+        replicas: 1
+        resources:
+          cpu: 256
+          memory: 128
+        health_check:
+          path: "/health"
+          interval: "30s"
+        traefik:
+          rule: "PathPrefix(`/todo`)"
+          priority: 100
+        consul:
+          service_name: "todo"
+          tags: ["api", "v1"]
     models:
       Item:
         options:

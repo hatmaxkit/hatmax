@@ -5,8 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"strings"
-
-	"github.com/adrianpk/hatmax/pkg/lib/core"
 )
 
 type Authenticator interface {
@@ -47,7 +45,7 @@ type contextKey string
 
 const userIDContextKey contextKey = "hm_auth_user_id"
 
-func AuthMiddleware(auth Authenticator, log core.Logger) func(http.Handler) http.Handler {
+func AuthMiddleware(auth Authenticator, log Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token := extractBearerToken(r)

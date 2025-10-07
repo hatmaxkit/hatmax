@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -868,10 +869,12 @@ func (mg *ModelGenerator) GenerateGoMod() error {
 	// In dev mode, add the hm library dependency and replace directive
 	if mg.DevMode {
 		goModContent += "\nrequire (\n"
-		goModContent += "\tgithub.com/adrianpk/hatmax/pkg/lib/hm v0.0.0-00010101000000-000000000000\n"
+		goModContent += "\tgithub.com/adrianpk/hatmax v0.0.0-00010101000000-000000000000\n"
 		goModContent += ")\n"
 		goModContent += "\n// Development mode: use local hatmax library\n"
-		goModContent += "replace github.com/adrianpk/hatmax => ../../../../\n"
+		// In dev mode, services are always generated at examples/ref/services/[service]/
+		// So the path from service to hatmax root is always ../../../..
+		goModContent += "replace github.com/adrianpk/hatmax => ../../../..\n"
 	} else {
 		// In production mode, let `go mod tidy` handle dependency management
 		goModContent += "\n// Run 'go mod tidy' to add dependencies automatically\n"
@@ -882,6 +885,53 @@ func (mg *ModelGenerator) GenerateGoMod() error {
 		return fmt.Errorf("cannot write go.mod for generated app: %w", err)
 	}
 	fmt.Printf("  - Created %s\n", goModPath)
+	return nil
+}
+
+// PostGenerationCleanup runs post-generation tasks like go mod tidy, gofmt, and goimports
+func (mg *ModelGenerator) PostGenerationCleanup() error {
+	// Change to the output directory for running go commands
+	originalDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("cannot get current working directory: %w", err)
+	}
+
+	if err := os.Chdir(mg.OutputDir); err != nil {
+		return fmt.Errorf("cannot change to output directory %s: %w", mg.OutputDir, err)
+	}
+	defer func() {
+		os.Chdir(originalDir)
+	}()
+
+	// Run go mod tidy
+	fmt.Println("  - Running go mod tidy...")
+	cmd := exec.Command("go", "mod", "tidy")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("go mod tidy failed: %w", err)
+	}
+
+	// Run gofmt on all .go files
+	fmt.Println("  - Running gofmt...")
+	cmd = exec.Command("gofmt", "-w", ".")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Warning: gofmt failed: %v\n", err)
+		// Don't return error for gofmt failure, it's not critical
+	}
+
+	// Run goimports if available
+	fmt.Println("  - Running goimports...")
+	cmd = exec.Command("goimports", "-w", ".")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Warning: goimports failed (may not be installed): %v\n", err)
+		// Don't return error for goimports failure, it's optional
+	}
+
 	return nil
 }
 

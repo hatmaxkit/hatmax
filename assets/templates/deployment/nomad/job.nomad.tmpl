@@ -1,0 +1,61 @@
+job "{{.ServiceName}}" {
+  datacenters = ["{{.Datacenter}}"]
+  type        = "service"
+
+  group "{{.ServiceName}}" {
+    count = {{.Replicas}}
+
+    network {
+      port "http" {
+        static = {{.Port}}
+      }
+    }
+
+    service {
+      name = "{{.ServiceName}}"
+      port = "http"
+      
+      tags = [
+        "traefik.enable=true",
+        "traefik.http.routers.{{.ServiceName}}.rule={{.TraefikRule}}",
+        "traefik.http.routers.{{.ServiceName}}.entrypoints={{.TraefikEntrypoint}}",
+        {{range .ConsulTags}}"{{.}}",{{end}}
+      ]
+
+      check {
+        type     = "http"
+        path     = "{{.HealthCheckPath}}"
+        interval = "{{.HealthCheckInterval}}"
+        timeout  = "5s"
+      }
+    }
+
+    task "{{.ServiceName}}" {
+      driver = "exec"
+
+      config {
+        command = "./{{.ServiceName}}"
+        args    = ["--config", "/local/config.yaml"]
+      }
+
+      template {
+        data = <<EOH
+{{.ConfigTemplate}}
+EOH
+        destination = "local/config.yaml"
+        change_mode = "restart"
+      }
+
+      resources {
+        cpu    = {{.Resources.CPU}}
+        memory = {{.Resources.Memory}}
+      }
+
+      env {
+        SERVICE_NAME = "{{.ServiceName}}"
+        LOG_LEVEL    = "info"
+        CONSUL_HTTP_ADDR = "{{`{{ env "CONSUL_HTTP_ADDR" | default "`}}{{.ConsulAddress}}{{`" }}`}}"
+      }
+    }
+  }
+}

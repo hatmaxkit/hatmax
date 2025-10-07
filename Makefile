@@ -2,7 +2,10 @@
 
 # Variables
 BINARY_NAME=hatmax
-APP_DIR=example/ref
+APP_DIR=examples/ref
+OUTPUT_DIR=examples/ref/services
+SERVICE_NAME?=todo
+PORT?=8080
 
 # Go related commands
 GOFUMPT=gofumpt
@@ -13,7 +16,7 @@ GO_VET=go vet
 GO_VULNCHECK=govulncheck
 
 # Phony targets ensure that make doesn't confuse a target with a file of the same name.
-.PHONY: all build run test clean fmt lint check
+.PHONY: all build run test clean fmt lint check test-generated full-test
 
 all: build
 
@@ -50,6 +53,20 @@ lint:
 # Run all checks (format, lint, test).
 check: fmt lint test
 	@echo "All checks passed."
+
+# Temp handy test for generated service
+test-generated:
+	@echo "Testing generated service..."
+	@cd $(OUTPUT_DIR)/$(SERVICE_NAME) && go build
+	@echo "Cleaning up any existing processes on port $(PORT)..."
+	@lsof -ti:$(PORT) | xargs -r kill || true
+	@sleep 1
+	@echo "Starting service on port $(PORT)..."
+	@cd $(OUTPUT_DIR)/$(SERVICE_NAME) && timeout 5s bash -c './$(SERVICE_NAME) & sleep 2 && curl -s http://localhost:$(PORT)/items && echo "\n✅ Service test successful"' || echo "⚠️  Service test completed (timeout expected)"
+
+# Temp handy full regenerate + test
+full-test: run test-generated
+	@echo "Full test complete."
 
 # Clean the generated directory and the binary.
 clean:

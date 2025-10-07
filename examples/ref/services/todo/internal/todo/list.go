@@ -2,20 +2,21 @@ package todo
 
 import (
 	"time"
-	"github.com/google/uuid"
+
 	"github.com/adrianpk/hatmax/pkg/lib/hm"
+	"github.com/google/uuid"
 )
 
 // List is the aggregate root for the List domain.
 type List struct {
-	id        uuid.UUID `json:"id"`
-	Name string `json:"name"`
-	Description string `json:"description"`
-	CreatedAt time.Time `json:"created_at"`
-	CreatedBy string    `json:"created_by"`
-	UpdatedAt time.Time `json:"updated_at"`
-	UpdatedBy string    `json:"updated_by"`
-	Items []Item `json:"items"`
+	id          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
+	CreatedBy   string    `json:"created_by"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	UpdatedBy   string    `json:"updated_by"`
+	Items       []Item    `json:"items"`
 }
 
 // ID returns the ID of the List.
@@ -31,7 +32,7 @@ func (a *List) SetID(id uuid.UUID) {
 // NewList creates a new List with a generated ID and initial version.
 func NewList() *List {
 	return &List{
-		id:        hm.GenerateNewID(),
+		id: hm.GenerateNewID(),
 	}
 }
 

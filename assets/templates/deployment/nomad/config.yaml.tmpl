@@ -1,0 +1,22 @@
+server:
+  port: {{`{{ env "NOMAD_PORT_http" }}`}}
+  host: "0.0.0.0"
+
+database:
+  type: "{{.DatabaseType}}"
+  dsn: "{{.DatabaseDSN}}"
+
+logging:
+  level: "info"
+  format: "json"
+
+observability:
+  metrics:
+    enabled: true
+    endpoint: "/metrics"
+  tracing:
+    enabled: false
+
+consul:
+  address: "{{`{{ env "CONSUL_HTTP_ADDR" | default "`}}{{.ConsulAddress}}{{`" }}`}}"
+  service_name: "{{.ServiceName}}"

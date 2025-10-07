@@ -13,17 +13,19 @@ type Config struct {
 	Name       string             `yaml:"name,omitempty"`
 	Package    string             `yaml:"package,omitempty"`
 	ModulePath string             `yaml:"module_path,omitempty"`
+	Deployment *DeploymentConfig  `yaml:"deployment,omitempty"`
 	Services   map[string]Service `yaml:"services"`
 }
 
 // Service defines a microservice within the monorepo.
 type Service struct {
-	Kind        string                     `yaml:"kind"`
-	RepoImpl    StringOrSlice              `yaml:"repo_impl"`
-	Auth        *AuthConfig                `yaml:"auth,omitempty"`	
-	Models      map[string]Model           `yaml:"models"`
-	Aggregates  map[string]AggregateRoot   `yaml:"aggregates,omitempty"` // NEW
-	API         *APIConfig                 `yaml:"api"`
+	Kind       string                   `yaml:"kind"`
+	RepoImpl   StringOrSlice            `yaml:"repo_impl"`
+	Auth       *AuthConfig              `yaml:"auth,omitempty"`
+	Deployment *ServiceDeploymentConfig `yaml:"deployment,omitempty"`
+	Models     map[string]Model         `yaml:"models"`
+	Aggregates map[string]AggregateRoot `yaml:"aggregates,omitempty"`
+	API        *APIConfig               `yaml:"api"`
 }
 
 // AggregateRoot defines an aggregate root in the domain.
@@ -44,7 +46,7 @@ type ChildCollection struct {
 	FK          ForeignKey        `yaml:"fk"`
 	ID          string            `yaml:"id"`
 	Order       *Order            `yaml:"order,omitempty"`
-	Updatable   []string          `yaml:"updatable,omitempty"`	
+	Updatable   []string          `yaml:"updatable,omitempty"`
 	Audit       bool              `yaml:"audit"`
 	Constraints *ChildConstraints `yaml:"constraints,omitempty"`
 }
@@ -64,7 +66,7 @@ type Order struct {
 
 // ChildConstraints defines additional constraints for a child collection.
 type ChildConstraints struct {
-	Unique  [][]string `yaml:"unique,omitempty"`	
+	Unique  [][]string `yaml:"unique,omitempty"`
 	Indexes [][]string `yaml:"indexes,omitempty"`
 }
 
@@ -76,7 +78,7 @@ type Model struct {
 
 // ModelOptions defines optional settings for a model.
 type ModelOptions struct {
-	Audit     bool `yaml:"audit"`
+	Audit     bool     `yaml:"audit"`
 	Lifecycle []string `yaml:"lifecycle,omitempty"`
 }
 
@@ -101,13 +103,13 @@ type APIConfig struct {
 
 // Handler defines an API handler.
 type Handler struct {
-	ID            string        `yaml:"id"`
-	Route         string        `yaml:"route"`
-	Source        HandlerSource `yaml:"source"`
-	Model         string        `yaml:"model"`
-	Operation     StandardOp    `yaml:"op"`
-	CustomOperation string      `yaml:"custom_operation,omitempty"`
-	Overrides     *HandlerOverrides `yaml:"overrides,omitempty"`
+	ID              string            `yaml:"id"`
+	Route           string            `yaml:"route"`
+	Source          HandlerSource     `yaml:"source"`
+	Model           string            `yaml:"model"`
+	Operation       StandardOp        `yaml:"op"`
+	CustomOperation string            `yaml:"custom_operation,omitempty"`
+	Overrides       *HandlerOverrides `yaml:"overrides,omitempty"`
 }
 
 // HandlerSource defines where the handler logic comes from.
@@ -133,17 +135,17 @@ const (
 
 // AuthConfig defines authentication and authorization settings.
 type AuthConfig struct {
-	Enabled        bool     `yaml:"enabled"`
-	Mode           string   `yaml:"mode,omitempty"`
-	RequiredScopes []string `yaml:"required_scopes,omitempty"`
+	Enabled         bool     `yaml:"enabled"`
+	Mode            string   `yaml:"mode,omitempty"`
+	RequiredScopes  []string `yaml:"required_scopes,omitempty"`
 	IdentityService string   `yaml:"identity_service,omitempty"`
-	CacheTTL       string   `yaml:"cache_ttl,omitempty"`
+	CacheTTL        string   `yaml:"cache_ttl,omitempty"`
 }
 
 // HandlerOverrides allows overriding generated handler names.
 type HandlerOverrides struct {
-	RepoName   string `yaml:"repo_name,omitempty"`
-	MethodName string `yaml:"method_name,omitempty"`
+	RepoName    string `yaml:"repo_name,omitempty"`
+	MethodName  string `yaml:"method_name,omitempty"`
 	HandlerName string `yaml:"handler_name,omitempty"`
 }
 
@@ -222,14 +224,14 @@ func SanitizeName(name string) string {
 	if name == "" {
 		return name
 	}
-	
+
 	// Convert to lowercase
 	result := strings.ToLower(name)
-	
+
 	// Replace spaces and hyphens with underscores
 	result = strings.ReplaceAll(result, " ", "_")
 	result = strings.ReplaceAll(result, "-", "_")
-	
+
 	// Remove any character that is not alphanumeric or underscore
 	var sanitized strings.Builder
 	for _, r := range result {
@@ -237,6 +239,68 @@ func SanitizeName(name string) string {
 			sanitized.WriteRune(r)
 		}
 	}
-	
+
 	return sanitized.String()
+}
+
+type DeploymentConfig struct {
+	Platforms      []string              `yaml:"platforms"`
+	Nomad          *NomadConfig          `yaml:"nomad,omitempty"`
+	Infrastructure *InfrastructureConfig `yaml:"infrastructure,omitempty"`
+}
+
+type NomadConfig struct {
+	Datacenter         string          `yaml:"datacenter"`
+	ConsulIntegration  bool            `yaml:"consul_integration"`
+	TraefikIntegration bool            `yaml:"traefik_integration"`
+	DefaultResources   *ResourceConfig `yaml:"default_resources,omitempty"`
+}
+
+type InfrastructureConfig struct {
+	Consul  *ConsulConfig  `yaml:"consul,omitempty"`
+	Traefik *TraefikConfig `yaml:"traefik,omitempty"`
+}
+
+type ConsulConfig struct {
+	Enabled bool   `yaml:"enabled"`
+	Address string `yaml:"address"`
+}
+
+type TraefikConfig struct {
+	Enabled    bool   `yaml:"enabled"`
+	Entrypoint string `yaml:"entrypoint"`
+	Domain     string `yaml:"domain"`
+}
+
+type ServiceDeploymentConfig struct {
+	Nomad *NomadServiceConfig `yaml:"nomad,omitempty"`
+}
+
+type NomadServiceConfig struct {
+	Port        int                   `yaml:"port"`
+	Replicas    int                   `yaml:"replicas"`
+	Resources   *ResourceConfig       `yaml:"resources,omitempty"`
+	HealthCheck *HealthCheckConfig    `yaml:"health_check,omitempty"`
+	Traefik     *ServiceTraefikConfig `yaml:"traefik,omitempty"`
+	Consul      *ServiceConsulConfig  `yaml:"consul,omitempty"`
+}
+
+type ResourceConfig struct {
+	CPU    int `yaml:"cpu"`
+	Memory int `yaml:"memory"`
+}
+
+type HealthCheckConfig struct {
+	Path     string `yaml:"path"`
+	Interval string `yaml:"interval"`
+}
+
+type ServiceTraefikConfig struct {
+	Rule     string `yaml:"rule"`
+	Priority int    `yaml:"priority"`
+}
+
+type ServiceConsulConfig struct {
+	ServiceName string   `yaml:"service_name"`
+	Tags        []string `yaml:"tags,omitempty"`
 }

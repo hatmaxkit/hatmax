@@ -30,8 +30,6 @@ type ItemHandler struct {
 	xparams config.XParams
 }
 
-
-
 func (h *ItemHandler) RegisterRoutes(r chi.Router) {
 	r.Route("/items", func(r chi.Router) {
 		r.Post("/", h.CreateItem)

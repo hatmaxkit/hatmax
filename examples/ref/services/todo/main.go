@@ -2,19 +2,17 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/adrianpk/hatmax/pkg/lib/hm"
+	"github.com/go-chi/chi/v5"
 
 	"github.com/adrianpk/hatmax-ref/services/todo/internal/config"
-	"github.com/adrianpk/hatmax-ref/services/todo/internal/todo"
 	"github.com/adrianpk/hatmax-ref/services/todo/internal/sqlite"
+	"github.com/adrianpk/hatmax-ref/services/todo/internal/todo"
 )
 
 func main() {
@@ -37,7 +35,7 @@ func main() {
 
 	var deps []any
 
-  ItemRepo := sqlite.NewItemRepo(xparams)
+	ItemRepo := sqlite.NewItemRepo(xparams)
 	deps = append(deps, ItemRepo)
 
 	ItemHandler := todo.NewItemHandler(ItemRepo, xparams)
@@ -49,5 +47,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	hm.Serve(router, hm.ServerOpts{Port: cfg.Server.Port}, logger)
+	hm.Serve(router, hm.ServerOpts{Port: cfg.Server.Port}, stops, logger)
 }

@@ -5,12 +5,12 @@ import (
 	"database/sql"
 	"fmt"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/google/uuid"
+	_ "github.com/mattn/go-sqlite3"
 
-	_ "github.com/adrianpk/hatmax/pkg/lib/hm"
 	"github.com/adrianpk/hatmax-ref/services/todo/internal/config"
 	todo "github.com/adrianpk/hatmax-ref/services/todo/internal/todo"
+	_ "github.com/adrianpk/hatmax/pkg/lib/hm"
 )
 
 // ItemRepo implements the ItemRepo interface for SQLite.
