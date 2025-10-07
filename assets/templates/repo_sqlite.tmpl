@@ -1,0 +1,128 @@
+package {{.PackageName}}
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/google/uuid"
+
+	_ "github.com/adrianpk/hatmax/pkg/lib/hm"
+	"{{.ModulePath}}/internal/config"
+	{{.ServiceName}} "{{.ModulePath}}/internal/{{.ServiceName}}"
+)
+
+// {{.ModelName}}Repo implements the {{.ModelName}}Repo interface for SQLite.
+type {{.ModelName}}Repo struct {
+	db      *sql.DB
+	xparams config.XParams
+}
+
+// New{{.ModelName}}Repo creates a new, uninitialized {{.ModelName}}Repo.
+func New{{.ModelName}}Repo(xparams config.XParams) *{{.ModelName}}Repo {
+	return &{{.ModelName}}Repo{
+		xparams: xparams,
+	}
+}
+
+// Start opens the database connection and pings it.
+func (r *{{.ModelName}}Repo) Start(ctx context.Context) error {
+	appCfg := r.xparams.Cfg
+
+	dbPath := appCfg.Database.Path
+
+	db, err := sql.Open("sqlite3", fmt.Sprintf("%s?_foreign_keys=on", dbPath))
+	if err != nil {
+		return fmt.Errorf("cannot open database: %w", err)
+	}
+
+	if err := db.PingContext(ctx); err != nil {
+		return fmt.Errorf("cannot connect to database: %w", err)
+	}
+	r.db = db
+	// TODO: Run migrations here
+	return nil
+}
+
+// Stop closes the database connection.
+func (r *{{.ModelName}}Repo) Stop(ctx context.Context) error {
+	if r.db != nil {
+		if err := r.db.Close(); err != nil {
+			return fmt.Errorf("cannot close database: %w", err)
+		}
+	}
+	return nil
+}
+
+// Create inserts a new {{.ModelName}} into the database.
+func (r *{{.ModelName}}Repo) Create(ctx context.Context, item *{{.ServiceName}}.{{.ModelName}}) error {
+	// TODO: Handle item.BeforeCreate() if applicable
+	_, err := r.db.ExecContext(ctx, QueryCreate{{.ModelName}}, item.ID(), {{.FieldValues}}, item.CreatedAt, item.UpdatedAt, item.CreatedBy, item.UpdatedBy)
+	if err != nil {
+		return fmt.Errorf("cannot create {{.ModelName}}: %w", err)
+	}
+	return nil
+}
+
+// Get retrieves a {{.ModelName}} by its ID.
+func (r *{{.ModelName}}Repo) Get(ctx context.Context, id uuid.UUID) (*{{.ServiceName}}.{{.ModelName}}, error) {
+	var item {{.ServiceName}}.{{.ModelName}}
+	var scannedID uuid.UUID // Local variable to scan into
+	row := r.db.QueryRowContext(ctx, QueryGet{{.ModelName}}, id)
+	err := row.Scan(&scannedID, {{.FieldPointers}}, &item.CreatedAt, &item.UpdatedAt, &item.CreatedBy, &item.UpdatedBy)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Return nil, nil for not found
+		}
+		return nil, fmt.Errorf("cannot get {{.ModelName}}: %w", err)
+	}
+	item.SetID(scannedID) // Set the ID using the exported method
+	return &item, nil
+}
+
+// Update updates an existing {{.ModelName}} in the database.
+func (r *{{.ModelName}}Repo) Update(ctx context.Context, item *{{.ServiceName}}.{{.ModelName}}) error {
+	// TODO: Handle item.BeforeUpdate() if applicable
+	_, err := r.db.ExecContext(ctx, QueryUpdate{{.ModelName}}, {{.FieldValues}}, item.UpdatedAt, item.CreatedBy, item.UpdatedBy, item.ID())
+	if err != nil {
+		return fmt.Errorf("cannot update {{.ModelName}}: %w", err)
+	}
+	return nil
+}
+
+// Delete deletes a {{.ModelName}} from the database by its ID.
+func (r *{{.ModelName}}Repo) Delete(ctx context.Context, id uuid.UUID) error {
+	_, err := r.db.ExecContext(ctx, QueryDelete{{.ModelName}}, id)
+	if err != nil {
+		return fmt.Errorf("cannot delete {{.ModelName}}: %w", err)
+	}
+	return nil
+}
+
+// List retrieves all {{.ModelName}} records from the database.
+func (r *{{.ModelName}}Repo) List(ctx context.Context) ([]*{{.ServiceName}}.{{.ModelName}}, error) {
+	rows, err := r.db.QueryContext(ctx, QueryList{{.ModelName}})
+	if err != nil {
+		return nil, fmt.Errorf("cannot list {{.ModelName}}s: %w", err)
+	}
+	defer rows.Close()
+
+	var items []*{{.ServiceName}}.{{.ModelName}}
+	for rows.Next() {
+		var item {{.ServiceName}}.{{.ModelName}}
+		var scannedID uuid.UUID // Local variable to scan into
+		err := rows.Scan(&scannedID, {{.FieldPointers}}, &item.CreatedAt, &item.UpdatedAt, &item.CreatedBy, &item.UpdatedBy)
+		if err != nil {
+			return nil, fmt.Errorf("cannot scan {{.ModelName}}: %w", err)
+		}
+		item.SetID(scannedID) // Set the ID using the exported method
+		items = append(items, &item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating {{.ModelName}} rows: %w", err)
+	}
+
+	return items, nil
+}

@@ -1,0 +1,16 @@
+package {{.PackageName}}
+
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
+
+// {{.ModelName}}Service defines the interface for {{.ModelName}} service operations.
+type {{.ModelName}}Service interface {
+	Create(ctx context.Context, item *{{.ModelName}}) error
+	Get(ctx context.Context, id uuid.UUID) (*{{.ModelName}}, error)
+	Update(ctx context.Context, item *{{.ModelName}}) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	List(ctx context.Context) ([]*{{.ModelName}}, error)
+}

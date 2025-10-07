@@ -1,0 +1,60 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/adrianpk/hatmax/pkg/lib/hm"
+
+	"{{$.ModulePath}}/internal/config"
+	{{- range .Services }}
+	"{{$.ModulePath}}/internal/{{.Name}}"
+	"{{$.ModulePath}}/internal/sqlite"
+	{{- end }}
+)
+
+func main() {
+	cfg, err := config.LoadConfig("config.yaml", "APP", os.Args)
+	if err != nil {
+		log.Fatalf("cannot load config: %v", err)
+	}
+
+	logger := hm.NewLogger(cfg.Log.Level)
+
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	xparams := config.XParams{
+		Log: logger,
+		Cfg: cfg,
+	}
+
+	router := chi.NewRouter()
+
+	var deps []any
+	{{- range .Services }}
+	{{- $serviceName := .Name -}}
+	{{- range .Models }}
+
+  {{.}}Repo := sqlite.New{{.}}Repo(xparams)
+	deps = append(deps, {{.}}Repo)
+
+	{{.}}Handler := {{$serviceName}}.New{{.}}Handler({{.}}Repo, xparams)
+	deps = append(deps, {{.}}Handler)
+	{{- end }}
+	{{- end }}
+
+	starts, stops := hm.Setup(ctx, router, deps...)
+
+	if err := hm.Start(ctx, starts, stops); err != nil {
+		log.Fatal(err)
+	}
+
+	hm.Serve(router, hm.ServerOpts{Port: cfg.Server.Port}, logger)
+}

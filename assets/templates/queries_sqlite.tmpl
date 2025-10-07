@@ -1,0 +1,19 @@
+package {{.PackageName}}
+
+const (
+	// QueryCreate{{.ModelName}} creates a new {{.ModelName}} record.
+	QueryCreate{{.ModelName}} = `INSERT INTO {{.TableName}} (id, {{.FieldNames}}, created_at, updated_at, created_by, updated_by) VALUES (?, {{.FieldPlaceholders}}, ?, ?, ?, ?)`
+
+	// QueryGet{{.ModelName}} retrieves a {{.ModelName}} record by ID.
+	QueryGet{{.ModelName}} = `SELECT id, {{.FieldNames}}, created_at, updated_at, created_by, updated_by FROM {{.TableName}} WHERE id = ?`
+
+	// QueryUpdate{{.ModelName}} updates an existing {{.ModelName}} record.
+	// This is a full update; consider optimizing for partial updates if needed.
+	QueryUpdate{{.ModelName}} = `UPDATE {{.TableName}} SET {{.FieldAssignments}}, updated_at = ?, updated_by = ? WHERE id = ?`
+
+	// QueryDelete{{.ModelName}} deletes a {{.ModelName}} record by ID.
+	QueryDelete{{.ModelName}} = `DELETE FROM {{.TableName}} WHERE id = ?`
+
+	// QueryList{{.ModelName}} lists all {{.ModelName}} records.
+	QueryList{{.ModelName}} = `SELECT id, {{.FieldNames}}, created_at, updated_at, created_by, updated_by FROM {{.TableName}}`
+)

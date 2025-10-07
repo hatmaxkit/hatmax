@@ -1,0 +1,79 @@
+package {{.PackageName}}
+
+import (
+	"time"
+	"github.com/google/uuid"
+	"github.com/adrianpk/hatmax/pkg/lib/hm"
+)
+
+// {{.AggregateName}} is the aggregate root for the {{.AggregateName}} domain.
+type {{.AggregateName}} struct {
+	id        uuid.UUID `json:"id"`
+{{- range .Fields }}
+	{{.Name}} {{.Type}} `json:"{{.JSONTag}}"`
+{{- end }}
+{{- if .Audit }}
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by"`
+	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedBy string    `json:"updated_by"`
+{{- end }}
+{{- if .VersionField }}
+	{{.VersionField}} int `json:"{{.VersionField}}"`
+{{- end }}
+{{- range .Children }}
+	{{.Name}} []{{.ChildModelName}} `json:"{{.JSONTag}}"`
+{{- end }}
+}
+
+// ID returns the ID of the {{.AggregateName}}.
+func (a *{{.AggregateName}}) ID() uuid.UUID {
+	return a.id
+}
+
+// SetID sets the ID of the {{.AggregateName}}.
+func (a *{{.AggregateName}}) SetID(id uuid.UUID) {
+	a.id = id
+}
+
+// New{{.AggregateName}} creates a new {{.AggregateName}} with a generated ID and initial version.
+func New{{.AggregateName}}() *{{.AggregateName}} {
+	return &{{.AggregateName}}{
+		id:        hm.GenerateNewID(),
+		{{- if .VersionField }}
+		{{.VersionField}}: 0,
+		{{- end }}
+	}
+}
+
+// EnsureID ensures the aggregate root has a valid ID.
+func (a *{{.AggregateName}}) EnsureID() {
+	if a.id == uuid.Nil {
+		a.id = hm.GenerateNewID()
+	}
+}
+
+// BeforeCreate sets creation timestamps and version.
+func (a *{{.AggregateName}}) BeforeCreate() {
+	a.EnsureID()
+	{{- if .Audit }}
+	a.CreatedAt = time.Now()
+	a.UpdatedAt = time.Now()
+	// TODO: Set CreatedBy
+	// TODO: Set UpdatedBy
+	{{- end }}
+	{{- if .VersionField }}
+	a.{{.VersionField}} = 0
+	{{- end }}
+}
+
+// BeforeUpdate sets update timestamps and increments version.
+func (a *{{.AggregateName}}) BeforeUpdate() {
+	{{- if .Audit }}
+	a.UpdatedAt = time.Now()
+	// TODO: Set UpdatedBy
+	{{- end }}
+	{{- if .VersionField }}
+	a.{{.VersionField}}++
+	{{- end }}
+}

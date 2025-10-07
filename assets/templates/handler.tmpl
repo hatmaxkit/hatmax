@@ -1,0 +1,238 @@
+package {{.PackageName}}
+
+import (
+	"encoding/json"
+	"errors"
+	"io"
+	"net/http"
+	"strings"
+
+	"github.com/adrianpk/hatmax/pkg/lib/hm"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/google/uuid"
+
+	"{{$.ModulePath}}/internal/config"
+)
+
+const {{.ModelName}}MaxBodyBytes = 1 << 20
+
+// New{{.ModelName}}Handler creates a new {{.ModelName}}Handler.
+func New{{.ModelName}}Handler(svc {{.ModelName}}Service, xparams config.XParams) *{{.ModelName}}Handler {
+	return &{{.ModelName}}Handler{
+		svc:     svc,
+		xparams: xparams,
+	}
+}
+
+type {{.ModelName}}Handler struct {
+	svc     {{.ModelName}}Service
+	xparams config.XParams
+}
+
+
+
+func (h *{{.ModelName}}Handler) RegisterRoutes(r chi.Router) {
+	r.Route("/{{.ModelPluralLower}}", func(r chi.Router) {
+		r.Post("/", h.Create{{.ModelName}})
+		r.Get("/", h.List{{.ModelPlural}})
+		r.Get("/{id}", h.Get{{.ModelName}})
+		r.Put("/{id}", h.Update{{.ModelName}})
+		{{- if not .IsChildCollection }}
+		r.Delete("/{id}", h.Delete{{.ModelName}})
+		{{- end }}
+	})
+}
+
+func (h *{{.ModelName}}Handler) Create{{.ModelName}}(w http.ResponseWriter, r *http.Request) {
+	log := h.logForRequest(r)
+	ctx := r.Context()
+
+	model, ok := h.decode{{.ModelName}}Payload(w, r, log)
+	if !ok {
+		return
+	}
+
+	model.EnsureID()
+{{- if .Audit }}
+	model.BeforeCreate()
+{{- end }}
+
+	validationErrors := ValidateCreate{{.ModelName}}(ctx, model)
+	if len(validationErrors) > 0 {
+		log.Debug("validation failed", "errors", validationErrors)
+		hm.Error(w, http.StatusBadRequest, "validation_failed", "Validation failed", validationErrors...)
+		return
+	}
+
+	if err := h.svc.Create(ctx, &model); err != nil {
+		log.Error("failed to create {{.ModelLower}}", "error", err)
+		hm.Error(w, http.StatusInternalServerError, "internal_error", "Could not create {{.ModelLower}}")
+		return
+	}
+
+	hm.Respond(w, http.StatusCreated, model, nil)
+}
+
+func (h *{{.ModelName}}Handler) Get{{.ModelName}}(w http.ResponseWriter, r *http.Request) {
+	log := h.logForRequest(r)
+	ctx := r.Context()
+
+	id, ok := h.parseIDParam(w, r, log)
+	if !ok {
+		return
+	}
+
+	model, err := h.svc.Get(ctx, id)
+	if err != nil {
+		log.Error("failed to get {{.ModelLower}}", "error", err, "id", id.String())
+		hm.Error(w, http.StatusInternalServerError, "internal_error", "Could not retrieve {{.ModelLower}}")
+		return
+	}
+
+	if model == nil {
+		hm.Error(w, http.StatusNotFound, "not_found", "{{.ModelName}} not found")
+		return
+	}
+
+	hm.Respond(w, http.StatusOK, model, nil)
+}
+
+func (h *{{.ModelName}}Handler) Update{{.ModelName}}(w http.ResponseWriter, r *http.Request) {
+	log := h.logForRequest(r)
+	ctx := r.Context()
+
+	id, ok := h.parseIDParam(w, r, log)
+	if !ok {
+		return
+	}
+
+	model, ok := h.decode{{.ModelName}}Payload(w, r, log)
+	if !ok {
+		return
+	}
+
+	model.SetID(id)
+{{- if .Audit }}
+	model.BeforeUpdate()
+{{- end }}
+
+	validationErrors := ValidateUpdate{{.ModelName}}(ctx, id, model)
+	if len(validationErrors) > 0 {
+		log.Debug("validation failed", "errors", validationErrors, "id", id.String())
+		hm.Error(w, http.StatusBadRequest, "validation_failed", "Validation failed", validationErrors...)
+		return
+	}
+
+	if err := h.svc.Update(ctx, &model); err != nil {
+		log.Error("failed to update {{.ModelLower}}", "error", err, "id", id.String())
+		hm.Error(w, http.StatusInternalServerError, "internal_error", "Could not update {{.ModelLower}}")
+		return
+	}
+
+	hm.Respond(w, http.StatusOK, model, nil)
+}
+
+{{- if not .IsChildCollection }}
+func (h *{{.ModelName}}Handler) Delete{{.ModelName}}(w http.ResponseWriter, r *http.Request) {
+	log := h.logForRequest(r)
+	ctx := r.Context()
+
+	id, ok := h.parseIDParam(w, r, log)
+	if !ok {
+		return
+	}
+
+	validationErrors := ValidateDelete{{.ModelName}}(ctx, id)
+	if len(validationErrors) > 0 {
+		log.Debug("validation failed", "errors", validationErrors, "id", id.String())
+		hm.Error(w, http.StatusBadRequest, "validation_failed", "Validation failed", validationErrors...)
+		return
+	}
+
+	if err := h.svc.Delete(ctx, id); err != nil {
+		log.Error("failed to delete {{.ModelLower}}", "error", err, "id", id.String())
+		hm.Error(w, http.StatusInternalServerError, "internal_error", "Could not delete {{.ModelLower}}")
+		return
+	}
+
+	hm.Respond(w, http.StatusNoContent, nil, nil)
+}
+{{- end }}
+
+func (h *{{.ModelName}}Handler) List{{.ModelPlural}}(w http.ResponseWriter, r *http.Request) {
+	log := h.logForRequest(r)
+	ctx := r.Context()
+
+	models, err := h.svc.List(ctx)
+	if err != nil {
+		log.Error("failed to list {{.ModelPluralLower}}", "error", err)
+		hm.Error(w, http.StatusInternalServerError, "internal_error", "Could not list {{.ModelPluralLower}}")
+		return
+	}
+
+	// TODO: Add pagination metadata once repository supports it.
+	hm.Respond(w, http.StatusOK, models, nil)
+}
+
+func (h *{{.ModelName}}Handler) parseIDParam(w http.ResponseWriter, r *http.Request, log hm.Logger) (uuid.UUID, bool) {
+	rawID := strings.TrimSpace(chi.URLParam(r, "id"))
+	if rawID == "" {
+		hm.Error(w, http.StatusBadRequest, "bad_request", "Missing id path parameter")
+		return uuid.Nil, false
+	}
+
+	id, err := uuid.Parse(rawID)
+	if err != nil {
+		log.Debug("invalid id parameter", "id", rawID, "error", err)
+		hm.Error(w, http.StatusBadRequest, "bad_request", "Invalid id format")
+		return uuid.Nil, false
+	}
+
+	return id, true
+}
+
+func (h *{{.ModelName}}Handler) decode{{.ModelName}}Payload(w http.ResponseWriter, r *http.Request, log hm.Logger) ({{.ModelName}}, bool) {
+	r.Body = http.MaxBytesReader(w, r.Body, {{.ModelName}}MaxBodyBytes)
+	defer r.Body.Close()
+
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+
+	var model {{.ModelName}}
+	if err := dec.Decode(&model); err != nil {
+		log.Error("failed to decode request body", "error", err)
+		hm.Error(w, http.StatusBadRequest, "invalid_payload", "Request body could not be decoded")
+		return {{.ModelName}}{}, false
+	}
+
+	if err := ensure{{.ModelName}}SingleJSONValue(dec); err != nil {
+		log.Error("request body contains extra data", "error", err)
+		hm.Error(w, http.StatusBadRequest, "invalid_payload", "Request body contains unexpected data")
+		return {{.ModelName}}{}, false
+	}
+
+	return model, true
+}
+
+func ensure{{.ModelName}}SingleJSONValue(dec *json.Decoder) error {
+	if err := dec.Decode(&struct{}{}); err != io.EOF {
+		if err == nil {
+			return errors.New("additional JSON values detected")
+		}
+		return err
+	}
+	return nil
+}
+
+func (h *{{.ModelName}}Handler) Log() hm.Logger {
+	return h.xparams.Log
+}
+
+func (h *{{.ModelName}}Handler) logForRequest(r *http.Request) hm.Logger {
+	return h.xparams.Log.With(
+		"request_id", middleware.GetReqID(r.Context()),
+		"method", r.Method,
+		"path", r.URL.Path,
+	)
+}

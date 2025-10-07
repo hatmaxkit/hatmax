@@ -1,0 +1,49 @@
+package {{.PackageName}}
+
+import (
+	"time"
+	"github.com/google/uuid"
+)
+
+// {{.ChildModelName}} is a child of an aggregate root.
+type {{.ChildModelName}} struct {
+	ID        uuid.UUID `json:"id"`
+	{{- range .Fields }}
+	{{.Name}} {{.Type}} `json:"{{.JSONTag}}"`
+	{{- end }}
+	{{- if .Audit }}
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by"`
+	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedBy string    `json:"updated_by"`
+	{{- end }}
+}
+
+// New{{.ChildModelName}} creates a new {{.ChildModelName}} with a generated ID.
+func New{{.ChildModelName}}() *{{.ChildModelName}} {
+	return &{{.ChildModelName}}{
+		ID: uuid.New(),
+		{{- if .Audit }}
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		{{- end }}
+	}
+}
+
+// EnsureID ensures the child model has a valid ID.
+func (c *{{.ChildModelName}}) EnsureID() {
+	if c.ID == uuid.Nil {
+		c.ID = uuid.New()
+	}
+}
+
+// BeforeCreate sets creation timestamps.
+func (c *{{.ChildModelName}}) BeforeCreate() {
+	c.CreatedAt = time.Now()
+	c.UpdatedAt = time.Now()
+}
+
+// BeforeUpdate sets update timestamps.
+func (c *{{.ChildModelName}}) BeforeUpdate() {
+	c.UpdatedAt = time.Now()
+}

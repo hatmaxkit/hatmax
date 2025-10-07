@@ -1,0 +1,57 @@
+version: 0.1
+name: "ref"
+package: "github.com/adrianpk/hatmax-ref"
+services:
+  todo:
+    kind: atom
+    repo_impl: [sqlite, mongo]
+    auth:
+      enabled: true
+      mode: development
+      required_scopes: ["read:todos", "write:todos"]
+    models:
+      Item:
+        options:
+          audit: true
+          lifecycle: [before_create, before_update]
+        fields:
+          text: {type: text, validations: [{name: required}]}
+          done: {type: bool, default: false}
+    aggregates:
+      List:
+        audit: true
+        fields:
+          name: {type: string, validations: [{name: required}]}
+          description: {type: text}
+        children:
+          items:
+            of: Item
+            audit: true
+    api:
+      base_path: /todo
+      handlers:
+        - id: todo_items_list
+          route: "GET /items"
+          source: repo
+          model: Item
+          op: list
+        - id: todo_items_create
+          route: "POST /items"
+          source: repo
+          model: Item
+          op: create
+        - id: todo_items_get
+          route: "GET /items/{id}"
+          source: repo
+          model: Item
+          op: get
+        - id: todo_items_update
+          route: "PATCH /items/{id}"
+          source: repo
+          model: Item
+          op: update
+        - id: todo_items_delete
+          route: "DELETE /items/{id}"
+          source: repo
+          model: Item
+          op: delete

@@ -1,0 +1,52 @@
+package {{.PackageName}}
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/adrianpk/hatmax/pkg/lib/hm"
+)
+
+// {{.ModelName}} represents a {{.ModelName}}.
+//
+// hatmax:model
+type {{.ModelName}} struct {
+	id        uuid.UUID `json:"id"`{{- if .Fields}}{{- range .Fields}}
+	{{.Name}} {{.Type}} `json:"{{.JSONTag}}"`
+	{{- end -}}{{- end -}}{{- if .Audit}}
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	CreatedBy uuid.UUID `json:"created_by"`
+	UpdatedBy uuid.UUID `json:"updated_by"`
+{{- end}}
+}
+
+// ID returns the ID of the {{.ModelName}}.
+func (m *{{.ModelName}}) ID() uuid.UUID {
+	return m.id
+}
+
+func (m *{{.ModelName}}) SetID(id uuid.UUID) {
+	m.id = id
+}
+
+func (m *{{.ModelName}}) EnsureID() {
+	if m.id == uuid.Nil {
+		m.id = hm.GenerateNewID()
+	}
+}
+
+{{if .Audit}}
+// BeforeCreate sets the initial timestamps and createdBy for the model.
+func (m *{{.ModelName}}) BeforeCreate() {
+	hm.SetAuditFieldsBeforeCreate(&m.CreatedAt, &m.UpdatedAt, &m.CreatedBy, &m.UpdatedBy)
+	if m.id == uuid.Nil {
+		m.id = hm.GenerateNewID()
+	}
+}
+
+// BeforeUpdate updates the UpdatedAt timestamp and UpdatedBy for the model.
+func (m *{{.ModelName}}) BeforeUpdate() {
+	hm.SetAuditFieldsBeforeUpdate(&m.UpdatedAt, &m.UpdatedBy)
+}
+{{end}}

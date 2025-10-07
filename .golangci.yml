@@ -1,0 +1,77 @@
+run:
+  timeout: 5m
+  issues-exit-code: 1
+  tests: false
+  skip-dirs:
+    - app
+
+linters-settings:
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(hatmax.com/hatmax)
+  revive:
+    rules:
+      - name: var-naming
+        severity: error
+        disabled: false
+      - name: exported
+        severity: error
+        disabled: false
+      - name: unused-parameter
+        severity: error
+        disabled: false
+      - name: indent-error-flow
+        severity: error
+        disabled: false
+      - name: time-naming
+        severity: error
+        disabled: false
+      - name: context-as-first-arg
+        severity: error
+        disabled: false
+  forbidigo:
+    forbid:
+      - `log.Print`
+      - `fmt.Print`
+      - `fmt.Println`
+      - `fmt.Printf`
+      - `CreateXxx` # Example for constructor naming policy
+  depguard:
+    list-type: strict
+    packages:
+      # Main application should not import directly from internal service implementations
+      - "github.com/some/internal/service/impl": "^hatmax.com/hatmax/app/services/.*"
+  lll:
+    line-length: 140
+  gocritic:
+    disable-all: false
+    enable:
+      - ifElseChain
+      - dupImport
+      - emptyStringTest
+      - rangeValCopy
+      - appendAssign
+
+linters:
+  disable-all: true
+  enable:
+    - staticcheck
+    - revive
+    - gofumpt
+    - gci
+    - errcheck
+    - ineffassign
+    - unparam
+    - gosimple
+    - gocritic
+    - forbidigo
+    - depguard
+    - govet
+    - misspell
+    - lll
+    - nestif
+    - prealloc
+    - rowserrcheck
+    - wrapcheck

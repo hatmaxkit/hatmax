@@ -1,0 +1,94 @@
+package {{.PackageName}}
+
+import (
+	"context"
+{{- if .NeedsFmt }}
+	"fmt"
+{{- end }}
+{{- if .NeedsStrconv }}
+	"strconv"
+{{- end }}
+
+	"github.com/adrianpk/hatmax/pkg/lib/hm"
+	"github.com/google/uuid"
+)
+
+// ValidateCreate{{.ModelName}} validates a {{.ModelName}} for creation.
+func ValidateCreate{{.ModelName}}(ctx context.Context, model {{.ModelName}}) []hm.ValidationError {
+	var errors []hm.ValidationError
+
+	{{- range $field := .Fields -}}
+	{{- if $field.Validations }}
+	// Validations for field {{$field.JSONTag}}
+	{{range $val := $field.Validations -}}
+	{{- if eq $val.Name "required" -}}
+	{{- if eq $field.Type "string" -}}
+	if model.{{$field.Name}} == "" {
+		errors = append(errors, hm.ValidationError{Field: "{{$field.JSONTag}}", Code: "required", Message: "{{$field.JSONTag}} is required"})
+	}
+	{{- else if eq $field.Type "uuid.UUID" -}}
+	if model.{{$field.Name}} == uuid.Nil {
+		errors = append(errors, hm.ValidationError{Field: "{{$field.JSONTag}}", Code: "required", Message: "{{$field.JSONTag}} is required"})
+	}
+	{{- end -}}
+	{{- else if eq $val.Name "min_length" -}}
+	if len(model.{{$field.Name}}) < mustAtoi("{{$val.Value}}") {
+		errors = append(errors, hm.ValidationError{Field: "{{$field.JSONTag}}", Code: "min_length", Message: fmt.Sprintf("{{$field.JSONTag}} must be at least %s characters long", "{{$val.Value}}")})
+	}
+	{{- else if eq $val.Name "max_length" -}}
+	if len(model.{{$field.Name}}) > mustAtoi("{{$val.Value}}") {
+		errors = append(errors, hm.ValidationError{Field: "{{$field.JSONTag}}", Code: "max_length", Message: fmt.Sprintf("{{$field.JSONTag}} must be at most %s characters long", "{{$val.Value}}")})
+	}
+	{{- else if eq $val.Name "is_email" -}}
+	if !hm.IsEmail(model.{{$field.Name}}) {
+		errors = append(errors, hm.ValidationError{Field: "{{$field.JSONTag}}", Code: "invalid_email", Message: "{{$field.JSONTag}} is not a valid email address"})
+	}
+	{{- end -}}
+	{{- end -}}
+	{{- end -}}
+	{{- end }}
+
+	return errors
+}
+
+// ValidateUpdate{{.ModelName}} validates a {{.ModelName}} for update.
+func ValidateUpdate{{.ModelName}}(ctx context.Context, id uuid.UUID, model {{.ModelName}}) []hm.ValidationError {
+	var errors []hm.ValidationError
+
+	if !hm.IsRequiredUUID(id) {
+		errors = append(errors, hm.ValidationError{
+			Field:   "id",
+			Code:    "required",
+			Message: "ID is required for update",
+		})
+	}
+
+	errors = append(errors, ValidateCreate{{.ModelName}}(ctx, model)...)
+
+	return errors
+}
+
+// ValidateDelete{{.ModelName}} validates a {{.ModelName}} for deletion.
+func ValidateDelete{{.ModelName}}(ctx context.Context, id uuid.UUID) []hm.ValidationError {
+	var errors []hm.ValidationError
+
+	if !hm.IsRequiredUUID(id) {
+		errors = append(errors, hm.ValidationError{
+			Field:   "id",
+			Code:    "required",
+			Message: "ID is required for deletion",
+		})
+	}
+
+	return errors
+}
+
+{{- if .NeedsStrconv }}
+func mustAtoi(value string) int {
+	n, err := strconv.Atoi(value)
+	if err != nil {
+		panic(err)
+	}
+	return n
+}
+{{- end }}

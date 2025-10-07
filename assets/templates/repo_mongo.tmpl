@@ -1,0 +1,89 @@
+package {{.PackageName}}
+
+import (
+	"context"
+	"fmt"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/google/uuid"
+)
+
+// Mongo{{.ModelName}}Repo implements the {{.ModelName}}Repo interface for MongoDB.
+type Mongo{{.ModelName}}Repo struct {
+	collection *mongo.Collection
+}
+
+// NewMongo{{.ModelName}}Repo creates a new Mongo{{.ModelName}}Repo.
+func NewMongo{{.ModelName}}Repo(db *mongo.Database) *Mongo{{.ModelName}}Repo {
+	return &Mongo{{.ModelName}}Repo{
+		collection: db.Collection("{{.TableName}}"),
+	}
+}
+
+// Create inserts a new {{.ModelName}} into the database.
+func (r *Mongo{{.ModelName}}Repo) Create(ctx context.Context, item *{{.ModelName}}) error {
+	// TODO: Handle item.BeforeCreate() if applicable
+	_, err := r.collection.InsertOne(ctx, item)
+	if err != nil {
+		return fmt.Errorf("cannot create {{.ModelName}}: %w", err)
+	}
+	return nil
+}
+
+// Get retrieves a {{.ModelName}} by its ID.
+func (r *Mongo{{.ModelName}}Repo) Get(ctx context.Context, id uuid.UUID) (*{{.ModelName}}, error) {
+	var item {{.ModelName}}
+	filter := bson.M{"_id": id}
+	err := r.collection.FindOne(ctx, filter).Decode(&item)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("{{.ModelName}} not found")
+		}
+		return nil, fmt.Errorf("cannot get {{.ModelName}}: %w", err)
+	}
+	return &item, nil
+}
+
+// Update updates an existing {{.ModelName}} in the database.
+func (r *Mongo{{.ModelName}}Repo) Update(ctx context.Context, item *{{.ModelName}}) error {
+	// TODO: Handle item.BeforeUpdate() if applicable
+	filter := bson.M{"_id": item.ID()}
+	update := bson.M{"$set": item} // This will replace the entire document with the item's current state
+	_, err := r.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("cannot update {{.ModelName}}: %w", err)
+	}
+	return nil
+}
+
+// Delete deletes a {{.ModelName}} from the database by its ID.
+func (r *Mongo{{.ModelName}}Repo) Delete(ctx context.Context, id uuid.UUID) error {
+	filter := bson.M{"_id": id}
+	res, err := r.collection.DeleteOne(ctx, filter)
+	if err != nil {
+		return fmt.Errorf("cannot delete {{.ModelName}}: %w", err)
+	}
+	if res.DeletedCount == 0 {
+		return fmt.Errorf("{{.ModelName}} not found")
+	}
+	return nil
+}
+
+// List retrieves all {{.ModelName}} records from the database.
+func (r *Mongo{{.ModelName}}Repo) List(ctx context.Context) ([]*{{.ModelName}}, error) {
+	var items []*{{.ModelName}}
+	cursor, err := r.collection.Find(ctx, bson.M{}, options.Find())
+	if err != nil {
+		return nil, fmt.Errorf("cannot list {{.ModelName}}s: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	if err = cursor.All(ctx, &items); err != nil {
+		return nil, fmt.Errorf("cannot decode {{.ModelName}}s: %w", err)
+	}
+
+	return items, nil
+}
