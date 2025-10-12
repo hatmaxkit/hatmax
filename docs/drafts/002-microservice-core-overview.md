@@ -30,7 +30,7 @@ Standardized health endpoints:
 - `/readyz` → 200 if ready, 503 otherwise
 - `/healthz` → JSON aggregated from dependency states: `up | degraded | down` plus per-dep detail
 
-*→ Detailed semantics covered in: [`017-health-endpoint-semantics.md`](017-health-endpoint-semantics.md)*
+*→ Detailed semantics covered in: [`004-health-endpoint-semantics.md`](004-health-endpoint-semantics.md)*
 
 ### 2. Checker Abstraction
 
@@ -39,7 +39,7 @@ Simple, composable health check foundation:
 type Checker func(ctx context.Context) error
 ```
 
-*→ Complete interface design covered in: [`015-microservice-interfaces-contracts.md`](015-microservice-interfaces-contracts.md)*
+*→ Complete interface design covered in: [`003-microservice-interfaces-contracts.md`](003-microservice-interfaces-contracts.md)*
 
 ### 3. Dependency Manager (DepManager) for Real Health
 
@@ -49,7 +49,7 @@ Two-pronged approach to dependency monitoring:
 
 Pluggable aggregation policies enable flexible health definitions.
 
-*→ Full interface specifications in: [`015-microservice-interfaces-contracts.md`](015-microservice-interfaces-contracts.md)*
+*→ Full interface specifications in: [`003-microservice-interfaces-contracts.md`](003-microservice-interfaces-contracts.md)*
 
 ### 4. Parent → Child Health Rollup
 
@@ -65,13 +65,13 @@ Self-documenting API surface:
 - **Chi**: automatic discovery via `chi.Walk`
 - Support for "virtual routes" (planned/internal endpoints)
 
-*→ Complete implementation approach in: [`016-route-discoverability-approach.md`](016-route-discoverability-approach.md)*
+*→ Complete implementation approach in: [`005-route-discoverability-approach.md`](005-route-discoverability-approach.md)*
 
 ### 6. Minimal Integration
 
 Composable service configuration through functional options that enables clean dependency injection without framework lock-in.
 
-*→ Complete integration patterns and examples in: [`018-microservice-integration-patterns.md`](018-microservice-integration-patterns.md)*
+*→ Complete integration patterns and examples in: [`006-microservice-integration-patterns.md`](006-microservice-integration-patterns.md)*
 
 ## Architectural Benefits
 
@@ -104,10 +104,10 @@ Composable service configuration through functional options that enables clean d
 
 This overview serves as the unifying architectural vision for the microservice core design. For detailed implementation aspects, see the component-specific drafts:
 
-- [`015-microservice-interfaces-contracts.md`](015-microservice-interfaces-contracts.md) - Core interfaces and data contracts
-- [`016-route-discoverability-approach.md`](016-route-discoverability-approach.md) - API discovery implementation
-- [`017-health-endpoint-semantics.md`](017-health-endpoint-semantics.md) - Health endpoint standards
-- [`018-microservice-integration-patterns.md`](018-microservice-integration-patterns.md) - Integration patterns and examples
+- [`003-microservice-interfaces-contracts.md`](003-microservice-interfaces-contracts.md) - Core interfaces and data contracts
+- [`005-route-discoverability-approach.md`](005-route-discoverability-approach.md) - API discovery implementation
+- [`004-health-endpoint-semantics.md`](004-health-endpoint-semantics.md) - Health endpoint standards
+- [`006-microservice-integration-patterns.md`](006-microservice-integration-patterns.md) - Integration patterns and examples
 
 These detailed drafts will inform the creation of formal ADRs once:
 1. The service architecture path is better defined
