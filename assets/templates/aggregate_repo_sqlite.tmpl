@@ -1,0 +1,412 @@
+package sqlite
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
+	_ "github.com/mattn/go-sqlite3"
+
+	"{{.ModulePath}}/internal/{{.PackageName}}"
+)
+
+// {{.AggregateName}}SQLiteRepo implements the {{.AggregateName}}Repo interface using SQLite.
+// SQLite requires more complex logic to handle aggregates across multiple related tables.
+type {{.AggregateName}}SQLiteRepo struct {
+	db *sql.DB
+}
+
+// New{{.AggregateName}}SQLiteRepo creates a new SQLite repository for {{.AggregateName}} aggregates.
+func New{{.AggregateName}}SQLiteRepo(db *sql.DB) *{{.AggregateName}}SQLiteRepo {
+	return &{{.AggregateName}}SQLiteRepo{db: db}
+}
+
+// Create creates a new {{.AggregateName}} aggregate in SQLite.
+// This involves inserting the root and all child entities in a single transaction.
+func (r *{{.AggregateName}}SQLiteRepo) Create(ctx context.Context, aggregate *{{.PackageName}}.{{.AggregateName}}) error {
+	if aggregate == nil {
+		return fmt.Errorf("aggregate cannot be nil")
+	}
+
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	// Ensure aggregate has an ID
+	aggregate.EnsureID()
+	
+	// Set creation timestamps
+	aggregate.BeforeCreate()
+
+	// Insert aggregate root
+	if err := r.insertRoot(ctx, tx, aggregate); err != nil {
+		return fmt.Errorf("failed to insert aggregate root: %w", err)
+	}
+
+	// Insert child entities
+	{{range .Children}}
+	if err := r.insert{{.ChildModelName}}s(ctx, tx, aggregate.ID(), aggregate.{{.Name}}); err != nil {
+		return fmt.Errorf("failed to insert {{.Name}}: %w", err)
+	}
+	{{end}}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+// Get retrieves a complete {{.AggregateName}} aggregate by ID from SQLite.
+// This involves loading the root and all child entities from multiple tables.
+func (r *{{.AggregateName}}SQLiteRepo) Get(ctx context.Context, id uuid.UUID) (*{{.PackageName}}.{{.AggregateName}}, error) {
+	// Load aggregate root
+	aggregate, err := r.getRoot(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get aggregate root: %w", err)
+	}
+
+	// Load child entities
+	{{range .Children}}
+	{{.Name}}, err := r.get{{.ChildModelName}}s(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get {{.Name}}: %w", err)
+	}
+	aggregate.{{.Name}} = {{.Name}}
+	{{end}}
+
+	return aggregate, nil
+}
+
+// Save performs a unit-of-work save operation on the {{.AggregateName}} aggregate.
+// This computes diffs and updates/inserts/deletes child entities as needed.
+func (r *{{.AggregateName}}SQLiteRepo) Save(ctx context.Context, aggregate *{{.PackageName}}.{{.AggregateName}}) error {
+	if aggregate == nil {
+		return fmt.Errorf("aggregate cannot be nil")
+	}
+
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	// Set update timestamps
+	aggregate.BeforeUpdate()
+
+	// Update aggregate root
+	if err := r.updateRoot(ctx, tx, aggregate); err != nil {
+		return fmt.Errorf("failed to update aggregate root: %w", err)
+	}
+
+	// Handle child entities with diff algorithms
+	{{range .Children}}
+	if err := r.save{{.ChildModelName}}s(ctx, tx, aggregate.ID(), aggregate.{{.Name}}); err != nil {
+		return fmt.Errorf("failed to save {{.Name}}: %w", err)
+	}
+	{{end}}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+// Delete removes the entire {{.AggregateName}} aggregate from SQLite.
+// This cascades to all child entities.
+func (r *{{.AggregateName}}SQLiteRepo) Delete(ctx context.Context, id uuid.UUID) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	// Delete child entities first (foreign key constraints)
+	{{range .Children}}
+	if err := r.delete{{.ChildModelName}}s(ctx, tx, id); err != nil {
+		return fmt.Errorf("failed to delete {{.Name}}: %w", err)
+	}
+	{{end}}
+
+	// Delete aggregate root
+	result, err := tx.ExecContext(ctx, `DELETE FROM {{.TableName}} WHERE id = ?`, id.String())
+	if err != nil {
+		return fmt.Errorf("failed to delete aggregate root: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("{{.AggregateName}} aggregate with ID %s not found for deletion", id.String())
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+// List retrieves all {{.AggregateName}} aggregates from SQLite.
+// This loads each aggregate with all its child entities.
+func (r *{{.AggregateName}}SQLiteRepo) List(ctx context.Context) ([]*{{.PackageName}}.{{.AggregateName}}, error) {
+	rows, err := r.db.QueryContext(ctx, `SELECT id FROM {{.TableName}} ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query aggregate IDs: %w", err)
+	}
+	defer rows.Close()
+
+	var aggregates []*{{.PackageName}}.{{.AggregateName}}
+
+	for rows.Next() {
+		var idStr string
+		if err := rows.Scan(&idStr); err != nil {
+			return nil, fmt.Errorf("failed to scan aggregate ID: %w", err)
+		}
+
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse UUID %s: %w", idStr, err)
+		}
+
+		aggregate, err := r.Get(ctx, id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get aggregate %s: %w", idStr, err)
+		}
+
+		aggregates = append(aggregates, aggregate)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+
+	return aggregates, nil
+}
+
+// Helper methods for aggregate root operations
+
+func (r *{{.AggregateName}}SQLiteRepo) insertRoot(ctx context.Context, tx *sql.Tx, aggregate *{{.PackageName}}.{{.AggregateName}}) error {
+	query := `INSERT INTO {{.TableName}} (id, {{.RootFields}}, created_at, updated_at) VALUES ({{.RootPlaceholders}})`
+	
+	_, err := tx.ExecContext(ctx, query, {{.RootValues}})
+	return err
+}
+
+func (r *{{.AggregateName}}SQLiteRepo) getRoot(ctx context.Context, id uuid.UUID) (*{{.PackageName}}.{{.AggregateName}}, error) {
+	query := `SELECT id, {{.RootFields}}, created_at, updated_at FROM {{.TableName}} WHERE id = ?`
+	
+	var aggregate {{.PackageName}}.{{.AggregateName}}
+	var idStr string
+	
+	err := r.db.QueryRowContext(ctx, query, id.String()).Scan(
+		&idStr, {{.RootScanRefs}}, &aggregate.CreatedAt, &aggregate.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("{{.AggregateName}} aggregate with ID %s not found", id.String())
+		}
+		return nil, fmt.Errorf("failed to scan aggregate root: %w", err)
+	}
+
+	parsedID, err := uuid.Parse(idStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse UUID %s: %w", idStr, err)
+	}
+	aggregate.SetID(parsedID)
+
+	return &aggregate, nil
+}
+
+func (r *{{.AggregateName}}SQLiteRepo) updateRoot(ctx context.Context, tx *sql.Tx, aggregate *{{.PackageName}}.{{.AggregateName}}) error {
+	query := `UPDATE {{.TableName}} SET {{.RootUpdateFields}}, updated_at = ? WHERE id = ?`
+	
+	result, err := tx.ExecContext(ctx, query, {{.RootUpdateValues}}, time.Now(), aggregate.ID().String())
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("{{.AggregateName}} aggregate with ID %s not found for update", aggregate.ID().String())
+	}
+
+	return nil
+}
+
+{{range .Children}}
+// Helper methods for {{.Name}} child entities
+
+func (r *{{$.AggregateName}}SQLiteRepo) insert{{.ChildModelName}}s(ctx context.Context, tx *sql.Tx, rootID uuid.UUID, items []{{$.PackageName}}.{{.ChildModelName}}) error {
+	if len(items) == 0 {
+		return nil
+	}
+
+	query := `INSERT INTO {{.TableName}} (id, {{$.AggregateName}}_id, {{.Fields}}, created_at, updated_at) VALUES {{.Placeholders}}`
+	
+	var args []interface{}
+	var placeholders []string
+	
+	for _, item := range items {
+		item.EnsureID()
+		item.BeforeCreate()
+		
+		placeholders = append(placeholders, "(?, ?, {{.FieldPlaceholders}}, ?, ?)")
+		args = append(args, item.ID().String(), rootID.String(), {{.FieldValues}}, item.CreatedAt, item.UpdatedAt)
+	}
+	
+	finalQuery := strings.Replace(query, "{{.Placeholders}}", strings.Join(placeholders, ", "), 1)
+	_, err := tx.ExecContext(ctx, finalQuery, args...)
+	return err
+}
+
+func (r *{{$.AggregateName}}SQLiteRepo) get{{.ChildModelName}}s(ctx context.Context, rootID uuid.UUID) ([]{{$.PackageName}}.{{.ChildModelName}}, error) {
+	query := `SELECT id, {{.Fields}}, created_at, updated_at FROM {{.TableName}} WHERE {{$.AggregateName}}_id = ? ORDER BY created_at`
+	
+	rows, err := r.db.QueryContext(ctx, query, rootID.String())
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []{{$.PackageName}}.{{.ChildModelName}}
+	
+	for rows.Next() {
+		var item {{$.PackageName}}.{{.ChildModelName}}
+		var idStr string
+		
+		err := rows.Scan(&idStr, {{.FieldScanRefs}}, &item.CreatedAt, &item.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse UUID %s: %w", idStr, err)
+		}
+		item.SetID(id)
+		
+		items = append(items, item)
+	}
+
+	return items, rows.Err()
+}
+
+func (r *{{$.AggregateName}}SQLiteRepo) save{{.ChildModelName}}s(ctx context.Context, tx *sql.Tx, rootID uuid.UUID, newItems []{{$.PackageName}}.{{.ChildModelName}}) error {
+	// Get current items from database
+	currentItems, err := r.get{{.ChildModelName}}s(ctx, rootID)
+	if err != nil {
+		return fmt.Errorf("failed to get current items: %w", err)
+	}
+
+	// Compute diff
+	toInsert, toUpdate, toDelete := r.compute{{.ChildModelName}}Diff(currentItems, newItems)
+
+	// Apply changes
+	if len(toDelete) > 0 {
+		if err := r.delete{{.ChildModelName}}sByIDs(ctx, tx, toDelete); err != nil {
+			return fmt.Errorf("failed to delete items: %w", err)
+		}
+	}
+
+	if len(toInsert) > 0 {
+		if err := r.insert{{.ChildModelName}}s(ctx, tx, rootID, toInsert); err != nil {
+			return fmt.Errorf("failed to insert items: %w", err)
+		}
+	}
+
+	if len(toUpdate) > 0 {
+		if err := r.update{{.ChildModelName}}s(ctx, tx, toUpdate); err != nil {
+			return fmt.Errorf("failed to update items: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (r *{{$.AggregateName}}SQLiteRepo) delete{{.ChildModelName}}s(ctx context.Context, tx *sql.Tx, rootID uuid.UUID) error {
+	_, err := tx.ExecContext(ctx, `DELETE FROM {{.TableName}} WHERE {{$.AggregateName}}_id = ?`, rootID.String())
+	return err
+}
+
+func (r *{{$.AggregateName}}SQLiteRepo) delete{{.ChildModelName}}sByIDs(ctx context.Context, tx *sql.Tx, ids []uuid.UUID) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	placeholders := make([]string, len(ids))
+	args := make([]interface{}, len(ids))
+	
+	for i, id := range ids {
+		placeholders[i] = "?"
+		args[i] = id.String()
+	}
+
+	query := fmt.Sprintf(`DELETE FROM {{.TableName}} WHERE id IN (%s)`, strings.Join(placeholders, ", "))
+	_, err := tx.ExecContext(ctx, query, args...)
+	return err
+}
+
+func (r *{{$.AggregateName}}SQLiteRepo) update{{.ChildModelName}}s(ctx context.Context, tx *sql.Tx, items []{{$.PackageName}}.{{.ChildModelName}}) error {
+	for _, item := range items {
+		item.BeforeUpdate()
+		
+		query := `UPDATE {{.TableName}} SET {{.UpdateFields}}, updated_at = ? WHERE id = ?`
+		_, err := tx.ExecContext(ctx, query, {{.UpdateValues}}, item.UpdatedAt, item.ID().String())
+		if err != nil {
+			return fmt.Errorf("failed to update item %s: %w", item.ID().String(), err)
+		}
+	}
+	return nil
+}
+
+// compute{{.ChildModelName}}Diff computes the difference between current and new items
+func (r *{{$.AggregateName}}SQLiteRepo) compute{{.ChildModelName}}Diff(current, new []{{$.PackageName}}.{{.ChildModelName}}) (toInsert, toUpdate []{{$.PackageName}}.{{.ChildModelName}}, toDelete []uuid.UUID) {
+	// Create maps for efficient lookup
+	currentMap := make(map[string]{{$.PackageName}}.{{.ChildModelName}})
+	newMap := make(map[string]{{$.PackageName}}.{{.ChildModelName}})
+
+	for _, item := range current {
+		currentMap[item.ID().String()] = item
+	}
+
+	for _, item := range new {
+		if item.ID() == uuid.Nil {
+			// New item without ID - needs insert
+			toInsert = append(toInsert, item)
+		} else {
+			newMap[item.ID().String()] = item
+			if _, exists := currentMap[item.ID().String()]; exists {
+				// Item exists - needs update
+				toUpdate = append(toUpdate, item)
+			} else {
+				// Item with ID but not in current - needs insert
+				toInsert = append(toInsert, item)
+			}
+		}
+	}
+
+	// Find items to delete (in current but not in new)
+	for id := range currentMap {
+		if _, exists := newMap[id]; !exists {
+			uid, _ := uuid.Parse(id)
+			toDelete = append(toDelete, uid)
+		}
+	}
+
+	return toInsert, toUpdate, toDelete
+}
+{{end}}

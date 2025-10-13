@@ -103,6 +103,12 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		}
 		fmt.Println("Aggregate models generated successfully.")
 
+		fmt.Println("Generating aggregate repository interfaces...")
+		if err := modelGen.GenerateAggregateRepoInterfaces(); err != nil {
+			return fmt.Errorf("error generating aggregate repository interfaces for service %s: %w", serviceName, err)
+		}
+		fmt.Println("Aggregate repository interfaces generated successfully.")
+
 		fmt.Println("Generating models...")
 		if err := modelGen.GenerateModels(); err != nil {
 			return fmt.Errorf("error generating models for service %s: %w", serviceName, err)
@@ -132,6 +138,12 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 			return fmt.Errorf("cannot generate MongoDB repository implementations for service %s: %w", serviceName, err)
 		}
 		fmt.Println("MongoDB repository implementations generated successfully.")
+
+		fmt.Println("Generating MongoDB aggregate repository implementations...")
+		if err := modelGen.GenerateAggregateMongoRepoImplementations(); err != nil {
+			return fmt.Errorf("cannot generate MongoDB aggregate repository implementations for service %s: %w", serviceName, err)
+		}
+		fmt.Println("MongoDB aggregate repository implementations generated successfully.")
 
 		fmt.Println("Generating handlers...")
 		if err := modelGen.GenerateHandlers(); err != nil {
