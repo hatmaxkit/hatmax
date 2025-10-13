@@ -75,7 +75,7 @@ func (r *{{.AggregateName}}MongoRepo) Save(ctx context.Context, aggregate *{{.Pa
 	aggregate.BeforeUpdate()
 
 	// Replace the entire document (aggregate root + all children)
-	filter := bson.M{"_id": aggregate.ID().String()}
+	filter := bson.M{"_id": aggregate.GetID().String()}
 	opts := options.Replace().SetUpsert(false)
 	
 	result, err := r.collection.ReplaceOne(ctx, filter, aggregate, opts)
@@ -84,7 +84,7 @@ func (r *{{.AggregateName}}MongoRepo) Save(ctx context.Context, aggregate *{{.Pa
 	}
 
 	if result.MatchedCount == 0 {
-		return fmt.Errorf("{{.AggregateName}} aggregate with ID %s not found for update", aggregate.ID().String())
+		return fmt.Errorf("{{.AggregateName}} aggregate with ID %s not found for update", aggregate.GetID().String())
 	}
 
 	return nil

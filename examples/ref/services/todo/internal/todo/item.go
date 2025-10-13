@@ -3,47 +3,53 @@ package todo
 import (
 	"time"
 
-	"github.com/adrianpk/hatmax/pkg/lib/hm"
 	"github.com/google/uuid"
 )
 
-// Item represents a Item.
-//
-// hatmax:model
+// Item is a child of an aggregate root.
 type Item struct {
-	id        uuid.UUID `json:"id"`
+	ID        uuid.UUID `json:"id"`
 	Text      string    `json:"text"`
 	Done      bool      `json:"done"`
 	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by"`
 	UpdatedAt time.Time `json:"updated_at"`
-	CreatedBy uuid.UUID `json:"created_by"`
-	UpdatedBy uuid.UUID `json:"updated_by"`
+	UpdatedBy string    `json:"updated_by"`
 }
 
-// ID returns the ID of the Item.
-func (m *Item) ID() uuid.UUID {
-	return m.id
-}
-
-func (m *Item) SetID(id uuid.UUID) {
-	m.id = id
-}
-
-func (m *Item) EnsureID() {
-	if m.id == uuid.Nil {
-		m.id = hm.GenerateNewID()
+// NewItem creates a new Item with a generated ID.
+func NewItem() *Item {
+	return &Item{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 }
 
-// BeforeCreate sets the initial timestamps and createdBy for the model.
-func (m *Item) BeforeCreate() {
-	hm.SetAuditFieldsBeforeCreate(&m.CreatedAt, &m.UpdatedAt, &m.CreatedBy, &m.UpdatedBy)
-	if m.id == uuid.Nil {
-		m.id = hm.GenerateNewID()
+// GetID returns the ID of the Item.
+func (c *Item) GetID() uuid.UUID {
+	return c.ID
+}
+
+// SetID sets the ID of the Item.
+func (c *Item) SetID(id uuid.UUID) {
+	c.ID = id
+}
+
+// EnsureID ensures the child model has a valid ID.
+func (c *Item) EnsureID() {
+	if c.ID == uuid.Nil {
+		c.ID = uuid.New()
 	}
 }
 
-// BeforeUpdate updates the UpdatedAt timestamp and UpdatedBy for the model.
-func (m *Item) BeforeUpdate() {
-	hm.SetAuditFieldsBeforeUpdate(&m.UpdatedAt, &m.UpdatedBy)
+// BeforeCreate sets creation timestamps.
+func (c *Item) BeforeCreate() {
+	c.CreatedAt = time.Now()
+	c.UpdatedAt = time.Now()
+}
+
+// BeforeUpdate sets update timestamps.
+func (c *Item) BeforeUpdate() {
+	c.UpdatedAt = time.Now()
 }

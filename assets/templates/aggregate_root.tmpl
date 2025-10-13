@@ -8,7 +8,7 @@ import (
 
 // {{.AggregateName}} is the aggregate root for the {{.AggregateName}} domain.
 type {{.AggregateName}} struct {
-	id        uuid.UUID `json:"id"`
+	ID        uuid.UUID `json:"id"`
 {{- range .Fields }}
 	{{.Name}} {{.Type}} `json:"{{.JSONTag}}"`
 {{- end }}
@@ -26,20 +26,20 @@ type {{.AggregateName}} struct {
 {{- end }}
 }
 
-// ID returns the ID of the {{.AggregateName}}.
-func (a *{{.AggregateName}}) ID() uuid.UUID {
-	return a.id
+// GetID returns the ID of the {{.AggregateName}}.
+func (a *{{.AggregateName}}) GetID() uuid.UUID {
+	return a.ID
 }
 
 // SetID sets the ID of the {{.AggregateName}}.
 func (a *{{.AggregateName}}) SetID(id uuid.UUID) {
-	a.id = id
+	a.ID = id
 }
 
 // New{{.AggregateName}} creates a new {{.AggregateName}} with a generated ID and initial version.
 func New{{.AggregateName}}() *{{.AggregateName}} {
 	return &{{.AggregateName}}{
-		id:        hm.GenerateNewID(),
+		ID:        hm.GenerateNewID(),
 		{{- if .VersionField }}
 		{{.VersionField}}: 0,
 		{{- end }}
@@ -48,8 +48,8 @@ func New{{.AggregateName}}() *{{.AggregateName}} {
 
 // EnsureID ensures the aggregate root has a valid ID.
 func (a *{{.AggregateName}}) EnsureID() {
-	if a.id == uuid.Nil {
-		a.id = hm.GenerateNewID()
+	if a.ID == uuid.Nil {
+		a.ID = hm.GenerateNewID()
 	}
 }
 

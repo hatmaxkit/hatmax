@@ -30,6 +30,16 @@ func New{{.ChildModelName}}() *{{.ChildModelName}} {
 	}
 }
 
+// GetID returns the ID of the {{.ChildModelName}}.
+func (c *{{.ChildModelName}}) GetID() uuid.UUID {
+	return c.ID
+}
+
+// SetID sets the ID of the {{.ChildModelName}}.
+func (c *{{.ChildModelName}}) SetID(id uuid.UUID) {
+	c.ID = id
+}
+
 // EnsureID ensures the child model has a valid ID.
 func (c *{{.ChildModelName}}) EnsureID() {
 	if c.ID == uuid.Nil {

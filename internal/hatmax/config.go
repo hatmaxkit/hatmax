@@ -19,13 +19,14 @@ type Config struct {
 
 // Service defines a microservice within the monorepo.
 type Service struct {
-	Kind       string                   `yaml:"kind"`
-	RepoImpl   StringOrSlice            `yaml:"repo_impl"`
-	Auth       *AuthConfig              `yaml:"auth,omitempty"`
-	Deployment *ServiceDeploymentConfig `yaml:"deployment,omitempty"`
-	Models     map[string]Model         `yaml:"models"`
-	Aggregates map[string]AggregateRoot `yaml:"aggregates,omitempty"`
-	API        *APIConfig               `yaml:"api"`
+	Kind         string                   `yaml:"kind"`
+	RepoImpl     StringOrSlice            `yaml:"repo_impl"`
+	SQLiteDriver string                   `yaml:"sqlite_driver,omitempty"` // "stdlib", "sqlx", "sqlc"
+	Auth         *AuthConfig              `yaml:"auth,omitempty"`
+	Deployment   *ServiceDeploymentConfig `yaml:"deployment,omitempty"`
+	Models       map[string]Model         `yaml:"models"`
+	Aggregates   map[string]AggregateRoot `yaml:"aggregates,omitempty"`
+	API          *APIConfig               `yaml:"api"`
 }
 
 // AggregateRoot defines an aggregate root in the domain.
@@ -215,6 +216,26 @@ func capitalizeFirst(s string) string {
 		return s
 	}
 	return strings.ToUpper(s[:1]) + s[1:]
+}
+
+// isPartOfAggregate checks if a model is used as a child entity in any aggregate
+func isPartOfAggregate(modelName string, aggregates map[string]AggregateRoot) bool {
+	for _, aggregate := range aggregates {
+		for _, child := range aggregate.Children {
+			if child.Of == modelName {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// GetSQLiteDriver returns the SQLite driver for the service, defaulting to "stdlib"
+func (s *Service) GetSQLiteDriver() string {
+	if s.SQLiteDriver == "" {
+		return "stdlib"
+	}
+	return s.SQLiteDriver
 }
 
 // SanitizeName sanitizes a name to be filesystem and URL-safe.

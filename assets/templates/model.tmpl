@@ -11,7 +11,7 @@ import (
 //
 // hatmax:model
 type {{.ModelName}} struct {
-	id        uuid.UUID `json:"id"`{{- if .Fields}}{{- range .Fields}}
+	ID        uuid.UUID `json:"id"`{{- if .Fields}}{{- range .Fields}}
 	{{.Name}} {{.Type}} `json:"{{.JSONTag}}"`
 	{{- end -}}{{- end -}}{{- if .Audit}}
 	CreatedAt time.Time `json:"created_at"`
@@ -21,18 +21,18 @@ type {{.ModelName}} struct {
 {{- end}}
 }
 
-// ID returns the ID of the {{.ModelName}}.
-func (m *{{.ModelName}}) ID() uuid.UUID {
-	return m.id
+// GetID returns the ID of the {{.ModelName}}.
+func (m *{{.ModelName}}) GetID() uuid.UUID {
+	return m.ID
 }
 
 func (m *{{.ModelName}}) SetID(id uuid.UUID) {
-	m.id = id
+	m.ID = id
 }
 
 func (m *{{.ModelName}}) EnsureID() {
-	if m.id == uuid.Nil {
-		m.id = hm.GenerateNewID()
+	if m.ID == uuid.Nil {
+		m.ID = hm.GenerateNewID()
 	}
 }
 
@@ -40,8 +40,8 @@ func (m *{{.ModelName}}) EnsureID() {
 // BeforeCreate sets the initial timestamps and createdBy for the model.
 func (m *{{.ModelName}}) BeforeCreate() {
 	hm.SetAuditFieldsBeforeCreate(&m.CreatedAt, &m.UpdatedAt, &m.CreatedBy, &m.UpdatedBy)
-	if m.id == uuid.Nil {
-		m.id = hm.GenerateNewID()
+	if m.ID == uuid.Nil {
+		m.ID = hm.GenerateNewID()
 	}
 }
 
