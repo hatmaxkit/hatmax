@@ -38,30 +38,25 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		return fmt.Errorf("error parsing YAML file: %w", err)
 	}
 
-	// Determine base output directory based on mode
 	outputDir := c.String("output")
 	devMode := c.Bool("dev")
 
-	// Get the monorepo name from config, use "monorepo" as default
 	monorepoName := "monorepo"
 	if config.Name != "" {
 		monorepoName = SanitizeName(config.Name)
 	}
 
-	// Set output directory - always use examples/
 	if outputDir == "." {
 		outputDir = filepath.Join("examples", monorepoName)
 	}
 
 	fmt.Printf("Generating monorepo '%s' in directory: %s\n", monorepoName, outputDir)
 
-	// Copy the YAML config file to the monorepo root
 	if err := copyConfigToMonorepoRoot(usedFile, outputDir); err != nil {
 		return fmt.Errorf("error copying config file to monorepo root: %w", err)
 	}
 	fmt.Printf("Config file %s copied to monorepo root\n", usedFile)
 
-	// Generate monorepo-level core library (bootstrap)
 	fmt.Println("Generating monorepo core library...")
 	if err := generateMonorepoCoreLibrary(outputDir, config, tmplFS); err != nil {
 		return fmt.Errorf("error generating monorepo core library: %w", err)
@@ -72,7 +67,6 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		servicePath := filepath.Join(outputDir, "services", serviceName)
 		modulePath := c.String("module-path")
 		if modulePath == "" {
-			// Use package field from config if available
 			if config.Package != "" {
 				modulePath = fmt.Sprintf("%s/services/%s", config.Package, serviceName)
 			} else if devMode {
@@ -83,13 +77,10 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		}
 		config.ModulePath = modulePath
 
-		// Calculate core library module path
 		if strings.Contains(modulePath, "/services/") {
-			// Remove everything from /services/ onwards and add /pkg/lib/core
 			baseModulePath := modulePath[:strings.Index(modulePath, "/services/")]
 			config.MonorepoModulePath = baseModulePath + "/pkg/lib/core"
 		} else {
-			// Fallback case
 			config.MonorepoModulePath = config.Package + "/pkg/lib/core"
 		}
 
@@ -182,8 +173,6 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		}
 		fmt.Println("main.go generated successfully.")
 
-		// Core library is generated at monorepo level, not per service
-
 		fmt.Println("Generating go.mod...")
 		if err := modelGen.GenerateGoMod(); err != nil {
 			return fmt.Errorf("cannot generate go.mod for service %s: %w", serviceName, err)
@@ -220,8 +209,6 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 	}
 	fmt.Println("Monorepo deployment scripts generated successfully.")
 
-
-	// Final workspace synchronization after all services are generated
 	if devMode {
 		fmt.Println("Performing final workspace synchronization...")
 		if err := finalWorkspaceSync(outputDir); err != nil {
@@ -233,8 +220,6 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 	return nil
 }
 
-
-// copyConfigToMonorepoRoot copies the YAML config file to the monorepo root directory
 func copyConfigToMonorepoRoot(configFile, outputDir string) error {
 	content, err := os.ReadFile(configFile)
 	if err != nil {
@@ -253,7 +238,6 @@ func copyConfigToMonorepoRoot(configFile, outputDir string) error {
 	return nil
 }
 
-// inferModulePath infers a Go module path based on the output directory
 func inferModulePath(outputDir string) string {
 	// Convert directory path to a reasonable module name
 	// For example: "my-project" -> "github.com/user/my-project"
@@ -397,7 +381,7 @@ func generateCoreGoMod(outputDir string, config Config) error {
 	if config.Package != "" {
 		coreModulePath = config.Package + "/pkg/lib/core"
 	}
-	
+
 	// Create core library go.mod with all necessary dependencies
 	goModContent := fmt.Sprintf(`module %s
 
@@ -436,12 +420,12 @@ func generateMonorepoWorkspace(outputDir string, config Config) error {
 	workspaceBuilder.WriteString("go 1.23\n\n")
 	workspaceBuilder.WriteString("use (\n")
 	workspaceBuilder.WriteString("\t./pkg/lib/core\n") // Include the core library module
-	
+
 	// Add all services from config
 	for serviceName := range config.Services {
 		workspaceBuilder.WriteString(fmt.Sprintf("\t./services/%s\n", serviceName))
 	}
-	
+
 	workspaceBuilder.WriteString(")\n")
 
 	// Write go.work to the monorepo root
@@ -461,7 +445,7 @@ func finalWorkspaceSync(outputDir string) error {
 	if err != nil {
 		return fmt.Errorf("cannot get absolute path for output directory: %w", err)
 	}
-	
+
 	// Change to the monorepo root directory
 	originalDir, err := os.Getwd()
 	if err != nil {
@@ -470,11 +454,11 @@ func finalWorkspaceSync(outputDir string) error {
 	defer func() {
 		os.Chdir(originalDir)
 	}()
-	
+
 	if err := os.Chdir(absOutputDir); err != nil {
 		return fmt.Errorf("cannot change to monorepo root %s: %w", absOutputDir, err)
 	}
-	
+
 	// Run go mod tidy in monorepo root first
 	fmt.Println("  - Running go mod tidy in monorepo root...")
 	cmd := exec.Command("go", "mod", "tidy")
@@ -483,7 +467,7 @@ func finalWorkspaceSync(outputDir string) error {
 	if err := cmd.Run(); err != nil {
 		fmt.Printf("Warning: go mod tidy failed in monorepo root: %v\n", err)
 	}
-	
+
 	// Run go work sync to synchronize all modules
 	fmt.Println("  - Running go work sync...")
 	cmd = exec.Command("go", "work", "sync")
@@ -492,6 +476,6 @@ func finalWorkspaceSync(outputDir string) error {
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("go work sync failed: %w", err)
 	}
-	
+
 	return nil
 }

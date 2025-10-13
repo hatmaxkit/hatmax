@@ -16,7 +16,6 @@ import (
 	_ "github.com/adrianpk/hatmax/pkg/lib/hm"
 )
 
-// FieldTemplateData holds data for a single field in the template.
 type FieldTemplateData struct {
 	Name        string
 	Type        string
@@ -25,13 +24,11 @@ type FieldTemplateData struct {
 	Validations []FieldValidationData
 }
 
-// FieldValidationData holds data for a single validation rule.
 type FieldValidationData struct {
 	Name  string
 	Value string
 }
 
-// ModelTemplateData holds all data needed to render a model template.
 type ModelTemplateData struct {
 	PackageName        string
 	ModelName          string
@@ -43,7 +40,6 @@ type ModelTemplateData struct {
 	MonorepoModulePath string
 }
 
-// HandlerTemplateData holds all data needed to render a handler template.
 type HandlerTemplateData struct {
 	PackageName        string
 	ModelName          string
@@ -58,41 +54,39 @@ type HandlerTemplateData struct {
 }
 
 type ModelGenerator struct {
-	Config                   Config
-	OutputDir                string
-	DevMode                  bool
-	Template                 *template.Template
-	RepoInterfaceTemplate    *template.Template
-	ServiceInterfaceTemplate *template.Template
-	SQLiteRepoTemplate       *template.Template
-	SQLiteQueriesTemplate    *template.Template
-	MongoRepoTemplate        *template.Template
-	HandlerTemplate          *template.Template
-	ValidatorTemplate        *template.Template
-	MainTemplate             *template.Template
-	ConfigTemplate           *template.Template
-	ConfigYAMLTemplate       *template.Template
-	XParamsTemplate          *template.Template
-	MakefileTemplate            *template.Template
-	AggregateRootTemplate       *template.Template
-	ChildCollectionTemplate     *template.Template
-	AggregateRepoTemplate       *template.Template
-	AggregateMongoRepoTemplate  *template.Template
-	AggregateSQLiteRepoTemplate *template.Template
-	AggregateSQLiteQueriesTemplate *template.Template
+	Config                          Config
+	OutputDir                       string
+	DevMode                         bool
+	Template                        *template.Template
+	RepoInterfaceTemplate           *template.Template
+	ServiceInterfaceTemplate        *template.Template
+	SQLiteRepoTemplate              *template.Template
+	SQLiteQueriesTemplate           *template.Template
+	MongoRepoTemplate               *template.Template
+	HandlerTemplate                 *template.Template
+	ValidatorTemplate               *template.Template
+	MainTemplate                    *template.Template
+	ConfigTemplate                  *template.Template
+	ConfigYAMLTemplate              *template.Template
+	XParamsTemplate                 *template.Template
+	MakefileTemplate                *template.Template
+	AggregateRootTemplate           *template.Template
+	ChildCollectionTemplate         *template.Template
+	AggregateRepoTemplate           *template.Template
+	AggregateMongoRepoTemplate      *template.Template
+	AggregateSQLiteRepoTemplate     *template.Template
+	AggregateSQLiteQueriesTemplate  *template.Template
 	AggregateSQLiteRepoTestTemplate *template.Template
-	AggregateMongoRepoTestTemplate *template.Template
-	// Core library templates
-	CoreLifecycleTemplate   *template.Template
-	CoreServerTemplate      *template.Template
-	CoreLogTemplate         *template.Template
-	CoreAuthTemplate        *template.Template
-	CoreModelTemplate       *template.Template
-	CoreResponseTemplate    *template.Template
-	CoreValidationTemplate  *template.Template
+	AggregateMongoRepoTestTemplate  *template.Template
+	CoreLifecycleTemplate           *template.Template
+	CoreServerTemplate              *template.Template
+	CoreLogTemplate                 *template.Template
+	CoreAuthTemplate                *template.Template
+	CoreModelTemplate               *template.Template
+	CoreResponseTemplate            *template.Template
+	CoreValidationTemplate          *template.Template
 }
 
-// NewModelGenerator creates a new ModelGenerator.
 func NewModelGenerator(config Config, outputDir string, devMode bool, assetsFS fs.FS) (*ModelGenerator, error) {
 	tmplFS, err := fs.Sub(assetsFS, "assets/templates")
 	if err != nil {
@@ -241,38 +235,38 @@ func NewModelGenerator(config Config, outputDir string, devMode bool, assetsFS f
 	}
 
 	return &ModelGenerator{
-			Config:                   config,
-			OutputDir:                outputDir,
-			DevMode:                  devMode,
-			Template:                 tmpl,
-			RepoInterfaceTemplate:    repoInterfaceTmpl,
-			ServiceInterfaceTemplate: serviceInterfaceTmpl,
-			SQLiteRepoTemplate:       sqliteRepoTmpl,
-			SQLiteQueriesTemplate:    sqliteQueriesTmpl,
-			MongoRepoTemplate:        mongoRepoTmpl,
-			HandlerTemplate:          handlerTmpl,
-			ValidatorTemplate:        validatorTmpl,
-			MainTemplate:             mainTmpl,
-			ConfigTemplate:           configTmpl,
-			ConfigYAMLTemplate:       configYAMLTmpl,
-			XParamsTemplate:          xparamsTmpl,
-			MakefileTemplate:         makefileTmpl,
-			AggregateRootTemplate:       aggregateRootTmpl,
-			ChildCollectionTemplate:     childCollectionTmpl,
-			AggregateRepoTemplate:       aggregateRepoTmpl,
-			AggregateMongoRepoTemplate:  aggregateMongoRepoTmpl,
-			AggregateSQLiteRepoTemplate: aggregateSQLiteRepoTmpl,
-			AggregateSQLiteQueriesTemplate: aggregateSQLiteQueriesTmpl,
+			Config:                          config,
+			OutputDir:                       outputDir,
+			DevMode:                         devMode,
+			Template:                        tmpl,
+			RepoInterfaceTemplate:           repoInterfaceTmpl,
+			ServiceInterfaceTemplate:        serviceInterfaceTmpl,
+			SQLiteRepoTemplate:              sqliteRepoTmpl,
+			SQLiteQueriesTemplate:           sqliteQueriesTmpl,
+			MongoRepoTemplate:               mongoRepoTmpl,
+			HandlerTemplate:                 handlerTmpl,
+			ValidatorTemplate:               validatorTmpl,
+			MainTemplate:                    mainTmpl,
+			ConfigTemplate:                  configTmpl,
+			ConfigYAMLTemplate:              configYAMLTmpl,
+			XParamsTemplate:                 xparamsTmpl,
+			MakefileTemplate:                makefileTmpl,
+			AggregateRootTemplate:           aggregateRootTmpl,
+			ChildCollectionTemplate:         childCollectionTmpl,
+			AggregateRepoTemplate:           aggregateRepoTmpl,
+			AggregateMongoRepoTemplate:      aggregateMongoRepoTmpl,
+			AggregateSQLiteRepoTemplate:     aggregateSQLiteRepoTmpl,
+			AggregateSQLiteQueriesTemplate:  aggregateSQLiteQueriesTmpl,
 			AggregateSQLiteRepoTestTemplate: aggregateSQLiteRepoTestTmpl,
-			AggregateMongoRepoTestTemplate: aggregateMongoRepoTestTmpl,
+			AggregateMongoRepoTestTemplate:  aggregateMongoRepoTestTmpl,
 			// Core library templates
-			CoreLifecycleTemplate:   coreLifecycleTmpl,
-			CoreServerTemplate:      coreServerTmpl,
-			CoreLogTemplate:         coreLogTmpl,
-			CoreAuthTemplate:        coreAuthTmpl,
-			CoreModelTemplate:       coreModelTmpl,
-			CoreResponseTemplate:    coreResponseTmpl,
-			CoreValidationTemplate:  coreValidationTmpl,
+			CoreLifecycleTemplate:  coreLifecycleTmpl,
+			CoreServerTemplate:     coreServerTmpl,
+			CoreLogTemplate:        coreLogTmpl,
+			CoreAuthTemplate:       coreAuthTmpl,
+			CoreModelTemplate:      coreModelTmpl,
+			CoreResponseTemplate:   coreResponseTmpl,
+			CoreValidationTemplate: coreValidationTmpl,
 		},
 		nil
 }
@@ -286,7 +280,7 @@ func (mg *ModelGenerator) GenerateModels() error {
 				fmt.Printf("  - Skipping model %s/%s (part of aggregate)\n", serviceName, modelName)
 				continue
 			}
-			
+
 			if model.Fields == nil {
 				model.Fields = make(map[string]Field)
 			}
@@ -378,7 +372,7 @@ func (mg *ModelGenerator) GenerateRepoInterfaces() error {
 				fmt.Printf("  - Skipping repository interface %s/%sRepo (part of aggregate)\n", serviceName, modelName)
 				continue
 			}
-			
+
 			fmt.Printf("  - Generating repository interface: %s/%sRepo\n", serviceName, modelName)
 
 			packageName := serviceName // For now, package name is the service name
@@ -422,7 +416,7 @@ func (mg *ModelGenerator) GenerateServiceInterfaces() error {
 				fmt.Printf("  - Skipping service interface %s/%sService (part of aggregate)\n", serviceName, modelName)
 				continue
 			}
-			
+
 			fmt.Printf("  - Generating service interface: %s/%sService\n", serviceName, modelName)
 
 			packageName := serviceName // For now, package name is the service name
@@ -460,7 +454,6 @@ func (mg *ModelGenerator) GenerateServiceInterfaces() error {
 // GenerateSQLiteRepoImplementations generates the SQLite repository implementation files based on the configuration.
 func (mg *ModelGenerator) GenerateSQLiteRepoImplementations() error {
 	for serviceName, service := range mg.Config.Services {
-		// Only generate for services that use sqlite
 		if !contains(service.RepoImpl, "sqlite") {
 			continue
 		}
@@ -471,7 +464,7 @@ func (mg *ModelGenerator) GenerateSQLiteRepoImplementations() error {
 				fmt.Printf("  - Skipping SQLite repository %s/%sRepo (part of aggregate)\n", serviceName, modelName)
 				continue
 			}
-			
+
 			fmt.Printf("  - Generating SQLite repository implementation: %s/%sRepo (sqlite)\n", serviceName, modelName)
 
 			packageName := "sqlite"
@@ -567,7 +560,7 @@ func (mg *ModelGenerator) GenerateMongoRepoImplementations() error {
 				fmt.Printf("  - Skipping MongoDB repository %s/%sRepo (part of aggregate)\n", serviceName, modelName)
 				continue
 			}
-			
+
 			fmt.Printf("  - Generating MongoDB repository implementation: %s/%sRepo (mongo)\n", serviceName, modelName)
 
 			packageName := "mongo"
@@ -614,7 +607,7 @@ func (mg *ModelGenerator) GenerateHandlers() error {
 				fmt.Printf("  - Skipping handler %s/%sHandler (part of aggregate)\n", serviceName, modelName)
 				continue
 			}
-			
+
 			fmt.Printf("  - Generating handler: %s/%sHandler\n", serviceName, modelName)
 
 			packageName := serviceName
@@ -681,7 +674,7 @@ func (mg *ModelGenerator) GenerateValidators() error {
 				fmt.Printf("  - Skipping validator %s/%sValidator (part of aggregate)\n", serviceName, modelName)
 				continue
 			}
-			
+
 			fmt.Printf("  - Generating validator: %s/%sValidator\n", serviceName, modelName)
 
 			packageName := serviceName // For now, package name is the service name
@@ -780,7 +773,7 @@ func (mg *ModelGenerator) GenerateMain() error {
 		}
 	}
 	sort.Strings(modelNames)
-	
+
 	// Get aggregate names
 	aggregateNames := make([]string, 0, len(currentService.Aggregates))
 	for aggregateName := range currentService.Aggregates {
@@ -820,7 +813,7 @@ func (mg *ModelGenerator) GenerateConfigAndXParams() error {
 
 	configGoPath := filepath.Join(mg.OutputDir, "internal", "config", "config.go")
 	data := struct {
-		ModulePath        string
+		ModulePath         string
 		MonorepoModulePath string
 	}{
 		ModulePath:         mg.Config.ModulePath,
@@ -1041,16 +1034,16 @@ type SQLiteAggregateTemplateData struct {
 
 // SQLiteChildTemplateData holds data for child entities in SQLite aggregate repositories.
 type SQLiteChildTemplateData struct {
-	Name               string // Field name in aggregate (e.g., "Items")
-	ChildModelName     string // Model name (e.g., "Item")
-	TableName          string // Table name (e.g., "items")
-	Fields             string // Field list for queries
-	FieldPlaceholders  string // Placeholders for insert queries
-	FieldValues        string // Values for insert operations
-	FieldScanRefs      string // References for scanning
-	UpdateFields       string // Field assignments for updates
-	UpdateValues       string // Values for update operations
-	Placeholders       string // Placeholder for batch operations
+	Name              string // Field name in aggregate (e.g., "Items")
+	ChildModelName    string // Model name (e.g., "Item")
+	TableName         string // Table name (e.g., "items")
+	Fields            string // Field list for queries
+	FieldPlaceholders string // Placeholders for insert queries
+	FieldValues       string // Values for insert operations
+	FieldScanRefs     string // References for scanning
+	UpdateFields      string // Field assignments for updates
+	UpdateValues      string // Values for update operations
+	Placeholders      string // Placeholder for batch operations
 }
 
 // buildSQLiteAggregateTemplateData constructs the template data for SQLite aggregate repositories.
@@ -1179,7 +1172,7 @@ func (mg *ModelGenerator) buildMongoAggregateTemplateData(serviceName, aggregate
 		Children:           []MongoChildTemplateData{},
 	}
 
-	// Build children data - simpler for MongoDB since it's document-based
+	// Build children data
 	for childName, child := range aggregate.Children {
 		childData := MongoChildTemplateData{
 			Name:           capitalizeFirst(childName),
@@ -1237,7 +1230,7 @@ func (mg *ModelGenerator) GenerateAggregateModels() error {
 
 				childData := ChildTemplateData{
 					ChildModelName: child.Of,
-					Name:           capitalizeFirst(childName), // Name of the slice field in the root
+					Name:           capitalizeFirst(childName),
 					JSONTag:        toSnakeCase(childName),
 					Audit:          child.Audit,
 					Fields:         []FieldTemplateData{},
@@ -1310,7 +1303,7 @@ func (mg *ModelGenerator) GenerateAggregateModels() error {
 // ChildTemplateData holds data for a child collection within an aggregate root.
 type ChildTemplateData struct {
 	ChildModelName string
-	Name           string // Name of the slice field in the root
+	Name           string
 	JSONTag        string
 	Audit          bool
 	Fields         []FieldTemplateData
@@ -1343,13 +1336,13 @@ func (mg *ModelGenerator) GenerateGoMod() error {
 // GenerateCoreLibrary generates all core library files in pkg/lib/core
 func (mg *ModelGenerator) GenerateCoreLibrary() error {
 	fmt.Println("  - Generating core library files...")
-	
+
 	// Create the core library directory
 	coreDir := filepath.Join(mg.OutputDir, "pkg", "lib", "core")
 	if err := os.MkdirAll(coreDir, 0o755); err != nil {
 		return fmt.Errorf("cannot create core library directory: %w", err)
 	}
-	
+
 	// Generate each core library file
 	coreFiles := map[string]*template.Template{
 		"lifecycle.go":  mg.CoreLifecycleTemplate,
@@ -1360,18 +1353,18 @@ func (mg *ModelGenerator) GenerateCoreLibrary() error {
 		"response.go":   mg.CoreResponseTemplate,
 		"validation.go": mg.CoreValidationTemplate,
 	}
-	
+
 	for filename, tmpl := range coreFiles {
 		filePath := filepath.Join(coreDir, filename)
-		
+
 		// Core templates don't need any template data - they're static
 		if err := mg.generateFile(tmpl, filePath, nil); err != nil {
 			return fmt.Errorf("cannot generate core file %s: %w", filename, err)
 		}
-		
+
 		fmt.Printf("    - Created %s\n", filePath)
 	}
-	
+
 	return nil
 }
 
@@ -1392,10 +1385,10 @@ func (mg *ModelGenerator) PostGenerationCleanup() error {
 		if err != nil {
 			return fmt.Errorf("cannot get absolute path for output directory: %w", err)
 		}
-		
+
 		// Find the workspace root (go up from service directory to monorepo root)
 		workspaceRoot := filepath.Dir(filepath.Dir(absOutputDir)) // Remove /services/serviceName
-		
+
 		// First, run go mod tidy in the monorepo root
 		fmt.Println("  - Running go mod tidy in monorepo root...")
 		if err := os.Chdir(workspaceRoot); err != nil {
@@ -1408,7 +1401,6 @@ func (mg *ModelGenerator) PostGenerationCleanup() error {
 			fmt.Printf("Warning: go mod tidy failed in monorepo root: %v\n", err)
 		}
 
-		// Then, run go mod tidy in the service directory
 		fmt.Println("  - Running go mod tidy in service directory...")
 		if err := os.Chdir(absOutputDir); err != nil {
 			return fmt.Errorf("cannot change to service directory %s: %w", absOutputDir, err)
@@ -1420,7 +1412,6 @@ func (mg *ModelGenerator) PostGenerationCleanup() error {
 			fmt.Printf("Warning: go mod tidy failed in service directory: %v\n", err)
 		}
 
-		// Finally, run go work sync from workspace root
 		fmt.Println("  - Running go work sync...")
 		if err := os.Chdir(workspaceRoot); err != nil {
 			return fmt.Errorf("cannot change to workspace root %s: %w", workspaceRoot, err)
@@ -1438,7 +1429,7 @@ func (mg *ModelGenerator) PostGenerationCleanup() error {
 		if err != nil {
 			return fmt.Errorf("cannot get absolute path for output directory: %w", err)
 		}
-		
+
 		if err := os.Chdir(absOutputDir); err != nil {
 			return fmt.Errorf("cannot change to output directory %s: %w", absOutputDir, err)
 		}

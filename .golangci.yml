@@ -10,7 +10,7 @@ linters-settings:
     sections:
       - standard
       - default
-      - prefix(hatmax.com/hatmax)
+      - prefix(github.com/hatmaxkit/hatmax)
   revive:
     rules:
       - name: var-naming
@@ -37,11 +37,10 @@ linters-settings:
       - `fmt.Print`
       - `fmt.Println`
       - `fmt.Printf`
-      - `CreateXxx` # Example for constructor naming policy
+      - `CreateXxx` # Constructor naming policy
   depguard:
     list-type: strict
     packages:
-      # Main application should not import directly from internal service implementations
       - "github.com/some/internal/service/impl": "^hatmax.com/hatmax/app/services/.*"
   lll:
     line-length: 140
