@@ -3,7 +3,7 @@ package {{.PackageName}}
 import (
 	"time"
 	"github.com/google/uuid"
-	"github.com/adrianpk/hatmax/pkg/lib/hm"
+	"{{$.ModulePath}}/pkg/lib/core"
 )
 
 // {{.AggregateName}} is the aggregate root for the {{.AggregateName}} domain.
@@ -39,7 +39,7 @@ func (a *{{.AggregateName}}) SetID(id uuid.UUID) {
 // New{{.AggregateName}} creates a new {{.AggregateName}} with a generated ID and initial version.
 func New{{.AggregateName}}() *{{.AggregateName}} {
 	return &{{.AggregateName}}{
-		ID:        hm.GenerateNewID(),
+		ID:        core.GenerateNewID(),
 		{{- if .VersionField }}
 		{{.VersionField}}: 0,
 		{{- end }}
@@ -49,7 +49,7 @@ func New{{.AggregateName}}() *{{.AggregateName}} {
 // EnsureID ensures the aggregate root has a valid ID.
 func (a *{{.AggregateName}}) EnsureID() {
 	if a.ID == uuid.Nil {
-		a.ID = hm.GenerateNewID()
+		a.ID = core.GenerateNewID()
 	}
 }
 

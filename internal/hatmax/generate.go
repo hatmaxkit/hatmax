@@ -169,6 +169,12 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		}
 		fmt.Println("main.go generated successfully.")
 
+		fmt.Println("Generating core library files...")
+		if err := modelGen.GenerateCoreLibrary(); err != nil {
+			return fmt.Errorf("cannot generate core library files for service %s: %w", serviceName, err)
+		}
+		fmt.Println("Core library files generated successfully.")
+
 		fmt.Println("Generating go.mod...")
 		if err := modelGen.GenerateGoMod(); err != nil {
 			return fmt.Errorf("cannot generate go.mod for service %s: %w", serviceName, err)
