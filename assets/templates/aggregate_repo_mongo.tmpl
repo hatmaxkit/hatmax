@@ -1,0 +1,134 @@
+package mongo
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"{{.ModulePath}}/internal/{{.PackageName}}"
+)
+
+// {{.AggregateName}}MongoRepo implements the {{.AggregateName}}Repo interface using MongoDB.
+// MongoDB is ideal for aggregates since each aggregate can be stored as a single document.
+type {{.AggregateName}}MongoRepo struct {
+	collection *mongo.Collection
+}
+
+// New{{.AggregateName}}MongoRepo creates a new MongoDB repository for {{.AggregateName}} aggregates.
+func New{{.AggregateName}}MongoRepo(db *mongo.Database) *{{.AggregateName}}MongoRepo {
+	return &{{.AggregateName}}MongoRepo{
+		collection: db.Collection("{{.TableName}}"),
+	}
+}
+
+// Create creates a new {{.AggregateName}} aggregate in MongoDB.
+// The entire aggregate (root + children) is stored as a single document.
+func (r *{{.AggregateName}}MongoRepo) Create(ctx context.Context, aggregate *{{.PackageName}}.{{.AggregateName}}) error {
+	if aggregate == nil {
+		return fmt.Errorf("aggregate cannot be nil")
+	}
+
+	// Ensure aggregate has an ID
+	aggregate.EnsureID()
+	
+	// Set creation timestamps
+	aggregate.BeforeCreate()
+
+	// Insert the entire aggregate as a single document
+	_, err := r.collection.InsertOne(ctx, aggregate)
+	if err != nil {
+		return fmt.Errorf("failed to create {{.AggregateName}} aggregate: %w", err)
+	}
+
+	return nil
+}
+
+// Get retrieves a complete {{.AggregateName}} aggregate by ID from MongoDB.
+// Returns the aggregate root with all its child entities loaded.
+func (r *{{.AggregateName}}MongoRepo) Get(ctx context.Context, id uuid.UUID) (*{{.PackageName}}.{{.AggregateName}}, error) {
+	var aggregate {{.PackageName}}.{{.AggregateName}}
+
+	filter := bson.M{"_id": id.String()}
+	err := r.collection.FindOne(ctx, filter).Decode(&aggregate)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("{{.AggregateName}} aggregate with ID %s not found", id.String())
+		}
+		return nil, fmt.Errorf("failed to get {{.AggregateName}} aggregate: %w", err)
+	}
+
+	return &aggregate, nil
+}
+
+// Save performs a unit-of-work save operation on the {{.AggregateName}} aggregate.
+// In MongoDB, this is straightforward since the entire aggregate is replaced as one document.
+func (r *{{.AggregateName}}MongoRepo) Save(ctx context.Context, aggregate *{{.PackageName}}.{{.AggregateName}}) error {
+	if aggregate == nil {
+		return fmt.Errorf("aggregate cannot be nil")
+	}
+
+	// Set update timestamps
+	aggregate.BeforeUpdate()
+
+	// Replace the entire document (aggregate root + all children)
+	filter := bson.M{"_id": aggregate.ID().String()}
+	opts := options.Replace().SetUpsert(false)
+	
+	result, err := r.collection.ReplaceOne(ctx, filter, aggregate, opts)
+	if err != nil {
+		return fmt.Errorf("failed to save {{.AggregateName}} aggregate: %w", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("{{.AggregateName}} aggregate with ID %s not found for update", aggregate.ID().String())
+	}
+
+	return nil
+}
+
+// Delete removes the entire {{.AggregateName}} aggregate from MongoDB.
+// This automatically removes all child entities since they're part of the same document.
+func (r *{{.AggregateName}}MongoRepo) Delete(ctx context.Context, id uuid.UUID) error {
+	filter := bson.M{"_id": id.String()}
+	
+	result, err := r.collection.DeleteOne(ctx, filter)
+	if err != nil {
+		return fmt.Errorf("failed to delete {{.AggregateName}} aggregate: %w", err)
+	}
+
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("{{.AggregateName}} aggregate with ID %s not found for deletion", id.String())
+	}
+
+	return nil
+}
+
+// List retrieves all {{.AggregateName}} aggregates from MongoDB.
+// Each document contains the complete aggregate (root + children).
+func (r *{{.AggregateName}}MongoRepo) List(ctx context.Context) ([]*{{.PackageName}}.{{.AggregateName}}, error) {
+	cursor, err := r.collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list {{.AggregateName}} aggregates: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var aggregates []*{{.PackageName}}.{{.AggregateName}}
+	
+	for cursor.Next(ctx) {
+		var aggregate {{.PackageName}}.{{.AggregateName}}
+		if err := cursor.Decode(&aggregate); err != nil {
+			return nil, fmt.Errorf("failed to decode {{.AggregateName}} aggregate: %w", err)
+		}
+		aggregates = append(aggregates, &aggregate)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error while listing {{.AggregateName}} aggregates: %w", err)
+	}
+
+	return aggregates, nil
+}

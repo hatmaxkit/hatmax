@@ -70,9 +70,12 @@ type ModelGenerator struct {
 	ConfigTemplate           *template.Template
 	ConfigYAMLTemplate       *template.Template
 	XParamsTemplate          *template.Template
-	MakefileTemplate         *template.Template
-	AggregateRootTemplate    *template.Template
-	ChildCollectionTemplate  *template.Template
+	MakefileTemplate            *template.Template
+	AggregateRootTemplate       *template.Template
+	ChildCollectionTemplate     *template.Template
+	AggregateRepoTemplate       *template.Template
+	AggregateMongoRepoTemplate  *template.Template
+	AggregateSQLiteRepoTemplate *template.Template
 }
 
 // NewModelGenerator creates a new ModelGenerator.
@@ -157,6 +160,21 @@ func NewModelGenerator(config Config, outputDir string, devMode bool, assetsFS f
 		return nil, fmt.Errorf("cannot parse child collection template: %w", err)
 	}
 
+	aggregateRepoTmpl, err := template.New("aggregate_repo_interface.tmpl").ParseFS(tmplFS, "aggregate_repo_interface.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse aggregate repository template: %w", err)
+	}
+
+	aggregateMongoRepoTmpl, err := template.New("aggregate_repo_mongo.tmpl").ParseFS(tmplFS, "aggregate_repo_mongo.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse aggregate mongo repository template: %w", err)
+	}
+
+	aggregateSQLiteRepoTmpl, err := template.New("aggregate_repo_sqlite.tmpl").ParseFS(tmplFS, "aggregate_repo_sqlite.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse aggregate sqlite repository template: %w", err)
+	}
+
 	return &ModelGenerator{
 			Config:                   config,
 			OutputDir:                outputDir,
@@ -174,8 +192,11 @@ func NewModelGenerator(config Config, outputDir string, devMode bool, assetsFS f
 			ConfigYAMLTemplate:       configYAMLTmpl,
 			XParamsTemplate:          xparamsTmpl,
 			MakefileTemplate:         makefileTmpl,
-			AggregateRootTemplate:    aggregateRootTmpl,
-			ChildCollectionTemplate:  childCollectionTmpl,
+			AggregateRootTemplate:       aggregateRootTmpl,
+			ChildCollectionTemplate:     childCollectionTmpl,
+			AggregateRepoTemplate:       aggregateRepoTmpl,
+			AggregateMongoRepoTemplate:  aggregateMongoRepoTmpl,
+			AggregateSQLiteRepoTemplate: aggregateSQLiteRepoTmpl,
 		},
 		nil
 }
@@ -738,6 +759,73 @@ func sanitizeIdentifier(name string) string {
 	}
 
 	return identifier
+}
+
+// GenerateAggregateRepoInterfaces generates the repository interfaces for aggregate roots.
+func (mg *ModelGenerator) GenerateAggregateRepoInterfaces() error {
+	for serviceName, service := range mg.Config.Services {
+		for aggregateName := range service.Aggregates {
+			fmt.Printf("  - Generating aggregate repository interface: %s/%sRepo\n", serviceName, aggregateName)
+
+			packageName := serviceName
+			repoFileName := strings.ToLower(aggregateName) + "repo.go"
+			repoPath := filepath.Join(mg.OutputDir, "internal", serviceName, repoFileName)
+
+			data := struct {
+				PackageName   string
+				AggregateName string
+			}{
+				PackageName:   packageName,
+				AggregateName: aggregateName,
+			}
+
+			if err := mg.generateFile(mg.AggregateRepoTemplate, repoPath, data); err != nil {
+				return fmt.Errorf("cannot execute aggregate repository template for %s: %w", aggregateName, err)
+			}
+			fmt.Printf("    - Created %s\n", repoPath)
+		}
+	}
+	return nil
+}
+
+// GenerateAggregateMongoRepoImplementations generates MongoDB repository implementations for aggregates.
+func (mg *ModelGenerator) GenerateAggregateMongoRepoImplementations() error {
+	for serviceName, service := range mg.Config.Services {
+		if !contains(service.RepoImpl, "mongo") {
+			continue
+		}
+
+		for aggregateName := range service.Aggregates {
+			fmt.Printf("  - Generating MongoDB aggregate repository: %s/%sMongoRepo\n", serviceName, aggregateName)
+
+			repoFileName := strings.ToLower(aggregateName) + "repo.go"
+			repoPath := filepath.Join(mg.OutputDir, "internal", "mongo", repoFileName)
+
+			// Build template data
+			data := struct {
+				PackageName   string
+				AggregateName string
+				TableName     string
+				ModulePath    string
+			}{
+				PackageName:   serviceName,
+				AggregateName: aggregateName,
+				TableName:     strings.ToLower(aggregateName) + "s", // "lists" for "List"
+				ModulePath:    mg.Config.ModulePath,
+			}
+
+			dir := filepath.Dir(repoPath)
+			if err := os.MkdirAll(dir, 0o755); err != nil {
+				return fmt.Errorf("cannot create directory for MongoDB aggregate repository %s: %w", aggregateName, err)
+			}
+
+			if err := mg.generateFile(mg.AggregateMongoRepoTemplate, repoPath, data); err != nil {
+				return fmt.Errorf("cannot execute MongoDB aggregate repository template for %s: %w", aggregateName, err)
+			}
+			fmt.Printf("    - Created %s\n", repoPath)
+		}
+	}
+	return nil
 }
 
 // GenerateAggregateModels generates the Go structs for aggregate roots and their child collections.
