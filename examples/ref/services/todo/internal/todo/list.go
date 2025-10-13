@@ -9,37 +9,38 @@ import (
 
 // List is the aggregate root for the List domain.
 type List struct {
-	id          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
+	ID          uuid.UUID `json:"id"`
 	Description string    `json:"description"`
+	Name        string    `json:"name"`
 	CreatedAt   time.Time `json:"created_at"`
 	CreatedBy   string    `json:"created_by"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	UpdatedBy   string    `json:"updated_by"`
 	Items       []Item    `json:"items"`
+	Tags        []Tag     `json:"tags"`
 }
 
-// ID returns the ID of the List.
-func (a *List) ID() uuid.UUID {
-	return a.id
+// GetID returns the ID of the List.
+func (a *List) GetID() uuid.UUID {
+	return a.ID
 }
 
 // SetID sets the ID of the List.
 func (a *List) SetID(id uuid.UUID) {
-	a.id = id
+	a.ID = id
 }
 
 // NewList creates a new List with a generated ID and initial version.
 func NewList() *List {
 	return &List{
-		id: hm.GenerateNewID(),
+		ID: hm.GenerateNewID(),
 	}
 }
 
 // EnsureID ensures the aggregate root has a valid ID.
 func (a *List) EnsureID() {
-	if a.id == uuid.Nil {
-		a.id = hm.GenerateNewID()
+	if a.ID == uuid.Nil {
+		a.ID = hm.GenerateNewID()
 	}
 }
 

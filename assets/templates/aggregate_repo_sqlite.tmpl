@@ -10,18 +10,51 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 
+	"{{.ModulePath}}/internal/config"
 	"{{.ModulePath}}/internal/{{.PackageName}}"
 )
 
 // {{.AggregateName}}SQLiteRepo implements the {{.AggregateName}}Repo interface using SQLite.
 // SQLite requires more complex logic to handle aggregates across multiple related tables.
 type {{.AggregateName}}SQLiteRepo struct {
-	db *sql.DB
+	db      *sql.DB
+	xparams config.XParams
 }
 
 // New{{.AggregateName}}SQLiteRepo creates a new SQLite repository for {{.AggregateName}} aggregates.
-func New{{.AggregateName}}SQLiteRepo(db *sql.DB) *{{.AggregateName}}SQLiteRepo {
-	return &{{.AggregateName}}SQLiteRepo{db: db}
+func New{{.AggregateName}}SQLiteRepo(xparams config.XParams) *{{.AggregateName}}SQLiteRepo {
+	return &{{.AggregateName}}SQLiteRepo{
+		xparams: xparams,
+	}
+}
+
+// Start opens the database connection and pings it.
+func (r *{{.AggregateName}}SQLiteRepo) Start(ctx context.Context) error {
+	appCfg := r.xparams.Cfg
+
+	dbPath := appCfg.Database.Path
+
+	db, err := sql.Open("sqlite3", fmt.Sprintf("%s?_foreign_keys=on", dbPath))
+	if err != nil {
+		return fmt.Errorf("cannot open database: %w", err)
+	}
+
+	if err := db.PingContext(ctx); err != nil {
+		return fmt.Errorf("cannot connect to database: %w", err)
+	}
+	r.db = db
+	// TODO: Run migrations here
+	return nil
+}
+
+// Stop closes the database connection.
+func (r *{{.AggregateName}}SQLiteRepo) Stop(ctx context.Context) error {
+	if r.db != nil {
+		if err := r.db.Close(); err != nil {
+			return fmt.Errorf("cannot close database: %w", err)
+		}
+	}
+	return nil
 }
 
 // Create creates a new {{.AggregateName}} aggregate in SQLite.
@@ -50,7 +83,7 @@ func (r *{{.AggregateName}}SQLiteRepo) Create(ctx context.Context, aggregate *{{
 
 	// Insert child entities
 	{{range .Children}}
-	if err := r.insert{{.ChildModelName}}s(ctx, tx, aggregate.ID(), aggregate.{{.Name}}); err != nil {
+	if err := r.insert{{.ChildModelName}}s(ctx, tx, aggregate.GetID(), aggregate.{{.Name}}); err != nil {
 		return fmt.Errorf("failed to insert {{.Name}}: %w", err)
 	}
 	{{end}}
@@ -106,7 +139,7 @@ func (r *{{.AggregateName}}SQLiteRepo) Save(ctx context.Context, aggregate *{{.P
 
 	// Handle child entities with diff algorithms
 	{{range .Children}}
-	if err := r.save{{.ChildModelName}}s(ctx, tx, aggregate.ID(), aggregate.{{.Name}}); err != nil {
+	if err := r.save{{.ChildModelName}}s(ctx, tx, aggregate.GetID(), aggregate.{{.Name}}); err != nil {
 		return fmt.Errorf("failed to save {{.Name}}: %w", err)
 	}
 	{{end}}
@@ -135,7 +168,7 @@ func (r *{{.AggregateName}}SQLiteRepo) Delete(ctx context.Context, id uuid.UUID)
 	{{end}}
 
 	// Delete aggregate root
-	result, err := tx.ExecContext(ctx, `DELETE FROM {{.TableName}} WHERE id = ?`, id.String())
+	result, err := tx.ExecContext(ctx, QueryDelete{{.AggregateName}}Root, id.String())
 	if err != nil {
 		return fmt.Errorf("failed to delete aggregate root: %w", err)
 	}
@@ -159,7 +192,7 @@ func (r *{{.AggregateName}}SQLiteRepo) Delete(ctx context.Context, id uuid.UUID)
 // List retrieves all {{.AggregateName}} aggregates from SQLite.
 // This loads each aggregate with all its child entities.
 func (r *{{.AggregateName}}SQLiteRepo) List(ctx context.Context) ([]*{{.PackageName}}.{{.AggregateName}}, error) {
-	rows, err := r.db.QueryContext(ctx, `SELECT id FROM {{.TableName}} ORDER BY created_at DESC`)
+	rows, err := r.db.QueryContext(ctx, QueryList{{.AggregateName}}Root)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query aggregate IDs: %w", err)
 	}
@@ -196,19 +229,15 @@ func (r *{{.AggregateName}}SQLiteRepo) List(ctx context.Context) ([]*{{.PackageN
 // Helper methods for aggregate root operations
 
 func (r *{{.AggregateName}}SQLiteRepo) insertRoot(ctx context.Context, tx *sql.Tx, aggregate *{{.PackageName}}.{{.AggregateName}}) error {
-	query := `INSERT INTO {{.TableName}} (id, {{.RootFields}}, created_at, updated_at) VALUES ({{.RootPlaceholders}})`
-	
-	_, err := tx.ExecContext(ctx, query, {{.RootValues}})
+	_, err := tx.ExecContext(ctx, QueryCreate{{.AggregateName}}Root, aggregate.ID.String(), {{.RootValues}}, aggregate.CreatedAt, aggregate.UpdatedAt)
 	return err
 }
 
 func (r *{{.AggregateName}}SQLiteRepo) getRoot(ctx context.Context, id uuid.UUID) (*{{.PackageName}}.{{.AggregateName}}, error) {
-	query := `SELECT id, {{.RootFields}}, created_at, updated_at FROM {{.TableName}} WHERE id = ?`
-	
 	var aggregate {{.PackageName}}.{{.AggregateName}}
 	var idStr string
 	
-	err := r.db.QueryRowContext(ctx, query, id.String()).Scan(
+	err := r.db.QueryRowContext(ctx, QueryGet{{.AggregateName}}Root, id.String()).Scan(
 		&idStr, {{.RootScanRefs}}, &aggregate.CreatedAt, &aggregate.UpdatedAt,
 	)
 	if err != nil {
@@ -228,9 +257,7 @@ func (r *{{.AggregateName}}SQLiteRepo) getRoot(ctx context.Context, id uuid.UUID
 }
 
 func (r *{{.AggregateName}}SQLiteRepo) updateRoot(ctx context.Context, tx *sql.Tx, aggregate *{{.PackageName}}.{{.AggregateName}}) error {
-	query := `UPDATE {{.TableName}} SET {{.RootUpdateFields}}, updated_at = ? WHERE id = ?`
-	
-	result, err := tx.ExecContext(ctx, query, {{.RootUpdateValues}}, time.Now(), aggregate.ID().String())
+	result, err := tx.ExecContext(ctx, QueryUpdate{{.AggregateName}}Root, {{.RootUpdateValues}}, aggregate.UpdatedAt, aggregate.ID.String())
 	if err != nil {
 		return err
 	}
@@ -241,7 +268,7 @@ func (r *{{.AggregateName}}SQLiteRepo) updateRoot(ctx context.Context, tx *sql.T
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("{{.AggregateName}} aggregate with ID %s not found for update", aggregate.ID().String())
+		return fmt.Errorf("{{.AggregateName}} aggregate with ID %s not found for update", aggregate.ID.String())
 	}
 
 	return nil
@@ -265,7 +292,7 @@ func (r *{{$.AggregateName}}SQLiteRepo) insert{{.ChildModelName}}s(ctx context.C
 		item.BeforeCreate()
 		
 		placeholders = append(placeholders, "(?, ?, {{.FieldPlaceholders}}, ?, ?)")
-		args = append(args, item.ID().String(), rootID.String(), {{.FieldValues}}, item.CreatedAt, item.UpdatedAt)
+		args = append(args, item.ID.String(), rootID.String(), {{.FieldValues}}, item.CreatedAt, item.UpdatedAt)
 	}
 	
 	finalQuery := strings.Replace(query, "{{.Placeholders}}", strings.Join(placeholders, ", "), 1)
@@ -274,9 +301,21 @@ func (r *{{$.AggregateName}}SQLiteRepo) insert{{.ChildModelName}}s(ctx context.C
 }
 
 func (r *{{$.AggregateName}}SQLiteRepo) get{{.ChildModelName}}s(ctx context.Context, rootID uuid.UUID) ([]{{$.PackageName}}.{{.ChildModelName}}, error) {
+	return r.get{{.ChildModelName}}sWithTx(ctx, nil, rootID)
+}
+
+func (r *{{$.AggregateName}}SQLiteRepo) get{{.ChildModelName}}sWithTx(ctx context.Context, tx *sql.Tx, rootID uuid.UUID) ([]{{$.PackageName}}.{{.ChildModelName}}, error) {
 	query := `SELECT id, {{.Fields}}, created_at, updated_at FROM {{.TableName}} WHERE {{$.AggregateName}}_id = ? ORDER BY created_at`
 	
-	rows, err := r.db.QueryContext(ctx, query, rootID.String())
+	var rows *sql.Rows
+	var err error
+	
+	if tx != nil {
+		rows, err = tx.QueryContext(ctx, query, rootID.String())
+	} else {
+		rows, err = r.db.QueryContext(ctx, query, rootID.String())
+	}
+	
 	if err != nil {
 		return nil, err
 	}
@@ -306,8 +345,8 @@ func (r *{{$.AggregateName}}SQLiteRepo) get{{.ChildModelName}}s(ctx context.Cont
 }
 
 func (r *{{$.AggregateName}}SQLiteRepo) save{{.ChildModelName}}s(ctx context.Context, tx *sql.Tx, rootID uuid.UUID, newItems []{{$.PackageName}}.{{.ChildModelName}}) error {
-	// Get current items from database
-	currentItems, err := r.get{{.ChildModelName}}s(ctx, rootID)
+	// Get current items from database using the transaction
+	currentItems, err := r.get{{.ChildModelName}}sWithTx(ctx, tx, rootID)
 	if err != nil {
 		return fmt.Errorf("failed to get current items: %w", err)
 	}
@@ -365,9 +404,9 @@ func (r *{{$.AggregateName}}SQLiteRepo) update{{.ChildModelName}}s(ctx context.C
 		item.BeforeUpdate()
 		
 		query := `UPDATE {{.TableName}} SET {{.UpdateFields}}, updated_at = ? WHERE id = ?`
-		_, err := tx.ExecContext(ctx, query, {{.UpdateValues}}, item.UpdatedAt, item.ID().String())
+		_, err := tx.ExecContext(ctx, query, {{.UpdateValues}}, item.UpdatedAt, item.ID.String())
 		if err != nil {
-			return fmt.Errorf("failed to update item %s: %w", item.ID().String(), err)
+			return fmt.Errorf("failed to update item %s: %w", item.ID.String(), err)
 		}
 	}
 	return nil
@@ -380,16 +419,16 @@ func (r *{{$.AggregateName}}SQLiteRepo) compute{{.ChildModelName}}Diff(current, 
 	newMap := make(map[string]{{$.PackageName}}.{{.ChildModelName}})
 
 	for _, item := range current {
-		currentMap[item.ID().String()] = item
+		currentMap[item.ID.String()] = item
 	}
 
 	for _, item := range new {
-		if item.ID() == uuid.Nil {
+		if item.ID == uuid.Nil {
 			// New item without ID - needs insert
 			toInsert = append(toInsert, item)
 		} else {
-			newMap[item.ID().String()] = item
-			if _, exists := currentMap[item.ID().String()]; exists {
+			newMap[item.ID.String()] = item
+			if _, exists := currentMap[item.ID.String()]; exists {
 				// Item exists - needs update
 				toUpdate = append(toUpdate, item)
 			} else {

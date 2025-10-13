@@ -1,0 +1,42 @@
+package sqlite
+
+const (
+	// Queries for {{.AggregateName}} aggregate root operations
+	
+	// QueryCreate{{.AggregateName}}Root creates a new {{.AggregateName}} aggregate root record.
+	QueryCreate{{.AggregateName}}Root = `INSERT INTO {{.TableName}} (id, {{.RootFields}}, created_at, updated_at) VALUES (?, {{.RootPlaceholders}}, ?, ?)`
+
+	// QueryGet{{.AggregateName}}Root retrieves a {{.AggregateName}} aggregate root record by ID.
+	QueryGet{{.AggregateName}}Root = `SELECT id, {{.RootFields}}, created_at, updated_at FROM {{.TableName}} WHERE id = ?`
+
+	// QueryUpdate{{.AggregateName}}Root updates an existing {{.AggregateName}} aggregate root record.
+	QueryUpdate{{.AggregateName}}Root = `UPDATE {{.TableName}} SET {{.RootUpdateFields}}, updated_at = ? WHERE id = ?`
+
+	// QueryDelete{{.AggregateName}}Root deletes a {{.AggregateName}} aggregate root record by ID.
+	QueryDelete{{.AggregateName}}Root = `DELETE FROM {{.TableName}} WHERE id = ?`
+
+	// QueryList{{.AggregateName}}Root lists all {{.AggregateName}} aggregate root records.
+	QueryList{{.AggregateName}}Root = `SELECT id FROM {{.TableName}} ORDER BY created_at DESC`
+
+{{range .Children}}
+	// Queries for {{$.AggregateName}}'s {{.Name}} child entities
+	
+	// QueryCreate{{$.AggregateName}}{{.ChildModelName}}s creates new {{.ChildModelName}} records for a {{$.AggregateName}} aggregate.
+	QueryCreate{{$.AggregateName}}{{.ChildModelName}}s = `INSERT INTO {{.TableName}} ({{.Fields}}) VALUES `
+
+	// QueryGet{{$.AggregateName}}{{.ChildModelName}}s retrieves all {{.ChildModelName}} records for a specific {{$.AggregateName}} aggregate.
+	QueryGet{{$.AggregateName}}{{.ChildModelName}}s = `SELECT {{.Fields}} FROM {{.TableName}} WHERE {{$.AggregateName}}_id = ? ORDER BY created_at`
+
+	// QueryUpdate{{$.AggregateName}}{{.ChildModelName}} updates an existing {{.ChildModelName}} record within a {{$.AggregateName}} aggregate.
+	QueryUpdate{{$.AggregateName}}{{.ChildModelName}} = `UPDATE {{.TableName}} SET {{.UpdateFields}} WHERE id = ?`
+
+	// QueryDelete{{$.AggregateName}}{{.ChildModelName}}s deletes all {{.ChildModelName}} records for a specific {{$.AggregateName}} aggregate.
+	QueryDelete{{$.AggregateName}}{{.ChildModelName}}s = `DELETE FROM {{.TableName}} WHERE {{$.AggregateName}}_id = ?`
+
+	// QueryDelete{{$.AggregateName}}{{.ChildModelName}}sByIDs deletes specific {{.ChildModelName}} records by their IDs.
+	QueryDelete{{$.AggregateName}}{{.ChildModelName}}sByIDs = `DELETE FROM {{.TableName}} WHERE id IN `
+
+	// Helper query parts for batch operations
+	{{.ChildModelName}}ValuePlaceholder = `({{.FieldPlaceholders}})`
+{{end}}
+)

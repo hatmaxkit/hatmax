@@ -76,6 +76,8 @@ type ModelGenerator struct {
 	AggregateRepoTemplate       *template.Template
 	AggregateMongoRepoTemplate  *template.Template
 	AggregateSQLiteRepoTemplate *template.Template
+	AggregateSQLiteQueriesTemplate *template.Template
+	AggregateSQLiteRepoTestTemplate *template.Template
 }
 
 // NewModelGenerator creates a new ModelGenerator.
@@ -175,6 +177,16 @@ func NewModelGenerator(config Config, outputDir string, devMode bool, assetsFS f
 		return nil, fmt.Errorf("cannot parse aggregate sqlite repository template: %w", err)
 	}
 
+	aggregateSQLiteQueriesTmpl, err := template.New("aggregate_queries_sqlite.tmpl").ParseFS(tmplFS, "aggregate_queries_sqlite.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse aggregate sqlite queries template: %w", err)
+	}
+
+	aggregateSQLiteRepoTestTmpl, err := template.New("aggregate_repo_sqlite_test.tmpl").ParseFS(tmplFS, "aggregate_repo_sqlite_test.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse aggregate sqlite repository test template: %w", err)
+	}
+
 	return &ModelGenerator{
 			Config:                   config,
 			OutputDir:                outputDir,
@@ -197,6 +209,8 @@ func NewModelGenerator(config Config, outputDir string, devMode bool, assetsFS f
 			AggregateRepoTemplate:       aggregateRepoTmpl,
 			AggregateMongoRepoTemplate:  aggregateMongoRepoTmpl,
 			AggregateSQLiteRepoTemplate: aggregateSQLiteRepoTmpl,
+			AggregateSQLiteQueriesTemplate: aggregateSQLiteQueriesTmpl,
+			AggregateSQLiteRepoTestTemplate: aggregateSQLiteRepoTestTmpl,
 		},
 		nil
 }
@@ -205,6 +219,12 @@ func NewModelGenerator(config Config, outputDir string, devMode bool, assetsFS f
 func (mg *ModelGenerator) GenerateModels() error {
 	for serviceName, service := range mg.Config.Services {
 		for modelName, model := range service.Models {
+			// Skip models that are part of aggregates (they'll be generated as part of aggregate generation)
+			if isPartOfAggregate(modelName, service.Aggregates) {
+				fmt.Printf("  - Skipping model %s/%s (part of aggregate)\n", serviceName, modelName)
+				continue
+			}
+			
 			if model.Fields == nil {
 				model.Fields = make(map[string]Field)
 			}
@@ -289,6 +309,12 @@ func toSnakeCase(str string) string {
 func (mg *ModelGenerator) GenerateRepoInterfaces() error {
 	for serviceName, service := range mg.Config.Services {
 		for modelName := range service.Models {
+			// Skip models that are part of aggregates
+			if isPartOfAggregate(modelName, service.Aggregates) {
+				fmt.Printf("  - Skipping repository interface %s/%sRepo (part of aggregate)\n", serviceName, modelName)
+				continue
+			}
+			
 			fmt.Printf("  - Generating repository interface: %s/%sRepo\n", serviceName, modelName)
 
 			packageName := serviceName // For now, package name is the service name
@@ -327,6 +353,12 @@ func (mg *ModelGenerator) GenerateRepoInterfaces() error {
 func (mg *ModelGenerator) GenerateServiceInterfaces() error {
 	for serviceName, service := range mg.Config.Services {
 		for modelName := range service.Models {
+			// Skip models that are part of aggregates
+			if isPartOfAggregate(modelName, service.Aggregates) {
+				fmt.Printf("  - Skipping service interface %s/%sService (part of aggregate)\n", serviceName, modelName)
+				continue
+			}
+			
 			fmt.Printf("  - Generating service interface: %s/%sService\n", serviceName, modelName)
 
 			packageName := serviceName // For now, package name is the service name
@@ -370,6 +402,12 @@ func (mg *ModelGenerator) GenerateSQLiteRepoImplementations() error {
 		}
 
 		for modelName, model := range service.Models {
+			// Skip models that are part of aggregates
+			if isPartOfAggregate(modelName, service.Aggregates) {
+				fmt.Printf("  - Skipping SQLite repository %s/%sRepo (part of aggregate)\n", serviceName, modelName)
+				continue
+			}
+			
 			fmt.Printf("  - Generating SQLite repository implementation: %s/%sRepo (sqlite)\n", serviceName, modelName)
 
 			packageName := "sqlite"
@@ -460,6 +498,12 @@ func (mg *ModelGenerator) GenerateMongoRepoImplementations() error {
 		}
 
 		for modelName := range service.Models {
+			// Skip models that are part of aggregates
+			if isPartOfAggregate(modelName, service.Aggregates) {
+				fmt.Printf("  - Skipping MongoDB repository %s/%sRepo (part of aggregate)\n", serviceName, modelName)
+				continue
+			}
+			
 			fmt.Printf("  - Generating MongoDB repository implementation: %s/%sRepo (mongo)\n", serviceName, modelName)
 
 			packageName := "mongo"
@@ -501,6 +545,12 @@ func (mg *ModelGenerator) GenerateMongoRepoImplementations() error {
 func (mg *ModelGenerator) GenerateHandlers() error {
 	for serviceName, service := range mg.Config.Services {
 		for modelName, model := range service.Models {
+			// Skip models that are part of aggregates
+			if isPartOfAggregate(modelName, service.Aggregates) {
+				fmt.Printf("  - Skipping handler %s/%sHandler (part of aggregate)\n", serviceName, modelName)
+				continue
+			}
+			
 			fmt.Printf("  - Generating handler: %s/%sHandler\n", serviceName, modelName)
 
 			packageName := serviceName
@@ -561,6 +611,12 @@ func (mg *ModelGenerator) GenerateHandlers() error {
 func (mg *ModelGenerator) GenerateValidators() error {
 	for serviceName, service := range mg.Config.Services {
 		for modelName, model := range service.Models {
+			// Skip models that are part of aggregates
+			if isPartOfAggregate(modelName, service.Aggregates) {
+				fmt.Printf("  - Skipping validator %s/%sValidator (part of aggregate)\n", serviceName, modelName)
+				continue
+			}
+			
 			fmt.Printf("  - Generating validator: %s/%sValidator\n", serviceName, modelName)
 
 			packageName := serviceName // For now, package name is the service name
@@ -642,22 +698,35 @@ func (mg *ModelGenerator) GenerateMain() error {
 	sort.Strings(serviceNames)
 
 	type mainTemplateService struct {
-		Name   string
-		Models []string
+		Name       string
+		Models     []string
+		Aggregates []string
 	}
 
 	services := make([]mainTemplateService, 0, len(serviceNames))
 	for _, serviceName := range serviceNames {
 		service := mg.Config.Services[serviceName]
+		
+		// Filter models that are NOT part of aggregates
 		modelNames := make([]string, 0, len(service.Models))
 		for modelName := range service.Models {
-			modelNames = append(modelNames, modelName)
+			if !isPartOfAggregate(modelName, service.Aggregates) {
+				modelNames = append(modelNames, modelName)
+			}
 		}
 		sort.Strings(modelNames)
+		
+		// Get aggregate names
+		aggregateNames := make([]string, 0, len(service.Aggregates))
+		for aggregateName := range service.Aggregates {
+			aggregateNames = append(aggregateNames, aggregateName)
+		}
+		sort.Strings(aggregateNames)
 
 		services = append(services, mainTemplateService{
-			Name:   serviceName,
-			Models: modelNames,
+			Name:       serviceName,
+			Models:     modelNames,
+			Aggregates: aggregateNames,
 		})
 	}
 
@@ -826,6 +895,183 @@ func (mg *ModelGenerator) GenerateAggregateMongoRepoImplementations() error {
 		}
 	}
 	return nil
+}
+
+// GenerateAggregateSQLiteRepoImplementations generates SQLite repository implementations for aggregates.
+func (mg *ModelGenerator) GenerateAggregateSQLiteRepoImplementations() error {
+	for serviceName, service := range mg.Config.Services {
+		if !contains(service.RepoImpl, "sqlite") {
+			continue
+		}
+
+		for aggregateName, aggregate := range service.Aggregates {
+			fmt.Printf("  - Generating SQLite aggregate repository: %s/%sSQLiteRepo\n", serviceName, aggregateName)
+
+			repoFileName := strings.ToLower(aggregateName) + "repo.go"
+			queriesFileName := strings.ToLower(aggregateName) + "queries.go"
+			repoPath := filepath.Join(mg.OutputDir, "internal", "sqlite", repoFileName)
+			queriesPath := filepath.Join(mg.OutputDir, "internal", "sqlite", queriesFileName)
+
+			// Build template data with computed fields
+			data, err := mg.buildSQLiteAggregateTemplateData(serviceName, aggregateName, aggregate)
+			if err != nil {
+				return fmt.Errorf("failed to build SQLite aggregate template data for %s: %w", aggregateName, err)
+			}
+
+			dir := filepath.Dir(repoPath)
+			if err := os.MkdirAll(dir, 0o755); err != nil {
+				return fmt.Errorf("cannot create directory for SQLite aggregate repository %s: %w", aggregateName, err)
+			}
+
+			// Generate queries file
+			if err := mg.generateFile(mg.AggregateSQLiteQueriesTemplate, queriesPath, data); err != nil {
+				return fmt.Errorf("cannot execute SQLite aggregate queries template for %s: %w", aggregateName, err)
+			}
+			fmt.Printf("    - Created %s\n", queriesPath)
+
+			// Generate repository file
+			if err := mg.generateFile(mg.AggregateSQLiteRepoTemplate, repoPath, data); err != nil {
+				return fmt.Errorf("cannot execute SQLite aggregate repository template for %s: %w", aggregateName, err)
+			}
+			fmt.Printf("    - Created %s\n", repoPath)
+
+			// Generate test file
+			testFileName := strings.ToLower(aggregateName) + "repo_test.go"
+			testPath := filepath.Join(mg.OutputDir, "internal", "sqlite", testFileName)
+			if err := mg.generateFile(mg.AggregateSQLiteRepoTestTemplate, testPath, data); err != nil {
+				return fmt.Errorf("cannot execute SQLite aggregate repository test template for %s: %w", aggregateName, err)
+			}
+			fmt.Printf("    - Created %s\n", testPath)
+		}
+	}
+	return nil
+}
+
+// SQLiteAggregateTemplateData holds all data needed for SQLite aggregate repository template.
+type SQLiteAggregateTemplateData struct {
+	PackageName      string
+	AggregateName    string
+	TableName        string
+	ModulePath       string
+	RootFields       string
+	RootPlaceholders string
+	RootValues       string
+	RootScanRefs     string
+	RootUpdateFields string
+	RootUpdateValues string
+	Children         []SQLiteChildTemplateData
+}
+
+// SQLiteChildTemplateData holds data for child entities in SQLite aggregate repositories.
+type SQLiteChildTemplateData struct {
+	Name               string // Field name in aggregate (e.g., "Items")
+	ChildModelName     string // Model name (e.g., "Item")
+	TableName          string // Table name (e.g., "items")
+	Fields             string // Field list for queries
+	FieldPlaceholders  string // Placeholders for insert queries
+	FieldValues        string // Values for insert operations
+	FieldScanRefs      string // References for scanning
+	UpdateFields       string // Field assignments for updates
+	UpdateValues       string // Values for update operations
+	Placeholders       string // Placeholder for batch operations
+}
+
+// buildSQLiteAggregateTemplateData constructs the template data for SQLite aggregate repositories.
+func (mg *ModelGenerator) buildSQLiteAggregateTemplateData(serviceName, aggregateName string, aggregate AggregateRoot) (*SQLiteAggregateTemplateData, error) {
+	data := &SQLiteAggregateTemplateData{
+		PackageName:   serviceName,
+		AggregateName: aggregateName,
+		TableName:     strings.ToLower(aggregateName) + "s",
+		ModulePath:    mg.Config.ModulePath,
+		Children:      []SQLiteChildTemplateData{},
+	}
+
+	// Build root fields data
+	if err := mg.buildRootFieldsData(data, aggregate); err != nil {
+		return nil, fmt.Errorf("failed to build root fields data: %w", err)
+	}
+
+	// Build children data
+	service := mg.Config.Services[serviceName]
+	for childName, child := range aggregate.Children {
+		childData, err := mg.buildChildFieldsData(serviceName, aggregateName, childName, child, service)
+		if err != nil {
+			return nil, fmt.Errorf("failed to build child fields data for %s: %w", childName, err)
+		}
+		data.Children = append(data.Children, *childData)
+	}
+
+	return data, nil
+}
+
+// buildRootFieldsData constructs the field-related strings for the aggregate root.
+func (mg *ModelGenerator) buildRootFieldsData(data *SQLiteAggregateTemplateData, aggregate AggregateRoot) error {
+	var fields []string
+	var placeholders []string
+	var values []string
+	var scanRefs []string
+	var updateFields []string
+	var updateValues []string
+
+	for fieldName := range aggregate.Fields {
+		columnName := toSnakeCase(fieldName)
+		fields = append(fields, columnName)
+		placeholders = append(placeholders, "?")
+		values = append(values, fmt.Sprintf("aggregate.%s", capitalizeFirst(fieldName)))
+		scanRefs = append(scanRefs, fmt.Sprintf("&aggregate.%s", capitalizeFirst(fieldName)))
+		updateFields = append(updateFields, fmt.Sprintf("%s = ?", columnName))
+		updateValues = append(updateValues, fmt.Sprintf("aggregate.%s", capitalizeFirst(fieldName)))
+	}
+
+	data.RootFields = strings.Join(fields, ", ")
+	data.RootPlaceholders = strings.Join(placeholders, ", ")
+	data.RootValues = strings.Join(values, ", ")
+	data.RootScanRefs = strings.Join(scanRefs, ", ")
+	data.RootUpdateFields = strings.Join(updateFields, ", ")
+	data.RootUpdateValues = strings.Join(updateValues, ", ")
+
+	return nil
+}
+
+// buildChildFieldsData constructs the field-related strings for child entities.
+func (mg *ModelGenerator) buildChildFieldsData(serviceName, aggregateName, childName string, child ChildCollection, service Service) (*SQLiteChildTemplateData, error) {
+	childModel, exists := service.Models[child.Of]
+	if !exists {
+		return nil, fmt.Errorf("child model %s not found in service models", child.Of)
+	}
+
+	data := &SQLiteChildTemplateData{
+		Name:           capitalizeFirst(childName),
+		ChildModelName: child.Of,
+		TableName:      strings.ToLower(child.Of) + "s",
+	}
+
+	var fields []string
+	var fieldPlaceholders []string
+	var fieldValues []string
+	var fieldScanRefs []string
+	var updateFields []string
+	var updateValues []string
+
+	for fieldName := range childModel.Fields {
+		columnName := toSnakeCase(fieldName)
+		fields = append(fields, columnName)
+		fieldPlaceholders = append(fieldPlaceholders, "?")
+		fieldValues = append(fieldValues, fmt.Sprintf("item.%s", capitalizeFirst(fieldName)))
+		fieldScanRefs = append(fieldScanRefs, fmt.Sprintf("&item.%s", capitalizeFirst(fieldName)))
+		updateFields = append(updateFields, fmt.Sprintf("%s = ?", columnName))
+		updateValues = append(updateValues, fmt.Sprintf("item.%s", capitalizeFirst(fieldName)))
+	}
+
+	data.Fields = strings.Join(fields, ", ")
+	data.FieldPlaceholders = strings.Join(fieldPlaceholders, ", ")
+	data.FieldValues = strings.Join(fieldValues, ", ")
+	data.FieldScanRefs = strings.Join(fieldScanRefs, ", ")
+	data.UpdateFields = strings.Join(updateFields, ", ")
+	data.UpdateValues = strings.Join(updateValues, ", ")
+	data.Placeholders = "{{.Placeholders}}" // Will be replaced in template
+
+	return data, nil
 }
 
 // GenerateAggregateModels generates the Go structs for aggregate roots and their child collections.

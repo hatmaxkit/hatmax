@@ -133,6 +133,12 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		}
 		fmt.Println("SQLite repository implementations generated successfully.")
 
+		fmt.Println("Generating SQLite aggregate repository implementations...")
+		if err := modelGen.GenerateAggregateSQLiteRepoImplementations(); err != nil {
+			return fmt.Errorf("error generating SQLite aggregate repository implementations for service %s: %w", serviceName, err)
+		}
+		fmt.Println("SQLite aggregate repository implementations generated successfully.")
+
 		fmt.Println("Generating MongoDB repository implementations...")
 		if err := modelGen.GenerateMongoRepoImplementations(); err != nil {
 			return fmt.Errorf("cannot generate MongoDB repository implementations for service %s: %w", serviceName, err)

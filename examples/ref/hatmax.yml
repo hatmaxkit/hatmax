@@ -52,6 +52,13 @@ services:
         fields:
           text: {type: text, validations: [{name: required}]}
           done: {type: bool, default: false}
+      Tag:
+        options:
+          audit: true
+          lifecycle: [before_create, before_update]
+        fields:
+          name: {type: string, validations: [{name: required}]}
+          color: {type: string, default: "blue"}
     aggregates:
       List:
         audit: true
@@ -61,6 +68,9 @@ services:
         children:
           items:
             of: Item
+            audit: true
+          tags:
+            of: Tag
             audit: true
     api:
       base_path: /todo

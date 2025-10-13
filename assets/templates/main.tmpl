@@ -38,13 +38,26 @@ func main() {
 	var deps []any
 	{{- range .Services }}
 	{{- $serviceName := .Name -}}
+
+	// Individual model repositories and handlers (not part of aggregates)
 	{{- range .Models }}
 
-  {{.}}Repo := sqlite.New{{.}}Repo(xparams)
+	{{.}}Repo := sqlite.New{{.}}Repo(xparams)
 	deps = append(deps, {{.}}Repo)
 
 	{{.}}Handler := {{$serviceName}}.New{{.}}Handler({{.}}Repo, xparams)
 	deps = append(deps, {{.}}Handler)
+	{{- end }}
+
+	// Aggregate repositories and handlers
+	{{- range .Aggregates }}
+
+	{{.}}Repo := sqlite.New{{.}}SQLiteRepo(xparams)
+	deps = append(deps, {{.}}Repo)
+
+	// TODO: Generate aggregate handlers
+	// {{.}}Handler := {{$serviceName}}.New{{.}}Handler({{.}}Repo, xparams)
+	// deps = append(deps, {{.}}Handler)
 	{{- end }}
 	{{- end }}
 

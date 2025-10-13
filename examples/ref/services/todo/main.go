@@ -12,7 +12,6 @@ import (
 
 	"github.com/adrianpk/hatmax-ref/services/todo/internal/config"
 	"github.com/adrianpk/hatmax-ref/services/todo/internal/sqlite"
-	"github.com/adrianpk/hatmax-ref/services/todo/internal/todo"
 )
 
 func main() {
@@ -33,13 +32,16 @@ func main() {
 
 	router := chi.NewRouter()
 
-	var deps []any
+	var deps []any // Individual model repositories and handlers (not part of aggregates)
 
-	ItemRepo := sqlite.NewItemRepo(xparams)
-	deps = append(deps, ItemRepo)
+	// Aggregate repositories and handlers
 
-	ItemHandler := todo.NewItemHandler(ItemRepo, xparams)
-	deps = append(deps, ItemHandler)
+	ListRepo := sqlite.NewListSQLiteRepo(xparams)
+	deps = append(deps, ListRepo)
+
+	// TODO: Generate aggregate handlers
+	// ListHandler := todo.NewListHandler(ListRepo, xparams)
+	// deps = append(deps, ListHandler)
 
 	starts, stops := hm.Setup(ctx, router, deps...)
 
