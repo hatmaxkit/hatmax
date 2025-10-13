@@ -70,18 +70,12 @@ func (r *{{.AggregateName}}SQLiteRepo) Create(ctx context.Context, aggregate *{{
 	}
 	defer tx.Rollback()
 
-	// Ensure aggregate has an ID
 	aggregate.EnsureID()
-	
-	// Set creation timestamps
 	aggregate.BeforeCreate()
 
-	// Insert aggregate root
 	if err := r.insertRoot(ctx, tx, aggregate); err != nil {
 		return fmt.Errorf("failed to insert aggregate root: %w", err)
 	}
-
-	// Insert child entities
 	{{range .Children}}
 	if err := r.insert{{.ChildModelName}}s(ctx, tx, aggregate.GetID(), aggregate.{{.Name}}); err != nil {
 		return fmt.Errorf("failed to insert {{.Name}}: %w", err)
@@ -98,13 +92,10 @@ func (r *{{.AggregateName}}SQLiteRepo) Create(ctx context.Context, aggregate *{{
 // Get retrieves a complete {{.AggregateName}} aggregate by ID from SQLite.
 // This involves loading the root and all child entities from multiple tables.
 func (r *{{.AggregateName}}SQLiteRepo) Get(ctx context.Context, id uuid.UUID) (*{{.PackageName}}.{{.AggregateName}}, error) {
-	// Load aggregate root
 	aggregate, err := r.getRoot(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get aggregate root: %w", err)
 	}
-
-	// Load child entities
 	{{range .Children}}
 	{{.Name}}, err := r.get{{.ChildModelName}}s(ctx, id)
 	if err != nil {
@@ -129,15 +120,11 @@ func (r *{{.AggregateName}}SQLiteRepo) Save(ctx context.Context, aggregate *{{.P
 	}
 	defer tx.Rollback()
 
-	// Set update timestamps
 	aggregate.BeforeUpdate()
 
-	// Update aggregate root
 	if err := r.updateRoot(ctx, tx, aggregate); err != nil {
 		return fmt.Errorf("failed to update aggregate root: %w", err)
 	}
-
-	// Handle child entities with diff algorithms
 	{{range .Children}}
 	if err := r.save{{.ChildModelName}}s(ctx, tx, aggregate.GetID(), aggregate.{{.Name}}); err != nil {
 		return fmt.Errorf("failed to save {{.Name}}: %w", err)
@@ -160,14 +147,12 @@ func (r *{{.AggregateName}}SQLiteRepo) Delete(ctx context.Context, id uuid.UUID)
 	}
 	defer tx.Rollback()
 
-	// Delete child entities first (foreign key constraints)
 	{{range .Children}}
 	if err := r.delete{{.ChildModelName}}s(ctx, tx, id); err != nil {
 		return fmt.Errorf("failed to delete {{.Name}}: %w", err)
 	}
 	{{end}}
 
-	// Delete aggregate root
 	result, err := tx.ExecContext(ctx, QueryDelete{{.AggregateName}}Root, id.String())
 	if err != nil {
 		return fmt.Errorf("failed to delete aggregate root: %w", err)

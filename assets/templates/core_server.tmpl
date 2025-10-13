@@ -52,7 +52,6 @@ func Serve(router *chi.Mux, opts ServerOpts, stops []func(context.Context) error
 		Handler: router,
 	}
 
-	// Initializing the server in a goroutine so that it won't block the graceful shutdown handling below
 	go func() {
 		log.Info(fmt.Sprintf("Starting server on %s...", opts.Port))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -60,14 +59,11 @@ func Serve(router *chi.Mux, opts ServerOpts, stops []func(context.Context) error
 		}
 	}()
 
-	// Listen for OS signals to perform a graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
 	log.Info("Shutting down server...")
-
-	// Use internal core.Shutdown for complete lifecycle management
 	Shutdown(srv, stops)
 }
 

@@ -31,8 +31,6 @@ func SetAuditFieldsBeforeCreate(
 	now := time.Now().UTC()
 	*createdAt = now
 	*updatedAt = now
-	// TODO: Extract CreatedBy from context and set *createdBy
-	// TODO: Extract UpdatedBy from context and set *updatedBy
 }
 
 // SetAuditFieldsBeforeUpdate updates the UpdatedAt timestamp and UpdatedBy for a model.
@@ -42,6 +40,4 @@ func SetAuditFieldsBeforeUpdate(
 	updatedBy *uuid.UUID,
 ) {
 	*updatedAt = time.Now().UTC()
-	// TODO: Extract UpdatedBy from context
-	// TODO: Extract UpdatedBy from context and set *updatedBy
 }

@@ -25,7 +25,6 @@ func NewMongo{{.ModelName}}Repo(db *mongo.Database) *Mongo{{.ModelName}}Repo {
 
 // Create inserts a new {{.ModelName}} into the database.
 func (r *Mongo{{.ModelName}}Repo) Create(ctx context.Context, item *{{.ModelName}}) error {
-	// TODO: Handle item.BeforeCreate() if applicable
 	_, err := r.collection.InsertOne(ctx, item)
 	if err != nil {
 		return fmt.Errorf("cannot create {{.ModelName}}: %w", err)
@@ -49,7 +48,6 @@ func (r *Mongo{{.ModelName}}Repo) Get(ctx context.Context, id uuid.UUID) (*{{.Mo
 
 // Update updates an existing {{.ModelName}} in the database.
 func (r *Mongo{{.ModelName}}Repo) Update(ctx context.Context, item *{{.ModelName}}) error {
-	// TODO: Handle item.BeforeUpdate() if applicable
 	filter := bson.M{"_id": item.ID()}
 	update := bson.M{"$set": item} // This will replace the entire document with the item's current state
 	_, err := r.collection.UpdateOne(ctx, filter, update)
