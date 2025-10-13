@@ -175,11 +175,17 @@ func (s *StringOrSlice) UnmarshalYAML(value *yaml.Node) error {
 
 // InferRepoName infers the repository name from the model name.
 func (h *Handler) InferRepoName() string {
+	if h.Overrides != nil && h.Overrides.RepoName != "" {
+		return h.Overrides.RepoName
+	}
 	return h.Model + "Repo"
 }
 
 // InferMethodName infers the method name from the operation.
 func (h *Handler) InferMethodName() string {
+	if h.Overrides != nil && h.Overrides.MethodName != "" {
+		return h.Overrides.MethodName
+	}
 	switch h.Operation {
 	case OpCreate:
 		return "Create"
@@ -208,7 +214,7 @@ func (h *Handler) InferHandlerName() string {
 
 // InferRepoCall infers the repository method call.
 func (h *Handler) InferRepoCall() string {
-	return fmt.Sprintf("h.repo.%s(ctx, item)", h.InferMethodName())
+	return fmt.Sprintf("%s.%s", h.InferRepoName(), h.InferMethodName())
 }
 
 func capitalizeFirst(s string) string {

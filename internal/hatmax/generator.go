@@ -79,6 +79,14 @@ type ModelGenerator struct {
 	AggregateSQLiteQueriesTemplate *template.Template
 	AggregateSQLiteRepoTestTemplate *template.Template
 	AggregateMongoRepoTestTemplate *template.Template
+	// Core library templates
+	CoreLifecycleTemplate   *template.Template
+	CoreServerTemplate      *template.Template
+	CoreLogTemplate         *template.Template
+	CoreAuthTemplate        *template.Template
+	CoreModelTemplate       *template.Template
+	CoreResponseTemplate    *template.Template
+	CoreValidationTemplate  *template.Template
 }
 
 // NewModelGenerator creates a new ModelGenerator.
@@ -193,6 +201,42 @@ func NewModelGenerator(config Config, outputDir string, devMode bool, assetsFS f
 		return nil, fmt.Errorf("cannot parse aggregate mongo repository test template: %w", err)
 	}
 
+	// Load core library templates
+	coreLifecycleTmpl, err := template.New("core_lifecycle.tmpl").ParseFS(tmplFS, "core_lifecycle.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse core lifecycle template: %w", err)
+	}
+
+	coreServerTmpl, err := template.New("core_server.tmpl").ParseFS(tmplFS, "core_server.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse core server template: %w", err)
+	}
+
+	coreLogTmpl, err := template.New("core_log.tmpl").ParseFS(tmplFS, "core_log.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse core log template: %w", err)
+	}
+
+	coreAuthTmpl, err := template.New("core_auth.tmpl").ParseFS(tmplFS, "core_auth.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse core auth template: %w", err)
+	}
+
+	coreModelTmpl, err := template.New("core_model.tmpl").ParseFS(tmplFS, "core_model.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse core model template: %w", err)
+	}
+
+	coreResponseTmpl, err := template.New("core_response.tmpl").ParseFS(tmplFS, "core_response.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse core response template: %w", err)
+	}
+
+	coreValidationTmpl, err := template.New("core_validation.tmpl").ParseFS(tmplFS, "core_validation.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse core validation template: %w", err)
+	}
+
 	return &ModelGenerator{
 			Config:                   config,
 			OutputDir:                outputDir,
@@ -218,6 +262,14 @@ func NewModelGenerator(config Config, outputDir string, devMode bool, assetsFS f
 			AggregateSQLiteQueriesTemplate: aggregateSQLiteQueriesTmpl,
 			AggregateSQLiteRepoTestTemplate: aggregateSQLiteRepoTestTmpl,
 			AggregateMongoRepoTestTemplate: aggregateMongoRepoTestTmpl,
+			// Core library templates
+			CoreLifecycleTemplate:   coreLifecycleTmpl,
+			CoreServerTemplate:      coreServerTmpl,
+			CoreLogTemplate:         coreLogTmpl,
+			CoreAuthTemplate:        coreAuthTmpl,
+			CoreModelTemplate:       coreModelTmpl,
+			CoreResponseTemplate:    coreResponseTmpl,
+			CoreValidationTemplate:  coreValidationTmpl,
 		},
 		nil
 }
@@ -690,7 +742,7 @@ func (mg *ModelGenerator) GenerateValidators() error {
 	return nil
 }
 
-// GenerateMain generates the main.go file for the generated application.
+// GenerateMain generates the main.go file for the current service being generated.
 func (mg *ModelGenerator) GenerateMain() error {
 	if mg.MainTemplate == nil {
 		return fmt.Errorf("main template not initialized")
@@ -698,11 +750,13 @@ func (mg *ModelGenerator) GenerateMain() error {
 
 	mainPath := filepath.Join(mg.OutputDir, "main.go")
 
-	serviceNames := make([]string, 0, len(mg.Config.Services))
-	for name := range mg.Config.Services {
-		serviceNames = append(serviceNames, name)
+	// Determine current service from output directory
+	// The outputDir should be something like ".../services/serviceName"
+	currentServiceName := filepath.Base(mg.OutputDir)
+	currentService, exists := mg.Config.Services[currentServiceName]
+	if !exists {
+		return fmt.Errorf("cannot determine current service from output directory %s", mg.OutputDir)
 	}
-	sort.Strings(serviceNames)
 
 	type mainTemplateService struct {
 		Name       string
@@ -710,39 +764,36 @@ func (mg *ModelGenerator) GenerateMain() error {
 		Aggregates []string
 	}
 
-	services := make([]mainTemplateService, 0, len(serviceNames))
-	for _, serviceName := range serviceNames {
-		service := mg.Config.Services[serviceName]
-		
-		// Filter models that are NOT part of aggregates
-		modelNames := make([]string, 0, len(service.Models))
-		for modelName := range service.Models {
-			if !isPartOfAggregate(modelName, service.Aggregates) {
-				modelNames = append(modelNames, modelName)
-			}
+	// Filter models that are NOT part of aggregates
+	modelNames := make([]string, 0, len(currentService.Models))
+	for modelName := range currentService.Models {
+		if !isPartOfAggregate(modelName, currentService.Aggregates) {
+			modelNames = append(modelNames, modelName)
 		}
-		sort.Strings(modelNames)
-		
-		// Get aggregate names
-		aggregateNames := make([]string, 0, len(service.Aggregates))
-		for aggregateName := range service.Aggregates {
-			aggregateNames = append(aggregateNames, aggregateName)
-		}
-		sort.Strings(aggregateNames)
+	}
+	sort.Strings(modelNames)
+	
+	// Get aggregate names
+	aggregateNames := make([]string, 0, len(currentService.Aggregates))
+	for aggregateName := range currentService.Aggregates {
+		aggregateNames = append(aggregateNames, aggregateName)
+	}
+	sort.Strings(aggregateNames)
 
-		services = append(services, mainTemplateService{
-			Name:       serviceName,
-			Models:     modelNames,
-			Aggregates: aggregateNames,
-		})
+	service := mainTemplateService{
+		Name:       currentServiceName,
+		Models:     modelNames,
+		Aggregates: aggregateNames,
 	}
 
 	data := struct {
-		ModulePath string
-		Services   []mainTemplateService
+		ModulePath  string
+		ServiceName string
+		Services    []mainTemplateService
 	}{
-		ModulePath: mg.Config.ModulePath,
-		Services:   services,
+		ModulePath:  mg.Config.ModulePath,
+		ServiceName: currentServiceName,
+		Services:    []mainTemplateService{service},
 	}
 
 	if err := mg.generateFile(mg.MainTemplate, mainPath, data); err != nil {
@@ -850,9 +901,11 @@ func (mg *ModelGenerator) GenerateAggregateRepoInterfaces() error {
 			data := struct {
 				PackageName   string
 				AggregateName string
+				ModulePath    string
 			}{
 				PackageName:   packageName,
 				AggregateName: aggregateName,
+				ModulePath:    mg.Config.ModulePath,
 			}
 
 			if err := mg.generateFile(mg.AggregateRepoTemplate, repoPath, data); err != nil {
@@ -1137,12 +1190,14 @@ func (mg *ModelGenerator) GenerateAggregateModels() error {
 				Fields        []FieldTemplateData
 				Audit         bool
 				Children      []ChildTemplateData
+				ModulePath    string
 			}{
 				PackageName:   packageName,
 				AggregateName: aggregateName,
 				VersionField:  aggregate.VersionField,
 				Audit:         aggregate.Audit,
 				Children:      []ChildTemplateData{},
+				ModulePath:    mg.Config.ModulePath,
 			}
 
 			for fieldName, field := range aggregate.Fields {
@@ -1205,11 +1260,13 @@ func (mg *ModelGenerator) GenerateAggregateModels() error {
 					ChildModelName string
 					Fields         []FieldTemplateData
 					Audit          bool
+					ModulePath     string
 				}{
 					PackageName:    packageName,
 					ChildModelName: child.Of,
 					Audit:          child.Audit,
 					Fields:         []FieldTemplateData{},
+					ModulePath:     mg.Config.ModulePath,
 				}
 
 				for fieldName, field := range childModel.Fields {
@@ -1265,6 +1322,41 @@ func (mg *ModelGenerator) GenerateGoMod() error {
 		return fmt.Errorf("cannot write go.mod for generated app: %w", err)
 	}
 	fmt.Printf("  - Created %s\n", goModPath)
+	return nil
+}
+
+// GenerateCoreLibrary generates all core library files in pkg/lib/core
+func (mg *ModelGenerator) GenerateCoreLibrary() error {
+	fmt.Println("  - Generating core library files...")
+	
+	// Create the core library directory
+	coreDir := filepath.Join(mg.OutputDir, "pkg", "lib", "core")
+	if err := os.MkdirAll(coreDir, 0o755); err != nil {
+		return fmt.Errorf("cannot create core library directory: %w", err)
+	}
+	
+	// Generate each core library file
+	coreFiles := map[string]*template.Template{
+		"lifecycle.go":  mg.CoreLifecycleTemplate,
+		"server.go":     mg.CoreServerTemplate,
+		"log.go":        mg.CoreLogTemplate,
+		"auth.go":       mg.CoreAuthTemplate,
+		"model.go":      mg.CoreModelTemplate,
+		"response.go":   mg.CoreResponseTemplate,
+		"validation.go": mg.CoreValidationTemplate,
+	}
+	
+	for filename, tmpl := range coreFiles {
+		filePath := filepath.Join(coreDir, filename)
+		
+		// Core templates don't need any template data - they're static
+		if err := mg.generateFile(tmpl, filePath, nil); err != nil {
+			return fmt.Errorf("cannot generate core file %s: %w", filename, err)
+		}
+		
+		fmt.Printf("    - Created %s\n", filePath)
+	}
+	
 	return nil
 }
 

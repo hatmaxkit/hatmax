@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/adrianpk/hatmax/pkg/lib/hm"
+	"{{$.ModulePath}}/pkg/lib/core"
 )
 
 // {{.ModelName}} represents a {{.ModelName}}.
@@ -32,21 +32,21 @@ func (m *{{.ModelName}}) SetID(id uuid.UUID) {
 
 func (m *{{.ModelName}}) EnsureID() {
 	if m.ID == uuid.Nil {
-		m.ID = hm.GenerateNewID()
+		m.ID = core.GenerateNewID()
 	}
 }
 
 {{if .Audit}}
 // BeforeCreate sets the initial timestamps and createdBy for the model.
 func (m *{{.ModelName}}) BeforeCreate() {
-	hm.SetAuditFieldsBeforeCreate(&m.CreatedAt, &m.UpdatedAt, &m.CreatedBy, &m.UpdatedBy)
+	core.SetAuditFieldsBeforeCreate(&m.CreatedAt, &m.UpdatedAt, &m.CreatedBy, &m.UpdatedBy)
 	if m.ID == uuid.Nil {
-		m.ID = hm.GenerateNewID()
+		m.ID = core.GenerateNewID()
 	}
 }
 
 // BeforeUpdate updates the UpdatedAt timestamp and UpdatedBy for the model.
 func (m *{{.ModelName}}) BeforeUpdate() {
-	hm.SetAuditFieldsBeforeUpdate(&m.UpdatedAt, &m.UpdatedBy)
+	core.SetAuditFieldsBeforeUpdate(&m.UpdatedAt, &m.UpdatedBy)
 }
 {{end}}

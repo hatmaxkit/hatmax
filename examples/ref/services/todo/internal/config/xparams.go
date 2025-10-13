@@ -1,8 +1,8 @@
 package config
 
-import "github.com/adrianpk/hatmax/pkg/lib/hm"
+import "github.com/adrianpk/hatmax-ref/services/todo/pkg/lib/core"
 
 type XParams struct {
-	Log hm.Logger
+	Log core.Logger
 	Cfg *Config
 }

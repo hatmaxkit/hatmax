@@ -3,7 +3,7 @@ package todo
 import (
 	"time"
 
-	"github.com/adrianpk/hatmax/pkg/lib/hm"
+	"github.com/adrianpk/hatmax-ref/services/todo/pkg/lib/core"
 	"github.com/google/uuid"
 )
 
@@ -33,14 +33,14 @@ func (a *List) SetID(id uuid.UUID) {
 // NewList creates a new List with a generated ID and initial version.
 func NewList() *List {
 	return &List{
-		ID: hm.GenerateNewID(),
+		ID: core.GenerateNewID(),
 	}
 }
 
 // EnsureID ensures the aggregate root has a valid ID.
 func (a *List) EnsureID() {
 	if a.ID == uuid.Nil {
-		a.ID = hm.GenerateNewID()
+		a.ID = core.GenerateNewID()
 	}
 }
 
