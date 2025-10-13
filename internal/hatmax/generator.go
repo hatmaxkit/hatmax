@@ -78,6 +78,7 @@ type ModelGenerator struct {
 	AggregateSQLiteRepoTemplate *template.Template
 	AggregateSQLiteQueriesTemplate *template.Template
 	AggregateSQLiteRepoTestTemplate *template.Template
+	AggregateMongoRepoTestTemplate *template.Template
 }
 
 // NewModelGenerator creates a new ModelGenerator.
@@ -187,6 +188,11 @@ func NewModelGenerator(config Config, outputDir string, devMode bool, assetsFS f
 		return nil, fmt.Errorf("cannot parse aggregate sqlite repository test template: %w", err)
 	}
 
+	aggregateMongoRepoTestTmpl, err := template.New("aggregate_repo_mongo_test.tmpl").ParseFS(tmplFS, "aggregate_repo_mongo_test.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse aggregate mongo repository test template: %w", err)
+	}
+
 	return &ModelGenerator{
 			Config:                   config,
 			OutputDir:                outputDir,
@@ -211,6 +217,7 @@ func NewModelGenerator(config Config, outputDir string, devMode bool, assetsFS f
 			AggregateSQLiteRepoTemplate: aggregateSQLiteRepoTmpl,
 			AggregateSQLiteQueriesTemplate: aggregateSQLiteQueriesTmpl,
 			AggregateSQLiteRepoTestTemplate: aggregateSQLiteRepoTestTmpl,
+			AggregateMongoRepoTestTemplate: aggregateMongoRepoTestTmpl,
 		},
 		nil
 }
@@ -864,23 +871,16 @@ func (mg *ModelGenerator) GenerateAggregateMongoRepoImplementations() error {
 			continue
 		}
 
-		for aggregateName := range service.Aggregates {
+		for aggregateName, aggregate := range service.Aggregates {
 			fmt.Printf("  - Generating MongoDB aggregate repository: %s/%sMongoRepo\n", serviceName, aggregateName)
 
 			repoFileName := strings.ToLower(aggregateName) + "repo.go"
 			repoPath := filepath.Join(mg.OutputDir, "internal", "mongo", repoFileName)
 
 			// Build template data
-			data := struct {
-				PackageName   string
-				AggregateName string
-				TableName     string
-				ModulePath    string
-			}{
-				PackageName:   serviceName,
-				AggregateName: aggregateName,
-				TableName:     strings.ToLower(aggregateName) + "s", // "lists" for "List"
-				ModulePath:    mg.Config.ModulePath,
+			data, err := mg.buildMongoAggregateTemplateData(serviceName, aggregateName, aggregate)
+			if err != nil {
+				return fmt.Errorf("failed to build MongoDB aggregate template data for %s: %w", aggregateName, err)
 			}
 
 			dir := filepath.Dir(repoPath)
@@ -888,10 +888,19 @@ func (mg *ModelGenerator) GenerateAggregateMongoRepoImplementations() error {
 				return fmt.Errorf("cannot create directory for MongoDB aggregate repository %s: %w", aggregateName, err)
 			}
 
+			// Generate repository file
 			if err := mg.generateFile(mg.AggregateMongoRepoTemplate, repoPath, data); err != nil {
 				return fmt.Errorf("cannot execute MongoDB aggregate repository template for %s: %w", aggregateName, err)
 			}
 			fmt.Printf("    - Created %s\n", repoPath)
+
+			// Generate test file
+			testFileName := strings.ToLower(aggregateName) + "repo_test.go"
+			testPath := filepath.Join(mg.OutputDir, "internal", "mongo", testFileName)
+			if err := mg.generateFile(mg.AggregateMongoRepoTestTemplate, testPath, data); err != nil {
+				return fmt.Errorf("cannot execute MongoDB aggregate repository test template for %s: %w", aggregateName, err)
+			}
+			fmt.Printf("    - Created %s\n", testPath)
 		}
 	}
 	return nil
@@ -1070,6 +1079,43 @@ func (mg *ModelGenerator) buildChildFieldsData(serviceName, aggregateName, child
 	data.UpdateFields = strings.Join(updateFields, ", ")
 	data.UpdateValues = strings.Join(updateValues, ", ")
 	data.Placeholders = "{{.Placeholders}}" // Will be replaced in template
+
+	return data, nil
+}
+
+// MongoAggregateTemplateData holds all data needed for MongoDB aggregate repository template.
+type MongoAggregateTemplateData struct {
+	PackageName   string
+	AggregateName string
+	TableName     string
+	ModulePath    string
+	Children      []MongoChildTemplateData
+}
+
+// MongoChildTemplateData holds data for child entities in MongoDB aggregate repositories.
+type MongoChildTemplateData struct {
+	Name           string // Field name in aggregate (e.g., "Items")
+	ChildModelName string // Model name (e.g., "Item")
+}
+
+// buildMongoAggregateTemplateData constructs the template data for MongoDB aggregate repositories.
+func (mg *ModelGenerator) buildMongoAggregateTemplateData(serviceName, aggregateName string, aggregate AggregateRoot) (*MongoAggregateTemplateData, error) {
+	data := &MongoAggregateTemplateData{
+		PackageName:   serviceName,
+		AggregateName: aggregateName,
+		TableName:     strings.ToLower(aggregateName) + "s",
+		ModulePath:    mg.Config.ModulePath,
+		Children:      []MongoChildTemplateData{},
+	}
+
+	// Build children data - simpler for MongoDB since it's document-based
+	for childName, child := range aggregate.Children {
+		childData := MongoChildTemplateData{
+			Name:           capitalizeFirst(childName),
+			ChildModelName: child.Of,
+		}
+		data.Children = append(data.Children, childData)
+	}
 
 	return data, nil
 }
