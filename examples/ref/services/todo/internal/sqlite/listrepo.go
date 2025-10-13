@@ -69,18 +69,12 @@ func (r *ListSQLiteRepo) Create(ctx context.Context, aggregate *todo.List) error
 	}
 	defer tx.Rollback()
 
-	// Ensure aggregate has an ID
 	aggregate.EnsureID()
-
-	// Set creation timestamps
 	aggregate.BeforeCreate()
 
-	// Insert aggregate root
 	if err := r.insertRoot(ctx, tx, aggregate); err != nil {
 		return fmt.Errorf("failed to insert aggregate root: %w", err)
 	}
-
-	// Insert child entities
 
 	if err := r.insertItems(ctx, tx, aggregate.GetID(), aggregate.Items); err != nil {
 		return fmt.Errorf("failed to insert Items: %w", err)
@@ -100,13 +94,10 @@ func (r *ListSQLiteRepo) Create(ctx context.Context, aggregate *todo.List) error
 // Get retrieves a complete List aggregate by ID from SQLite.
 // This involves loading the root and all child entities from multiple tables.
 func (r *ListSQLiteRepo) Get(ctx context.Context, id uuid.UUID) (*todo.List, error) {
-	// Load aggregate root
 	aggregate, err := r.getRoot(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get aggregate root: %w", err)
 	}
-
-	// Load child entities
 
 	Items, err := r.getItems(ctx, id)
 	if err != nil {
@@ -136,15 +127,11 @@ func (r *ListSQLiteRepo) Save(ctx context.Context, aggregate *todo.List) error {
 	}
 	defer tx.Rollback()
 
-	// Set update timestamps
 	aggregate.BeforeUpdate()
 
-	// Update aggregate root
 	if err := r.updateRoot(ctx, tx, aggregate); err != nil {
 		return fmt.Errorf("failed to update aggregate root: %w", err)
 	}
-
-	// Handle child entities with diff algorithms
 
 	if err := r.saveItems(ctx, tx, aggregate.GetID(), aggregate.Items); err != nil {
 		return fmt.Errorf("failed to save Items: %w", err)
@@ -170,8 +157,6 @@ func (r *ListSQLiteRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	defer tx.Rollback()
 
-	// Delete child entities first (foreign key constraints)
-
 	if err := r.deleteItems(ctx, tx, id); err != nil {
 		return fmt.Errorf("failed to delete Items: %w", err)
 	}
@@ -180,7 +165,6 @@ func (r *ListSQLiteRepo) Delete(ctx context.Context, id uuid.UUID) error {
 		return fmt.Errorf("failed to delete Tags: %w", err)
 	}
 
-	// Delete aggregate root
 	result, err := tx.ExecContext(ctx, QueryDeleteListRoot, id.String())
 	if err != nil {
 		return fmt.Errorf("failed to delete aggregate root: %w", err)

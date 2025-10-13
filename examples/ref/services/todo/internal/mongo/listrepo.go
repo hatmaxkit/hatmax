@@ -32,13 +32,9 @@ func (r *ListMongoRepo) Create(ctx context.Context, aggregate *todo.List) error 
 		return fmt.Errorf("aggregate cannot be nil")
 	}
 
-	// Ensure aggregate has an ID
 	aggregate.EnsureID()
-
-	// Set creation timestamps
 	aggregate.BeforeCreate()
 
-	// Insert the entire aggregate as a single document
 	_, err := r.collection.InsertOne(ctx, aggregate)
 	if err != nil {
 		return fmt.Errorf("failed to create List aggregate: %w", err)
@@ -71,10 +67,8 @@ func (r *ListMongoRepo) Save(ctx context.Context, aggregate *todo.List) error {
 		return fmt.Errorf("aggregate cannot be nil")
 	}
 
-	// Set update timestamps
 	aggregate.BeforeUpdate()
 
-	// Replace the entire document (aggregate root + all children)
 	filter := bson.M{"_id": aggregate.GetID().String()}
 	opts := options.Replace().SetUpsert(false)
 

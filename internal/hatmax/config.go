@@ -9,12 +9,13 @@ import (
 
 // Config represents the top-level structure of the monorepo.yaml file.
 type Config struct {
-	Version    string             `yaml:"version"`
-	Name       string             `yaml:"name,omitempty"`
-	Package    string             `yaml:"package,omitempty"`
-	ModulePath string             `yaml:"module_path,omitempty"`
-	Deployment *DeploymentConfig  `yaml:"deployment,omitempty"`
-	Services   map[string]Service `yaml:"services"`
+	Version            string             `yaml:"version"`
+	Name               string             `yaml:"name,omitempty"`
+	Package            string             `yaml:"package,omitempty"`
+	ModulePath         string             `yaml:"module_path,omitempty"`
+	MonorepoModulePath string             `yaml:"-"` // Runtime computed, not from YAML
+	Deployment         *DeploymentConfig  `yaml:"deployment,omitempty"`
+	Services           map[string]Service `yaml:"services"`
 }
 
 // Service defines a microservice within the monorepo.

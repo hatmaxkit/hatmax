@@ -9,9 +9,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/adrianpk/hatmax-ref/pkg/lib/core"
 	"github.com/adrianpk/hatmax-ref/services/todo/internal/config"
 	"github.com/adrianpk/hatmax-ref/services/todo/internal/sqlite"
-	"github.com/adrianpk/hatmax-ref/services/todo/pkg/lib/core"
 )
 
 const (
