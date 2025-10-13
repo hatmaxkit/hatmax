@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"{{$.ModulePath}}/internal/config"
-	"{{$.ModulePath}}/pkg/lib/core"
+	"{{$.MonorepoModulePath}}"
 	{{- range .Services }}
 	"{{$.ModulePath}}/internal/{{.Name}}"
 	"{{$.ModulePath}}/internal/sqlite"

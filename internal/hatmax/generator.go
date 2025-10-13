@@ -33,25 +33,28 @@ type FieldValidationData struct {
 
 // ModelTemplateData holds all data needed to render a model template.
 type ModelTemplateData struct {
-	PackageName  string
-	ModelName    string
-	Audit        bool
-	Fields       []FieldTemplateData
-	NeedsFmt     bool
-	NeedsStrconv bool
+	PackageName        string
+	ModelName          string
+	Audit              bool
+	Fields             []FieldTemplateData
+	NeedsFmt           bool
+	NeedsStrconv       bool
+	ModulePath         string
+	MonorepoModulePath string
 }
 
 // HandlerTemplateData holds all data needed to render a handler template.
 type HandlerTemplateData struct {
-	PackageName       string
-	ModelName         string
-	ModelPlural       string
-	ModelLower        string
-	ModelPluralLower  string
-	AuthEnabled       bool
-	Audit             bool
-	ModulePath        string
-	IsChildCollection bool
+	PackageName        string
+	ModelName          string
+	ModelPlural        string
+	ModelLower         string
+	ModelPluralLower   string
+	AuthEnabled        bool
+	Audit              bool
+	ModulePath         string
+	MonorepoModulePath string
+	IsChildCollection  bool
 }
 
 type ModelGenerator struct {
@@ -294,10 +297,12 @@ func (mg *ModelGenerator) GenerateModels() error {
 			modelPath := filepath.Join(mg.OutputDir, "internal", serviceName, modelFileName)
 
 			data := ModelTemplateData{
-				PackageName: packageName,
-				ModelName:   modelName,
-				Audit:       false,
-				Fields:      []FieldTemplateData{},
+				PackageName:        packageName,
+				ModelName:          modelName,
+				Audit:              false,
+				Fields:             []FieldTemplateData{},
+				ModulePath:         mg.Config.ModulePath,
+				MonorepoModulePath: mg.Config.MonorepoModulePath,
 			}
 			if model.Options != nil {
 				data.Audit = model.Options.Audit
@@ -632,15 +637,16 @@ func (mg *ModelGenerator) GenerateHandlers() error {
 			}
 
 			data := HandlerTemplateData{
-				PackageName:       packageName,
-				ModelName:         modelName,
-				ModelPlural:       modelPlural,
-				ModelLower:        strings.ToLower(modelName),
-				ModelPluralLower:  strings.ToLower(modelPlural),
-				AuthEnabled:       service.Auth != nil && service.Auth.Enabled,
-				Audit:             false,
-				ModulePath:        mg.Config.ModulePath,
-				IsChildCollection: isChildCollection,
+				PackageName:        packageName,
+				ModelName:          modelName,
+				ModelPlural:        modelPlural,
+				ModelLower:         strings.ToLower(modelName),
+				ModelPluralLower:   strings.ToLower(modelPlural),
+				AuthEnabled:        service.Auth != nil && service.Auth.Enabled,
+				Audit:              false,
+				ModulePath:         mg.Config.ModulePath,
+				MonorepoModulePath: mg.Config.MonorepoModulePath,
+				IsChildCollection:  isChildCollection,
 			}
 			if model.Options != nil {
 				data.Audit = model.Options.Audit
@@ -683,10 +689,12 @@ func (mg *ModelGenerator) GenerateValidators() error {
 			validatorPath := filepath.Join(mg.OutputDir, "internal", serviceName, validatorFileName)
 
 			data := ModelTemplateData{
-				PackageName: packageName,
-				ModelName:   modelName,
-				Audit:       false,
-				Fields:      []FieldTemplateData{},
+				PackageName:        packageName,
+				ModelName:          modelName,
+				Audit:              false,
+				Fields:             []FieldTemplateData{},
+				ModulePath:         mg.Config.ModulePath,
+				MonorepoModulePath: mg.Config.MonorepoModulePath,
 			}
 			if model.Options != nil {
 				data.Audit = model.Options.Audit
@@ -787,13 +795,15 @@ func (mg *ModelGenerator) GenerateMain() error {
 	}
 
 	data := struct {
-		ModulePath  string
-		ServiceName string
-		Services    []mainTemplateService
+		ModulePath         string
+		MonorepoModulePath string
+		ServiceName        string
+		Services           []mainTemplateService
 	}{
-		ModulePath:  mg.Config.ModulePath,
-		ServiceName: currentServiceName,
-		Services:    []mainTemplateService{service},
+		ModulePath:         mg.Config.ModulePath,
+		MonorepoModulePath: mg.Config.MonorepoModulePath,
+		ServiceName:        currentServiceName,
+		Services:           []mainTemplateService{service},
 	}
 
 	if err := mg.generateFile(mg.MainTemplate, mainPath, data); err != nil {
@@ -810,9 +820,11 @@ func (mg *ModelGenerator) GenerateConfigAndXParams() error {
 
 	configGoPath := filepath.Join(mg.OutputDir, "internal", "config", "config.go")
 	data := struct {
-		ModulePath string
+		ModulePath        string
+		MonorepoModulePath string
 	}{
-		ModulePath: mg.Config.ModulePath,
+		ModulePath:         mg.Config.ModulePath,
+		MonorepoModulePath: mg.Config.MonorepoModulePath,
 	}
 	if err := mg.generateFile(mg.ConfigTemplate, configGoPath, data); err != nil {
 		return fmt.Errorf("cannot generate config.go: %w", err)
@@ -899,13 +911,15 @@ func (mg *ModelGenerator) GenerateAggregateRepoInterfaces() error {
 			repoPath := filepath.Join(mg.OutputDir, "internal", serviceName, repoFileName)
 
 			data := struct {
-				PackageName   string
-				AggregateName string
-				ModulePath    string
+				PackageName        string
+				AggregateName      string
+				ModulePath         string
+				MonorepoModulePath string
 			}{
-				PackageName:   packageName,
-				AggregateName: aggregateName,
-				ModulePath:    mg.Config.ModulePath,
+				PackageName:        packageName,
+				AggregateName:      aggregateName,
+				ModulePath:         mg.Config.ModulePath,
+				MonorepoModulePath: mg.Config.MonorepoModulePath,
 			}
 
 			if err := mg.generateFile(mg.AggregateRepoTemplate, repoPath, data); err != nil {
@@ -1011,17 +1025,18 @@ func (mg *ModelGenerator) GenerateAggregateSQLiteRepoImplementations() error {
 
 // SQLiteAggregateTemplateData holds all data needed for SQLite aggregate repository template.
 type SQLiteAggregateTemplateData struct {
-	PackageName      string
-	AggregateName    string
-	TableName        string
-	ModulePath       string
-	RootFields       string
-	RootPlaceholders string
-	RootValues       string
-	RootScanRefs     string
-	RootUpdateFields string
-	RootUpdateValues string
-	Children         []SQLiteChildTemplateData
+	PackageName        string
+	AggregateName      string
+	TableName          string
+	ModulePath         string
+	MonorepoModulePath string
+	RootFields         string
+	RootPlaceholders   string
+	RootValues         string
+	RootScanRefs       string
+	RootUpdateFields   string
+	RootUpdateValues   string
+	Children           []SQLiteChildTemplateData
 }
 
 // SQLiteChildTemplateData holds data for child entities in SQLite aggregate repositories.
@@ -1041,11 +1056,12 @@ type SQLiteChildTemplateData struct {
 // buildSQLiteAggregateTemplateData constructs the template data for SQLite aggregate repositories.
 func (mg *ModelGenerator) buildSQLiteAggregateTemplateData(serviceName, aggregateName string, aggregate AggregateRoot) (*SQLiteAggregateTemplateData, error) {
 	data := &SQLiteAggregateTemplateData{
-		PackageName:   serviceName,
-		AggregateName: aggregateName,
-		TableName:     strings.ToLower(aggregateName) + "s",
-		ModulePath:    mg.Config.ModulePath,
-		Children:      []SQLiteChildTemplateData{},
+		PackageName:        serviceName,
+		AggregateName:      aggregateName,
+		TableName:          strings.ToLower(aggregateName) + "s",
+		ModulePath:         mg.Config.ModulePath,
+		MonorepoModulePath: mg.Config.MonorepoModulePath,
+		Children:           []SQLiteChildTemplateData{},
 	}
 
 	// Build root fields data
@@ -1138,11 +1154,12 @@ func (mg *ModelGenerator) buildChildFieldsData(serviceName, aggregateName, child
 
 // MongoAggregateTemplateData holds all data needed for MongoDB aggregate repository template.
 type MongoAggregateTemplateData struct {
-	PackageName   string
-	AggregateName string
-	TableName     string
-	ModulePath    string
-	Children      []MongoChildTemplateData
+	PackageName        string
+	AggregateName      string
+	TableName          string
+	ModulePath         string
+	MonorepoModulePath string
+	Children           []MongoChildTemplateData
 }
 
 // MongoChildTemplateData holds data for child entities in MongoDB aggregate repositories.
@@ -1154,11 +1171,12 @@ type MongoChildTemplateData struct {
 // buildMongoAggregateTemplateData constructs the template data for MongoDB aggregate repositories.
 func (mg *ModelGenerator) buildMongoAggregateTemplateData(serviceName, aggregateName string, aggregate AggregateRoot) (*MongoAggregateTemplateData, error) {
 	data := &MongoAggregateTemplateData{
-		PackageName:   serviceName,
-		AggregateName: aggregateName,
-		TableName:     strings.ToLower(aggregateName) + "s",
-		ModulePath:    mg.Config.ModulePath,
-		Children:      []MongoChildTemplateData{},
+		PackageName:        serviceName,
+		AggregateName:      aggregateName,
+		TableName:          strings.ToLower(aggregateName) + "s",
+		ModulePath:         mg.Config.ModulePath,
+		MonorepoModulePath: mg.Config.MonorepoModulePath,
+		Children:           []MongoChildTemplateData{},
 	}
 
 	// Build children data - simpler for MongoDB since it's document-based
@@ -1184,20 +1202,22 @@ func (mg *ModelGenerator) GenerateAggregateModels() error {
 			aggregatePath := filepath.Join(mg.OutputDir, "internal", serviceName, aggregateFileName)
 
 			data := struct {
-				PackageName   string
-				AggregateName string
-				VersionField  string
-				Fields        []FieldTemplateData
-				Audit         bool
-				Children      []ChildTemplateData
-				ModulePath    string
+				PackageName        string
+				AggregateName      string
+				VersionField       string
+				Fields             []FieldTemplateData
+				Audit              bool
+				Children           []ChildTemplateData
+				ModulePath         string
+				MonorepoModulePath string
 			}{
-				PackageName:   packageName,
-				AggregateName: aggregateName,
-				VersionField:  aggregate.VersionField,
-				Audit:         aggregate.Audit,
-				Children:      []ChildTemplateData{},
-				ModulePath:    mg.Config.ModulePath,
+				PackageName:        packageName,
+				AggregateName:      aggregateName,
+				VersionField:       aggregate.VersionField,
+				Audit:              aggregate.Audit,
+				Children:           []ChildTemplateData{},
+				ModulePath:         mg.Config.ModulePath,
+				MonorepoModulePath: mg.Config.MonorepoModulePath,
 			}
 
 			for fieldName, field := range aggregate.Fields {
@@ -1303,15 +1323,10 @@ func (mg *ModelGenerator) GenerateGoMod() error {
 	// Generate go.mod with module name and Go version
 	goModContent := fmt.Sprintf("module %s\n\ngo 1.23\n", mg.Config.ModulePath)
 
-	// In dev mode, add the hm library dependency and replace directive
+	// In dev mode, add dependencies but rely on workspace for resolution
 	if mg.DevMode {
-		goModContent += "\nrequire (\n"
-		goModContent += "\tgithub.com/adrianpk/hatmax v0.0.0-00010101000000-000000000000\n"
-		goModContent += ")\n"
-		goModContent += "\n// Development mode: use local hatmax library\n"
-		// In dev mode, services are always generated at examples/ref/services/[service]/
-		// So the path from service to hatmax root is always ../../../..
-		goModContent += "replace github.com/adrianpk/hatmax => ../../../..\n"
+		goModContent += "\n// Dependencies are resolved by go.work workspace\n"
+		goModContent += "// The workspace includes both the monorepo root and this service\n"
 	} else {
 		// In production mode, let `go mod tidy` handle dependency management
 		goModContent += "\n// Run 'go mod tidy' to add dependencies automatically\n"
@@ -1360,33 +1375,87 @@ func (mg *ModelGenerator) GenerateCoreLibrary() error {
 	return nil
 }
 
-// PostGenerationCleanup runs post-generation tasks like go mod tidy, gofmt, and goimports
+// PostGenerationCleanup runs post-generation tasks like go mod tidy, go work sync, gofmt, and goimports
 func (mg *ModelGenerator) PostGenerationCleanup() error {
-	// Change to the output directory for running go commands
 	originalDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("cannot get current working directory: %w", err)
-	}
-
-	if err := os.Chdir(mg.OutputDir); err != nil {
-		return fmt.Errorf("cannot change to output directory %s: %w", mg.OutputDir, err)
 	}
 	defer func() {
 		os.Chdir(originalDir)
 	}()
 
-	// Run go mod tidy
-	fmt.Println("  - Running go mod tidy...")
-	cmd := exec.Command("go", "mod", "tidy")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("go mod tidy failed: %w", err)
+	// In dev mode, we use workspace commands
+	if mg.DevMode {
+		// Convert to absolute path first
+		absOutputDir, err := filepath.Abs(mg.OutputDir)
+		if err != nil {
+			return fmt.Errorf("cannot get absolute path for output directory: %w", err)
+		}
+		
+		// Find the workspace root (go up from service directory to monorepo root)
+		workspaceRoot := filepath.Dir(filepath.Dir(absOutputDir)) // Remove /services/serviceName
+		
+		// First, run go mod tidy in the monorepo root
+		fmt.Println("  - Running go mod tidy in monorepo root...")
+		if err := os.Chdir(workspaceRoot); err != nil {
+			return fmt.Errorf("cannot change to workspace root %s: %w", workspaceRoot, err)
+		}
+		cmd := exec.Command("go", "mod", "tidy")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			fmt.Printf("Warning: go mod tidy failed in monorepo root: %v\n", err)
+		}
+
+		// Then, run go mod tidy in the service directory
+		fmt.Println("  - Running go mod tidy in service directory...")
+		if err := os.Chdir(absOutputDir); err != nil {
+			return fmt.Errorf("cannot change to service directory %s: %w", absOutputDir, err)
+		}
+		cmd = exec.Command("go", "mod", "tidy")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			fmt.Printf("Warning: go mod tidy failed in service directory: %v\n", err)
+		}
+
+		// Finally, run go work sync from workspace root
+		fmt.Println("  - Running go work sync...")
+		if err := os.Chdir(workspaceRoot); err != nil {
+			return fmt.Errorf("cannot change to workspace root %s: %w", workspaceRoot, err)
+		}
+		cmd = exec.Command("go", "work", "sync")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			fmt.Printf("Warning: go work sync failed: %v\n", err)
+		}
+	} else {
+		// In production mode, run go mod tidy from service directory
+		// Convert to absolute path first
+		absOutputDir, err := filepath.Abs(mg.OutputDir)
+		if err != nil {
+			return fmt.Errorf("cannot get absolute path for output directory: %w", err)
+		}
+		
+		if err := os.Chdir(absOutputDir); err != nil {
+			return fmt.Errorf("cannot change to output directory %s: %w", absOutputDir, err)
+		}
+
+		// Run go mod tidy
+		fmt.Println("  - Running go mod tidy...")
+		cmd := exec.Command("go", "mod", "tidy")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("go mod tidy failed: %w", err)
+		}
 	}
 
 	// Run gofmt on all .go files
 	fmt.Println("  - Running gofmt...")
-	cmd = exec.Command("gofmt", "-w", ".")
+	cmd := exec.Command("gofmt", "-w", ".")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {

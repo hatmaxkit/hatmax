@@ -3,15 +3,15 @@ package todo
 import (
 	"time"
 
-	"github.com/adrianpk/hatmax-ref/services/todo/pkg/lib/core"
+	"github.com/adrianpk/hatmax-ref/pkg/lib/core"
 	"github.com/google/uuid"
 )
 
 // List is the aggregate root for the List domain.
 type List struct {
 	ID          uuid.UUID `json:"id"`
-	Description string    `json:"description"`
 	Name        string    `json:"name"`
+	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"created_at"`
 	CreatedBy   string    `json:"created_by"`
 	UpdatedAt   time.Time `json:"updated_at"`
@@ -49,12 +49,9 @@ func (a *List) BeforeCreate() {
 	a.EnsureID()
 	a.CreatedAt = time.Now()
 	a.UpdatedAt = time.Now()
-	// TODO: Set CreatedBy
-	// TODO: Set UpdatedBy
 }
 
 // BeforeUpdate sets update timestamps and increments version.
 func (a *List) BeforeUpdate() {
 	a.UpdatedAt = time.Now()
-	// TODO: Set UpdatedBy
 }

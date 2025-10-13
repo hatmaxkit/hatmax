@@ -1,17 +1,35 @@
+<p align="center">
+  <img src="docs/img/hatmax.png" width="600">
+</p>
+
 # HatMax
 
-`HatMax` is a Go-based monorepo generator. It's designed to build a monorepo of microservices from a single `hatmax.yml` definition file.
+**HatMax** is a declarative Go service generator.
+It builds a coherent monorepo of microservices from a single `hatmax.yml` definition.
 
-## How it Works
+#### How It Works
+HatMax parses the `hatmax.yml` file to understand the desired services, models, and APIs.
+It then scaffolds the directory structure and generates the boilerplate code for each service, including models, repositories, handlers, and configuration.
 
-The generator parses the `hatmax.yml` file to understand the desired services, models, and APIs. It then scaffolds the directory structure and generates the boilerplate code for each service.
+A command-line interface will help to bootstrap and evolve projects.
+It can generate the initial `hatmax.yml` template and provides guided commands to extend it in a structured way.
+You can always edit the YAML manually, but the CLI ensures consistency as the system grows.
 
-## Purpose
+#### Purpose
+To keep evolving systems consistent without hiding complexity behind frameworks.
+You describe what you need; HatMax generates code you own and understand.
 
-HatMax provides a declarative scaffold for microservice ecosystems that evolve over time. Rather than managing services that grow organically without structure, you maintain a clear configuration that reflects your current architecture and can be iterated upon.
+#### Approach
+HatMax focuses on clarity, ownership, and long-term maintainability.
 
-The generator approach means you get straightforward Go code that you understand and control, rather than being locked into framework conventions. Services are generated with production concerns in mind, including operational transparency, dependency management, and integration patterns that work well in container environments.
+- **Declarative, not prescriptive:** the architecture lives in a single versioned file. The generator reflects it faithfully instead of enforcing hidden conventions.
+- **Standard library first:** everything starts with Go’s stdlib and code you own. When a well-established alternative exists, HatMax may offer it as an optional implementation, allowing you to choose the approach that best fits your environment.
+- **Transparent code:** generated services are plain Go, readable and modifiable, with no hidden layers or reflection magic.
 
-## Approach
 
-Microservices need structure to remain manageable as they evolve. By maintaining a declarative view of your architecture, you can iterate while keeping the system coherent. The monorepo model supports this by making cross-service changes explicit and reviewable.
+From a single declarative spec, HatMax produces:
+- The full monorepo structure.
+- Boilerplate for each service: models, repositories, handlers, and optional application layers
+- Shared operational components: logging, configuration, metrics, and health checks
+- Deployment descriptors: Docker Compose, Nomad, or similar manifests
+- Testing scaffolds for unit and integration tests
