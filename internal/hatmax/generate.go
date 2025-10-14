@@ -197,6 +197,12 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		}
 		fmt.Println("Makefile generated successfully.")
 
+		fmt.Println("Generating .gitignore...")
+		if err := modelGen.GenerateGitignore(serviceName); err != nil {
+			return fmt.Errorf("cannot generate .gitignore for service %s: %w", serviceName, err)
+		}
+		fmt.Println(".gitignore generated successfully.")
+
 		fmt.Println("Generating deployment configurations...")
 		service := config.Services[serviceName]
 		deploymentGen, err := NewDeploymentGenerator(&config, outputDir, serviceName, &service, tmplFS)

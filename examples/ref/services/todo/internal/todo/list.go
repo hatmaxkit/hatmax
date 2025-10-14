@@ -10,8 +10,8 @@ import (
 // List is the aggregate root for the List domain.
 type List struct {
 	ID          uuid.UUID `json:"id"`
-	Description string    `json:"description"`
 	Name        string    `json:"name"`
+	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"created_at"`
 	CreatedBy   string    `json:"created_by"`
 	UpdatedAt   time.Time `json:"updated_at"`
