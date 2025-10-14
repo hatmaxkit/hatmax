@@ -77,7 +77,12 @@ func (l *slogLogger) Infof(format string, a ...any) {
 
 func (l *slogLogger) Error(v ...any) {
 	if l.logLevel <= ErrorLevel {
-		l.logger.Error(fmt.Sprint(v...))
+		if len(v) > 1 {
+			msg := fmt.Sprint(v[0])
+			l.logger.Error(msg, v[1:]...)
+		} else {
+			l.logger.Error(fmt.Sprint(v...))
+		}
 	}
 }
 

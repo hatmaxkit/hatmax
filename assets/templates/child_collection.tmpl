@@ -22,7 +22,7 @@ type {{.ChildModelName}} struct {
 // New{{.ChildModelName}} creates a new {{.ChildModelName}} with a generated ID.
 func New{{.ChildModelName}}() *{{.ChildModelName}} {
 	return &{{.ChildModelName}}{
-		ID: uuid.New(),
+		ID:      uuid.New(),
 		{{- if .Audit }}
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -30,10 +30,16 @@ func New{{.ChildModelName}}() *{{.ChildModelName}} {
 	}
 }
 
-// GetID returns the ID of the {{.ChildModelName}}.
+// GetID returns the ID of the {{.ChildModelName}} (implements Identifiable interface).
 func (c *{{.ChildModelName}}) GetID() uuid.UUID {
 	return c.ID
 }
+
+// ResourceType returns the resource type for URL generation.
+func (c *{{.ChildModelName}}) ResourceType() string {
+	return "{{.ChildLower}}"
+}
+
 
 // SetID sets the ID of the {{.ChildModelName}}.
 func (c *{{.ChildModelName}}) SetID(id uuid.UUID) {

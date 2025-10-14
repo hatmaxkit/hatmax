@@ -26,10 +26,16 @@ type {{.AggregateName}} struct {
 {{- end }}
 }
 
-// GetID returns the ID of the {{.AggregateName}}.
+// GetID returns the ID of the {{.AggregateName}} (implements Identifiable interface).
 func (a *{{.AggregateName}}) GetID() uuid.UUID {
 	return a.ID
 }
+
+// ResourceType returns the resource type for URL generation.
+func (a *{{.AggregateName}}) ResourceType() string {
+	return "{{.AggregateLower}}"
+}
+
 
 // SetID sets the ID of the {{.AggregateName}}.
 func (a *{{.AggregateName}}) SetID(id uuid.UUID) {
@@ -39,7 +45,7 @@ func (a *{{.AggregateName}}) SetID(id uuid.UUID) {
 // New{{.AggregateName}} creates a new {{.AggregateName}} with a generated ID and initial version.
 func New{{.AggregateName}}() *{{.AggregateName}} {
 	return &{{.AggregateName}}{
-		ID:        core.GenerateNewID(),
+		ID:       core.GenerateNewID(),
 		{{- if .VersionField }}
 		{{.VersionField}}: 0,
 		{{- end }}

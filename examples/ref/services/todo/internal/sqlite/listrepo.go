@@ -226,7 +226,7 @@ func (r *ListSQLiteRepo) List(ctx context.Context) ([]*todo.List, error) {
 // Helper methods for aggregate root operations
 
 func (r *ListSQLiteRepo) insertRoot(ctx context.Context, tx *sql.Tx, aggregate *todo.List) error {
-	_, err := tx.ExecContext(ctx, QueryCreateListRoot, aggregate.ID.String(), aggregate.Name, aggregate.Description, aggregate.CreatedAt, aggregate.UpdatedAt)
+	_, err := tx.ExecContext(ctx, QueryCreateListRoot, aggregate.GetID().String(), aggregate.Name, aggregate.Description, aggregate.CreatedAt, aggregate.UpdatedAt)
 	return err
 }
 
@@ -254,7 +254,7 @@ func (r *ListSQLiteRepo) getRoot(ctx context.Context, id uuid.UUID) (*todo.List,
 }
 
 func (r *ListSQLiteRepo) updateRoot(ctx context.Context, tx *sql.Tx, aggregate *todo.List) error {
-	result, err := tx.ExecContext(ctx, QueryUpdateListRoot, aggregate.Name, aggregate.Description, aggregate.UpdatedAt, aggregate.ID.String())
+	result, err := tx.ExecContext(ctx, QueryUpdateListRoot, aggregate.Name, aggregate.Description, aggregate.UpdatedAt, aggregate.GetID().String())
 	if err != nil {
 		return err
 	}
@@ -265,7 +265,7 @@ func (r *ListSQLiteRepo) updateRoot(ctx context.Context, tx *sql.Tx, aggregate *
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("List aggregate with ID %s not found for update", aggregate.ID.String())
+		return fmt.Errorf("List aggregate with ID %s not found for update", aggregate.GetID().String())
 	}
 
 	return nil
@@ -288,7 +288,7 @@ func (r *ListSQLiteRepo) insertItems(ctx context.Context, tx *sql.Tx, rootID uui
 		item.BeforeCreate()
 
 		placeholders = append(placeholders, "(?, ?, ?, ?, ?, ?)")
-		args = append(args, item.ID.String(), rootID.String(), item.Text, item.Done, item.CreatedAt, item.UpdatedAt)
+		args = append(args, item.GetID().String(), rootID.String(), item.Text, item.Done, item.CreatedAt, item.UpdatedAt)
 	}
 
 	finalQuery := strings.Replace(query, "{{.Placeholders}}", strings.Join(placeholders, ", "), 1)
@@ -400,9 +400,9 @@ func (r *ListSQLiteRepo) updateItems(ctx context.Context, tx *sql.Tx, items []to
 		item.BeforeUpdate()
 
 		query := `UPDATE items SET text = ?, done = ?, updated_at = ? WHERE id = ?`
-		_, err := tx.ExecContext(ctx, query, item.Text, item.Done, item.UpdatedAt, item.ID.String())
+		_, err := tx.ExecContext(ctx, query, item.Text, item.Done, item.UpdatedAt, item.GetID().String())
 		if err != nil {
-			return fmt.Errorf("failed to update item %s: %w", item.ID.String(), err)
+			return fmt.Errorf("failed to update item %s: %w", item.GetID().String(), err)
 		}
 	}
 	return nil
@@ -415,16 +415,16 @@ func (r *ListSQLiteRepo) computeItemDiff(current, new []todo.Item) (toInsert, to
 	newMap := make(map[string]todo.Item)
 
 	for _, item := range current {
-		currentMap[item.ID.String()] = item
+		currentMap[item.GetID().String()] = item
 	}
 
 	for _, item := range new {
-		if item.ID == uuid.Nil {
+		if item.GetID() == uuid.Nil {
 			// New item without ID - needs insert
 			toInsert = append(toInsert, item)
 		} else {
-			newMap[item.ID.String()] = item
-			if _, exists := currentMap[item.ID.String()]; exists {
+			newMap[item.GetID().String()] = item
+			if _, exists := currentMap[item.GetID().String()]; exists {
 				// Item exists - needs update
 				toUpdate = append(toUpdate, item)
 			} else {
@@ -452,7 +452,7 @@ func (r *ListSQLiteRepo) insertTags(ctx context.Context, tx *sql.Tx, rootID uuid
 		return nil
 	}
 
-	query := `INSERT INTO tags (id, List_id, color, name, created_at, updated_at) VALUES {{.Placeholders}}`
+	query := `INSERT INTO tags (id, List_id, name, color, created_at, updated_at) VALUES {{.Placeholders}}`
 
 	var args []interface{}
 	var placeholders []string
@@ -462,7 +462,7 @@ func (r *ListSQLiteRepo) insertTags(ctx context.Context, tx *sql.Tx, rootID uuid
 		item.BeforeCreate()
 
 		placeholders = append(placeholders, "(?, ?, ?, ?, ?, ?)")
-		args = append(args, item.ID.String(), rootID.String(), item.Color, item.Name, item.CreatedAt, item.UpdatedAt)
+		args = append(args, item.GetID().String(), rootID.String(), item.Name, item.Color, item.CreatedAt, item.UpdatedAt)
 	}
 
 	finalQuery := strings.Replace(query, "{{.Placeholders}}", strings.Join(placeholders, ", "), 1)
@@ -475,7 +475,7 @@ func (r *ListSQLiteRepo) getTags(ctx context.Context, rootID uuid.UUID) ([]todo.
 }
 
 func (r *ListSQLiteRepo) getTagsWithTx(ctx context.Context, tx *sql.Tx, rootID uuid.UUID) ([]todo.Tag, error) {
-	query := `SELECT id, color, name, created_at, updated_at FROM tags WHERE List_id = ? ORDER BY created_at`
+	query := `SELECT id, name, color, created_at, updated_at FROM tags WHERE List_id = ? ORDER BY created_at`
 
 	var rows *sql.Rows
 	var err error
@@ -497,7 +497,7 @@ func (r *ListSQLiteRepo) getTagsWithTx(ctx context.Context, tx *sql.Tx, rootID u
 		var item todo.Tag
 		var idStr string
 
-		err := rows.Scan(&idStr, &item.Color, &item.Name, &item.CreatedAt, &item.UpdatedAt)
+		err := rows.Scan(&idStr, &item.Name, &item.Color, &item.CreatedAt, &item.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -573,10 +573,10 @@ func (r *ListSQLiteRepo) updateTags(ctx context.Context, tx *sql.Tx, items []tod
 	for _, item := range items {
 		item.BeforeUpdate()
 
-		query := `UPDATE tags SET color = ?, name = ?, updated_at = ? WHERE id = ?`
-		_, err := tx.ExecContext(ctx, query, item.Color, item.Name, item.UpdatedAt, item.ID.String())
+		query := `UPDATE tags SET name = ?, color = ?, updated_at = ? WHERE id = ?`
+		_, err := tx.ExecContext(ctx, query, item.Name, item.Color, item.UpdatedAt, item.GetID().String())
 		if err != nil {
-			return fmt.Errorf("failed to update item %s: %w", item.ID.String(), err)
+			return fmt.Errorf("failed to update item %s: %w", item.GetID().String(), err)
 		}
 	}
 	return nil
@@ -589,16 +589,16 @@ func (r *ListSQLiteRepo) computeTagDiff(current, new []todo.Tag) (toInsert, toUp
 	newMap := make(map[string]todo.Tag)
 
 	for _, item := range current {
-		currentMap[item.ID.String()] = item
+		currentMap[item.GetID().String()] = item
 	}
 
 	for _, item := range new {
-		if item.ID == uuid.Nil {
+		if item.GetID() == uuid.Nil {
 			// New item without ID - needs insert
 			toInsert = append(toInsert, item)
 		} else {
-			newMap[item.ID.String()] = item
-			if _, exists := currentMap[item.ID.String()]; exists {
+			newMap[item.GetID().String()] = item
+			if _, exists := currentMap[item.GetID().String()]; exists {
 				// Item exists - needs update
 				toUpdate = append(toUpdate, item)
 			} else {

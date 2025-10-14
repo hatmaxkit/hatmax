@@ -1,2 +1,24 @@
+# Generated examples and artifacts
+examples/*/services/*/bin/
+examples/*/**/*.db
+examples/*/**/*.sqlite
+examples/*/**/*.sqlite3
+examples/*/**/*.log
+examples/*/**/*.test
+examples/*/**/coverage.out
+examples/*/**/coverage.html
+
+# Legacy
 item.db
 app.db
+
+# Generator binary
+bin/
+hatmax
+*.exe
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo

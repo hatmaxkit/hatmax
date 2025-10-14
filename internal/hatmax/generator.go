@@ -53,6 +53,25 @@ type HandlerTemplateData struct {
 	IsChildCollection  bool
 }
 
+type AggregateHandlerTemplateData struct {
+	PackageName          string
+	AggregateName        string
+	AggregatePlural      string
+	AggregateLower       string
+	AggregatePluralLower string
+	Audit                bool
+	ModulePath           string
+	MonorepoModulePath   string
+	Children             []AggregateChildData
+}
+
+type AggregateChildData struct {
+	Name       string // Child collection name (e.g., "Items")
+	Lower      string // Lowercase child name (e.g., "item")
+	Plural     string // Plural form (e.g., "Items")
+	PluralLower string // Lowercase plural (e.g., "items")
+}
+
 type ModelGenerator struct {
 	Config                          Config
 	OutputDir                       string
@@ -70,6 +89,7 @@ type ModelGenerator struct {
 	ConfigYAMLTemplate              *template.Template
 	XParamsTemplate                 *template.Template
 	MakefileTemplate                *template.Template
+	GitignoreTemplate               *template.Template
 	AggregateRootTemplate           *template.Template
 	ChildCollectionTemplate         *template.Template
 	AggregateRepoTemplate           *template.Template
@@ -78,6 +98,7 @@ type ModelGenerator struct {
 	AggregateSQLiteQueriesTemplate  *template.Template
 	AggregateSQLiteRepoTestTemplate *template.Template
 	AggregateMongoRepoTestTemplate  *template.Template
+	AggregateHandlerTemplate        *template.Template
 	CoreLifecycleTemplate           *template.Template
 	CoreServerTemplate              *template.Template
 	CoreLogTemplate                 *template.Template
@@ -158,6 +179,11 @@ func NewModelGenerator(config Config, outputDir string, devMode bool, assetsFS f
 		return nil, fmt.Errorf("cannot parse Makefile template: %w", err)
 	}
 
+	gitignoreTmpl, err := template.New("gitignore.tmpl").ParseFS(tmplFS, "gitignore.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse gitignore template: %w", err)
+	}
+
 	aggregateRootTmpl, err := template.New("aggregate_root.tmpl").ParseFS(tmplFS, "aggregate_root.tmpl")
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse aggregate root template: %w", err)
@@ -196,6 +222,11 @@ func NewModelGenerator(config Config, outputDir string, devMode bool, assetsFS f
 	aggregateMongoRepoTestTmpl, err := template.New("aggregate_repo_mongo_test.tmpl").ParseFS(tmplFS, "aggregate_repo_mongo_test.tmpl")
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse aggregate mongo repository test template: %w", err)
+	}
+
+	aggregateHandlerTmpl, err := template.New("aggregate_handler.tmpl").ParseFS(tmplFS, "aggregate_handler.tmpl")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse aggregate handler template: %w", err)
 	}
 
 	// Load core library templates
@@ -258,8 +289,9 @@ func NewModelGenerator(config Config, outputDir string, devMode bool, assetsFS f
 			AggregateSQLiteRepoTemplate:     aggregateSQLiteRepoTmpl,
 			AggregateSQLiteQueriesTemplate:  aggregateSQLiteQueriesTmpl,
 			AggregateSQLiteRepoTestTemplate: aggregateSQLiteRepoTestTmpl,
-			AggregateMongoRepoTestTemplate:  aggregateMongoRepoTestTmpl,
-			// Core library templates
+		AggregateMongoRepoTestTemplate:  aggregateMongoRepoTestTmpl,
+		AggregateHandlerTemplate:        aggregateHandlerTmpl,
+		// Core library templates
 			CoreLifecycleTemplate:  coreLifecycleTmpl,
 			CoreServerTemplate:     coreServerTmpl,
 			CoreLogTemplate:        coreLogTmpl,
@@ -1016,6 +1048,76 @@ func (mg *ModelGenerator) GenerateAggregateSQLiteRepoImplementations() error {
 	return nil
 }
 
+// GenerateAggregateHandlers generates the handler files for aggregate roots.
+func (mg *ModelGenerator) GenerateAggregateHandlers() error {
+	for serviceName, service := range mg.Config.Services {
+		for aggregateName, aggregate := range service.Aggregates {
+			fmt.Printf("  - Generating aggregate handler: %s/%sHandler\n", serviceName, aggregateName)
+
+			handlerFileName := strings.ToLower(aggregateName) + "handler.go"
+			handlerPath := filepath.Join(mg.OutputDir, "internal", serviceName, handlerFileName)
+
+			// Build template data
+			data, err := mg.buildAggregateHandlerTemplateData(serviceName, aggregateName, aggregate, service)
+			if err != nil {
+				return fmt.Errorf("failed to build aggregate handler template data for %s: %w", aggregateName, err)
+			}
+
+			dir := filepath.Dir(handlerPath)
+			if err := os.MkdirAll(dir, 0o755); err != nil {
+				return fmt.Errorf("cannot create directory for aggregate handler %s: %w", aggregateName, err)
+			}
+
+			if err := mg.generateFile(mg.AggregateHandlerTemplate, handlerPath, data); err != nil {
+				return fmt.Errorf("cannot execute aggregate handler template for %s: %w", aggregateName, err)
+			}
+			fmt.Printf("    - Created %s\n", handlerPath)
+		}
+	}
+	return nil
+}
+
+// buildAggregateHandlerTemplateData constructs the template data for aggregate handlers.
+func (mg *ModelGenerator) buildAggregateHandlerTemplateData(serviceName, aggregateName string, aggregate AggregateRoot, service Service) (*AggregateHandlerTemplateData, error) {
+	aggregatePlural := pluralize(aggregateName)
+	data := &AggregateHandlerTemplateData{
+		PackageName:          serviceName,
+		AggregateName:        aggregateName,
+		AggregatePlural:      aggregatePlural,
+		AggregateLower:       strings.ToLower(aggregateName),
+		AggregatePluralLower: strings.ToLower(aggregatePlural),
+		Audit:                false, // Default, can be overridden
+		ModulePath:           mg.Config.ModulePath,
+		MonorepoModulePath:   mg.Config.MonorepoModulePath,
+		Children:             []AggregateChildData{},
+	}
+
+	// Set audit flag from aggregate directly
+	data.Audit = aggregate.Audit
+
+	// Build children data
+	for childName, child := range aggregate.Children {
+		_, exists := service.Models[child.Of]
+		if !exists {
+			return nil, fmt.Errorf("child model %s not found in service models", child.Of)
+		}
+
+		childData := AggregateChildData{
+			Name:       child.Of,                        // The model name (e.g., "Item")
+			Lower:      strings.ToLower(child.Of),      // Lowercase model name (e.g., "item")
+			Plural:     capitalizeFirst(childName),     // Collection name (e.g., "Items")
+			PluralLower: strings.ToLower(childName),   // Lowercase collection name (e.g., "items")
+		}
+
+		// Use the model's name (already set correctly above)
+		// childData.Name is already set to child.Of
+
+		data.Children = append(data.Children, childData)
+	}
+
+	return data, nil
+}
+
 // SQLiteAggregateTemplateData holds all data needed for SQLite aggregate repository template.
 type SQLiteAggregateTemplateData struct {
 	PackageName        string
@@ -1197,6 +1299,7 @@ func (mg *ModelGenerator) GenerateAggregateModels() error {
 			data := struct {
 				PackageName        string
 				AggregateName      string
+				AggregateLower     string
 				VersionField       string
 				Fields             []FieldTemplateData
 				Audit              bool
@@ -1206,6 +1309,7 @@ func (mg *ModelGenerator) GenerateAggregateModels() error {
 			}{
 				PackageName:        packageName,
 				AggregateName:      aggregateName,
+				AggregateLower:     strings.ToLower(aggregateName),
 				VersionField:       aggregate.VersionField,
 				Audit:              aggregate.Audit,
 				Children:           []ChildTemplateData{},
@@ -1271,12 +1375,14 @@ func (mg *ModelGenerator) GenerateAggregateModels() error {
 				childStructData := struct {
 					PackageName    string
 					ChildModelName string
+					ChildLower     string
 					Fields         []FieldTemplateData
 					Audit          bool
 					ModulePath     string
 				}{
 					PackageName:    packageName,
 					ChildModelName: child.Of,
+					ChildLower:     strings.ToLower(child.Of),
 					Audit:          child.Audit,
 					Fields:         []FieldTemplateData{},
 					ModulePath:     mg.Config.ModulePath,
@@ -1389,34 +1495,13 @@ func (mg *ModelGenerator) PostGenerationCleanup() error {
 		// Find the workspace root (go up from service directory to monorepo root)
 		workspaceRoot := filepath.Dir(filepath.Dir(absOutputDir)) // Remove /services/serviceName
 
-		// First, run go mod tidy in the monorepo root
-		fmt.Println("  - Running go mod tidy in monorepo root...")
-		if err := os.Chdir(workspaceRoot); err != nil {
-			return fmt.Errorf("cannot change to workspace root %s: %w", workspaceRoot, err)
-		}
-		cmd := exec.Command("go", "mod", "tidy")
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			fmt.Printf("Warning: go mod tidy failed in monorepo root: %v\n", err)
-		}
-
-		fmt.Println("  - Running go mod tidy in service directory...")
-		if err := os.Chdir(absOutputDir); err != nil {
-			return fmt.Errorf("cannot change to service directory %s: %w", absOutputDir, err)
-		}
-		cmd = exec.Command("go", "mod", "tidy")
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			fmt.Printf("Warning: go mod tidy failed in service directory: %v\n", err)
-		}
-
+		// In workspace mode, go work sync is more efficient than individual go mod tidy calls
+		// It automatically manages dependencies across all modules in the workspace
 		fmt.Println("  - Running go work sync...")
 		if err := os.Chdir(workspaceRoot); err != nil {
 			return fmt.Errorf("cannot change to workspace root %s: %w", workspaceRoot, err)
 		}
-		cmd = exec.Command("go", "work", "sync")
+		cmd := exec.Command("go", "work", "sync")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
@@ -1483,6 +1568,25 @@ func (mg *ModelGenerator) GenerateMakefile(serviceName string) error {
 		return fmt.Errorf("cannot generate Makefile for service %s: %w", serviceName, err)
 	}
 	fmt.Printf("    - Created %s\n", makefilePath)
+	return nil
+}
+
+// GenerateGitignore generates the .gitignore file for the generated service.
+func (mg *ModelGenerator) GenerateGitignore(serviceName string) error {
+	fmt.Printf("  - Generating .gitignore for service %s...\n", serviceName)
+
+	gitignorePath := filepath.Join(mg.OutputDir, ".gitignore")
+
+	data := struct {
+		ServiceName string
+	}{
+		ServiceName: serviceName,
+	}
+
+	if err := mg.generateFile(mg.GitignoreTemplate, gitignorePath, data); err != nil {
+		return fmt.Errorf("cannot generate .gitignore for service %s: %w", serviceName, err)
+	}
+	fmt.Printf("    - Created %s\n", gitignorePath)
 	return nil
 }
 

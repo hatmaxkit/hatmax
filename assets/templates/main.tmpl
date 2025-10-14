@@ -55,6 +55,9 @@ func main() {
 	{{- range .Aggregates }}
 	{{.}}Repo := sqlite.New{{.}}SQLiteRepo(xparams)
 	deps = append(deps, {{.}}Repo)
+
+	{{.}}Handler := {{$serviceName}}.New{{.}}Handler({{.}}Repo, xparams)
+	deps = append(deps, {{.}}Handler)
 	{{- end }}
 	{{- end }}
 

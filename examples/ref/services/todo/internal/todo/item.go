@@ -26,9 +26,14 @@ func NewItem() *Item {
 	}
 }
 
-// GetID returns the ID of the Item.
+// GetID returns the ID of the Item (implements Identifiable interface).
 func (c *Item) GetID() uuid.UUID {
 	return c.ID
+}
+
+// ResourceType returns the resource type for URL generation.
+func (c *Item) ResourceType() string {
+	return "item"
 }
 
 // SetID sets the ID of the Item.

@@ -26,9 +26,14 @@ func NewTag() *Tag {
 	}
 }
 
-// GetID returns the ID of the Tag.
+// GetID returns the ID of the Tag (implements Identifiable interface).
 func (c *Tag) GetID() uuid.UUID {
 	return c.ID
+}
+
+// ResourceType returns the resource type for URL generation.
+func (c *Tag) ResourceType() string {
+	return "tag"
 }
 
 // SetID sets the ID of the Tag.
