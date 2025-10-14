@@ -21,9 +21,14 @@ type {{.ModelName}} struct {
 {{- end}}
 }
 
-// GetID returns the ID of the {{.ModelName}}.
+// GetID returns the ID of the {{.ModelName}} (implements Identifiable interface).
 func (m *{{.ModelName}}) GetID() uuid.UUID {
 	return m.ID
+}
+
+// ResourceType returns the resource type for URL generation (implements Identifiable interface).
+func (m *{{.ModelName}}) ResourceType() string {
+	return "{{.ModelLower}}"
 }
 
 func (m *{{.ModelName}}) SetID(id uuid.UUID) {

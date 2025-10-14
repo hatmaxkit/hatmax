@@ -214,7 +214,7 @@ func (r *{{.AggregateName}}SQLiteRepo) List(ctx context.Context) ([]*{{.PackageN
 // Helper methods for aggregate root operations
 
 func (r *{{.AggregateName}}SQLiteRepo) insertRoot(ctx context.Context, tx *sql.Tx, aggregate *{{.PackageName}}.{{.AggregateName}}) error {
-	_, err := tx.ExecContext(ctx, QueryCreate{{.AggregateName}}Root, aggregate.ID.String(), {{.RootValues}}, aggregate.CreatedAt, aggregate.UpdatedAt)
+	_, err := tx.ExecContext(ctx, QueryCreate{{.AggregateName}}Root, aggregate.GetID().String(), {{.RootValues}}, aggregate.CreatedAt, aggregate.UpdatedAt)
 	return err
 }
 
@@ -242,7 +242,7 @@ func (r *{{.AggregateName}}SQLiteRepo) getRoot(ctx context.Context, id uuid.UUID
 }
 
 func (r *{{.AggregateName}}SQLiteRepo) updateRoot(ctx context.Context, tx *sql.Tx, aggregate *{{.PackageName}}.{{.AggregateName}}) error {
-	result, err := tx.ExecContext(ctx, QueryUpdate{{.AggregateName}}Root, {{.RootUpdateValues}}, aggregate.UpdatedAt, aggregate.ID.String())
+	result, err := tx.ExecContext(ctx, QueryUpdate{{.AggregateName}}Root, {{.RootUpdateValues}}, aggregate.UpdatedAt, aggregate.GetID().String())
 	if err != nil {
 		return err
 	}
@@ -253,7 +253,7 @@ func (r *{{.AggregateName}}SQLiteRepo) updateRoot(ctx context.Context, tx *sql.T
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("{{.AggregateName}} aggregate with ID %s not found for update", aggregate.ID.String())
+		return fmt.Errorf("{{.AggregateName}} aggregate with ID %s not found for update", aggregate.GetID().String())
 	}
 
 	return nil
@@ -277,7 +277,7 @@ func (r *{{$.AggregateName}}SQLiteRepo) insert{{.ChildModelName}}s(ctx context.C
 		item.BeforeCreate()
 		
 		placeholders = append(placeholders, "(?, ?, {{.FieldPlaceholders}}, ?, ?)")
-		args = append(args, item.ID.String(), rootID.String(), {{.FieldValues}}, item.CreatedAt, item.UpdatedAt)
+		args = append(args, item.GetID().String(), rootID.String(), {{.FieldValues}}, item.CreatedAt, item.UpdatedAt)
 	}
 	
 	finalQuery := strings.Replace(query, "{{.Placeholders}}", strings.Join(placeholders, ", "), 1)
@@ -389,9 +389,9 @@ func (r *{{$.AggregateName}}SQLiteRepo) update{{.ChildModelName}}s(ctx context.C
 		item.BeforeUpdate()
 		
 		query := `UPDATE {{.TableName}} SET {{.UpdateFields}}, updated_at = ? WHERE id = ?`
-		_, err := tx.ExecContext(ctx, query, {{.UpdateValues}}, item.UpdatedAt, item.ID.String())
+		_, err := tx.ExecContext(ctx, query, {{.UpdateValues}}, item.UpdatedAt, item.GetID().String())
 		if err != nil {
-			return fmt.Errorf("failed to update item %s: %w", item.ID.String(), err)
+			return fmt.Errorf("failed to update item %s: %w", item.GetID().String(), err)
 		}
 	}
 	return nil
@@ -404,16 +404,16 @@ func (r *{{$.AggregateName}}SQLiteRepo) compute{{.ChildModelName}}Diff(current, 
 	newMap := make(map[string]{{$.PackageName}}.{{.ChildModelName}})
 
 	for _, item := range current {
-		currentMap[item.ID.String()] = item
+		currentMap[item.GetID().String()] = item
 	}
 
 	for _, item := range new {
-		if item.ID == uuid.Nil {
+		if item.GetID() == uuid.Nil {
 			// New item without ID - needs insert
 			toInsert = append(toInsert, item)
 		} else {
-			newMap[item.ID.String()] = item
-			if _, exists := currentMap[item.ID.String()]; exists {
+			newMap[item.GetID().String()] = item
+			if _, exists := currentMap[item.GetID().String()]; exists {
 				// Item exists - needs update
 				toUpdate = append(toUpdate, item)
 			} else {

@@ -3,7 +3,7 @@
 .PHONY: all build run test test-v test-short coverage coverage-html coverage-func coverage-profile coverage-check coverage-100 clean lint fmt vet tidy tidy-fmt quick-test help check ci
 
 APP_NAME := todo
-BUILD_DIR := .
+BUILD_DIR := bin
 BIN_NAME := $(APP_NAME)
 GO_VERSION := 1.22.7 # Or get from go.mod
 
@@ -32,12 +32,32 @@ help:
 
 build: tidy-fmt
 	@echo "Building $(BIN_NAME)..."
+	@mkdir -p $(BUILD_DIR)
 	@go build -o $(BUILD_DIR)/$(BIN_NAME) ./main.go
 	@echo "$(BIN_NAME) built successfully."
+
 
 run: build
 	@echo "Running $(BIN_NAME)..."
 	@$(BUILD_DIR)/$(BIN_NAME)
+
+runpretty: build
+	@echo "Running $(BIN_NAME)..."
+	@$(BUILD_DIR)/$(BIN_NAME) 2>&1 | awk '{ \
+		if(match($$0, /time=([^ ]+)/, t)) time=t[1]; else time=""; \
+		if(match($$0, /level=([^ ]+)/, l)) level=l[1]; else level=""; \
+		if(match($$0, /msg="([^"]+)"/, m)) msg=m[1]; else msg=""; \
+		if(match($$0, /error="([^"]+)"/, e)) error=e[1]; else error=""; \
+		if(level != "") { \
+			if(toupper(level) == "INFO") level="INF"; \
+			else if(toupper(level) == "ERROR") level="ERR"; \
+			else if(toupper(level) == "DEBUG") level="DBG"; \
+			else if(toupper(level) == "WARN") level="WRN"; \
+			output = "[" level "] - " time " - " msg; \
+			if(error != "") output = output " → " error; \
+			print output; \
+		} else print $$0; \
+	}'
 
 test:
 	@echo "Running tests..."
@@ -123,9 +143,9 @@ lint:
 	fi
 
 tidy:
-	@echo "Running go mod tidy..."
-	@go mod tidy
-	@echo "go mod tidy complete."
+	@echo "Running go work sync from workspace root..."
+	@cd ../../ && go work sync
+	@echo "go work sync complete."
 
 fmt:
 	@echo "Formatting code..."

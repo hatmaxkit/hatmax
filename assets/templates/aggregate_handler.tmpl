@@ -1,0 +1,520 @@
+package {{.PackageName}}
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/google/uuid"
+
+	"{{$.ModulePath}}/internal/config"
+	"{{.MonorepoModulePath}}"
+)
+
+const {{.AggregateName}}MaxBodyBytes = 1 << 20
+
+// New{{.AggregateName}}Handler creates a new {{.AggregateName}}Handler for the aggregate root.
+func New{{.AggregateName}}Handler(repo {{.AggregateName}}Repo, xparams config.XParams) *{{.AggregateName}}Handler {
+	return &{{.AggregateName}}Handler{
+		repo:    repo,
+		xparams: xparams,
+	}
+}
+
+type {{.AggregateName}}Handler struct {
+	repo    {{.AggregateName}}Repo
+	xparams config.XParams
+}
+
+func (h *{{.AggregateName}}Handler) RegisterRoutes(r chi.Router) {
+	r.Route("/{{.AggregatePluralLower}}", func(r chi.Router) {
+		r.Post("/", h.Create{{.AggregateName}})
+		r.Get("/", h.GetAll{{.AggregatePlural}})
+		r.Get("/{id}", h.Get{{.AggregateName}})
+		r.Put("/{id}", h.Update{{.AggregateName}})
+		r.Delete("/{id}", h.Delete{{.AggregateName}})
+{{range .Children}}
+		// {{.Name}} operations (part of the aggregate)
+		r.Post("/{id}/{{.PluralLower}}", h.Add{{.Name}}To{{$.AggregateName}})
+		r.Put("/{id}/{{.PluralLower}}/{childId}", h.Update{{.Name}}In{{$.AggregateName}})
+		r.Delete("/{id}/{{.PluralLower}}/{childId}", h.Remove{{.Name}}From{{$.AggregateName}})
+{{end}}
+	})
+}
+
+func (h *{{.AggregateName}}Handler) Create{{.AggregateName}}(w http.ResponseWriter, r *http.Request) {
+	log := h.logForRequest(r)
+	ctx := r.Context()
+
+	{{.AggregateLower}}, ok := h.decode{{.AggregateName}}Payload(w, r, log)
+	if !ok {
+		return
+	}
+
+	{{.AggregateLower}}.EnsureID()
+{{- if .Audit }}
+	{{.AggregateLower}}.BeforeCreate()
+{{- end }}
+
+	validationErrors := ValidateCreate{{.AggregateName}}(ctx, {{.AggregateLower}})
+	if len(validationErrors) > 0 {
+		log.Debug("validation failed", "errors", validationErrors)
+		core.RespondError(w, http.StatusBadRequest, "Validation failed")
+		return
+	}
+
+	if err := h.repo.Create(ctx, &{{.AggregateLower}}); err != nil {
+		log.Error("cannot create {{.AggregateLower}}", "error", err)
+		core.RespondError(w, http.StatusInternalServerError, "Could not create {{.AggregateLower}}")
+		return
+	}
+
+	// Standard links
+	links := core.RESTfulLinksFor(&{{.AggregateLower}})
+{{range .Children}}
+	// Child collection links
+	links = append(links, core.Link{
+		Rel:  "{{.PluralLower}}",
+		Href: fmt.Sprintf("/{{$.AggregatePluralLower}}/%s/{{.PluralLower}}", {{$.AggregateLower}}.ID),
+	})
+{{end}}
+
+	w.WriteHeader(http.StatusCreated)
+	core.RespondSuccess(w, {{.AggregateLower}}, links...)
+}
+
+func (h *{{.AggregateName}}Handler) Get{{.AggregateName}}(w http.ResponseWriter, r *http.Request) {
+	log := h.logForRequest(r)
+	ctx := r.Context()
+
+	id, ok := h.parseIDParam(w, r, log)
+	if !ok {
+		return
+	}
+
+	{{.AggregateLower}}, err := h.repo.Get(ctx, id)
+	if err != nil {
+		log.Error("error loading {{.AggregateLower}}", "error", err, "id", id.String())
+		core.RespondError(w, http.StatusInternalServerError, "Could not retrieve {{.AggregateLower}}")
+		return
+	}
+
+	if {{.AggregateLower}} == nil {
+		core.RespondError(w, http.StatusNotFound, "{{.AggregateName}} not found")
+		return
+	}
+
+	// Standard links
+	links := core.RESTfulLinksFor({{.AggregateLower}})
+{{range .Children}}
+	// Child collection links
+	links = append(links, core.Link{
+		Rel:  "{{.PluralLower}}",
+		Href: fmt.Sprintf("/{{$.AggregatePluralLower}}/%s/{{.PluralLower}}", {{$.AggregateLower}}.ID),
+	})
+{{end}}
+
+{{range .Children}}
+	// Child links
+	for _, {{.Lower}} := range {{$.AggregateLower}}.{{.Plural}} {
+		childLinks := core.ChildLinksFor({{$.AggregateLower}}, &{{.Lower}})
+		// Child entity link
+		links = append(links, core.Link{
+			Rel:  "{{.Lower}}",
+			Href: childLinks[0].Href,
+		})
+	}
+{{end}}
+
+	core.RespondSuccess(w, {{.AggregateLower}}, links...)
+}
+
+func (h *{{.AggregateName}}Handler) GetAll{{.AggregatePlural}}(w http.ResponseWriter, r *http.Request) {
+	log := h.logForRequest(r)
+	ctx := r.Context()
+
+	{{.AggregatePluralLower}}, err := h.repo.List(ctx)
+	if err != nil {
+		log.Error("error retrieving {{.AggregatePluralLower}}", "error", err)
+		core.RespondError(w, http.StatusInternalServerError, "Could not list all {{.AggregatePluralLower}}")
+		return
+	}
+
+	// Collection response
+	core.RespondCollection(w, {{.AggregatePluralLower}}, "{{.AggregateLower}}")
+}
+
+func (h *{{.AggregateName}}Handler) Update{{.AggregateName}}(w http.ResponseWriter, r *http.Request) {
+	log := h.logForRequest(r)
+	ctx := r.Context()
+
+	id, ok := h.parseIDParam(w, r, log)
+	if !ok {
+		return
+	}
+
+	{{.AggregateLower}}, ok := h.decode{{.AggregateName}}Payload(w, r, log)
+	if !ok {
+		return
+	}
+
+	{{.AggregateLower}}.SetID(id)
+{{- if .Audit }}
+	{{.AggregateLower}}.BeforeUpdate()
+{{- end }}
+
+	validationErrors := ValidateUpdate{{.AggregateName}}(ctx, id, {{.AggregateLower}})
+	if len(validationErrors) > 0 {
+		log.Debug("validation failed", "errors", validationErrors, "id", id.String())
+		core.RespondError(w, http.StatusBadRequest, "Validation failed")
+		return
+	}
+
+	if err := h.repo.Save(ctx, &{{.AggregateLower}}); err != nil {
+		log.Error("cannot save {{.AggregateLower}}", "error", err, "id", id.String())
+		core.RespondError(w, http.StatusInternalServerError, "Could not update {{.AggregateLower}}")
+		return
+	}
+
+	// Standard links
+	links := core.RESTfulLinksFor(&{{.AggregateLower}})
+{{range .Children}}
+	// Child collection links
+	links = append(links, core.Link{
+		Rel:  "{{.PluralLower}}",
+		Href: fmt.Sprintf("/{{$.AggregatePluralLower}}/%s/{{.PluralLower}}", {{$.AggregateLower}}.ID),
+	})
+{{end}}
+
+	core.RespondSuccess(w, {{.AggregateLower}}, links...)
+}
+
+func (h *{{.AggregateName}}Handler) Delete{{.AggregateName}}(w http.ResponseWriter, r *http.Request) {
+	log := h.logForRequest(r)
+	ctx := r.Context()
+
+	id, ok := h.parseIDParam(w, r, log)
+	if !ok {
+		return
+	}
+
+	validationErrors := ValidateDelete{{.AggregateName}}(ctx, id)
+	if len(validationErrors) > 0 {
+		log.Debug("validation failed", "errors", validationErrors, "id", id.String())
+		core.RespondError(w, http.StatusBadRequest, "Validation failed")
+		return
+	}
+
+	if err := h.repo.Delete(ctx, id); err != nil {
+		log.Error("error deleting {{.AggregateLower}}", "error", err, "id", id.String())
+		core.RespondError(w, http.StatusInternalServerError, "Could not delete {{.AggregateLower}}")
+		return
+	}
+
+	// Post-deletion links
+	links := core.CollectionLinksFor("{{.AggregateLower}}")
+	w.WriteHeader(http.StatusNoContent)
+	core.RespondSuccess(w, nil, links...)
+}
+
+{{range .Children}}
+// Child entity operations ({{.Plural}})
+func (h *{{$.AggregateName}}Handler) Add{{.Name}}To{{$.AggregateName}}(w http.ResponseWriter, r *http.Request) {
+	log := h.logForRequest(r)
+	ctx := r.Context()
+
+	{{$.AggregateLower}}ID, ok := h.parseIDParam(w, r, log)
+	if !ok {
+		return
+	}
+
+	{{.Lower}}, ok := h.decode{{.Name}}Payload(w, r, log)
+	if !ok {
+		return
+	}
+
+	// Load the aggregate
+	{{$.AggregateLower}}, err := h.repo.Get(ctx, {{$.AggregateLower}}ID)
+	if err != nil {
+		log.Error("cannot load {{$.AggregateLower}} for adding {{.Lower}}", "error", err, "{{$.AggregateLower}}Id", {{$.AggregateLower}}ID.String())
+		core.RespondError(w, http.StatusInternalServerError, "Could not retrieve {{$.AggregateLower}}")
+		return
+	}
+
+	if {{$.AggregateLower}} == nil {
+		core.RespondError(w, http.StatusNotFound, "{{$.AggregateName}} not found")
+		return
+	}
+
+	// Add {{.Lower}} to aggregate
+	{{.Lower}}.EnsureID()
+{{- if $.Audit }}
+	{{.Lower}}.BeforeCreate()
+{{- end }}
+	{{$.AggregateLower}}.{{.Plural}} = append({{$.AggregateLower}}.{{.Plural}}, {{.Lower}})
+
+	// Save the entire aggregate
+	if err := h.repo.Save(ctx, {{$.AggregateLower}}); err != nil {
+		log.Error("error saving {{$.AggregateLower}} with new {{.Lower}}", "error", err, "{{$.AggregateLower}}Id", {{$.AggregateLower}}ID.String())
+		core.RespondError(w, http.StatusInternalServerError, "Could not add {{.Lower}} to {{$.AggregateLower}}")
+		return
+	}
+
+	// Child response
+	w.WriteHeader(http.StatusCreated)
+	core.RespondChild(w, {{$.AggregateLower}}, &{{.Lower}})
+}
+
+func (h *{{$.AggregateName}}Handler) Update{{.Name}}In{{$.AggregateName}}(w http.ResponseWriter, r *http.Request) {
+	log := h.logForRequest(r)
+	ctx := r.Context()
+
+	{{$.AggregateLower}}ID, ok := h.parseIDParam(w, r, log)
+	if !ok {
+		return
+	}
+
+	{{.Lower}}ID, ok := h.parse{{.Name}}IDParam(w, r, log)
+	if !ok {
+		return
+	}
+
+	{{.Lower}}, ok := h.decode{{.Name}}Payload(w, r, log)
+	if !ok {
+		return
+	}
+
+	// Load the aggregate
+	{{$.AggregateLower}}, err := h.repo.Get(ctx, {{$.AggregateLower}}ID)
+	if err != nil {
+		log.Error("cannot load {{$.AggregateLower}} for updating {{.Lower}}", "error", err, "{{$.AggregateLower}}Id", {{$.AggregateLower}}ID.String())
+		core.RespondError(w, http.StatusInternalServerError, "Could not retrieve {{$.AggregateLower}}")
+		return
+	}
+
+	if {{$.AggregateLower}} == nil {
+		core.RespondError(w, http.StatusNotFound, "{{$.AggregateName}} not found")
+		return
+	}
+
+	// Find and update {{.Lower}} in aggregate
+	found := false
+	for i, existing{{.Name}} := range {{$.AggregateLower}}.{{.Plural}} {
+		if existing{{.Name}}.ID == {{.Lower}}ID {
+			{{.Lower}}.SetID({{.Lower}}ID)
+{{- if $.Audit }}
+			{{.Lower}}.BeforeUpdate()
+{{- end }}
+			{{$.AggregateLower}}.{{.Plural}}[i] = {{.Lower}}
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		core.RespondError(w, http.StatusNotFound, "{{.Name}} not found in {{$.AggregateLower}}")
+		return
+	}
+
+	// Save the entire aggregate
+	if err := h.repo.Save(ctx, {{$.AggregateLower}}); err != nil {
+		log.Error("error saving {{$.AggregateLower}} with updated {{.Lower}}", "error", err, "{{$.AggregateLower}}Id", {{$.AggregateLower}}ID.String())
+		core.RespondError(w, http.StatusInternalServerError, "Could not update {{.Lower}} in {{$.AggregateLower}}")
+		return
+	}
+
+	// Child response
+	core.RespondChild(w, {{$.AggregateLower}}, &{{.Lower}})
+}
+
+func (h *{{$.AggregateName}}Handler) Remove{{.Name}}From{{$.AggregateName}}(w http.ResponseWriter, r *http.Request) {
+	log := h.logForRequest(r)
+	ctx := r.Context()
+
+	{{$.AggregateLower}}ID, ok := h.parseIDParam(w, r, log)
+	if !ok {
+		return
+	}
+
+	{{.Lower}}ID, ok := h.parse{{.Name}}IDParam(w, r, log)
+	if !ok {
+		return
+	}
+
+	// Load the aggregate
+	{{$.AggregateLower}}, err := h.repo.Get(ctx, {{$.AggregateLower}}ID)
+	if err != nil {
+		log.Error("cannot load {{$.AggregateLower}} for removing {{.Lower}}", "error", err, "{{$.AggregateLower}}Id", {{$.AggregateLower}}ID.String())
+		core.RespondError(w, http.StatusInternalServerError, "Could not retrieve {{$.AggregateLower}}")
+		return
+	}
+
+	if {{$.AggregateLower}} == nil {
+		core.RespondError(w, http.StatusNotFound, "{{$.AggregateName}} not found")
+		return
+	}
+
+	// Remove {{.Lower}} from aggregate
+	found := false
+	for i, existing{{.Name}} := range {{$.AggregateLower}}.{{.Plural}} {
+		if existing{{.Name}}.ID == {{.Lower}}ID {
+			{{$.AggregateLower}}.{{.Plural}} = append({{$.AggregateLower}}.{{.Plural}}[:i], {{$.AggregateLower}}.{{.Plural}}[i+1:]...)
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		core.RespondError(w, http.StatusNotFound, "{{.Name}} not found in {{$.AggregateLower}}")
+		return
+	}
+
+	// Save the entire aggregate
+	if err := h.repo.Save(ctx, {{$.AggregateLower}}); err != nil {
+		log.Error("error saving {{$.AggregateLower}} after removing {{.Lower}}", "error", err, "{{$.AggregateLower}}Id", {{$.AggregateLower}}ID.String())
+		core.RespondError(w, http.StatusInternalServerError, "Could not remove {{.Lower}} from {{$.AggregateLower}}")
+		return
+	}
+
+	// Post-deletion links
+	links := []core.Link{
+		{Rel: "{{$.AggregateLower}}", Href: fmt.Sprintf("/{{$.AggregatePluralLower}}/%s", {{$.AggregateLower}}ID)},
+		{Rel: "collection", Href: fmt.Sprintf("/{{$.AggregatePluralLower}}/%s/{{.PluralLower}}", {{$.AggregateLower}}ID)},
+		{Rel: "create", Href: fmt.Sprintf("/{{$.AggregatePluralLower}}/%s/{{.PluralLower}}", {{$.AggregateLower}}ID)},
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	core.RespondSuccess(w, nil, links...)
+}
+
+func (h *{{$.AggregateName}}Handler) parse{{.Name}}IDParam(w http.ResponseWriter, r *http.Request, log core.Logger) (uuid.UUID, bool) {
+	rawID := strings.TrimSpace(chi.URLParam(r, "childId"))
+	if rawID == "" {
+		core.RespondError(w, http.StatusBadRequest, "Missing childId path parameter")
+		return uuid.Nil, false
+	}
+
+	id, err := uuid.Parse(rawID)
+	if err != nil {
+		log.Debug("invalid childId parameter", "childId", rawID, "error", err)
+		core.RespondError(w, http.StatusBadRequest, "Invalid childId format")
+		return uuid.Nil, false
+	}
+
+	return id, true
+}
+
+func (h *{{$.AggregateName}}Handler) decode{{.Name}}Payload(w http.ResponseWriter, r *http.Request, log core.Logger) ({{.Name}}, bool) {
+	r.Body = http.MaxBytesReader(w, r.Body, {{$.AggregateName}}MaxBodyBytes)
+	defer r.Body.Close()
+
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+
+	var {{.Lower}} {{.Name}}
+	if err := dec.Decode(&{{.Lower}}); err != nil {
+		log.Error("cannot decode {{.Lower}} request body", "error", err)
+		core.RespondError(w, http.StatusBadRequest, "{{.Name}} request body could not be decoded")
+		return {{.Name}}{}, false
+	}
+
+	return {{.Lower}}, true
+}
+
+{{end}}
+
+// Helper methods
+func (h *{{.AggregateName}}Handler) parseIDParam(w http.ResponseWriter, r *http.Request, log core.Logger) (uuid.UUID, bool) {
+	rawID := strings.TrimSpace(chi.URLParam(r, "id"))
+	if rawID == "" {
+		core.RespondError(w, http.StatusBadRequest, "Missing id path parameter")
+		return uuid.Nil, false
+	}
+
+	id, err := uuid.Parse(rawID)
+	if err != nil {
+		log.Debug("invalid id parameter", "id", rawID, "error", err)
+		core.RespondError(w, http.StatusBadRequest, "Invalid id format")
+		return uuid.Nil, false
+	}
+
+	return id, true
+}
+
+func (h *{{.AggregateName}}Handler) decode{{.AggregateName}}Payload(w http.ResponseWriter, r *http.Request, log core.Logger) ({{.AggregateName}}, bool) {
+	r.Body = http.MaxBytesReader(w, r.Body, {{.AggregateName}}MaxBodyBytes)
+	defer r.Body.Close()
+
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+
+	var {{.AggregateLower}} {{.AggregateName}}
+	if err := dec.Decode(&{{.AggregateLower}}); err != nil {
+		log.Error("cannot decode request body", "error", err)
+		core.RespondError(w, http.StatusBadRequest, "Request body could not be decoded")
+		return {{.AggregateName}}{}, false
+	}
+
+	if err := ensure{{.AggregateName}}SingleJSONValue(dec); err != nil {
+		log.Error("request body contains extra data", "error", err)
+		core.RespondError(w, http.StatusBadRequest, "Request body contains unexpected data")
+		return {{.AggregateName}}{}, false
+	}
+
+	return {{.AggregateLower}}, true
+}
+
+func ensure{{.AggregateName}}SingleJSONValue(dec *json.Decoder) error {
+	if err := dec.Decode(&struct{}{}); err != io.EOF {
+		if err == nil {
+			return errors.New("additional JSON values detected")
+		}
+		return err
+	}
+	return nil
+}
+
+func (h *{{.AggregateName}}Handler) Log() core.Logger {
+	return h.xparams.Log
+}
+
+func (h *{{.AggregateName}}Handler) logForRequest(r *http.Request) core.Logger {
+	return h.xparams.Log.With(
+		"request_id", middleware.GetReqID(r.Context()),
+		"method", r.Method,
+		"path", r.URL.Path,
+	)
+}
+
+// ValidationError represents a validation error.
+type ValidationError struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
+
+// ValidateCreate{{.AggregateName}} validates a {{.AggregateName}} entity before creation.
+// TODO: Implement validation logic
+func ValidateCreate{{.AggregateName}}(ctx context.Context, {{.AggregateLower}} {{.AggregateName}}) []ValidationError {
+	// TODO: Add validation logic here
+	return []ValidationError{}
+}
+
+// ValidateUpdate{{.AggregateName}} validates a {{.AggregateName}} entity before update.
+// TODO: Implement validation logic
+func ValidateUpdate{{.AggregateName}}(ctx context.Context, id uuid.UUID, {{.AggregateLower}} {{.AggregateName}}) []ValidationError {
+	// TODO: Add validation logic here
+	return []ValidationError{}
+}
+
+// ValidateDelete{{.AggregateName}} validates a {{.AggregateName}} entity before deletion.
+// TODO: Implement validation logic
+func ValidateDelete{{.AggregateName}}(ctx context.Context, id uuid.UUID) []ValidationError {
+	// TODO: Add validation logic here
+	return []ValidationError{}
+}

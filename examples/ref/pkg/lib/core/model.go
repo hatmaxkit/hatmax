@@ -6,9 +6,10 @@ import (
 	"github.com/google/uuid"
 )
 
-// Identifiable ensures that a model has a unique identifier.
+// Identifiable provides ID and resource type for models.
 type Identifiable interface {
-	ID() uuid.UUID
+	GetID() uuid.UUID
+	ResourceType() string
 }
 
 // Lifecycle hooks for models.

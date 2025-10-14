@@ -12,6 +12,7 @@ import (
 	"github.com/adrianpk/hatmax-ref/pkg/lib/core"
 	"github.com/adrianpk/hatmax-ref/services/todo/internal/config"
 	"github.com/adrianpk/hatmax-ref/services/todo/internal/sqlite"
+	"github.com/adrianpk/hatmax-ref/services/todo/internal/todo"
 )
 
 const (
@@ -40,6 +41,9 @@ func main() {
 	var deps []any
 	ListRepo := sqlite.NewListSQLiteRepo(xparams)
 	deps = append(deps, ListRepo)
+
+	ListHandler := todo.NewListHandler(ListRepo, xparams)
+	deps = append(deps, ListHandler)
 
 	starts, stops := core.Setup(ctx, router, deps...)
 

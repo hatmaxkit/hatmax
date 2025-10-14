@@ -20,9 +20,14 @@ type List struct {
 	Tags        []Tag     `json:"tags"`
 }
 
-// GetID returns the ID of the List.
+// GetID returns the ID of the List (implements Identifiable interface).
 func (a *List) GetID() uuid.UUID {
 	return a.ID
+}
+
+// ResourceType returns the resource type for URL generation.
+func (a *List) ResourceType() string {
+	return "list"
 }
 
 // SetID sets the ID of the List.

@@ -155,6 +155,12 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		}
 		fmt.Println("MongoDB aggregate repository implementations generated successfully.")
 
+		fmt.Println("Generating aggregate handlers...")
+		if err := modelGen.GenerateAggregateHandlers(); err != nil {
+			return fmt.Errorf("cannot generate aggregate handlers for service %s: %w", serviceName, err)
+		}
+		fmt.Println("Aggregate handlers generated successfully.")
+
 		fmt.Println("Generating handlers...")
 		if err := modelGen.GenerateHandlers(); err != nil {
 			return fmt.Errorf("cannot generate handlers for service %s: %w", serviceName, err)
@@ -387,19 +393,20 @@ func generateCoreGoMod(outputDir string, config Config) error {
 
 go 1.23
 
-require (
-	github.com/knadh/koanf/v2 v2.3.0
-	github.com/knadh/koanf/parsers/yaml v1.1.0
-	github.com/knadh/koanf/providers/env v1.1.0
-	github.com/knadh/koanf/providers/file v1.0.0
-	github.com/knadh/koanf/providers/posflag v1.0.1
-	github.com/knadh/koanf/providers/rawbytes v1.0.0
-	github.com/spf13/pflag v1.0.10
-	github.com/go-chi/chi/v5 v5.2.3
-	github.com/google/uuid v1.6.0
-	github.com/mattn/go-sqlite3 v1.14.32
-	go.mongodb.org/mongo-driver v1.17.4
-)
+	require (
+		github.com/gertd/go-pluralize v0.2.1
+		github.com/go-chi/chi/v5 v5.2.3
+		github.com/google/uuid v1.6.0
+		github.com/knadh/koanf/parsers/yaml v1.1.0
+		github.com/knadh/koanf/providers/env v1.1.0
+		github.com/knadh/koanf/providers/file v1.0.0
+		github.com/knadh/koanf/providers/posflag v1.0.1
+		github.com/knadh/koanf/providers/rawbytes v1.0.0
+		github.com/knadh/koanf/v2 v2.3.0
+		github.com/mattn/go-sqlite3 v1.14.32
+		github.com/spf13/pflag v1.0.10
+		go.mongodb.org/mongo-driver v1.17.4
+	)
 `, coreModulePath)
 
 	// Write go.mod to the core library directory
@@ -459,18 +466,10 @@ func finalWorkspaceSync(outputDir string) error {
 		return fmt.Errorf("cannot change to monorepo root %s: %w", absOutputDir, err)
 	}
 
-	// Run go mod tidy in monorepo root first
-	fmt.Println("  - Running go mod tidy in monorepo root...")
-	cmd := exec.Command("go", "mod", "tidy")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("Warning: go mod tidy failed in monorepo root: %v\n", err)
-	}
-
+	// In workspace mode, go work sync handles all dependency management efficiently
 	// Run go work sync to synchronize all modules
 	fmt.Println("  - Running go work sync...")
-	cmd = exec.Command("go", "work", "sync")
+	cmd := exec.Command("go", "work", "sync")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
