@@ -13,6 +13,31 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Pretty logging functions for better UX
+func logStep(message string) {
+	fmt.Printf("▶ %s\n", message)
+}
+
+func logSuccess(message string) {
+	fmt.Printf("✓ %s\n", message)
+}
+
+func logSubStep(message string) {
+	fmt.Printf("  ├─ %s\n", message)
+}
+
+func logSubStepLast(message string) {
+	fmt.Printf("  └─ %s\n", message)
+}
+
+func logCreated(filePath string) {
+	fmt.Printf("    ✓ Created %s\n", filePath)
+}
+
+func logSkipped(message string) {
+	fmt.Printf("  ⊝ %s\n", message)
+}
+
 func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 	var yamlFile []byte
 	var err error
@@ -50,18 +75,18 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		outputDir = filepath.Join("examples", monorepoName)
 	}
 
-	fmt.Printf("Generating monorepo '%s' in directory: %s\n", monorepoName, outputDir)
+	logStep(fmt.Sprintf("Generating monorepo '%s' in directory: %s", monorepoName, outputDir))
 
 	if err := copyConfigToMonorepoRoot(usedFile, outputDir); err != nil {
 		return fmt.Errorf("error copying config file to monorepo root: %w", err)
 	}
-	fmt.Printf("Config file %s copied to monorepo root\n", usedFile)
+	logSubStep(fmt.Sprintf("Config file %s copied to monorepo root", usedFile))
 
-	fmt.Println("Generating monorepo core library...")
+	logStep("Generating monorepo core library...")
 	if err := generateMonorepoCoreLibrary(outputDir, config, tmplFS); err != nil {
 		return fmt.Errorf("error generating monorepo core library: %w", err)
 	}
-	fmt.Println("Monorepo core library generated successfully.")
+	logSuccess("Monorepo core library generated successfully")
 
 	for serviceName := range config.Services {
 		servicePath := filepath.Join(outputDir, "services", serviceName)
@@ -84,28 +109,28 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 			config.MonorepoModulePath = config.Package + "/pkg/lib/core"
 		}
 
-		fmt.Printf("Generating service '%s' in '%s'...\n", serviceName, servicePath)
+		logStep(fmt.Sprintf("Generating service '%s' in '%s'", serviceName, servicePath))
 		if err := Scaffold(config, servicePath); err != nil {
 			return fmt.Errorf("error generating directories for service %s: %w", serviceName, err)
 		}
-		fmt.Println("Directory structure generated successfully.")
+		logSuccess("Directory structure generated successfully")
 
 		modelGen, err := NewModelGenerator(config, servicePath, devMode, tmplFS)
 		if err != nil {
 			return fmt.Errorf("cannot create model generator for service %s: %w", serviceName, err)
 		}
 
-		fmt.Println("Generating config files and XParams...")
+		logSubStep("Generating config files and XParams...")
 		if err := modelGen.GenerateConfigAndXParams(); err != nil {
 			return fmt.Errorf("error generating config for service %s: %w", serviceName, err)
 		}
-		fmt.Println("Config files and XParams generated successfully.")
+		logSuccess("Config files and XParams generated successfully")
 
-		fmt.Println("Generating aggregate models...")
+		logSubStep("Generating aggregate models...")
 		if err := modelGen.GenerateAggregateModels(); err != nil {
 			return fmt.Errorf("error generating aggregate models for service %s: %w", serviceName, err)
 		}
-		fmt.Println("Aggregate models generated successfully.")
+		logSuccess("Aggregate models generated successfully")
 
 		fmt.Println("Generating aggregate repository interfaces...")
 		if err := modelGen.GenerateAggregateRepoInterfaces(); err != nil {
@@ -191,17 +216,17 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		}
 		fmt.Println("Post-generation cleanup completed successfully.")
 
-		fmt.Println("Generating Makefile...")
+		logSubStep("Generating Makefile...")
 		if err := modelGen.GenerateMakefile(serviceName); err != nil {
 			return fmt.Errorf("cannot generate Makefile for service %s: %w", serviceName, err)
 		}
-		fmt.Println("Makefile generated successfully.")
+		logSuccess("Makefile generated successfully")
 
-		fmt.Println("Generating .gitignore...")
+		logSubStep("Generating .gitignore...")
 		if err := modelGen.GenerateGitignore(serviceName); err != nil {
 			return fmt.Errorf("cannot generate .gitignore for service %s: %w", serviceName, err)
 		}
-		fmt.Println(".gitignore generated successfully.")
+		logSuccess(".gitignore generated successfully")
 
 		fmt.Println("Generating deployment configurations...")
 		service := config.Services[serviceName]
@@ -361,7 +386,7 @@ func generateMonorepoCoreLibrary(outputDir string, config Config, tmplFS fs.FS) 
 			return fmt.Errorf("cannot generate core file %s: %w", outputFile, err)
 		}
 
-		fmt.Printf("  - Created %s\n", filePath)
+		logCreated(filePath)
 	}
 
 	return nil
@@ -421,7 +446,7 @@ go 1.23
 	if err := os.WriteFile(goModPath, []byte(goModContent), 0o644); err != nil {
 		return fmt.Errorf("cannot write core go.mod: %w", err)
 	}
-	fmt.Printf("  - Created %s\n", goModPath)
+	logCreated(goModPath)
 
 	return nil
 }
@@ -447,7 +472,7 @@ func generateMonorepoWorkspace(outputDir string, config Config) error {
 		return fmt.Errorf("cannot write go.work: %w", err)
 	}
 
-	fmt.Printf("  - Created %s\n", goWorkPath)
+	logCreated(goWorkPath)
 	return nil
 }
 
