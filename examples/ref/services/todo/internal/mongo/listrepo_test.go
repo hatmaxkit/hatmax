@@ -98,9 +98,9 @@ func TestListMongoRepoCreate(t *testing.T) {
 			aggregate: &todo.List{
 				// TODO: Set appropriate test values for root fields
 
-				Tags: []todo.Tag{},
-
 				Items: []todo.Item{},
+
+				Tags: []todo.Tag{},
 			},
 			expectError: false,
 		},
@@ -109,7 +109,7 @@ func TestListMongoRepoCreate(t *testing.T) {
 			aggregate: &todo.List{
 				// TODO: Set appropriate test values for root fields
 
-				Tags: []todo.Tag{
+				Items: []todo.Item{
 					{
 						// TODO: Set appropriate test values for child fields
 					},
@@ -118,7 +118,7 @@ func TestListMongoRepoCreate(t *testing.T) {
 					},
 				},
 
-				Items: []todo.Item{
+				Tags: []todo.Tag{
 					{
 						// TODO: Set appropriate test values for child fields
 					},
@@ -177,12 +177,12 @@ func TestListMongoRepoCreate(t *testing.T) {
 
 			// Verify children count matches
 
-			if len(retrieved.Tags) != len(tt.aggregate.Tags) {
-				t.Errorf("Expected %d Tags, got %d", len(tt.aggregate.Tags), len(retrieved.Tags))
-			}
-
 			if len(retrieved.Items) != len(tt.aggregate.Items) {
 				t.Errorf("Expected %d Items, got %d", len(tt.aggregate.Items), len(retrieved.Items))
+			}
+
+			if len(retrieved.Tags) != len(tt.aggregate.Tags) {
+				t.Errorf("Expected %d Tags, got %d", len(tt.aggregate.Tags), len(retrieved.Tags))
 			}
 
 		})
@@ -200,13 +200,13 @@ func TestListMongoRepoGet(t *testing.T) {
 	testAggregate := &todo.List{
 		// TODO: Set appropriate test values
 
-		Tags: []todo.Tag{
+		Items: []todo.Item{
 			{
 				// TODO: Set test values for child fields
 			},
 		},
 
-		Items: []todo.Item{
+		Tags: []todo.Tag{
 			{
 				// TODO: Set test values for child fields
 			},
@@ -276,12 +276,12 @@ func TestListMongoRepoGet(t *testing.T) {
 
 			// Verify children are loaded
 
-			if len(result.Tags) != len(testAggregate.Tags) {
-				t.Errorf("Expected %d Tags, got %d", len(testAggregate.Tags), len(result.Tags))
-			}
-
 			if len(result.Items) != len(testAggregate.Items) {
 				t.Errorf("Expected %d Items, got %d", len(testAggregate.Items), len(result.Items))
+			}
+
+			if len(result.Tags) != len(testAggregate.Tags) {
+				t.Errorf("Expected %d Tags, got %d", len(testAggregate.Tags), len(result.Tags))
 			}
 
 		})
@@ -308,20 +308,20 @@ func TestListMongoRepoSave(t *testing.T) {
 				agg := &todo.List{
 					// TODO: Set test values
 
-					Tags: []todo.Tag{},
-
 					Items: []todo.Item{},
+
+					Tags: []todo.Tag{},
 				}
 				repo.Create(ctx, agg)
 				return agg
 			},
 			modify: func(agg *todo.List) {
 
-				agg.Tags = append(agg.Tags, todo.Tag{
+				agg.Items = append(agg.Items, todo.Item{
 					// TODO: Set test values for new child
 				})
 
-				agg.Items = append(agg.Items, todo.Item{
+				agg.Tags = append(agg.Tags, todo.Tag{
 					// TODO: Set test values for new child
 				})
 
@@ -332,13 +332,13 @@ func TestListMongoRepoSave(t *testing.T) {
 			setup: func() *todo.List {
 				agg := &todo.List{
 
-					Tags: []todo.Tag{
+					Items: []todo.Item{
 						{
 							// TODO: Set initial test values
 						},
 					},
 
-					Items: []todo.Item{
+					Tags: []todo.Tag{
 						{
 							// TODO: Set initial test values
 						},
@@ -349,11 +349,11 @@ func TestListMongoRepoSave(t *testing.T) {
 			},
 			modify: func(agg *todo.List) {
 
-				if len(agg.Tags) > 0 {
+				if len(agg.Items) > 0 {
 					// TODO: Modify child values for update test
 				}
 
-				if len(agg.Items) > 0 {
+				if len(agg.Tags) > 0 {
 					// TODO: Modify child values for update test
 				}
 
@@ -364,12 +364,12 @@ func TestListMongoRepoSave(t *testing.T) {
 			setup: func() *todo.List {
 				agg := &todo.List{
 
-					Tags: []todo.Tag{
+					Items: []todo.Item{
 						{ /* TODO: child 1 */ },
 						{ /* TODO: child 2 */ },
 					},
 
-					Items: []todo.Item{
+					Tags: []todo.Tag{
 						{ /* TODO: child 1 */ },
 						{ /* TODO: child 2 */ },
 					},
@@ -379,12 +379,12 @@ func TestListMongoRepoSave(t *testing.T) {
 			},
 			modify: func(agg *todo.List) {
 
-				if len(agg.Tags) > 1 {
-					agg.Tags = agg.Tags[:1] // Keep only first child
-				}
-
 				if len(agg.Items) > 1 {
 					agg.Items = agg.Items[:1] // Keep only first child
+				}
+
+				if len(agg.Tags) > 1 {
+					agg.Tags = agg.Tags[:1] // Keep only first child
 				}
 
 			},
@@ -438,12 +438,12 @@ func TestListMongoRepoSave(t *testing.T) {
 
 			// Verify child counts match
 
-			if len(retrieved.Tags) != len(agg.Tags) {
-				t.Errorf("Expected %d Tags, got %d", len(agg.Tags), len(retrieved.Tags))
-			}
-
 			if len(retrieved.Items) != len(agg.Items) {
 				t.Errorf("Expected %d Items, got %d", len(agg.Items), len(retrieved.Items))
+			}
+
+			if len(retrieved.Tags) != len(agg.Tags) {
+				t.Errorf("Expected %d Tags, got %d", len(agg.Tags), len(retrieved.Tags))
 			}
 
 		})
@@ -468,11 +468,11 @@ func TestListMongoRepoDelete(t *testing.T) {
 			setup: func() uuid.UUID {
 				agg := &todo.List{
 
-					Tags: []todo.Tag{
+					Items: []todo.Item{
 						{ /* TODO: test child */ },
 					},
 
-					Items: []todo.Item{
+					Tags: []todo.Tag{
 						{ /* TODO: test child */ },
 					},
 				}
@@ -562,11 +562,11 @@ func TestListMongoRepoList(t *testing.T) {
 			setup: func() []*todo.List {
 				agg := &todo.List{
 
-					Tags: []todo.Tag{
+					Items: []todo.Item{
 						{ /* TODO: test child */ },
 					},
 
-					Items: []todo.Item{
+					Tags: []todo.Tag{
 						{ /* TODO: test child */ },
 					},
 				}
@@ -582,11 +582,11 @@ func TestListMongoRepoList(t *testing.T) {
 				for i := 0; i < 3; i++ {
 					aggs[i] = &todo.List{
 
-						Tags: []todo.Tag{
+						Items: []todo.Item{
 							{ /* TODO: test child */ },
 						},
 
-						Items: []todo.Item{
+						Tags: []todo.Tag{
 							{ /* TODO: test child */ },
 						},
 					}
@@ -636,12 +636,12 @@ func TestListMongoRepoList(t *testing.T) {
 
 				if created != nil && i < len(created) {
 
-					if len(result.Tags) != len(created[i].Tags) {
-						t.Errorf("Aggregate %d expected %d Tags, got %d", i, len(created[i].Tags), len(result.Tags))
-					}
-
 					if len(result.Items) != len(created[i].Items) {
 						t.Errorf("Aggregate %d expected %d Items, got %d", i, len(created[i].Items), len(result.Items))
+					}
+
+					if len(result.Tags) != len(created[i].Tags) {
+						t.Errorf("Aggregate %d expected %d Tags, got %d", i, len(created[i].Tags), len(result.Tags))
 					}
 
 				}

@@ -83,6 +83,7 @@ func RespondError(w http.ResponseWriter, code int, message string) {
 }
 
 // Respond sends a successful JSON response (backward compatibility)
+// TODO: Remove this one
 func Respond(w http.ResponseWriter, code int, data interface{}, meta interface{}) {
 	if code == http.StatusNoContent {
 		w.WriteHeader(code)
@@ -95,6 +96,7 @@ func Respond(w http.ResponseWriter, code int, data interface{}, meta interface{}
 }
 
 // Error sends a JSON error response (backward compatibility)
+// TODO: Remove this one
 func Error(w http.ResponseWriter, code int, errorCode string, message string, details ...ValidationError) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
