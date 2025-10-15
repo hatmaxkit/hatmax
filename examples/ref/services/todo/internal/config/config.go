@@ -7,11 +7,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/knadh/koanf/v2"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/env"
-	"github.com/knadh/koanf/providers/posflag"
 	"github.com/knadh/koanf/providers/rawbytes"
-	"github.com/knadh/koanf/v2"
+	"github.com/knadh/koanf/providers/posflag"
 	"github.com/spf13/pflag"
 )
 
@@ -36,7 +36,7 @@ type LogConfig struct {
 func New() *Config {
 	return &Config{
 		Server: ServerConfig{
-			Port: ":8080",
+			Port: ":8084",
 		},
 		Database: DatabaseConfig{
 			Path: "./app.db",
@@ -57,7 +57,7 @@ func LoadConfig(path, envPrefix string, args []string) (*Config, error) {
 
 	// Setup pflag
 	fs := pflag.NewFlagSet(args[0], pflag.ExitOnError)
-	fs.String("server.port", ":8080", "Server listen address")
+	fs.String("server.port", ":8084", "Server listen address")
 	fs.String("database.path", "./app.db", "Path to the SQLite database file")
 	fs.String("log.level", "info", "Log level (debug, info, error)")
 	fs.Parse(args[1:])

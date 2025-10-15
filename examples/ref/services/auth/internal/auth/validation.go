@@ -3,8 +3,8 @@ package auth
 import (
 	"context"
 
-	authpkg "github.com/adrianpk/hatmax-ref/pkg/lib/auth"
 	"github.com/google/uuid"
+	authpkg "github.com/adrianpk/hatmax-ref/pkg/lib/auth"
 )
 
 // ValidationError represents a validation error.

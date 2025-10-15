@@ -2,22 +2,21 @@ package todo
 
 import (
 	"time"
-
-	"github.com/adrianpk/hatmax-ref/pkg/lib/core"
 	"github.com/google/uuid"
+	"github.com/adrianpk/hatmax-ref/pkg/lib/core"
 )
 
 // List is the aggregate root for the List domain.
 type List struct {
-	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	CreatedAt   time.Time `json:"created_at"`
-	CreatedBy   string    `json:"created_by"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	UpdatedBy   string    `json:"updated_by"`
-	Items       []Item    `json:"items"`
-	Tags        []Tag     `json:"tags"`
+	ID        uuid.UUID `json:"id"`
+	Name string `json:"name"`
+	Description string `json:"description"`
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by"`
+	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedBy string    `json:"updated_by"`
+	Items []Item `json:"items"`
+	Tags []Tag `json:"tags"`
 }
 
 // GetID returns the ID of the List (implements Identifiable interface).
@@ -30,6 +29,7 @@ func (a *List) ResourceType() string {
 	return "list"
 }
 
+
 // SetID sets the ID of the List.
 func (a *List) SetID(id uuid.UUID) {
 	a.ID = id
@@ -38,7 +38,7 @@ func (a *List) SetID(id uuid.UUID) {
 // NewList creates a new List with a generated ID and initial version.
 func NewList() *List {
 	return &List{
-		ID: core.GenerateNewID(),
+		ID:       core.GenerateNewID(),
 	}
 }
 

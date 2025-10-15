@@ -6,9 +6,11 @@ import (
 	"net/http"
 
 	"github.com/gertd/go-pluralize"
+	"github.com/google/uuid"
 )
 
 var pluralizer = pluralize.NewClient()
+
 
 // Standard RESTful link relations
 const (
@@ -114,15 +116,15 @@ func RESTfulLinksFor(obj Identifiable, basePath ...string) []Link {
 	singular := obj.ResourceType()
 	plural := Pluralize(singular)
 	id := obj.GetID().String()
-
+	
 	base := ""
 	if len(basePath) > 0 {
 		base = basePath[0]
 	}
-
+	
 	resourcePath := fmt.Sprintf("%s/%s", base, plural)
 	itemPath := fmt.Sprintf("%s/%s", resourcePath, id)
-
+	
 	return []Link{
 		{Rel: RelSelf, Href: itemPath},
 		{Rel: RelUpdate, Href: itemPath},
@@ -138,9 +140,9 @@ func CollectionLinksFor(resourceType string, basePath ...string) []Link {
 	if len(basePath) > 0 {
 		base = basePath[0]
 	}
-
+	
 	resourcePath := fmt.Sprintf("%s/%s", base, plural)
-
+	
 	return []Link{
 		{Rel: RelSelf, Href: resourcePath},
 		{Rel: RelCreate, Href: resourcePath},
@@ -151,17 +153,17 @@ func CollectionLinksFor(resourceType string, basePath ...string) []Link {
 func ChildLinksFor(parent, child Identifiable) []Link {
 	parentType := parent.ResourceType()
 	childType := child.ResourceType()
-
+	
 	parentPlural := Pluralize(parentType)
 	childPlural := Pluralize(childType)
-
+	
 	parentID := parent.GetID().String()
 	childID := child.GetID().String()
-
+	
 	parentPath := fmt.Sprintf("/%s/%s", parentPlural, parentID)
 	childCollectionPath := fmt.Sprintf("%s/%s", parentPath, childPlural)
 	childItemPath := fmt.Sprintf("%s/%s", childCollectionPath, childID)
-
+	
 	return []Link{
 		{Rel: RelSelf, Href: childItemPath},
 		{Rel: RelUpdate, Href: childItemPath},

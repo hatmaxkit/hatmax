@@ -97,10 +97,11 @@ func TestListMongoRepoCreate(t *testing.T) {
 			name: "HappyPath_EmptyAggregate",
 			aggregate: &todo.List{
 				// TODO: Set appropriate test values for root fields
-
-				Items: []todo.Item{},
-
+				
 				Tags: []todo.Tag{},
+				
+				Items: []todo.Item{},
+				
 			},
 			expectError: false,
 		},
@@ -108,16 +109,7 @@ func TestListMongoRepoCreate(t *testing.T) {
 			name: "HappyPath_WithChildren",
 			aggregate: &todo.List{
 				// TODO: Set appropriate test values for root fields
-
-				Items: []todo.Item{
-					{
-						// TODO: Set appropriate test values for child fields
-					},
-					{
-						// TODO: Set appropriate test values for second child
-					},
-				},
-
+				
 				Tags: []todo.Tag{
 					{
 						// TODO: Set appropriate test values for child fields
@@ -126,6 +118,16 @@ func TestListMongoRepoCreate(t *testing.T) {
 						// TODO: Set appropriate test values for second child
 					},
 				},
+				
+				Items: []todo.Item{
+					{
+						// TODO: Set appropriate test values for child fields
+					},
+					{
+						// TODO: Set appropriate test values for second child
+					},
+				},
+				
 			},
 			expectError: false,
 		},
@@ -176,15 +178,15 @@ func TestListMongoRepoCreate(t *testing.T) {
 			}
 
 			// Verify children count matches
-
-			if len(retrieved.Items) != len(tt.aggregate.Items) {
-				t.Errorf("Expected %d Items, got %d", len(tt.aggregate.Items), len(retrieved.Items))
-			}
-
+			
 			if len(retrieved.Tags) != len(tt.aggregate.Tags) {
 				t.Errorf("Expected %d Tags, got %d", len(tt.aggregate.Tags), len(retrieved.Tags))
 			}
-
+			
+			if len(retrieved.Items) != len(tt.aggregate.Items) {
+				t.Errorf("Expected %d Items, got %d", len(tt.aggregate.Items), len(retrieved.Items))
+			}
+			
 		})
 	}
 }
@@ -199,18 +201,19 @@ func TestListMongoRepoGet(t *testing.T) {
 	// Setup: Create a test aggregate
 	testAggregate := &todo.List{
 		// TODO: Set appropriate test values
-
-		Items: []todo.Item{
-			{
-				// TODO: Set test values for child fields
-			},
-		},
-
+		
 		Tags: []todo.Tag{
 			{
 				// TODO: Set test values for child fields
 			},
 		},
+		
+		Items: []todo.Item{
+			{
+				// TODO: Set test values for child fields
+			},
+		},
+		
 	}
 	err := repo.Create(ctx, testAggregate)
 	if err != nil {
@@ -275,15 +278,15 @@ func TestListMongoRepoGet(t *testing.T) {
 			}
 
 			// Verify children are loaded
-
-			if len(result.Items) != len(testAggregate.Items) {
-				t.Errorf("Expected %d Items, got %d", len(testAggregate.Items), len(result.Items))
-			}
-
+			
 			if len(result.Tags) != len(testAggregate.Tags) {
 				t.Errorf("Expected %d Tags, got %d", len(testAggregate.Tags), len(result.Tags))
 			}
-
+			
+			if len(result.Items) != len(testAggregate.Items) {
+				t.Errorf("Expected %d Items, got %d", len(testAggregate.Items), len(result.Items))
+			}
+			
 		})
 	}
 }
@@ -307,86 +310,89 @@ func TestListMongoRepoSave(t *testing.T) {
 			setup: func() *todo.List {
 				agg := &todo.List{
 					// TODO: Set test values
-
-					Items: []todo.Item{},
-
+					
 					Tags: []todo.Tag{},
+					
+					Items: []todo.Item{},
+					
 				}
 				repo.Create(ctx, agg)
 				return agg
 			},
 			modify: func(agg *todo.List) {
-
-				agg.Items = append(agg.Items, todo.Item{
-					// TODO: Set test values for new child
-				})
-
+				
 				agg.Tags = append(agg.Tags, todo.Tag{
 					// TODO: Set test values for new child
 				})
-
+				
+				agg.Items = append(agg.Items, todo.Item{
+					// TODO: Set test values for new child
+				})
+				
 			},
 		},
 		{
 			name: "HappyPath_UpdateChildren",
 			setup: func() *todo.List {
 				agg := &todo.List{
-
-					Items: []todo.Item{
-						{
-							// TODO: Set initial test values
-						},
-					},
-
+					
 					Tags: []todo.Tag{
 						{
 							// TODO: Set initial test values
 						},
 					},
+					
+					Items: []todo.Item{
+						{
+							// TODO: Set initial test values
+						},
+					},
+					
 				}
 				repo.Create(ctx, agg)
 				return agg
 			},
 			modify: func(agg *todo.List) {
-
-				if len(agg.Items) > 0 {
-					// TODO: Modify child values for update test
-				}
-
+				
 				if len(agg.Tags) > 0 {
 					// TODO: Modify child values for update test
 				}
-
+				
+				if len(agg.Items) > 0 {
+					// TODO: Modify child values for update test
+				}
+				
 			},
 		},
 		{
 			name: "HappyPath_RemoveChildren",
 			setup: func() *todo.List {
 				agg := &todo.List{
-
-					Items: []todo.Item{
-						{ /* TODO: child 1 */ },
-						{ /* TODO: child 2 */ },
-					},
-
+					
 					Tags: []todo.Tag{
 						{ /* TODO: child 1 */ },
 						{ /* TODO: child 2 */ },
 					},
+					
+					Items: []todo.Item{
+						{ /* TODO: child 1 */ },
+						{ /* TODO: child 2 */ },
+					},
+					
 				}
 				repo.Create(ctx, agg)
 				return agg
 			},
 			modify: func(agg *todo.List) {
-
-				if len(agg.Items) > 1 {
-					agg.Items = agg.Items[:1] // Keep only first child
-				}
-
+				
 				if len(agg.Tags) > 1 {
 					agg.Tags = agg.Tags[:1] // Keep only first child
 				}
-
+				
+				if len(agg.Items) > 1 {
+					agg.Items = agg.Items[:1] // Keep only first child
+				}
+				
 			},
 		},
 		{
@@ -437,15 +443,15 @@ func TestListMongoRepoSave(t *testing.T) {
 			}
 
 			// Verify child counts match
-
-			if len(retrieved.Items) != len(agg.Items) {
-				t.Errorf("Expected %d Items, got %d", len(agg.Items), len(retrieved.Items))
-			}
-
+			
 			if len(retrieved.Tags) != len(agg.Tags) {
 				t.Errorf("Expected %d Tags, got %d", len(agg.Tags), len(retrieved.Tags))
 			}
-
+			
+			if len(retrieved.Items) != len(agg.Items) {
+				t.Errorf("Expected %d Items, got %d", len(agg.Items), len(retrieved.Items))
+			}
+			
 		})
 	}
 }
@@ -467,14 +473,15 @@ func TestListMongoRepoDelete(t *testing.T) {
 			name: "HappyPath_ExistingAggregate",
 			setup: func() uuid.UUID {
 				agg := &todo.List{
-
-					Items: []todo.Item{
-						{ /* TODO: test child */ },
-					},
-
+					
 					Tags: []todo.Tag{
 						{ /* TODO: test child */ },
 					},
+					
+					Items: []todo.Item{
+						{ /* TODO: test child */ },
+					},
+					
 				}
 				repo.Create(ctx, agg)
 				return agg.GetID()
@@ -561,14 +568,15 @@ func TestListMongoRepoList(t *testing.T) {
 			name: "HappyPath_SingleAggregate",
 			setup: func() []*todo.List {
 				agg := &todo.List{
-
-					Items: []todo.Item{
-						{ /* TODO: test child */ },
-					},
-
+					
 					Tags: []todo.Tag{
 						{ /* TODO: test child */ },
 					},
+					
+					Items: []todo.Item{
+						{ /* TODO: test child */ },
+					},
+					
 				}
 				repo.Create(ctx, agg)
 				return []*todo.List{agg}
@@ -581,14 +589,15 @@ func TestListMongoRepoList(t *testing.T) {
 				aggs := make([]*todo.List, 3)
 				for i := 0; i < 3; i++ {
 					aggs[i] = &todo.List{
-
-						Items: []todo.Item{
-							{ /* TODO: test child */ },
-						},
-
+						
 						Tags: []todo.Tag{
 							{ /* TODO: test child */ },
 						},
+						
+						Items: []todo.Item{
+							{ /* TODO: test child */ },
+						},
+						
 					}
 					repo.Create(ctx, aggs[i])
 				}
@@ -635,15 +644,15 @@ func TestListMongoRepoList(t *testing.T) {
 				}
 
 				if created != nil && i < len(created) {
-
-					if len(result.Items) != len(created[i].Items) {
-						t.Errorf("Aggregate %d expected %d Items, got %d", i, len(created[i].Items), len(result.Items))
-					}
-
+					
 					if len(result.Tags) != len(created[i].Tags) {
 						t.Errorf("Aggregate %d expected %d Tags, got %d", i, len(created[i].Tags), len(result.Tags))
 					}
-
+					
+					if len(result.Items) != len(created[i].Items) {
+						t.Errorf("Aggregate %d expected %d Items, got %d", i, len(created[i].Items), len(result.Items))
+					}
+					
 				}
 			}
 		})
@@ -653,7 +662,7 @@ func TestListMongoRepoList(t *testing.T) {
 // Helper function to clean database between tests
 func cleanDatabase(t *testing.T, db *mongo.Database) {
 	t.Helper()
-
+	
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

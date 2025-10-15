@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -11,6 +13,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/adrianpk/hatmax-ref/pkg/lib/core"
+	authpkg "github.com/adrianpk/hatmax-ref/pkg/lib/auth"
 	"github.com/adrianpk/hatmax-ref/services/auth/internal/config"
 )
 
