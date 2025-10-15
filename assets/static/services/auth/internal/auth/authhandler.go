@@ -2,13 +2,18 @@ package auth
 
 import (
 	"context"
+	"crypto/ed25519"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/google/uuid"
 
 	"github.com/username/repo/pkg/lib/core"
 	authpkg "github.com/username/repo/pkg/lib/auth"
@@ -77,8 +82,20 @@ func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	normalizedEmail := authpkg.NormalizeEmail(req.Email)
 	
 	// Use encryption keys from config
-	_ = h.xparams.Cfg.Auth.EncryptionKey
+	encryptionKey := []byte(h.xparams.Cfg.Auth.EncryptionKey)
 	signingKey := []byte(h.xparams.Cfg.Auth.SigningKey)
+	
+	// Debug: Check key lengths
+	log.Info("encryption key configured", "length", len(encryptionKey))
+	log.Info("signing key configured", "length", len(signingKey))
+	
+	// Encrypt email for storage
+	encryptedEmail, err := authpkg.EncryptEmail(normalizedEmail, encryptionKey)
+	if err != nil {
+		log.Error("error encrypting email", "error", err)
+		core.RespondError(w, http.StatusInternalServerError, "Could not create account")
+		return
+	}
 	
 	emailLookup := authpkg.ComputeLookupHash(normalizedEmail, signingKey)
 	
@@ -104,6 +121,9 @@ func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	
 	// Create service user
 	user := NewUser()
+	user.EmailCT = encryptedEmail.Ciphertext
+	user.EmailIV = encryptedEmail.IV
+	user.EmailTag = encryptedEmail.Tag
 	user.EmailLookup = emailLookup
 	user.PasswordHash = passwordHash
 	user.PasswordSalt = salt
@@ -169,10 +189,15 @@ func (h *AuthHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Generate session token (needs token generation in authpkg)
-	// For now, return user without token
+	// Generate session token
+	token, err := h.generateSessionToken(user.ID.String())
+	if err != nil {
+		log.Error("error generating session token", "error", err)
+		core.RespondError(w, http.StatusInternalServerError, "Authentication failed")
+		return
+	}
 	
-	core.RespondSuccess(w, AuthResponse{User: user})
+	core.RespondSuccess(w, AuthResponse{User: user, Token: token})
 }
 
 func (h *AuthHandler) SignOut(w http.ResponseWriter, r *http.Request) {
@@ -220,6 +245,48 @@ func (h *AuthHandler) decodeSignUpPayload(w http.ResponseWriter, r *http.Request
 	}
 
 	return req, true
+}
+
+// generateSessionToken creates a session token for the user
+func (h *AuthHandler) generateSessionToken(userID string) (string, error) {
+	// Parse session TTL
+	ttl, err := time.ParseDuration(h.xparams.Cfg.Auth.SessionTTL)
+	if err != nil {
+		return "", fmt.Errorf("invalid session TTL: %w", err)
+	}
+
+	// Get or generate Ed25519 private key
+	privateKey, err := h.getTokenPrivateKey()
+	if err != nil {
+		return "", fmt.Errorf("failed to get private key: %w", err)
+	}
+
+	// Generate session ID
+	sessionID := uuid.New().String()
+
+	// Generate token
+	return authpkg.GenerateSessionToken(userID, sessionID, privateKey, ttl)
+}
+
+// getTokenPrivateKey gets or generates the Ed25519 private key for tokens
+func (h *AuthHandler) getTokenPrivateKey() (ed25519.PrivateKey, error) {
+	// Try to get from config first
+	if h.xparams.Cfg.Auth.TokenPrivateKey != "" {
+		keyBytes, err := base64.StdEncoding.DecodeString(h.xparams.Cfg.Auth.TokenPrivateKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode private key: %w", err)
+		}
+		return ed25519.PrivateKey(keyBytes), nil
+	}
+
+	// Generate new key pair if not configured
+	// In production, this should be persistent
+	_, privateKey, err := authpkg.GenerateKeyPair()
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate key pair: %w", err)
+	}
+
+	return privateKey, nil
 }
 
 func (h *AuthHandler) decodeSignInPayload(w http.ResponseWriter, r *http.Request, log core.Logger) (SignInRequest, bool) {

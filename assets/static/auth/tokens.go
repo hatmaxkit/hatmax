@@ -1,6 +1,11 @@
 package auth
 
 import (
+	"crypto/ed25519"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -252,4 +257,128 @@ func IsTokenFresh(claims TokenClaims, issuedAt time.Time, maxAge time.Duration) 
 
 	age := time.Since(issuedAt)
 	return age <= maxAge
+}
+
+// GenerateSessionToken creates a PASETO token for user session
+func GenerateSessionToken(userID, sessionID string, privateKey ed25519.PrivateKey, ttl time.Duration) (string, error) {
+	claims := CreateTokenClaims(userID, sessionID, "session", map[string]string{"type": "global"}, ttl, 1)
+	return GeneratePASETOToken(claims, privateKey)
+}
+
+// GenerateInternalToken creates a PASETO token for internal service communication
+func GenerateInternalToken(userID, sessionID, audience string, context map[string]string, privateKey ed25519.PrivateKey, ttl time.Duration) (string, error) {
+	claims := CreateTokenClaims(userID, sessionID, audience, context, ttl, 1)
+	return GeneratePASETOToken(claims, privateKey)
+}
+
+// GeneratePASETOToken creates a PASETO token from claims
+func GeneratePASETOToken(claims TokenClaims, privateKey ed25519.PrivateKey) (string, error) {
+	// Create PASETO payload
+	payload := map[string]interface{}{
+		"sub":       claims.Subject,
+		"sid":       claims.SessionID,
+		"aud":       claims.Audience,
+		"exp":       claims.ExpiresAt,
+		"authz_ver": claims.AuthzVersion,
+	}
+	
+	if claims.Context != nil && len(claims.Context) > 0 {
+		payload["ctx"] = claims.Context
+	}
+	
+	// Marshal to JSON
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal token payload: %w", err)
+	}
+	
+	// Sign with Ed25519 (simplified PASETO v4.public implementation)
+	signature := ed25519.Sign(privateKey, payloadJSON)
+	
+	// Create PASETO token format: v4.public.payload.signature
+	token := fmt.Sprintf("v4.public.%s.%s", 
+		encodeBase64URL(payloadJSON),
+		encodeBase64URL(signature))
+	
+	return token, nil
+}
+
+// VerifyPASETOToken verifies and parses a PASETO token
+func VerifyPASETOToken(token string, publicKey ed25519.PublicKey) (*TokenClaims, error) {
+	// Parse PASETO token format: v4.public.payload.signature
+	parts := strings.Split(token, ".")
+	if len(parts) != 4 || parts[0] != "v4" || parts[1] != "public" {
+		return nil, fmt.Errorf("invalid PASETO token format")
+	}
+	
+	// Decode payload and signature
+	payload, err := decodeBase64URL(parts[2])
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode payload: %w", err)
+	}
+	
+	signature, err := decodeBase64URL(parts[3])
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode signature: %w", err)
+	}
+	
+	// Verify signature
+	if !ed25519.Verify(publicKey, payload, signature) {
+		return nil, fmt.Errorf("invalid token signature")
+	}
+	
+	// Parse claims
+	var rawClaims map[string]interface{}
+	if err := json.Unmarshal(payload, &rawClaims); err != nil {
+		return nil, fmt.Errorf("failed to parse token claims: %w", err)
+	}
+	
+	// Convert to TokenClaims struct
+	claims := &TokenClaims{}
+	
+	if sub, ok := rawClaims["sub"].(string); ok {
+		claims.Subject = sub
+	}
+	
+	if sid, ok := rawClaims["sid"].(string); ok {
+		claims.SessionID = sid
+	}
+	
+	if aud, ok := rawClaims["aud"].(string); ok {
+		claims.Audience = aud
+	}
+	
+	if exp, ok := rawClaims["exp"].(float64); ok {
+		claims.ExpiresAt = int64(exp)
+	}
+	
+	if authzVer, ok := rawClaims["authz_ver"].(float64); ok {
+		claims.AuthzVersion = int(authzVer)
+	}
+	
+	if ctx, ok := rawClaims["ctx"].(map[string]interface{}); ok {
+		claims.Context = make(map[string]string)
+		for k, v := range ctx {
+			if strVal, ok := v.(string); ok {
+				claims.Context[k] = strVal
+			}
+		}
+	}
+	
+	return claims, nil
+}
+
+// GenerateKeyPair generates an Ed25519 key pair for PASETO tokens
+func GenerateKeyPair() (ed25519.PublicKey, ed25519.PrivateKey, error) {
+	return ed25519.GenerateKey(nil)
+}
+
+// encodeBase64URL encodes data using base64 URL encoding without padding
+func encodeBase64URL(data []byte) string {
+	return base64.RawURLEncoding.EncodeToString(data)
+}
+
+// decodeBase64URL decodes base64 URL encoded data without padding
+func decodeBase64URL(encoded string) ([]byte, error) {
+	return base64.RawURLEncoding.DecodeString(encoded)
 }

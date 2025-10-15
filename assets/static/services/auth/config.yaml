@@ -23,3 +23,11 @@ auth:
   # Session TTL duration.
   # Env: APP_AUTH__SESSION_TTL
   session_ttl: "${AUTH_SESSION_TTL:-24h}"
+  
+  # Ed25519 private key for signing tokens (base64 encoded).
+  # Env: APP_AUTH__TOKEN_PRIVATE_KEY
+  token_private_key: "${AUTH_TOKEN_PRIVATE_KEY:-}"
+  
+  # Ed25519 public key for verifying tokens (base64 encoded).
+  # Env: APP_AUTH__TOKEN_PUBLIC_KEY  
+  token_public_key: "${AUTH_TOKEN_PUBLIC_KEY:-}"

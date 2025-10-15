@@ -21,7 +21,7 @@ const (
 )
 
 func main() {
-	cfg, err := config.LoadConfig("config.yaml", "APP", os.Args)
+	cfg, err := config.LoadConfig("config.yaml", "AUTH_", os.Args)
 	if err != nil {
 		log.Fatalf("Cannot setup %s(%s): %v", name, version, err)
 	}
