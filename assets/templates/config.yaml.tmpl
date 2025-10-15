@@ -3,10 +3,10 @@
 
 server:
   # The port the server will listen on.
-  # Env: APP_SERVER__PORT
+  # Env: {{.ServicePrefix}}_SERVER_PORT
   port: ":{{.Port}}"
 
 database:
   # Path to the SQLite database file.
-  # Env: APP_DATABASE__PATH
+  # Env: {{.ServicePrefix}}_DATABASE_PATH
   path: "./app.db"

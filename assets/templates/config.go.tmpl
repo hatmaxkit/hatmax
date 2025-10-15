@@ -49,7 +49,7 @@ func New() *Config {
 
 // LoadConfig loads configuration from a YAML file, overrides with environment variables, and then with flags.
 // 'path' is the path to the YAML config file.
-// 'envPrefix' is the prefix for environment variables (e.g., "APP_").
+// 'envPrefix' is the prefix for environment variables (e.g., "{{.ServicePrefix}}_").
 // 'args' are the command-line arguments (os.Args).
 func LoadConfig(path, envPrefix string, args []string) (*Config, error) {
 	k := koanf.New(".")
@@ -74,7 +74,7 @@ func LoadConfig(path, envPrefix string, args []string) (*Config, error) {
 
 	if err := k.Load(env.Provider(envPrefix, ".", func(s string) string {
 		return strings.Replace(strings.ToLower(
-			strings.TrimPrefix(s, envPrefix)), "__", ".", -1)
+			strings.TrimPrefix(s, envPrefix)), "_", ".", -1)
 	}), nil); err != nil {
 		return nil, fmt.Errorf("cannot load env vars: %w", err)
 	}

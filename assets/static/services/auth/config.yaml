@@ -3,31 +3,31 @@
 
 server:
   # The port the server will listen on.
-  # Env: APP_SERVER__PORT
+  # Env: AUTH_SERVER_PORT
   port: ":8082"
 
 database:
   # Path to the SQLite database file.
-  # Env: APP_DATABASE__PATH
+  # Env: AUTH_DATABASE_PATH
   path: "./auth.db"
 
 auth:
   # AES-GCM encryption key for PII data (32 bytes).
-  # Env: APP_AUTH__ENCRYPTION_KEY
+  # Env: AUTH_ENCRYPTION_KEY
   encryption_key: "${AUTH_ENCRYPTION_KEY:-change-me-32-byte-key-for-aes-gcm}"
   
   # HMAC signing key for lookup hashes.
-  # Env: APP_AUTH__SIGNING_KEY  
+  # Env: AUTH_SIGNING_KEY  
   signing_key: "${AUTH_SIGNING_KEY:-change-me-signing-key-for-hmac}"
   
   # Session TTL duration.
-  # Env: APP_AUTH__SESSION_TTL
+  # Env: AUTH_SESSION_TTL
   session_ttl: "${AUTH_SESSION_TTL:-24h}"
   
   # Ed25519 private key for signing tokens (base64 encoded).
-  # Env: APP_AUTH__TOKEN_PRIVATE_KEY
+  # Env: AUTH_TOKEN_PRIVATE_KEY
   token_private_key: "${AUTH_TOKEN_PRIVATE_KEY:-}"
   
   # Ed25519 public key for verifying tokens (base64 encoded).
-  # Env: APP_AUTH__TOKEN_PUBLIC_KEY  
+  # Env: AUTH_TOKEN_PUBLIC_KEY  
   token_public_key: "${AUTH_TOKEN_PUBLIC_KEY:-}"

@@ -8,8 +8,8 @@ import (
 // Tag is a child of an aggregate root.
 type Tag struct {
 	ID        uuid.UUID `json:"id"`
-	Name string `json:"name"`
 	Color string `json:"color"`
+	Name string `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 	CreatedBy string    `json:"created_by"`
 	UpdatedAt time.Time `json:"updated_at"`
