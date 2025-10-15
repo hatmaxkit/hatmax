@@ -4,7 +4,7 @@
 server:
   # The port the server will listen on.
   # Env: APP_SERVER__PORT
-  port: ":8081"
+  port: ":8082"
 
 database:
   # Path to the SQLite database file.

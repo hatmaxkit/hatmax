@@ -845,12 +845,17 @@ func (mg *ModelGenerator) GenerateConfigAndXParams() error {
 	fmt.Println("  - Generating configuration files and XParams...")
 
 	configGoPath := filepath.Join(mg.OutputDir, "internal", "config", "config.go")
+	// Calculate port for this service
+	currentServiceName := filepath.Base(mg.OutputDir)
+	port := mg.calculateServicePort(currentServiceName)
 	data := struct {
 		ModulePath         string
 		MonorepoModulePath string
+		Port               int
 	}{
 		ModulePath:         mg.Config.ModulePath,
 		MonorepoModulePath: mg.Config.MonorepoModulePath,
+		Port:               port,
 	}
 	if err := mg.generateFile(mg.ConfigTemplate, configGoPath, data); err != nil {
 		return fmt.Errorf("cannot generate config.go: %w", err)
@@ -864,7 +869,13 @@ func (mg *ModelGenerator) GenerateConfigAndXParams() error {
 	fmt.Printf("    - Created %s\n", xparamsGoPath)
 
 	configYAMLPath := filepath.Join(mg.OutputDir, "config.yaml")
-	if err := mg.generateFile(mg.ConfigYAMLTemplate, configYAMLPath, nil); err != nil {
+	// Reuse the port already calculated above
+	configData := struct {
+		Port int
+	}{
+		Port: port,
+	}
+	if err := mg.generateFile(mg.ConfigYAMLTemplate, configYAMLPath, configData); err != nil {
 		return fmt.Errorf("cannot generate config.yaml: %w", err)
 	}
 	fmt.Printf("    - Created %s\n", configYAMLPath)
@@ -893,6 +904,47 @@ func (mg *ModelGenerator) generateFile(tmpl *template.Template, path string, dat
 		return fmt.Errorf("cannot execute template for %s: %w", path, err)
 	}
 	return nil
+}
+
+// calculateServicePort calculates the port for a service based on its priority/index
+// Port allocation:
+// 8080 - Reserved for future web service
+// 8081 - Reserved for future API Gateway  
+// 8082 - Authentication service (auth)
+// 8083 - Authorization service (authz)
+// 8084+ - Other services in alphabetical order
+func (mg *ModelGenerator) calculateServicePort(serviceName string) int {
+	// Priority services get fixed ports
+	switch serviceName {
+	case "web":
+		return 8080 // Web service (future)
+	case "gateway":
+		return 8081 // API Gateway (future)
+	case "auth":
+		return 8082 // Authentication service
+	case "authz":
+		return 8083 // Authorization service
+	default:
+		// For other services, calculate port based on alphabetical order
+		var serviceNames []string
+		for name := range mg.Config.Services {
+			// Skip reserved services
+			if name != "web" && name != "gateway" && name != "auth" && name != "authz" {
+				serviceNames = append(serviceNames, name)
+			}
+		}
+		sort.Strings(serviceNames)
+		
+		// Find index of current service
+		for i, name := range serviceNames {
+			if name == serviceName {
+				return 8084 + i // 8084, 8085, 8086...
+			}
+		}
+		
+		// Fallback if not found
+		return 8090
+	}
 }
 
 func contains(s []string, str string) bool {

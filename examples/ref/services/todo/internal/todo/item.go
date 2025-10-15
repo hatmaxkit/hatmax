@@ -2,15 +2,14 @@ package todo
 
 import (
 	"time"
-
 	"github.com/google/uuid"
 )
 
 // Item is a child of an aggregate root.
 type Item struct {
 	ID        uuid.UUID `json:"id"`
-	Text      string    `json:"text"`
-	Done      bool      `json:"done"`
+	Text string `json:"text"`
+	Done bool `json:"done"`
 	CreatedAt time.Time `json:"created_at"`
 	CreatedBy string    `json:"created_by"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -20,7 +19,7 @@ type Item struct {
 // NewItem creates a new Item with a generated ID.
 func NewItem() *Item {
 	return &Item{
-		ID:        uuid.New(),
+		ID:      uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -35,6 +34,7 @@ func (c *Item) GetID() uuid.UUID {
 func (c *Item) ResourceType() string {
 	return "item"
 }
+
 
 // SetID sets the ID of the Item.
 func (c *Item) SetID(id uuid.UUID) {

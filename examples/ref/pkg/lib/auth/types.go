@@ -34,12 +34,12 @@ type Role struct {
 }
 
 type Grant struct {
-	ID        uuid.UUID
-	UserID    uuid.UUID
-	GrantType GrantType
-	Value     string
-	Scope     Scope
-	ExpiresAt *time.Time
+	ID         uuid.UUID
+	UserID     uuid.UUID
+	GrantType  GrantType
+	Value      string
+	Scope      Scope
+	ExpiresAt  *time.Time
 }
 
 type GrantType string
@@ -55,10 +55,10 @@ type Scope struct {
 }
 
 type ResourcePolicy struct {
-	ID      string
-	Type    string
-	Version int
-	Actions map[string]PolicyRule
+	ID       string
+	Type     string
+	Version  int
+	Actions  map[string]PolicyRule
 }
 
 type PolicyRule struct {
@@ -67,12 +67,12 @@ type PolicyRule struct {
 }
 
 type TokenClaims struct {
-	Subject      string            `json:"sub"`
-	SessionID    string            `json:"sid"`
-	Audience     string            `json:"aud"`
-	Context      map[string]string `json:"ctx"`
-	ExpiresAt    int64             `json:"exp"`
-	AuthzVersion int               `json:"authz_ver"`
+	Subject       string            `json:"sub"`
+	SessionID     string            `json:"sid"`
+	Audience      string            `json:"aud"`
+	Context       map[string]string `json:"ctx"`
+	ExpiresAt     int64             `json:"exp"`
+	AuthzVersion  int               `json:"authz_ver"`
 }
 
 type EmailSubscription struct {

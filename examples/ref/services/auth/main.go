@@ -10,9 +10,9 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/adrianpk/hatmax-ref/pkg/lib/core"
-	"github.com/adrianpk/hatmax-ref/services/auth/internal/auth"
 	"github.com/adrianpk/hatmax-ref/services/auth/internal/config"
 	"github.com/adrianpk/hatmax-ref/services/auth/internal/sqlite"
+	"github.com/adrianpk/hatmax-ref/services/auth/internal/auth"
 )
 
 const (

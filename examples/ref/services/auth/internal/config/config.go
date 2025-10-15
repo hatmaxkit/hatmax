@@ -5,8 +5,10 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/posflag"
 	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/knadh/koanf/v2"
@@ -43,7 +45,7 @@ type AuthConfig struct {
 func New() *Config {
 	return &Config{
 		Server: ServerConfig{
-			Port: ":8081",
+			Port: ":8082",
 		},
 		Database: DatabaseConfig{
 			Path: "./auth.db",
@@ -68,7 +70,7 @@ func LoadConfig(path, envPrefix string, args []string) (*Config, error) {
 
 	// Setup pflag
 	fs := pflag.NewFlagSet(args[0], pflag.ExitOnError)
-	fs.String("server.port", ":8081", "Server listen address")
+	fs.String("server.port", ":8082", "Server listen address")
 	fs.String("database.path", "./auth.db", "Path to the SQLite database file")
 	fs.String("log.level", "info", "Log level (debug, info, error)")
 	fs.String("auth.encryption_key", "change-me-32-byte-key-for-aes-gcm", "AES-GCM encryption key")
