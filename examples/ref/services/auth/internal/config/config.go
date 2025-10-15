@@ -19,6 +19,7 @@ type Config struct {
 	Log      LogConfig      `koanf:"log"`
 	Server   ServerConfig   `koanf:"server"`
 	Database DatabaseConfig `koanf:"database"`
+	Auth     AuthConfig     `koanf:"auth"`
 }
 
 type ServerConfig struct {
@@ -33,16 +34,27 @@ type LogConfig struct {
 	Level string `koanf:"level"`
 }
 
+type AuthConfig struct {
+	EncryptionKey string `koanf:"encryption_key"`
+	SigningKey    string `koanf:"signing_key"`
+	SessionTTL    string `koanf:"session_ttl"`
+}
+
 func New() *Config {
 	return &Config{
 		Server: ServerConfig{
-			Port: ":8080",
+			Port: ":8081",
 		},
 		Database: DatabaseConfig{
-			Path: "./app.db",
+			Path: "./auth.db",
 		},
 		Log: LogConfig{
 			Level: "info",
+		},
+		Auth: AuthConfig{
+			EncryptionKey: "change-me-32-byte-key-for-aes-gcm",
+			SigningKey:    "change-me-signing-key-for-hmac",
+			SessionTTL:    "24h",
 		},
 	}
 }
@@ -57,9 +69,12 @@ func LoadConfig(path, envPrefix string, args []string) (*Config, error) {
 
 	// Setup pflag
 	fs := pflag.NewFlagSet(args[0], pflag.ExitOnError)
-	fs.String("server.port", ":8080", "Server listen address")
-	fs.String("database.path", "./app.db", "Path to the SQLite database file")
+	fs.String("server.port", ":8081", "Server listen address")
+	fs.String("database.path", "./auth.db", "Path to the SQLite database file")
 	fs.String("log.level", "info", "Log level (debug, info, error)")
+	fs.String("auth.encryption_key", "change-me-32-byte-key-for-aes-gcm", "AES-GCM encryption key")
+	fs.String("auth.signing_key", "change-me-signing-key-for-hmac", "HMAC signing key")
+	fs.String("auth.session_ttl", "24h", "Session TTL duration")
 	fs.Parse(args[1:])
 
 	raw, err := os.ReadFile(path)

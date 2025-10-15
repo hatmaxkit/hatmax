@@ -76,7 +76,7 @@ func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	normalizedEmail := authpkg.NormalizeEmail(req.Email)
 
 	// Use encryption keys from config
-	encryptionKey := []byte(h.xparams.Cfg.Auth.EncryptionKey)
+	_ = h.xparams.Cfg.Auth.EncryptionKey
 	signingKey := []byte(h.xparams.Cfg.Auth.SigningKey)
 
 	emailLookup := authpkg.ComputeLookupHash(normalizedEmail, signingKey)
@@ -96,7 +96,7 @@ func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	// Generate salt and hash password
 	salt := authpkg.GeneratePasswordSalt()
-	passwordHash := authpkg.HashPassword(req.Password, salt)
+	passwordHash := authpkg.HashPassword([]byte(req.Password), salt)
 
 	// TODO: Encrypt email (needs AES-GCM implementation in authpkg)
 	// For now, store plaintext (will be encrypted once crypto functions are complete)
@@ -155,7 +155,7 @@ func (h *AuthHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify password using pure function
-	if !authpkg.VerifyPasswordHash(req.Password, user.PasswordSalt, user.PasswordHash) {
+	if !authpkg.VerifyPasswordHash([]byte(req.Password), user.PasswordHash, user.PasswordSalt) {
 		log.Debug("invalid password")
 		core.RespondError(w, http.StatusUnauthorized, "Invalid credentials")
 		return
