@@ -154,7 +154,6 @@ type User struct {
     Email    string    `json:"email" db:"email"`
     Name     string    `json:"name" db:"name"`
     Active   bool      `json:"active" db:"active"`
-    
     CreatedAt time.Time `json:"created_at" db:"created_at"`
     UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
     

@@ -16,8 +16,8 @@ type List struct {
 	CreatedBy   string    `json:"created_by"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	UpdatedBy   string    `json:"updated_by"`
-	Tags        []Tag     `json:"tags"`
 	Items       []Item    `json:"items"`
+	Tags        []Tag     `json:"tags"`
 }
 
 // GetID returns the ID of the List (implements Identifiable interface).
