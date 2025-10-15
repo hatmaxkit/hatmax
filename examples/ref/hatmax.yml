@@ -21,6 +21,25 @@ deployment:
       domain: "localhost"
 
 services:
+  auth:
+    kind: service
+    repo_impl: [sqlite]
+    deployment:
+      nomad:
+        port: 8081
+        replicas: 1
+        resources:
+          cpu: 256
+          memory: 128
+        health_check:
+          path: "/health"
+          interval: "30s"
+        traefik:
+          rule: "PathPrefix(`/auth`)"
+          priority: 200
+        consul:
+          service_name: "auth"
+          tags: ["auth", "v1"]
   todo:
     kind: atom
     repo_impl: [sqlite, mongo]

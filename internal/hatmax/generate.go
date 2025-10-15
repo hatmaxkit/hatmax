@@ -97,7 +97,21 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		logSuccess("Auth library generated successfully")
 	}
 
+	// Check if we should generate auth service
+	if shouldGenerateAuthService(config) {
+		logStep("Generating auth service...")
+		if err := generateAuthService(outputDir, config, tmplFS); err != nil {
+			return fmt.Errorf("error generating auth service: %w", err)
+		}
+		logSuccess("Auth service generated successfully")
+	}
+
 	for serviceName := range config.Services {
+		// Skip auth service - it's generated statically
+		if serviceName == "auth" {
+			continue
+		}
+		
 		servicePath := filepath.Join(outputDir, "services", serviceName)
 		modulePath := c.String("module-path")
 		if modulePath == "" {
@@ -578,6 +592,78 @@ func generateAuthLibrary(outputDir string, config Config, tmplFS fs.FS) error {
 
 	if err != nil {
 		return fmt.Errorf("error copying static auth library: %w", err)
+	}
+
+	return nil
+}
+
+// shouldGenerateAuthService checks if there's an auth service configured
+func shouldGenerateAuthService(config Config) bool {
+	for serviceName, service := range config.Services {
+		// Check if there's a service named "auth" or any service with auth configuration
+		if serviceName == "auth" || (service.Auth != nil && service.Auth.Enabled) {
+			return true
+		}
+	}
+	return false
+}
+
+// generateAuthService copies the static auth service and updates module paths
+func generateAuthService(outputDir string, config Config, tmplFS fs.FS) error {
+	// Create the auth service directory
+	authServiceDir := filepath.Join(outputDir, "services", "auth")
+	if err := os.MkdirAll(authServiceDir, 0o755); err != nil {
+		return fmt.Errorf("cannot create auth service directory: %w", err)
+	}
+
+	// Copy all files from assets/static/services/auth directory
+	staticAuthServiceDir := "assets/static/services/auth"
+	err := filepath.Walk(staticAuthServiceDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		// Read file content
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("cannot read static file %s: %w", path, err)
+		}
+
+		// Replace module path placeholders
+		baseModulePath := "github.com/adrianpk/hatmax-" + filepath.Base(outputDir)
+		if config.Package != "" {
+			baseModulePath = config.Package
+		}
+
+		updatedContent := strings.ReplaceAll(string(content), "github.com/username/repo", baseModulePath)
+
+		// Get relative path from static dir
+		relPath, err := filepath.Rel(staticAuthServiceDir, path)
+		if err != nil {
+			return fmt.Errorf("cannot get relative path: %w", err)
+		}
+
+		// Write file to destination
+		destPath := filepath.Join(authServiceDir, relPath)
+		// Create directory if needed
+		if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
+			return fmt.Errorf("cannot create directory %s: %w", filepath.Dir(destPath), err)
+		}
+
+		if err := os.WriteFile(destPath, []byte(updatedContent), 0o644); err != nil {
+			return fmt.Errorf("cannot write auth service file %s: %w", destPath, err)
+		}
+
+		logCreated(destPath)
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("error copying static auth service: %w", err)
 	}
 
 	return nil

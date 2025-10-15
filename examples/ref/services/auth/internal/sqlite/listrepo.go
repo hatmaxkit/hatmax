@@ -9,8 +9,8 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/adrianpk/hatmax-ref/services/todo/internal/config"
-	"github.com/adrianpk/hatmax-ref/services/todo/internal/todo"
+	"github.com/adrianpk/hatmax-ref/services/auth/internal/config"
+	"github.com/adrianpk/hatmax-ref/services/auth/internal/todo"
 )
 
 // ListSQLiteRepo implements the ListRepo interface using SQLite.
@@ -278,7 +278,7 @@ func (r *ListSQLiteRepo) insertItems(ctx context.Context, tx *sql.Tx, rootID uui
 		return nil
 	}
 
-	query := `INSERT INTO items (id, List_id, done, text, created_at, updated_at) VALUES {{.Placeholders}}`
+	query := `INSERT INTO items (id, List_id, text, done, created_at, updated_at) VALUES {{.Placeholders}}`
 
 	var args []interface{}
 	var placeholders []string
@@ -288,7 +288,7 @@ func (r *ListSQLiteRepo) insertItems(ctx context.Context, tx *sql.Tx, rootID uui
 		item.BeforeCreate()
 
 		placeholders = append(placeholders, "(?, ?, ?, ?, ?, ?)")
-		args = append(args, item.GetID().String(), rootID.String(), item.Done, item.Text, item.CreatedAt, item.UpdatedAt)
+		args = append(args, item.GetID().String(), rootID.String(), item.Text, item.Done, item.CreatedAt, item.UpdatedAt)
 	}
 
 	finalQuery := strings.Replace(query, "{{.Placeholders}}", strings.Join(placeholders, ", "), 1)
@@ -301,7 +301,7 @@ func (r *ListSQLiteRepo) getItems(ctx context.Context, rootID uuid.UUID) ([]todo
 }
 
 func (r *ListSQLiteRepo) getItemsWithTx(ctx context.Context, tx *sql.Tx, rootID uuid.UUID) ([]todo.Item, error) {
-	query := `SELECT id, done, text, created_at, updated_at FROM items WHERE List_id = ? ORDER BY created_at`
+	query := `SELECT id, text, done, created_at, updated_at FROM items WHERE List_id = ? ORDER BY created_at`
 
 	var rows *sql.Rows
 	var err error
@@ -323,7 +323,7 @@ func (r *ListSQLiteRepo) getItemsWithTx(ctx context.Context, tx *sql.Tx, rootID 
 		var item todo.Item
 		var idStr string
 
-		err := rows.Scan(&idStr, &item.Done, &item.Text, &item.CreatedAt, &item.UpdatedAt)
+		err := rows.Scan(&idStr, &item.Text, &item.Done, &item.CreatedAt, &item.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -399,8 +399,8 @@ func (r *ListSQLiteRepo) updateItems(ctx context.Context, tx *sql.Tx, items []to
 	for _, item := range items {
 		item.BeforeUpdate()
 
-		query := `UPDATE items SET done = ?, text = ?, updated_at = ? WHERE id = ?`
-		_, err := tx.ExecContext(ctx, query, item.Done, item.Text, item.UpdatedAt, item.GetID().String())
+		query := `UPDATE items SET text = ?, done = ?, updated_at = ? WHERE id = ?`
+		_, err := tx.ExecContext(ctx, query, item.Text, item.Done, item.UpdatedAt, item.GetID().String())
 		if err != nil {
 			return fmt.Errorf("failed to update item %s: %w", item.GetID().String(), err)
 		}
@@ -452,7 +452,7 @@ func (r *ListSQLiteRepo) insertTags(ctx context.Context, tx *sql.Tx, rootID uuid
 		return nil
 	}
 
-	query := `INSERT INTO tags (id, List_id, color, name, created_at, updated_at) VALUES {{.Placeholders}}`
+	query := `INSERT INTO tags (id, List_id, name, color, created_at, updated_at) VALUES {{.Placeholders}}`
 
 	var args []interface{}
 	var placeholders []string
@@ -462,7 +462,7 @@ func (r *ListSQLiteRepo) insertTags(ctx context.Context, tx *sql.Tx, rootID uuid
 		item.BeforeCreate()
 
 		placeholders = append(placeholders, "(?, ?, ?, ?, ?, ?)")
-		args = append(args, item.GetID().String(), rootID.String(), item.Color, item.Name, item.CreatedAt, item.UpdatedAt)
+		args = append(args, item.GetID().String(), rootID.String(), item.Name, item.Color, item.CreatedAt, item.UpdatedAt)
 	}
 
 	finalQuery := strings.Replace(query, "{{.Placeholders}}", strings.Join(placeholders, ", "), 1)
@@ -475,7 +475,7 @@ func (r *ListSQLiteRepo) getTags(ctx context.Context, rootID uuid.UUID) ([]todo.
 }
 
 func (r *ListSQLiteRepo) getTagsWithTx(ctx context.Context, tx *sql.Tx, rootID uuid.UUID) ([]todo.Tag, error) {
-	query := `SELECT id, color, name, created_at, updated_at FROM tags WHERE List_id = ? ORDER BY created_at`
+	query := `SELECT id, name, color, created_at, updated_at FROM tags WHERE List_id = ? ORDER BY created_at`
 
 	var rows *sql.Rows
 	var err error
@@ -497,7 +497,7 @@ func (r *ListSQLiteRepo) getTagsWithTx(ctx context.Context, tx *sql.Tx, rootID u
 		var item todo.Tag
 		var idStr string
 
-		err := rows.Scan(&idStr, &item.Color, &item.Name, &item.CreatedAt, &item.UpdatedAt)
+		err := rows.Scan(&idStr, &item.Name, &item.Color, &item.CreatedAt, &item.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -573,8 +573,8 @@ func (r *ListSQLiteRepo) updateTags(ctx context.Context, tx *sql.Tx, items []tod
 	for _, item := range items {
 		item.BeforeUpdate()
 
-		query := `UPDATE tags SET color = ?, name = ?, updated_at = ? WHERE id = ?`
-		_, err := tx.ExecContext(ctx, query, item.Color, item.Name, item.UpdatedAt, item.GetID().String())
+		query := `UPDATE tags SET name = ?, color = ?, updated_at = ? WHERE id = ?`
+		_, err := tx.ExecContext(ctx, query, item.Name, item.Color, item.UpdatedAt, item.GetID().String())
 		if err != nil {
 			return fmt.Errorf("failed to update item %s: %w", item.GetID().String(), err)
 		}

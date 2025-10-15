@@ -1,0 +1,12 @@
+# Default configuration for the service.
+# Values can be overridden by environment variables or command-line flags.
+
+server:
+  # The port the server will listen on.
+  # Env: APP_SERVER__PORT
+  port: ":8080"
+
+database:
+  # Path to the SQLite database file.
+  # Env: APP_DATABASE__PATH
+  path: "./app.db"

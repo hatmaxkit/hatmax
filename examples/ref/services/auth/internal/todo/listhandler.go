@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/adrianpk/hatmax-ref/pkg/lib/core"
-	"github.com/adrianpk/hatmax-ref/services/todo/internal/config"
+	"github.com/adrianpk/hatmax-ref/services/auth/internal/config"
 )
 
 const ListMaxBodyBytes = 1 << 20
