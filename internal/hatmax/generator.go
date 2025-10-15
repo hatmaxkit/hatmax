@@ -852,10 +852,12 @@ func (mg *ModelGenerator) GenerateConfigAndXParams() error {
 		ModulePath         string
 		MonorepoModulePath string
 		Port               int
+		ServicePrefix      string
 	}{
 		ModulePath:         mg.Config.ModulePath,
 		MonorepoModulePath: mg.Config.MonorepoModulePath,
 		Port:               port,
+		ServicePrefix:      strings.ToUpper(currentServiceName),
 	}
 	if err := mg.generateFile(mg.ConfigTemplate, configGoPath, data); err != nil {
 		return fmt.Errorf("cannot generate config.go: %w", err)
@@ -871,9 +873,11 @@ func (mg *ModelGenerator) GenerateConfigAndXParams() error {
 	configYAMLPath := filepath.Join(mg.OutputDir, "config.yaml")
 	// Reuse the port already calculated above
 	configData := struct {
-		Port int
+		Port          int
+		ServicePrefix string
 	}{
-		Port: port,
+		Port:          port,
+		ServicePrefix: strings.ToUpper(currentServiceName),
 	}
 	if err := mg.generateFile(mg.ConfigYAMLTemplate, configYAMLPath, configData); err != nil {
 		return fmt.Errorf("cannot generate config.yaml: %w", err)

@@ -3,10 +3,10 @@
 
 server:
   # The port the server will listen on.
-  # Env: APP_SERVER__PORT
+  # Env: TODO_SERVER_PORT
   port: ":8084"
 
 database:
   # Path to the SQLite database file.
-  # Env: APP_DATABASE__PATH
+  # Env: TODO_DATABASE_PATH
   path: "./app.db"
