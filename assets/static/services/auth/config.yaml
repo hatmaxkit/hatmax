@@ -1,0 +1,25 @@
+# Default configuration for the auth service.
+# Values can be overridden by environment variables or command-line flags.
+
+server:
+  # The port the server will listen on.
+  # Env: APP_SERVER__PORT
+  port: ":8081"
+
+database:
+  # Path to the SQLite database file.
+  # Env: APP_DATABASE__PATH
+  path: "./auth.db"
+
+auth:
+  # AES-GCM encryption key for PII data (32 bytes).
+  # Env: APP_AUTH__ENCRYPTION_KEY
+  encryption_key: "${AUTH_ENCRYPTION_KEY:-change-me-32-byte-key-for-aes-gcm}"
+  
+  # HMAC signing key for lookup hashes.
+  # Env: APP_AUTH__SIGNING_KEY  
+  signing_key: "${AUTH_SIGNING_KEY:-change-me-signing-key-for-hmac}"
+  
+  # Session TTL duration.
+  # Env: APP_AUTH__SESSION_TTL
+  session_ttl: "${AUTH_SESSION_TTL:-24h}"

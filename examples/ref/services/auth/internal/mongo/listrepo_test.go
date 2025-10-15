@@ -1,130 +1,72 @@
-package sqlite
+package mongo
 
 import (
 	"context"
-	"database/sql"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
-	_ "github.com/mattn/go-sqlite3"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/adrianpk/hatmax-ref/services/todo/internal/config"
-	"github.com/adrianpk/hatmax-ref/services/todo/internal/todo"
+	"github.com/adrianpk/hatmax-ref/services/auth/internal/todo"
 )
 
-func setupTestDB(t *testing.T) (*sql.DB, func()) {
+func setupTestMongoDB(t *testing.T) (*mongo.Database, func()) {
 	t.Helper()
 
-	// Create temporary database file
-	tmpFile, err := os.CreateTemp("", "List_test_*.db")
-	if err != nil {
-		t.Fatalf("Failed to create temp database file: %v", err)
-	}
-	tmpFile.Close()
-
-	db, err := sql.Open("sqlite3", tmpFile.Name()+"?_foreign_keys=on")
-	if err != nil {
-		t.Fatalf("Failed to open database: %v", err)
+	// Use MongoDB container or local instance for testing
+	mongoURI := os.Getenv("MONGO_TEST_URI")
+	if mongoURI == "" {
+		mongoURI = "mongodb://localhost:27017"
 	}
 
-	// Create tables
-	if err := createTestTables(db); err != nil {
-		t.Fatalf("Failed to create tables: %v", err)
+	// Create unique database name for test isolation
+	dbName := "List_test_" + uuid.New().String()[:8]
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+	if err != nil {
+		t.Skipf("MongoDB not available for testing: %v", err)
+		return nil, func() {}
 	}
+
+	// Ping to verify connection
+	if err := client.Ping(ctx, nil); err != nil {
+		t.Skipf("Cannot ping MongoDB: %v", err)
+		return nil, func() {}
+	}
+
+	db := client.Database(dbName)
 
 	cleanup := func() {
-		if err := db.Close(); err != nil {
-			t.Errorf("Failed to close database: %v", err)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		// Drop test database
+		if err := db.Drop(ctx); err != nil {
+			t.Errorf("Failed to drop test database: %v", err)
 		}
-		// Remove temporary database file
-		if err := os.Remove(tmpFile.Name()); err != nil {
-			t.Errorf("Failed to remove temp database file: %v", err)
+
+		// Close client
+		if err := client.Disconnect(ctx); err != nil {
+			t.Errorf("Failed to disconnect from MongoDB: %v", err)
 		}
 	}
 
 	return db, cleanup
 }
 
-func createTestTables(db *sql.DB) error {
-	// Create lists table
-	_, err := db.Exec(`
-		CREATE TABLE lists (
-			id TEXT PRIMARY KEY,
-			-- TODO: Add proper column definitions for name, description
-			name TEXT,
-			description TEXT,
-			created_at DATETIME,
-			created_by TEXT,
-			updated_at DATETIME,
-			updated_by TEXT
-		)
-	`)
-	if err != nil {
-		return err
-	}
-
-	// Create items table
-	_, err = db.Exec(`
-		CREATE TABLE items (
-			id TEXT PRIMARY KEY,
-			List_id TEXT NOT NULL,
-			-- TODO: Add proper column definitions for done, text
-			name TEXT,
-			color TEXT,
-			text TEXT,
-			done BOOLEAN,
-			created_at DATETIME,
-			created_by TEXT,
-			updated_at DATETIME,
-			updated_by TEXT,
-			FOREIGN KEY (List_id) REFERENCES lists(id) ON DELETE CASCADE
-		)
-	`)
-	if err != nil {
-		return err
-	}
-
-	// Create tags table
-	_, err = db.Exec(`
-		CREATE TABLE tags (
-			id TEXT PRIMARY KEY,
-			List_id TEXT NOT NULL,
-			-- TODO: Add proper column definitions for color, name
-			name TEXT,
-			color TEXT,
-			text TEXT,
-			done BOOLEAN,
-			created_at DATETIME,
-			created_by TEXT,
-			updated_at DATETIME,
-			updated_by TEXT,
-			FOREIGN KEY (List_id) REFERENCES lists(id) ON DELETE CASCADE
-		)
-	`)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func setupRepo(t *testing.T, db *sql.DB) *ListSQLiteRepo {
+func setupRepo(t *testing.T, db *mongo.Database) *ListMongoRepo {
 	t.Helper()
 
-	// Mock xparams with test database configuration
-	xparams := config.XParams{
-		Cfg: &config.Config{
-			Database: config.DatabaseConfig{
-				Path: ":memory:", // Not used since we're injecting the db directly
-			},
-		},
-	}
-
-	repo := NewListSQLiteRepo(xparams)
-	// Inject the test database directly (bypassing Start() method)
-	repo.db = db
+	// Create repository directly with test database
+	repo := NewListMongoRepo(db)
 
 	return repo
 }
@@ -136,11 +78,11 @@ func setupRepo(t *testing.T, db *sql.DB) *ListSQLiteRepo {
 // - Concurrent access scenarios
 // - Database constraint violations
 // - Large dataset performance tests
-// - Transactional rollback scenarios
+// - Complex document query scenarios
 
-// TestListSQLiteRepoCreate tests the Create method with various scenarios
-func TestListSQLiteRepoCreate(t *testing.T) {
-	db, cleanup := setupTestDB(t)
+// TestListMongoRepoCreate tests the Create method with various scenarios
+func TestListMongoRepoCreate(t *testing.T) {
+	db, cleanup := setupTestMongoDB(t)
 	defer cleanup()
 	repo := setupRepo(t, db)
 	ctx := context.Background()
@@ -247,9 +189,9 @@ func TestListSQLiteRepoCreate(t *testing.T) {
 	}
 }
 
-// TestListSQLiteRepoGet tests the Get method with various scenarios
-func TestListSQLiteRepoGet(t *testing.T) {
-	db, cleanup := setupTestDB(t)
+// TestListMongoRepoGet tests the Get method with various scenarios
+func TestListMongoRepoGet(t *testing.T) {
+	db, cleanup := setupTestMongoDB(t)
 	defer cleanup()
 	repo := setupRepo(t, db)
 	ctx := context.Background()
@@ -346,9 +288,9 @@ func TestListSQLiteRepoGet(t *testing.T) {
 	}
 }
 
-// TestListSQLiteRepoSave tests the Save method with various scenarios
-func TestListSQLiteRepoSave(t *testing.T) {
-	db, cleanup := setupTestDB(t)
+// TestListMongoRepoSave tests the Save method with various scenarios
+func TestListMongoRepoSave(t *testing.T) {
+	db, cleanup := setupTestMongoDB(t)
 	defer cleanup()
 	repo := setupRepo(t, db)
 	ctx := context.Background()
@@ -456,8 +398,8 @@ func TestListSQLiteRepoSave(t *testing.T) {
 		},
 		// TODO: Add more scenarios:
 		// - Complex child modifications
-		// - Transaction rollback scenarios
-		// - Large batch updates
+		// - Large document updates
+		// - Concurrent update scenarios
 	}
 
 	for _, tt := range tests {
@@ -508,9 +450,9 @@ func TestListSQLiteRepoSave(t *testing.T) {
 	}
 }
 
-// TestListSQLiteRepoDelete tests the Delete method with various scenarios
-func TestListSQLiteRepoDelete(t *testing.T) {
-	db, cleanup := setupTestDB(t)
+// TestListMongoRepoDelete tests the Delete method with various scenarios
+func TestListMongoRepoDelete(t *testing.T) {
+	db, cleanup := setupTestMongoDB(t)
 	defer cleanup()
 	repo := setupRepo(t, db)
 	ctx := context.Background()
@@ -550,7 +492,7 @@ func TestListSQLiteRepoDelete(t *testing.T) {
 			expectError: true,
 		},
 		// TODO: Add more edge cases:
-		// - Delete with foreign key constraints
+		// - Delete with complex document structure
 		// - Concurrent delete scenarios
 	}
 
@@ -584,33 +526,22 @@ func TestListSQLiteRepoDelete(t *testing.T) {
 				t.Error("Aggregate should not exist after deletion")
 			}
 
-			// Verify children are gone (cascade delete)
-
-			var countItems int
-			err = db.QueryRow("SELECT COUNT(*) FROM items WHERE List_id = ?", id.String()).Scan(&countItems)
+			// Verify document doesn't exist in collection
+			collection := db.Collection("lists")
+			count, err := collection.CountDocuments(ctx, bson.M{"_id": id.String()})
 			if err != nil {
-				t.Errorf("Failed to check Items count: %v", err)
+				t.Errorf("Failed to check document count: %v", err)
 			}
-			if countItems != 0 {
-				t.Errorf("Expected 0 Items, found %d", countItems)
+			if count != 0 {
+				t.Errorf("Expected 0 documents, found %d", count)
 			}
-
-			var countTags int
-			err = db.QueryRow("SELECT COUNT(*) FROM tags WHERE List_id = ?", id.String()).Scan(&countTags)
-			if err != nil {
-				t.Errorf("Failed to check Tags count: %v", err)
-			}
-			if countTags != 0 {
-				t.Errorf("Expected 0 Tags, found %d", countTags)
-			}
-
 		})
 	}
 }
 
-// TestListSQLiteRepoList tests the List method with various scenarios
-func TestListSQLiteRepoList(t *testing.T) {
-	db, cleanup := setupTestDB(t)
+// TestListMongoRepoList tests the List method with various scenarios
+func TestListMongoRepoList(t *testing.T) {
+	db, cleanup := setupTestMongoDB(t)
 	defer cleanup()
 	repo := setupRepo(t, db)
 	ctx := context.Background()
@@ -668,7 +599,7 @@ func TestListSQLiteRepoList(t *testing.T) {
 		// TODO: Add more scenarios:
 		// - Large dataset pagination
 		// - Filtering and sorting
-		// - Performance with many children
+		// - Performance with complex documents
 	}
 
 	for _, tt := range tests {
@@ -720,28 +651,27 @@ func TestListSQLiteRepoList(t *testing.T) {
 }
 
 // Helper function to clean database between tests
-func cleanDatabase(t *testing.T, db *sql.DB) {
+func cleanDatabase(t *testing.T, db *mongo.Database) {
 	t.Helper()
 
-	_, err := db.Exec("DELETE FROM lists")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Drop all collections in the test database
+	collections, err := db.ListCollectionNames(ctx, bson.D{})
 	if err != nil {
-		t.Fatalf("Failed to clean lists table: %v", err)
+		t.Fatalf("Failed to list collections: %v", err)
 	}
 
-	_, err = db.Exec("DELETE FROM items")
-	if err != nil {
-		t.Fatalf("Failed to clean items table: %v", err)
+	for _, name := range collections {
+		if err := db.Collection(name).Drop(ctx); err != nil {
+			t.Fatalf("Failed to drop collection %s: %v", name, err)
+		}
 	}
-
-	_, err = db.Exec("DELETE FROM tags")
-	if err != nil {
-		t.Fatalf("Failed to clean tags table: %v", err)
-	}
-
 }
 
-func TestListSQLiteRepoErrorCases(t *testing.T) {
-	db, cleanup := setupTestDB(t)
+func TestListMongoRepoErrorCases(t *testing.T) {
+	db, cleanup := setupTestMongoDB(t)
 	defer cleanup()
 
 	repo := setupRepo(t, db)
