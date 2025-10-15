@@ -10,7 +10,9 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/adrianpk/hatmax-ref/pkg/lib/core"
+	"github.com/adrianpk/hatmax-ref/services/auth/internal/auth"
 	"github.com/adrianpk/hatmax-ref/services/auth/internal/config"
+	"github.com/adrianpk/hatmax-ref/services/auth/internal/sqlite"
 )
 
 const (
@@ -37,6 +39,14 @@ func main() {
 	router := chi.NewRouter()
 
 	var deps []any
+	UserRepo := sqlite.NewUserSQLiteRepo(xparams)
+	deps = append(deps, UserRepo)
+
+	UserHandler := auth.NewUserHandler(UserRepo, xparams)
+	deps = append(deps, UserHandler)
+
+	AuthHandler := auth.NewAuthHandler(UserRepo, xparams)
+	deps = append(deps, AuthHandler)
 
 	starts, stops := core.Setup(ctx, router, deps...)
 

@@ -50,7 +50,7 @@ func ValidateCreateUser(ctx context.Context, user User) []ValidationError {
 	}
 
 	// Status should be valid
-	if statusErrors := authpkg.ValidateUserStatus(string(user.Status)); len(statusErrors) > 0 {
+	if statusErrors := authpkg.ValidateUserStatus(authpkg.UserStatus(user.Status)); len(statusErrors) > 0 {
 		errors = append(errors, ValidationError{
 			Field:   "status",
 			Message: "Invalid user status",
@@ -97,7 +97,7 @@ func ValidateUpdateUser(ctx context.Context, id uuid.UUID, user User) []Validati
 	}
 
 	// Status should be valid
-	if statusErrors := authpkg.ValidateUserStatus(string(user.Status)); len(statusErrors) > 0 {
+	if statusErrors := authpkg.ValidateUserStatus(authpkg.UserStatus(user.Status)); len(statusErrors) > 0 {
 		errors = append(errors, ValidationError{
 			Field:   "status",
 			Message: "Invalid user status",

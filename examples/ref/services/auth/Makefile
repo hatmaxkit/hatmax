@@ -5,7 +5,7 @@
 APP_NAME := auth
 BUILD_DIR := bin
 BIN_NAME := $(APP_NAME)
-GO_VERSION := 1.22.7 # Or get from go.mod
+GO_VERSION := 1.23
 
 # Default target
 all: build
@@ -35,7 +35,6 @@ build: tidy-fmt
 	@mkdir -p $(BUILD_DIR)
 	@go build -o $(BUILD_DIR)/$(BIN_NAME) ./main.go
 	@echo "$(BIN_NAME) built successfully."
-
 
 run: build
 	@echo "Running $(BIN_NAME)..."
@@ -172,8 +171,8 @@ ci: fmt vet test coverage-100 lint
 # Temp handy quick test for this service
 quick-test: build
 	@echo "Quick testing $(BIN_NAME)..."
-	@echo "Cleaning up any existing processes on port 8080..."
-	@lsof -ti:8080 | xargs -r kill || true
+	@echo "Cleaning up any existing processes on port 8081..."
+	@lsof -ti:8081 | xargs -r kill || true
 	@sleep 1
-	@timeout 5s bash -c './$(BIN_NAME) & sleep 2 && curl -s http://localhost:8080/items && echo "\n✅ Quick test successful"' || echo "⚠️  Quick test completed (timeout expected)"
+	@timeout 5s bash -c './bin/$(BIN_NAME) & sleep 2 && curl -s http://localhost:8081/users && echo "\n✅ Quick test successful"' || echo "⚠️  Quick test completed (timeout expected)"
 	@echo "Quick test complete."

@@ -4,13 +4,13 @@ const (
 	// Queries for List aggregate root operations
 
 	// QueryCreateListRoot creates a new List aggregate root record.
-	QueryCreateListRoot = `INSERT INTO lists (id, name, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`
+	QueryCreateListRoot = `INSERT INTO lists (id, description, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`
 
 	// QueryGetListRoot retrieves a List aggregate root record by ID.
-	QueryGetListRoot = `SELECT id, name, description, created_at, updated_at FROM lists WHERE id = ?`
+	QueryGetListRoot = `SELECT id, description, name, created_at, updated_at FROM lists WHERE id = ?`
 
 	// QueryUpdateListRoot updates an existing List aggregate root record.
-	QueryUpdateListRoot = `UPDATE lists SET name = ?, description = ?, updated_at = ? WHERE id = ?`
+	QueryUpdateListRoot = `UPDATE lists SET description = ?, name = ?, updated_at = ? WHERE id = ?`
 
 	// QueryDeleteListRoot deletes a List aggregate root record by ID.
 	QueryDeleteListRoot = `DELETE FROM lists WHERE id = ?`
@@ -21,13 +21,13 @@ const (
 	// Queries for List's Items child entities
 
 	// QueryCreateListItems creates new Item records for a List aggregate.
-	QueryCreateListItems = `INSERT INTO items (done, text) VALUES `
+	QueryCreateListItems = `INSERT INTO items (text, done) VALUES `
 
 	// QueryGetListItems retrieves all Item records for a specific List aggregate.
-	QueryGetListItems = `SELECT done, text FROM items WHERE List_id = ? ORDER BY created_at`
+	QueryGetListItems = `SELECT text, done FROM items WHERE List_id = ? ORDER BY created_at`
 
 	// QueryUpdateListItem updates an existing Item record within a List aggregate.
-	QueryUpdateListItem = `UPDATE items SET done = ?, text = ? WHERE id = ?`
+	QueryUpdateListItem = `UPDATE items SET text = ?, done = ? WHERE id = ?`
 
 	// QueryDeleteListItems deletes all Item records for a specific List aggregate.
 	QueryDeleteListItems = `DELETE FROM items WHERE List_id = ?`
@@ -41,13 +41,13 @@ const (
 	// Queries for List's Tags child entities
 
 	// QueryCreateListTags creates new Tag records for a List aggregate.
-	QueryCreateListTags = `INSERT INTO tags (color, name) VALUES `
+	QueryCreateListTags = `INSERT INTO tags (name, color) VALUES `
 
 	// QueryGetListTags retrieves all Tag records for a specific List aggregate.
-	QueryGetListTags = `SELECT color, name FROM tags WHERE List_id = ? ORDER BY created_at`
+	QueryGetListTags = `SELECT name, color FROM tags WHERE List_id = ? ORDER BY created_at`
 
 	// QueryUpdateListTag updates an existing Tag record within a List aggregate.
-	QueryUpdateListTag = `UPDATE tags SET color = ?, name = ? WHERE id = ?`
+	QueryUpdateListTag = `UPDATE tags SET name = ?, color = ? WHERE id = ?`
 
 	// QueryDeleteListTags deletes all Tag records for a specific List aggregate.
 	QueryDeleteListTags = `DELETE FROM tags WHERE List_id = ?`
