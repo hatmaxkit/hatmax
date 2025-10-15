@@ -11,7 +11,7 @@ import (
 
 	"github.com/username/repo/pkg/lib/core"
 	"github.com/username/repo/services/auth/internal/config"
-	"github.com/username/repo/services/auth/internal/sqlite"
+	"github.com/username/repo/services/auth/internal/mongo"
 	"github.com/username/repo/services/auth/internal/auth"
 )
 
@@ -39,7 +39,7 @@ func main() {
 	router := chi.NewRouter()
 
 	var deps []any
-	UserRepo := sqlite.NewUserSQLiteRepo(xparams)
+	UserRepo := mongo.NewUserMongoRepo(xparams)
 	deps = append(deps, UserRepo)
 
 	UserHandler := auth.NewUserHandler(UserRepo, xparams)

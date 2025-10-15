@@ -11,13 +11,13 @@ func TestEvaluatePermissions(t *testing.T) {
 	now := time.Now()
 	userID := uuid.New()
 	roleID := uuid.New()
-	
+
 	adminRole := Role{
 		ID:          roleID,
 		Name:        "admin",
 		Permissions: []string{"users:read", "users:write", "orders:read", "orders:write"},
 	}
-	
+
 	roles := []Role{adminRole}
 
 	tests := []struct {
@@ -242,7 +242,7 @@ func TestScopeMatches(t *testing.T) {
 func TestGetRolePermissions(t *testing.T) {
 	roleID1 := uuid.New()
 	roleID2 := uuid.New()
-	
+
 	roles := []Role{
 		{
 			ID:          roleID1,
@@ -348,13 +348,13 @@ func TestHasAnyPermission(t *testing.T) {
 	now := time.Now()
 	userID := uuid.New()
 	roleID := uuid.New()
-	
+
 	adminRole := Role{
 		ID:          roleID,
 		Name:        "admin",
 		Permissions: []string{"users:read", "users:write"},
 	}
-	
+
 	roles := []Role{adminRole}
 
 	tests := []struct {
@@ -417,13 +417,13 @@ func TestHasAllPermissions(t *testing.T) {
 	now := time.Now()
 	userID := uuid.New()
 	roleID := uuid.New()
-	
+
 	adminRole := Role{
 		ID:          roleID,
 		Name:        "admin",
 		Permissions: []string{"users:read", "users:write", "orders:read"},
 	}
-	
+
 	roles := []Role{adminRole}
 
 	tests := []struct {
@@ -486,13 +486,13 @@ func TestIsGlobalAdmin(t *testing.T) {
 	now := time.Now()
 	userID := uuid.New()
 	roleID := uuid.New()
-	
+
 	adminRole := Role{
 		ID:          roleID,
 		Name:        "global_admin",
 		Permissions: []string{"system:admin", "users:read", "users:write"},
 	}
-	
+
 	roles := []Role{adminRole}
 
 	tests := []struct {

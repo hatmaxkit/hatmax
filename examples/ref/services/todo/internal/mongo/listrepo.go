@@ -71,7 +71,7 @@ func (r *ListMongoRepo) Save(ctx context.Context, aggregate *todo.List) error {
 
 	filter := bson.M{"_id": aggregate.GetID().String()}
 	opts := options.Replace().SetUpsert(false)
-	
+
 	result, err := r.collection.ReplaceOne(ctx, filter, aggregate, opts)
 	if err != nil {
 		return fmt.Errorf("failed to save List aggregate: %w", err)
@@ -88,7 +88,7 @@ func (r *ListMongoRepo) Save(ctx context.Context, aggregate *todo.List) error {
 // This automatically removes all child entities since they're part of the same document.
 func (r *ListMongoRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	filter := bson.M{"_id": id.String()}
-	
+
 	result, err := r.collection.DeleteOne(ctx, filter)
 	if err != nil {
 		return fmt.Errorf("failed to delete List aggregate: %w", err)
@@ -111,7 +111,7 @@ func (r *ListMongoRepo) List(ctx context.Context) ([]*todo.List, error) {
 	defer cursor.Close(ctx)
 
 	var aggregates []*todo.List
-	
+
 	for cursor.Next(ctx) {
 		var aggregate todo.List
 		if err := cursor.Decode(&aggregate); err != nil {

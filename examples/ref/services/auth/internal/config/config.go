@@ -5,10 +5,8 @@ package config
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/knadh/koanf/parsers/yaml"
-	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/posflag"
 	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/knadh/koanf/v2"
@@ -27,7 +25,9 @@ type ServerConfig struct {
 }
 
 type DatabaseConfig struct {
-	Path string `koanf:"path"`
+	Path          string `koanf:"path"`
+	MongoURL      string `koanf:"mongo_url"`
+	MongoDatabase string `koanf:"mongo_database"`
 }
 
 type LogConfig struct {
@@ -48,7 +48,9 @@ func New() *Config {
 			Port: ":8082",
 		},
 		Database: DatabaseConfig{
-			Path: "./auth.db",
+			Path:          "./auth.db",
+			MongoURL:      "mongodb://localhost:27017",
+			MongoDatabase: "auth",
 		},
 		Log: LogConfig{
 			Level: "info",

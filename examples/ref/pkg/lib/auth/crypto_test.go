@@ -75,7 +75,7 @@ func TestNormalizeEmail(t *testing.T) {
 
 func TestComputeLookupHash(t *testing.T) {
 	key := []byte("test-lookup-key-32-bytes-long!!!")
-	
+
 	tests := []struct {
 		name  string
 		email string
@@ -120,10 +120,10 @@ func TestComputeLookupHash(t *testing.T) {
 
 func TestComputeLookupHashDifferentInputs(t *testing.T) {
 	key := []byte("test-lookup-key-32-bytes-long!!!")
-	
+
 	hash1 := ComputeLookupHash("user1@example.com", key)
 	hash2 := ComputeLookupHash("user2@example.com", key)
-	
+
 	if bytes.Equal(hash1, hash2) {
 		t.Error("Different emails should produce different hashes")
 	}
@@ -133,10 +133,10 @@ func TestComputeLookupHashDifferentKeys(t *testing.T) {
 	email := "user@example.com"
 	key1 := []byte("key1-32-bytes-long-for-testing!!!")
 	key2 := []byte("key2-32-bytes-long-for-testing!!!")
-	
+
 	hash1 := ComputeLookupHash(email, key1)
 	hash2 := ComputeLookupHash(email, key2)
-	
+
 	if bytes.Equal(hash1, hash2) {
 		t.Error("Same email with different keys should produce different hashes")
 	}
@@ -213,10 +213,10 @@ func TestHashPassword(t *testing.T) {
 
 func TestHashPasswordDifferentInputs(t *testing.T) {
 	salt := []byte("same-salt-32-bytes-long-testing!")
-	
+
 	hash1 := HashPassword([]byte("password1"), salt)
 	hash2 := HashPassword([]byte("password2"), salt)
-	
+
 	if bytes.Equal(hash1, hash2) {
 		t.Error("Different passwords should produce different hashes")
 	}
@@ -226,10 +226,10 @@ func TestHashPasswordDifferentSalts(t *testing.T) {
 	password := []byte("same-password")
 	salt1 := []byte("salt1-32-bytes-long-for-testing!")
 	salt2 := []byte("salt2-32-bytes-long-for-testing!")
-	
+
 	hash1 := HashPassword(password, salt1)
 	hash2 := HashPassword(password, salt2)
-	
+
 	if bytes.Equal(hash1, hash2) {
 		t.Error("Same password with different salts should produce different hashes")
 	}
@@ -266,11 +266,11 @@ func TestVerifyPasswordHash(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			hash := HashPassword([]byte(tt.password), tt.salt)
-			
+
 			if !VerifyPasswordHash([]byte(tt.password), hash, tt.salt) {
 				t.Error("VerifyPasswordHash should return true for correct password")
 			}
-			
+
 			if VerifyPasswordHash([]byte("wrong-password"), hash, tt.salt) {
 				t.Error("VerifyPasswordHash should return false for wrong password")
 			}
@@ -282,9 +282,9 @@ func TestVerifyPasswordHashWrongSalt(t *testing.T) {
 	password := []byte("test-password")
 	salt1 := []byte("salt1-32-bytes-long-for-testing!")
 	salt2 := []byte("salt2-32-bytes-long-for-testing!")
-	
+
 	hash := HashPassword(password, salt1)
-	
+
 	if VerifyPasswordHash(password, hash, salt2) {
 		t.Error("VerifyPasswordHash should return false for wrong salt")
 	}
@@ -353,7 +353,7 @@ func BenchmarkVerifyPasswordHash(b *testing.B) {
 	password := []byte("test-password")
 	salt := []byte("test-salt-32-bytes-long-testing!")
 	hash := HashPassword(password, salt)
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		VerifyPasswordHash(password, hash, salt)
@@ -393,13 +393,11 @@ func TestEncryptDecryptEmail(t *testing.T) {
 				t.Error("Ciphertext should not be empty for non-empty email")
 			}
 
-			// Decrypt
 			decrypted, err := DecryptEmail(encrypted, key)
 			if err != nil {
 				t.Fatalf("DecryptEmail failed: %v", err)
 			}
 
-			// Verify
 			if decrypted != tt.email {
 				t.Errorf("Decrypted email %q does not match original %q", decrypted, tt.email)
 			}
@@ -534,7 +532,7 @@ func TestGenerateEncryptionKey(t *testing.T) {
 func BenchmarkEncryptEmail(b *testing.B) {
 	email := "user@example.com"
 	key := GenerateEncryptionKey()
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		EncryptEmail(email, key)
@@ -545,7 +543,7 @@ func BenchmarkDecryptEmail(b *testing.B) {
 	email := "user@example.com"
 	key := GenerateEncryptionKey()
 	encrypted, _ := EncryptEmail(email, key)
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		DecryptEmail(encrypted, key)

@@ -13,8 +13,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
 
-	"github.com/adrianpk/hatmax-ref/services/todo/internal/config"
 	"github.com/adrianpk/hatmax-ref/pkg/lib/core"
+	"github.com/adrianpk/hatmax-ref/services/todo/internal/config"
 )
 
 const ListMaxBodyBytes = 1 << 20
@@ -93,7 +93,6 @@ func (h *ListHandler) CreateList(w http.ResponseWriter, r *http.Request) {
 		Href: fmt.Sprintf("/lists/%s/tags", list.ID),
 	})
 
-
 	w.WriteHeader(http.StatusCreated)
 	core.RespondSuccess(w, list, links...)
 }
@@ -134,8 +133,6 @@ func (h *ListHandler) GetList(w http.ResponseWriter, r *http.Request) {
 		Href: fmt.Sprintf("/lists/%s/tags", list.ID),
 	})
 
-
-
 	// Child links
 	for _, item := range list.Items {
 		childLinks := core.ChildLinksFor(list, &item)
@@ -155,7 +152,6 @@ func (h *ListHandler) GetList(w http.ResponseWriter, r *http.Request) {
 			Href: childLinks[0].Href,
 		})
 	}
-
 
 	core.RespondSuccess(w, list, links...)
 }
@@ -220,7 +216,6 @@ func (h *ListHandler) UpdateList(w http.ResponseWriter, r *http.Request) {
 		Href: fmt.Sprintf("/lists/%s/tags", list.ID),
 	})
 
-
 	core.RespondSuccess(w, list, links...)
 }
 
@@ -251,7 +246,6 @@ func (h *ListHandler) DeleteList(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 	core.RespondSuccess(w, nil, links...)
 }
-
 
 // Child entity operations (Items)
 func (h *ListHandler) AddItemToList(w http.ResponseWriter, r *http.Request) {
@@ -452,7 +446,6 @@ func (h *ListHandler) decodeItemPayload(w http.ResponseWriter, r *http.Request, 
 	return item, true
 }
 
-
 // Child entity operations (Tags)
 func (h *ListHandler) AddTagToList(w http.ResponseWriter, r *http.Request) {
 	log := h.logForRequest(r)
@@ -651,8 +644,6 @@ func (h *ListHandler) decodeTagPayload(w http.ResponseWriter, r *http.Request, l
 
 	return tag, true
 }
-
-
 
 // Helper methods
 func (h *ListHandler) parseIDParam(w http.ResponseWriter, r *http.Request, log core.Logger) (uuid.UUID, bool) {

@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"context"
 	"crypto/ed25519"
 	"encoding/base64"
 	"encoding/json"
@@ -15,8 +14,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
 
-	"github.com/adrianpk/hatmax-ref/pkg/lib/core"
 	authpkg "github.com/adrianpk/hatmax-ref/pkg/lib/auth"
+	"github.com/adrianpk/hatmax-ref/pkg/lib/core"
 	"github.com/adrianpk/hatmax-ref/services/auth/internal/config"
 )
 
@@ -80,15 +79,15 @@ func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	// Create domain user using pure functions
 	normalizedEmail := authpkg.NormalizeEmail(req.Email)
-	
+
 	// Use encryption keys from config
 	encryptionKey := []byte(h.xparams.Cfg.Auth.EncryptionKey)
 	signingKey := []byte(h.xparams.Cfg.Auth.SigningKey)
-	
+
 	// Debug: Check key lengths
 	log.Info("encryption key configured", "length", len(encryptionKey))
 	log.Info("signing key configured", "length", len(signingKey))
-	
+
 	// Encrypt email for storage
 	encryptedEmail, err := authpkg.EncryptEmail(normalizedEmail, encryptionKey)
 	if err != nil {
@@ -96,9 +95,9 @@ func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		core.RespondError(w, http.StatusInternalServerError, "Could not create account")
 		return
 	}
-	
+
 	emailLookup := authpkg.ComputeLookupHash(normalizedEmail, signingKey)
-	
+
 	// Check if user already exists
 	existingUser, err := h.repo.GetByEmailLookup(ctx, emailLookup)
 	if err != nil {
@@ -118,7 +117,7 @@ func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: Encrypt email (needs AES-GCM implementation in authpkg)
 	// For now, store plaintext (will be encrypted once crypto functions are complete)
-	
+
 	// Create service user
 	user := NewUser()
 	user.EmailCT = encryptedEmail.Ciphertext
@@ -196,15 +195,15 @@ func (h *AuthHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		core.RespondError(w, http.StatusInternalServerError, "Authentication failed")
 		return
 	}
-	
+
 	core.RespondSuccess(w, AuthResponse{User: user, Token: token})
 }
 
 func (h *AuthHandler) SignOut(w http.ResponseWriter, r *http.Request) {
 	log := h.logForRequest(r)
-	
+
 	// TODO: Invalidate session token
-	
+
 	log.Debug("user signed out")
 	w.WriteHeader(http.StatusNoContent)
 }
