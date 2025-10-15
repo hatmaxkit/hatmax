@@ -5,10 +5,8 @@ package config
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/knadh/koanf/parsers/yaml"
-	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/posflag"
 	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/knadh/koanf/v2"
@@ -35,9 +33,11 @@ type LogConfig struct {
 }
 
 type AuthConfig struct {
-	EncryptionKey string `koanf:"encryption_key"`
-	SigningKey    string `koanf:"signing_key"`
-	SessionTTL    string `koanf:"session_ttl"`
+	EncryptionKey   string `koanf:"encryption.key"`
+	SigningKey      string `koanf:"signing.key"`
+	SessionTTL      string `koanf:"session.ttl"`
+	TokenPrivateKey string `koanf:"token.private.key"`
+	TokenPublicKey  string `koanf:"token.public.key"`
 }
 
 func New() *Config {
@@ -52,20 +52,19 @@ func New() *Config {
 			Level: "info",
 		},
 		Auth: AuthConfig{
-			EncryptionKey: "change-me-32-byte-key-for-aes-gcm",
-			SigningKey:    "change-me-signing-key-for-hmac",
-			SessionTTL:    "24h",
+			EncryptionKey:   "change-me-32-byte-key-for-aes-gcm",
+			SigningKey:      "change-me-signing-key-for-hmac",
+			SessionTTL:      "24h",
+			TokenPrivateKey: "",
+			TokenPublicKey:  "",
 		},
 	}
 }
 
-// LoadConfig loads configuration from a YAML file, overrides with environment variables, and then with flags.
-// 'path' is the path to the YAML config file.
-// 'envPrefix' is the prefix for environment variables (e.g., "APP_").
-// 'args' are the command-line arguments (os.Args).
+// LoadConfig loads configuration from YAML, then overrides with environment variables, then flags.
 func LoadConfig(path, envPrefix string, args []string) (*Config, error) {
 	k := koanf.New(".")
-	cfg := New() // Start with defaults
+	cfg := New()
 
 	// Setup pflag
 	fs := pflag.NewFlagSet(args[0], pflag.ExitOnError)
@@ -75,32 +74,45 @@ func LoadConfig(path, envPrefix string, args []string) (*Config, error) {
 	fs.String("auth.encryption_key", "change-me-32-byte-key-for-aes-gcm", "AES-GCM encryption key")
 	fs.String("auth.signing_key", "change-me-signing-key-for-hmac", "HMAC signing key")
 	fs.String("auth.session_ttl", "24h", "Session TTL duration")
+	fs.String("auth.token_private_key", "", "Ed25519 private key for tokens (base64)")
+	fs.String("auth.token_public_key", "", "Ed25519 public key for tokens (base64)")
 	fs.Parse(args[1:])
 
+	// Load YAML configuration first
 	raw, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read config file: %w", err)
 	}
 	expanded := []byte(os.ExpandEnv(string(raw)))
-
 	if err := k.Load(rawbytes.Provider(expanded), yaml.Parser()); err != nil {
 		return nil, fmt.Errorf("cannot parse yaml: %w", err)
 	}
 
-	if err := k.Load(env.Provider(envPrefix, ".", func(s string) string {
-		return strings.Replace(strings.ToLower(
-			strings.TrimPrefix(s, envPrefix)), "__", ".", -1)
-	}), nil); err != nil {
-		return nil, fmt.Errorf("cannot load env vars: %w", err)
-	}
-
-	// Load command-line flags with overrides.
+	// Load command-line flags
 	if err := k.Load(posflag.Provider(fs, ".", k), nil); err != nil {
 		return nil, fmt.Errorf("cannot load flags: %w", err)
 	}
 
+	// Unmarshal YAML+flags config
 	if err := k.Unmarshal("", cfg); err != nil {
 		return nil, fmt.Errorf("cannot unmarshal config: %w", err)
+	}
+
+	// Manual environment variable override (Koanf precedence is unreliable)
+	if val := os.Getenv("AUTH_ENCRYPTION_KEY"); val != "" {
+		cfg.Auth.EncryptionKey = val
+	}
+	if val := os.Getenv("AUTH_SIGNING_KEY"); val != "" {
+		cfg.Auth.SigningKey = val
+	}
+	if val := os.Getenv("AUTH_SESSION_TTL"); val != "" {
+		cfg.Auth.SessionTTL = val
+	}
+	if val := os.Getenv("AUTH_TOKEN_PRIVATE_KEY"); val != "" {
+		cfg.Auth.TokenPrivateKey = val
+	}
+	if val := os.Getenv("AUTH_TOKEN_PUBLIC_KEY"); val != "" {
+		cfg.Auth.TokenPublicKey = val
 	}
 
 	return cfg, nil

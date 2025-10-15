@@ -20,7 +20,7 @@ echo
 
 # Test 1: Signup
 echo "📝 Test 1: Signup"
-./01-signup.sh "$TEST_EMAIL"
+./scripts/curl/auth/01-signup.sh "$TEST_EMAIL"
 echo
 
 # Wait a bit
@@ -28,7 +28,7 @@ sleep 1
 
 # Test 2: Signin
 echo "🔐 Test 2: Signin"
-./02-signin.sh "$TEST_EMAIL"
+./scripts/curl/auth/02-signin.sh "$TEST_EMAIL"
 echo
 
 # Wait a bit  
@@ -36,7 +36,7 @@ sleep 1
 
 # Test 3: List users
 echo "👥 Test 3: List users"
-./03-users-list.sh
+./scripts/curl/auth/03-users-list.sh
 echo
 
 echo "✅ All tests completed with email: $TEST_EMAIL"

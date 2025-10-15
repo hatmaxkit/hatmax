@@ -359,3 +359,195 @@ func BenchmarkVerifyPasswordHash(b *testing.B) {
 		VerifyPasswordHash(password, hash, salt)
 	}
 }
+
+func TestEncryptDecryptEmail(t *testing.T) {
+	tests := []struct {
+		name  string
+		email string
+	}{
+		{name: "basic email", email: "user@example.com"},
+		{name: "complex email", email: "test.user+tag@subdomain.example.org"},
+		{name: "unicode email", email: "тест@пример.рф"},
+		{name: "empty email", email: ""},
+		{name: "long email", email: "very.long.email.address.with.many.parts@very.long.domain.name.example.org"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			key := GenerateEncryptionKey()
+
+			// Encrypt
+			encrypted, err := EncryptEmail(tt.email, key)
+			if err != nil {
+				t.Fatalf("EncryptEmail failed: %v", err)
+			}
+
+			// Verify encrypted data structure
+			if len(encrypted.IV) == 0 {
+				t.Error("IV should not be empty")
+			}
+			if len(encrypted.Tag) == 0 {
+				t.Error("Tag should not be empty")
+			}
+			if len(encrypted.Ciphertext) == 0 && tt.email != "" {
+				t.Error("Ciphertext should not be empty for non-empty email")
+			}
+
+			// Decrypt
+			decrypted, err := DecryptEmail(encrypted, key)
+			if err != nil {
+				t.Fatalf("DecryptEmail failed: %v", err)
+			}
+
+			// Verify
+			if decrypted != tt.email {
+				t.Errorf("Decrypted email %q does not match original %q", decrypted, tt.email)
+			}
+		})
+	}
+}
+
+func TestEncryptEmailDifferentKeys(t *testing.T) {
+	email := "user@example.com"
+	key1 := GenerateEncryptionKey()
+	key2 := GenerateEncryptionKey()
+
+	encrypted1, err := EncryptEmail(email, key1)
+	if err != nil {
+		t.Fatalf("EncryptEmail with key1 failed: %v", err)
+	}
+
+	encrypted2, err := EncryptEmail(email, key2)
+	if err != nil {
+		t.Fatalf("EncryptEmail with key2 failed: %v", err)
+	}
+
+	// Different keys should produce different ciphertexts
+	if bytes.Equal(encrypted1.Ciphertext, encrypted2.Ciphertext) {
+		t.Error("Same email with different keys should produce different ciphertexts")
+	}
+
+	// Should not be able to decrypt with wrong key
+	if _, err := DecryptEmail(encrypted1, key2); err == nil {
+		t.Error("DecryptEmail should fail with wrong key")
+	}
+}
+
+func TestEncryptEmailSameInputDifferentOutput(t *testing.T) {
+	email := "user@example.com"
+	key := GenerateEncryptionKey()
+
+	encrypted1, err := EncryptEmail(email, key)
+	if err != nil {
+		t.Fatalf("First EncryptEmail failed: %v", err)
+	}
+
+	encrypted2, err := EncryptEmail(email, key)
+	if err != nil {
+		t.Fatalf("Second EncryptEmail failed: %v", err)
+	}
+
+	// Same input should produce different ciphertexts due to random IV
+	if bytes.Equal(encrypted1.Ciphertext, encrypted2.Ciphertext) {
+		t.Error("Same email encrypted twice should produce different ciphertexts")
+	}
+
+	if bytes.Equal(encrypted1.IV, encrypted2.IV) {
+		t.Error("Same email encrypted twice should use different IVs")
+	}
+
+	// But both should decrypt to same plaintext
+	decrypted1, err := DecryptEmail(encrypted1, key)
+	if err != nil {
+		t.Fatalf("First DecryptEmail failed: %v", err)
+	}
+
+	decrypted2, err := DecryptEmail(encrypted2, key)
+	if err != nil {
+		t.Fatalf("Second DecryptEmail failed: %v", err)
+	}
+
+	if decrypted1 != email || decrypted2 != email {
+		t.Error("Both decryptions should return original email")
+	}
+}
+
+func TestDecryptEmailTampering(t *testing.T) {
+	email := "user@example.com"
+	key := GenerateEncryptionKey()
+
+	encrypted, err := EncryptEmail(email, key)
+	if err != nil {
+		t.Fatalf("EncryptEmail failed: %v", err)
+	}
+
+	// Test tampering with ciphertext
+	tamperedCiphertext := &EncryptedData{
+		Ciphertext: append([]byte{}, encrypted.Ciphertext...),
+		IV:         encrypted.IV,
+		Tag:        encrypted.Tag,
+	}
+	if len(tamperedCiphertext.Ciphertext) > 0 {
+		tamperedCiphertext.Ciphertext[0] ^= 1 // Flip a bit
+	}
+
+	if _, err := DecryptEmail(tamperedCiphertext, key); err == nil {
+		t.Error("DecryptEmail should fail with tampered ciphertext")
+	}
+
+	// Test tampering with tag
+	tamperedTag := &EncryptedData{
+		Ciphertext: encrypted.Ciphertext,
+		IV:         encrypted.IV,
+		Tag:        append([]byte{}, encrypted.Tag...),
+	}
+	if len(tamperedTag.Tag) > 0 {
+		tamperedTag.Tag[0] ^= 1 // Flip a bit
+	}
+
+	if _, err := DecryptEmail(tamperedTag, key); err == nil {
+		t.Error("DecryptEmail should fail with tampered tag")
+	}
+}
+
+func TestGenerateEncryptionKey(t *testing.T) {
+	key1 := GenerateEncryptionKey()
+	key2 := GenerateEncryptionKey()
+
+	if len(key1) != 32 {
+		t.Errorf("GenerateEncryptionKey returned %d bytes, want 32 (AES-256)", len(key1))
+	}
+
+	if len(key2) != 32 {
+		t.Errorf("GenerateEncryptionKey returned %d bytes, want 32 (AES-256)", len(key2))
+	}
+
+	if bytes.Equal(key1, key2) {
+		t.Error("GenerateEncryptionKey should generate different keys")
+	}
+
+	if bytes.Equal(key1, make([]byte, 32)) {
+		t.Error("GenerateEncryptionKey should not return all zeros")
+	}
+}
+
+func BenchmarkEncryptEmail(b *testing.B) {
+	email := "user@example.com"
+	key := GenerateEncryptionKey()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		EncryptEmail(email, key)
+	}
+}
+
+func BenchmarkDecryptEmail(b *testing.B) {
+	email := "user@example.com"
+	key := GenerateEncryptionKey()
+	encrypted, _ := EncryptEmail(email, key)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		DecryptEmail(encrypted, key)
+	}
+}

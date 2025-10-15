@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2025-10-15] - Authentication Service Implementation
+
+### Added
+**Complete Authentication Service with Pure Domain Library**: Full-featured authentication service with cryptographic functions and clean architecture separation.
+- **Pure Auth Library**: Independent authentication library at `pkg/lib/auth` with cryptographic functions, password hashing, email validation, and user permissions
+- **Auth Service Generation**: Automatic generation of complete auth service with signup, signin, signout, and user management endpoints
+- **Workspace Integration**: Seamless integration with Go workspace for multi-module development
+- **SQLite Repository**: Production-ready user repository with proper password hashing using Argon2
+- **Domain Separation**: Clean separation between pure domain models and service persistence layer with explicit conversions
+- **Test Scripts**: Comprehensive curl test scripts with unique email generation and consistent password management
+
+### Technical Details
+- Authentication service automatically generated as part of main generation flow
+- Pure cryptographic functions using industry-standard algorithms (Argon2, HMAC-SHA256)
+- Complete email validation and normalization with lookup hash generation for privacy
+- User status validation and permissions system foundation
+- Clean architecture with domain models in pure library and service-specific models for persistence
+
+## [2025-10-13] - HATEOAS and Enhanced Code Generation
+
+### Added
+**HATEOAS-Enabled Handlers with Enhanced Logging**: Improved REST API generation with hypermedia support and better developer experience.
+- **HATEOAS Support**: Aggregate handlers now include hypermedia links for REST API discoverability
+- **Enhanced Logging**: Improved generator output with clear progress indicators and structured logging
+- **Code Generation Improvements**: Better template processing and error handling in the generation pipeline
+
 ## [2025-10-13] - Core Library Architecture
 
 ### Changed
