@@ -8,9 +8,9 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 
+	authpkg "github.com/adrianpk/hatmax-ref/pkg/lib/auth"
 	"github.com/adrianpk/hatmax-ref/services/auth/internal/auth"
 	"github.com/adrianpk/hatmax-ref/services/auth/internal/config"
-	authpkg "github.com/adrianpk/hatmax-ref/pkg/lib/auth"
 )
 
 // UserSQLiteRepo implements the UserRepo interface using SQLite.
@@ -41,12 +41,12 @@ func (r *UserSQLiteRepo) Start(ctx context.Context) error {
 		return fmt.Errorf("cannot connect to database: %w", err)
 	}
 	r.db = db
-	
+
 	// Create users table if it doesn't exist
 	if err := r.createUsersTable(ctx); err != nil {
 		return fmt.Errorf("cannot create users table: %w", err)
 	}
-	
+
 	return nil
 }
 

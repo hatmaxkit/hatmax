@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
@@ -76,15 +75,14 @@ func (r *ListSQLiteRepo) Create(ctx context.Context, aggregate *todo.List) error
 	if err := r.insertRoot(ctx, tx, aggregate); err != nil {
 		return fmt.Errorf("failed to insert aggregate root: %w", err)
 	}
-	
+
 	if err := r.insertItems(ctx, tx, aggregate.GetID(), aggregate.Items); err != nil {
 		return fmt.Errorf("failed to insert Items: %w", err)
 	}
-	
+
 	if err := r.insertTags(ctx, tx, aggregate.GetID(), aggregate.Tags); err != nil {
 		return fmt.Errorf("failed to insert Tags: %w", err)
 	}
-	
 
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
@@ -100,19 +98,18 @@ func (r *ListSQLiteRepo) Get(ctx context.Context, id uuid.UUID) (*todo.List, err
 	if err != nil {
 		return nil, fmt.Errorf("failed to get aggregate root: %w", err)
 	}
-	
+
 	Items, err := r.getItems(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Items: %w", err)
 	}
 	aggregate.Items = Items
-	
+
 	Tags, err := r.getTags(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Tags: %w", err)
 	}
 	aggregate.Tags = Tags
-	
 
 	return aggregate, nil
 }
@@ -135,15 +132,14 @@ func (r *ListSQLiteRepo) Save(ctx context.Context, aggregate *todo.List) error {
 	if err := r.updateRoot(ctx, tx, aggregate); err != nil {
 		return fmt.Errorf("failed to update aggregate root: %w", err)
 	}
-	
+
 	if err := r.saveItems(ctx, tx, aggregate.GetID(), aggregate.Items); err != nil {
 		return fmt.Errorf("failed to save Items: %w", err)
 	}
-	
+
 	if err := r.saveTags(ctx, tx, aggregate.GetID(), aggregate.Tags); err != nil {
 		return fmt.Errorf("failed to save Tags: %w", err)
 	}
-	
 
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
@@ -161,15 +157,13 @@ func (r *ListSQLiteRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	defer tx.Rollback()
 
-	
 	if err := r.deleteItems(ctx, tx, id); err != nil {
 		return fmt.Errorf("failed to delete Items: %w", err)
 	}
-	
+
 	if err := r.deleteTags(ctx, tx, id); err != nil {
 		return fmt.Errorf("failed to delete Tags: %w", err)
 	}
-	
 
 	result, err := tx.ExecContext(ctx, QueryDeleteListRoot, id.String())
 	if err != nil {
@@ -239,7 +233,7 @@ func (r *ListSQLiteRepo) insertRoot(ctx context.Context, tx *sql.Tx, aggregate *
 func (r *ListSQLiteRepo) getRoot(ctx context.Context, id uuid.UUID) (*todo.List, error) {
 	var aggregate todo.List
 	var idStr string
-	
+
 	err := r.db.QueryRowContext(ctx, QueryGetListRoot, id.String()).Scan(
 		&idStr, &aggregate.Name, &aggregate.Description, &aggregate.CreatedAt, &aggregate.UpdatedAt,
 	)
@@ -277,7 +271,6 @@ func (r *ListSQLiteRepo) updateRoot(ctx context.Context, tx *sql.Tx, aggregate *
 	return nil
 }
 
-
 // Helper methods for Items child entities
 
 func (r *ListSQLiteRepo) insertItems(ctx context.Context, tx *sql.Tx, rootID uuid.UUID, items []todo.Item) error {
@@ -286,18 +279,18 @@ func (r *ListSQLiteRepo) insertItems(ctx context.Context, tx *sql.Tx, rootID uui
 	}
 
 	query := `INSERT INTO items (id, List_id, text, done, created_at, updated_at) VALUES {{.Placeholders}}`
-	
+
 	var args []interface{}
 	var placeholders []string
-	
+
 	for _, item := range items {
 		item.EnsureID()
 		item.BeforeCreate()
-		
+
 		placeholders = append(placeholders, "(?, ?, ?, ?, ?, ?)")
 		args = append(args, item.GetID().String(), rootID.String(), item.Text, item.Done, item.CreatedAt, item.UpdatedAt)
 	}
-	
+
 	finalQuery := strings.Replace(query, "{{.Placeholders}}", strings.Join(placeholders, ", "), 1)
 	_, err := tx.ExecContext(ctx, finalQuery, args...)
 	return err
@@ -309,38 +302,38 @@ func (r *ListSQLiteRepo) getItems(ctx context.Context, rootID uuid.UUID) ([]todo
 
 func (r *ListSQLiteRepo) getItemsWithTx(ctx context.Context, tx *sql.Tx, rootID uuid.UUID) ([]todo.Item, error) {
 	query := `SELECT id, text, done, created_at, updated_at FROM items WHERE List_id = ? ORDER BY created_at`
-	
+
 	var rows *sql.Rows
 	var err error
-	
+
 	if tx != nil {
 		rows, err = tx.QueryContext(ctx, query, rootID.String())
 	} else {
 		rows, err = r.db.QueryContext(ctx, query, rootID.String())
 	}
-	
+
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	var items []todo.Item
-	
+
 	for rows.Next() {
 		var item todo.Item
 		var idStr string
-		
+
 		err := rows.Scan(&idStr, &item.Text, &item.Done, &item.CreatedAt, &item.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
-		
+
 		id, err := uuid.Parse(idStr)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse UUID %s: %w", idStr, err)
 		}
 		item.SetID(id)
-		
+
 		items = append(items, item)
 	}
 
@@ -391,7 +384,7 @@ func (r *ListSQLiteRepo) deleteItemsByIDs(ctx context.Context, tx *sql.Tx, ids [
 
 	placeholders := make([]string, len(ids))
 	args := make([]interface{}, len(ids))
-	
+
 	for i, id := range ids {
 		placeholders[i] = "?"
 		args[i] = id.String()
@@ -405,7 +398,7 @@ func (r *ListSQLiteRepo) deleteItemsByIDs(ctx context.Context, tx *sql.Tx, ids [
 func (r *ListSQLiteRepo) updateItems(ctx context.Context, tx *sql.Tx, items []todo.Item) error {
 	for _, item := range items {
 		item.BeforeUpdate()
-		
+
 		query := `UPDATE items SET text = ?, done = ?, updated_at = ? WHERE id = ?`
 		_, err := tx.ExecContext(ctx, query, item.Text, item.Done, item.UpdatedAt, item.GetID().String())
 		if err != nil {
@@ -459,19 +452,19 @@ func (r *ListSQLiteRepo) insertTags(ctx context.Context, tx *sql.Tx, rootID uuid
 		return nil
 	}
 
-	query := `INSERT INTO tags (id, List_id, color, name, created_at, updated_at) VALUES {{.Placeholders}}`
-	
+	query := `INSERT INTO tags (id, List_id, name, color, created_at, updated_at) VALUES {{.Placeholders}}`
+
 	var args []interface{}
 	var placeholders []string
-	
+
 	for _, item := range items {
 		item.EnsureID()
 		item.BeforeCreate()
-		
+
 		placeholders = append(placeholders, "(?, ?, ?, ?, ?, ?)")
-		args = append(args, item.GetID().String(), rootID.String(), item.Color, item.Name, item.CreatedAt, item.UpdatedAt)
+		args = append(args, item.GetID().String(), rootID.String(), item.Name, item.Color, item.CreatedAt, item.UpdatedAt)
 	}
-	
+
 	finalQuery := strings.Replace(query, "{{.Placeholders}}", strings.Join(placeholders, ", "), 1)
 	_, err := tx.ExecContext(ctx, finalQuery, args...)
 	return err
@@ -482,39 +475,39 @@ func (r *ListSQLiteRepo) getTags(ctx context.Context, rootID uuid.UUID) ([]todo.
 }
 
 func (r *ListSQLiteRepo) getTagsWithTx(ctx context.Context, tx *sql.Tx, rootID uuid.UUID) ([]todo.Tag, error) {
-	query := `SELECT id, color, name, created_at, updated_at FROM tags WHERE List_id = ? ORDER BY created_at`
-	
+	query := `SELECT id, name, color, created_at, updated_at FROM tags WHERE List_id = ? ORDER BY created_at`
+
 	var rows *sql.Rows
 	var err error
-	
+
 	if tx != nil {
 		rows, err = tx.QueryContext(ctx, query, rootID.String())
 	} else {
 		rows, err = r.db.QueryContext(ctx, query, rootID.String())
 	}
-	
+
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	var items []todo.Tag
-	
+
 	for rows.Next() {
 		var item todo.Tag
 		var idStr string
-		
-		err := rows.Scan(&idStr, &item.Color, &item.Name, &item.CreatedAt, &item.UpdatedAt)
+
+		err := rows.Scan(&idStr, &item.Name, &item.Color, &item.CreatedAt, &item.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
-		
+
 		id, err := uuid.Parse(idStr)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse UUID %s: %w", idStr, err)
 		}
 		item.SetID(id)
-		
+
 		items = append(items, item)
 	}
 
@@ -565,7 +558,7 @@ func (r *ListSQLiteRepo) deleteTagsByIDs(ctx context.Context, tx *sql.Tx, ids []
 
 	placeholders := make([]string, len(ids))
 	args := make([]interface{}, len(ids))
-	
+
 	for i, id := range ids {
 		placeholders[i] = "?"
 		args[i] = id.String()
@@ -579,9 +572,9 @@ func (r *ListSQLiteRepo) deleteTagsByIDs(ctx context.Context, tx *sql.Tx, ids []
 func (r *ListSQLiteRepo) updateTags(ctx context.Context, tx *sql.Tx, items []todo.Tag) error {
 	for _, item := range items {
 		item.BeforeUpdate()
-		
-		query := `UPDATE tags SET color = ?, name = ?, updated_at = ? WHERE id = ?`
-		_, err := tx.ExecContext(ctx, query, item.Color, item.Name, item.UpdatedAt, item.GetID().String())
+
+		query := `UPDATE tags SET name = ?, color = ?, updated_at = ? WHERE id = ?`
+		_, err := tx.ExecContext(ctx, query, item.Name, item.Color, item.UpdatedAt, item.GetID().String())
 		if err != nil {
 			return fmt.Errorf("failed to update item %s: %w", item.GetID().String(), err)
 		}

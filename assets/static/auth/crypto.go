@@ -99,10 +99,8 @@ func DecryptEmail(encrypted *EncryptedData, key []byte) (string, error) {
 		return "", err
 	}
 
-	// Reconstruct the full ciphertext with tag
 	fullCiphertext := append(encrypted.Ciphertext, encrypted.Tag...)
 
-	// Decrypt
 	plaintext, err := gcm.Open(nil, encrypted.IV, fullCiphertext, nil)
 	if err != nil {
 		return "", err

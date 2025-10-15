@@ -15,5 +15,6 @@ require (
 	github.com/knadh/koanf/v2 v2.3.0
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/spf13/pflag v1.0.10
+	go.mongodb.org/mongo-driver v1.17.4
 	golang.org/x/crypto v0.43.0
 )

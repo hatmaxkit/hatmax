@@ -471,7 +471,7 @@ func TestGetTokenTimeToLive(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := GetTokenTimeToLive(tt.claims, now)
-			
+
 			// Allow for small time differences due to execution time
 			diff := result - tt.expected
 			if diff < 0 {
@@ -633,7 +633,7 @@ func TestCreateTokenClaims(t *testing.T) {
 	if claims.AuthzVersion != authzVersion {
 		t.Errorf("CreateTokenClaims() AuthzVersion = %v, want %v", claims.AuthzVersion, authzVersion)
 	}
-	
+
 	if claims.ExpiresAt == 0 {
 		t.Error("CreateTokenClaims() ExpiresAt should not be zero")
 	}

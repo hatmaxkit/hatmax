@@ -10,6 +10,14 @@ database:
   # Path to the SQLite database file.
   # Env: AUTH_DATABASE_PATH
   path: "./auth.db"
+  
+  # MongoDB connection string.
+  # Env: AUTH_DATABASE_MONGO_URL
+  mongo_url: "${AUTH_DATABASE_MONGO_URL:-mongodb://localhost:27017}"
+  
+  # MongoDB database name.
+  # Env: AUTH_DATABASE_MONGO_DATABASE  
+  mongo_database: "${AUTH_DATABASE_MONGO_DATABASE:-auth}"
 
 auth:
   # AES-GCM encryption key for PII data (32 bytes).

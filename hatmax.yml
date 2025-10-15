@@ -22,8 +22,9 @@ deployment:
 
 services:
   auth:
-    kind: service
-    repo_impl: [sqlite]
+    kind: domain
+    preset: auth  # Predefined auth implementation - models and aggregates included by default
+    repo_impl: [sqlite, mongo]
     deployment:
       nomad:
         port: 8081

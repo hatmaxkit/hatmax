@@ -22,7 +22,8 @@ deployment:
 
 services:
   auth:
-    kind: service
+    kind: domain
+    preset: auth  # Predefined auth implementation - models and aggregates included by default
     repo_impl: [sqlite]
     deployment:
       nomad:

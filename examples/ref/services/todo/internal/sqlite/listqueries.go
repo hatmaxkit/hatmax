@@ -2,7 +2,7 @@ package sqlite
 
 const (
 	// Queries for List aggregate root operations
-	
+
 	// QueryCreateListRoot creates a new List aggregate root record.
 	QueryCreateListRoot = `INSERT INTO lists (id, name, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`
 
@@ -18,9 +18,8 @@ const (
 	// QueryListListRoot lists all List aggregate root records.
 	QueryListListRoot = `SELECT id FROM lists ORDER BY created_at DESC`
 
-
 	// Queries for List's Items child entities
-	
+
 	// QueryCreateListItems creates new Item records for a List aggregate.
 	QueryCreateListItems = `INSERT INTO items (text, done) VALUES `
 
@@ -40,15 +39,15 @@ const (
 	ItemValuePlaceholder = `(?, ?)`
 
 	// Queries for List's Tags child entities
-	
+
 	// QueryCreateListTags creates new Tag records for a List aggregate.
-	QueryCreateListTags = `INSERT INTO tags (color, name) VALUES `
+	QueryCreateListTags = `INSERT INTO tags (name, color) VALUES `
 
 	// QueryGetListTags retrieves all Tag records for a specific List aggregate.
-	QueryGetListTags = `SELECT color, name FROM tags WHERE List_id = ? ORDER BY created_at`
+	QueryGetListTags = `SELECT name, color FROM tags WHERE List_id = ? ORDER BY created_at`
 
 	// QueryUpdateListTag updates an existing Tag record within a List aggregate.
-	QueryUpdateListTag = `UPDATE tags SET color = ?, name = ? WHERE id = ?`
+	QueryUpdateListTag = `UPDATE tags SET name = ?, color = ? WHERE id = ?`
 
 	// QueryDeleteListTags deletes all Tag records for a specific List aggregate.
 	QueryDeleteListTags = `DELETE FROM tags WHERE List_id = ?`
@@ -58,5 +57,4 @@ const (
 
 	// Helper query parts for batch operations
 	TagValuePlaceholder = `(?, ?)`
-
 )

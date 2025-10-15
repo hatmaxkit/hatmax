@@ -13,6 +13,7 @@ import (
 	"github.com/adrianpk/hatmax-ref/services/todo/internal/config"
 	"github.com/adrianpk/hatmax-ref/services/todo/internal/todo"
 )
+
 func setupTestDB(t *testing.T) (*sql.DB, func()) {
 	t.Helper()
 
@@ -64,7 +65,6 @@ func createTestTables(db *sql.DB) error {
 		return err
 	}
 
-
 	// Create items table
 	_, err = db.Exec(`
 		CREATE TABLE items (
@@ -86,13 +86,12 @@ func createTestTables(db *sql.DB) error {
 		return err
 	}
 
-
 	// Create tags table
 	_, err = db.Exec(`
 		CREATE TABLE tags (
 			id TEXT PRIMARY KEY,
 			List_id TEXT NOT NULL,
-			-- TODO: Add proper column definitions for color, name
+			-- TODO: Add proper column definitions for name, color
 			name TEXT,
 			color TEXT,
 			text TEXT,
@@ -107,7 +106,6 @@ func createTestTables(db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-
 
 	return nil
 }
@@ -127,7 +125,7 @@ func setupRepo(t *testing.T, db *sql.DB) *ListSQLiteRepo {
 	repo := NewListSQLiteRepo(xparams)
 	// Inject the test database directly (bypassing Start() method)
 	repo.db = db
-	
+
 	return repo
 }
 
@@ -135,7 +133,7 @@ func setupRepo(t *testing.T, db *sql.DB) *ListSQLiteRepo {
 // Current tests cover happy path and basic corner cases for each repository method.
 // Future expansion should include:
 // - More edge cases and error conditions
-// - Concurrent access scenarios  
+// - Concurrent access scenarios
 // - Database constraint violations
 // - Large dataset performance tests
 // - Transactional rollback scenarios
@@ -157,11 +155,10 @@ func TestListSQLiteRepoCreate(t *testing.T) {
 			name: "HappyPath_EmptyAggregate",
 			aggregate: &todo.List{
 				// TODO: Set appropriate test values for root fields
-				
+
 				Items: []todo.Item{},
-				
+
 				Tags: []todo.Tag{},
-				
 			},
 			expectError: false,
 		},
@@ -169,7 +166,7 @@ func TestListSQLiteRepoCreate(t *testing.T) {
 			name: "HappyPath_WithChildren",
 			aggregate: &todo.List{
 				// TODO: Set appropriate test values for root fields
-				
+
 				Items: []todo.Item{
 					{
 						// TODO: Set appropriate test values for child fields
@@ -178,7 +175,7 @@ func TestListSQLiteRepoCreate(t *testing.T) {
 						// TODO: Set appropriate test values for second child
 					},
 				},
-				
+
 				Tags: []todo.Tag{
 					{
 						// TODO: Set appropriate test values for child fields
@@ -187,7 +184,6 @@ func TestListSQLiteRepoCreate(t *testing.T) {
 						// TODO: Set appropriate test values for second child
 					},
 				},
-				
 			},
 			expectError: false,
 		},
@@ -238,20 +234,20 @@ func TestListSQLiteRepoCreate(t *testing.T) {
 			}
 
 			// Verify children count matches
-			
+
 			if len(retrieved.Items) != len(tt.aggregate.Items) {
 				t.Errorf("Expected %d Items, got %d", len(tt.aggregate.Items), len(retrieved.Items))
 			}
-			
+
 			if len(retrieved.Tags) != len(tt.aggregate.Tags) {
 				t.Errorf("Expected %d Tags, got %d", len(tt.aggregate.Tags), len(retrieved.Tags))
 			}
-			
+
 		})
 	}
 }
 
-// TestListSQLiteRepoGet tests the Get method with various scenarios  
+// TestListSQLiteRepoGet tests the Get method with various scenarios
 func TestListSQLiteRepoGet(t *testing.T) {
 	db, cleanup := setupTestDB(t)
 	defer cleanup()
@@ -261,19 +257,18 @@ func TestListSQLiteRepoGet(t *testing.T) {
 	// Setup: Create a test aggregate
 	testAggregate := &todo.List{
 		// TODO: Set appropriate test values
-		
+
 		Items: []todo.Item{
 			{
 				// TODO: Set test values for child fields
 			},
 		},
-		
+
 		Tags: []todo.Tag{
 			{
 				// TODO: Set test values for child fields
 			},
 		},
-		
 	}
 	err := repo.Create(ctx, testAggregate)
 	if err != nil {
@@ -338,15 +333,15 @@ func TestListSQLiteRepoGet(t *testing.T) {
 			}
 
 			// Verify children are loaded
-			
+
 			if len(result.Items) != len(testAggregate.Items) {
 				t.Errorf("Expected %d Items, got %d", len(testAggregate.Items), len(result.Items))
 			}
-			
+
 			if len(result.Tags) != len(testAggregate.Tags) {
 				t.Errorf("Expected %d Tags, got %d", len(testAggregate.Tags), len(result.Tags))
 			}
-			
+
 		})
 	}
 }
@@ -370,89 +365,86 @@ func TestListSQLiteRepoSave(t *testing.T) {
 			setup: func() *todo.List {
 				agg := &todo.List{
 					// TODO: Set test values
-					
+
 					Items: []todo.Item{},
-					
+
 					Tags: []todo.Tag{},
-					
 				}
 				repo.Create(ctx, agg)
 				return agg
 			},
 			modify: func(agg *todo.List) {
-				
+
 				agg.Items = append(agg.Items, todo.Item{
 					// TODO: Set test values for new child
 				})
-				
+
 				agg.Tags = append(agg.Tags, todo.Tag{
 					// TODO: Set test values for new child
 				})
-				
+
 			},
 		},
 		{
 			name: "HappyPath_UpdateChildren",
 			setup: func() *todo.List {
 				agg := &todo.List{
-					
+
 					Items: []todo.Item{
 						{
 							// TODO: Set initial test values
 						},
 					},
-					
+
 					Tags: []todo.Tag{
 						{
 							// TODO: Set initial test values
 						},
 					},
-					
 				}
 				repo.Create(ctx, agg)
 				return agg
 			},
 			modify: func(agg *todo.List) {
-				
+
 				if len(agg.Items) > 0 {
 					// TODO: Modify child values for update test
 				}
-				
+
 				if len(agg.Tags) > 0 {
 					// TODO: Modify child values for update test
 				}
-				
+
 			},
 		},
 		{
 			name: "HappyPath_RemoveChildren",
 			setup: func() *todo.List {
 				agg := &todo.List{
-					
+
 					Items: []todo.Item{
-						{/* TODO: child 1 */},
-						{/* TODO: child 2 */},
+						{ /* TODO: child 1 */ },
+						{ /* TODO: child 2 */ },
 					},
-					
+
 					Tags: []todo.Tag{
-						{/* TODO: child 1 */},
-						{/* TODO: child 2 */},
+						{ /* TODO: child 1 */ },
+						{ /* TODO: child 2 */ },
 					},
-					
 				}
 				repo.Create(ctx, agg)
 				return agg
 			},
 			modify: func(agg *todo.List) {
-				
+
 				if len(agg.Items) > 1 {
 					agg.Items = agg.Items[:1] // Keep only first child
 				}
-				
+
 				if len(agg.Tags) > 1 {
 					agg.Tags = agg.Tags[:1] // Keep only first child
 				}
-				
+
 			},
 		},
 		{
@@ -503,15 +495,15 @@ func TestListSQLiteRepoSave(t *testing.T) {
 			}
 
 			// Verify child counts match
-			
+
 			if len(retrieved.Items) != len(agg.Items) {
 				t.Errorf("Expected %d Items, got %d", len(agg.Items), len(retrieved.Items))
 			}
-			
+
 			if len(retrieved.Tags) != len(agg.Tags) {
 				t.Errorf("Expected %d Tags, got %d", len(agg.Tags), len(retrieved.Tags))
 			}
-			
+
 		})
 	}
 }
@@ -533,15 +525,14 @@ func TestListSQLiteRepoDelete(t *testing.T) {
 			name: "HappyPath_ExistingAggregate",
 			setup: func() uuid.UUID {
 				agg := &todo.List{
-					
+
 					Items: []todo.Item{
-						{/* TODO: test child */},
+						{ /* TODO: test child */ },
 					},
-					
+
 					Tags: []todo.Tag{
-						{/* TODO: test child */},
+						{ /* TODO: test child */ },
 					},
-					
 				}
 				repo.Create(ctx, agg)
 				return agg.GetID()
@@ -594,7 +585,7 @@ func TestListSQLiteRepoDelete(t *testing.T) {
 			}
 
 			// Verify children are gone (cascade delete)
-			
+
 			var countItems int
 			err = db.QueryRow("SELECT COUNT(*) FROM items WHERE List_id = ?", id.String()).Scan(&countItems)
 			if err != nil {
@@ -603,7 +594,7 @@ func TestListSQLiteRepoDelete(t *testing.T) {
 			if countItems != 0 {
 				t.Errorf("Expected 0 Items, found %d", countItems)
 			}
-			
+
 			var countTags int
 			err = db.QueryRow("SELECT COUNT(*) FROM tags WHERE List_id = ?", id.String()).Scan(&countTags)
 			if err != nil {
@@ -612,7 +603,7 @@ func TestListSQLiteRepoDelete(t *testing.T) {
 			if countTags != 0 {
 				t.Errorf("Expected 0 Tags, found %d", countTags)
 			}
-			
+
 		})
 	}
 }
@@ -625,8 +616,8 @@ func TestListSQLiteRepoList(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		name         string
-		setup        func() []*todo.List
+		name          string
+		setup         func() []*todo.List
 		expectedCount int
 		expectError   bool
 	}{
@@ -639,15 +630,14 @@ func TestListSQLiteRepoList(t *testing.T) {
 			name: "HappyPath_SingleAggregate",
 			setup: func() []*todo.List {
 				agg := &todo.List{
-					
+
 					Items: []todo.Item{
-						{/* TODO: test child */},
+						{ /* TODO: test child */ },
 					},
-					
+
 					Tags: []todo.Tag{
-						{/* TODO: test child */},
+						{ /* TODO: test child */ },
 					},
-					
 				}
 				repo.Create(ctx, agg)
 				return []*todo.List{agg}
@@ -660,15 +650,14 @@ func TestListSQLiteRepoList(t *testing.T) {
 				aggs := make([]*todo.List, 3)
 				for i := 0; i < 3; i++ {
 					aggs[i] = &todo.List{
-						
+
 						Items: []todo.Item{
-							{/* TODO: test child */},
+							{ /* TODO: test child */ },
 						},
-						
+
 						Tags: []todo.Tag{
-							{/* TODO: test child */},
+							{ /* TODO: test child */ },
 						},
-						
 					}
 					repo.Create(ctx, aggs[i])
 				}
@@ -715,15 +704,15 @@ func TestListSQLiteRepoList(t *testing.T) {
 				}
 
 				if created != nil && i < len(created) {
-					
+
 					if len(result.Items) != len(created[i].Items) {
 						t.Errorf("Aggregate %d expected %d Items, got %d", i, len(created[i].Items), len(result.Items))
 					}
-					
+
 					if len(result.Tags) != len(created[i].Tags) {
 						t.Errorf("Aggregate %d expected %d Tags, got %d", i, len(created[i].Tags), len(result.Tags))
 					}
-					
+
 				}
 			}
 		})
@@ -733,22 +722,22 @@ func TestListSQLiteRepoList(t *testing.T) {
 // Helper function to clean database between tests
 func cleanDatabase(t *testing.T, db *sql.DB) {
 	t.Helper()
-	
+
 	_, err := db.Exec("DELETE FROM lists")
 	if err != nil {
 		t.Fatalf("Failed to clean lists table: %v", err)
 	}
-	
+
 	_, err = db.Exec("DELETE FROM items")
 	if err != nil {
 		t.Fatalf("Failed to clean items table: %v", err)
 	}
-	
+
 	_, err = db.Exec("DELETE FROM tags")
 	if err != nil {
 		t.Fatalf("Failed to clean tags table: %v", err)
 	}
-	
+
 }
 
 func TestListSQLiteRepoErrorCases(t *testing.T) {
