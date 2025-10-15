@@ -39,8 +39,8 @@ type User struct {
     PasswordHash []byte    // Argon2id hash
     PasswordSalt []byte    // Random salt
     MFASecretCT  []byte    // Encrypted MFA secret (optional)
-    CreatedAt    time.Time
     Status       string    // active, suspended, deleted
+    CreatedAt    time.Time
 }
 ```
 

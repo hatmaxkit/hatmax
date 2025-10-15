@@ -88,6 +88,15 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 	}
 	logSuccess("Monorepo core library generated successfully")
 
+	// Check if we should generate auth library
+	if shouldGenerateAuthLibrary(config) {
+		logStep("Generating auth library...")
+		if err := generateAuthLibrary(outputDir, config, tmplFS); err != nil {
+			return fmt.Errorf("error generating auth library: %w", err)
+		}
+		logSuccess("Auth library generated successfully")
+	}
+
 	for serviceName := range config.Services {
 		servicePath := filepath.Join(outputDir, "services", serviceName)
 		modulePath := c.String("module-path")
@@ -457,9 +466,12 @@ func generateMonorepoWorkspace(outputDir string, config Config) error {
 	var workspaceBuilder strings.Builder
 	workspaceBuilder.WriteString("go 1.23\n\n")
 	workspaceBuilder.WriteString("use (\n")
-	workspaceBuilder.WriteString("\t./pkg/lib/core\n") // Include the core library module
+	workspaceBuilder.WriteString("\t./pkg/lib/core\n")
 
-	// Add all services from config
+	if shouldGenerateAuthLibrary(config) {
+		workspaceBuilder.WriteString("\t./pkg/lib/auth\n")
+	}
+
 	for serviceName := range config.Services {
 		workspaceBuilder.WriteString(fmt.Sprintf("\t./services/%s\n", serviceName))
 	}
@@ -505,6 +517,67 @@ func finalWorkspaceSync(outputDir string) error {
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("go work sync failed: %w", err)
+	}
+
+	return nil
+}
+
+// shouldGenerateAuthLibrary checks if there's an auth service configured
+func shouldGenerateAuthLibrary(config Config) bool {
+	return true
+}
+
+// generateAuthLibrary copies the static auth library and updates module path
+func generateAuthLibrary(outputDir string, config Config, tmplFS fs.FS) error {
+	// Create the auth library directory at monorepo level
+	authDir := filepath.Join(outputDir, "pkg", "lib", "auth")
+	if err := os.MkdirAll(authDir, 0o755); err != nil {
+		return fmt.Errorf("cannot create auth library directory: %w", err)
+	}
+
+	// Copy all files from assets/static/auth directory
+	staticAuthDir := "assets/static/auth"
+	err := filepath.Walk(staticAuthDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		// Read file content
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("cannot read static file %s: %w", path, err)
+		}
+
+		// Replace module path placeholder
+		authModulePath := "github.com/adrianpk/hatmax-" + filepath.Base(outputDir) + "/pkg/lib/auth"
+		if config.Package != "" {
+			authModulePath = config.Package + "/pkg/lib/auth"
+		}
+
+		updatedContent := strings.ReplaceAll(string(content), "github.com/username/repo/pkg/lib/auth", authModulePath)
+
+		// Get relative path from static dir
+		relPath, err := filepath.Rel(staticAuthDir, path)
+		if err != nil {
+			return fmt.Errorf("cannot get relative path: %w", err)
+		}
+
+		// Write file to destination
+		destPath := filepath.Join(authDir, relPath)
+		if err := os.WriteFile(destPath, []byte(updatedContent), 0o644); err != nil {
+			return fmt.Errorf("cannot write auth file %s: %w", destPath, err)
+		}
+
+		logCreated(destPath)
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("error copying static auth library: %w", err)
 	}
 
 	return nil
