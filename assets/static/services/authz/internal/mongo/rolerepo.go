@@ -164,7 +164,7 @@ func (r *RoleMongoRepo) Create(ctx context.Context, role *authz.Role) error {
 
 	_, err := r.collection.InsertOne(ctx, doc)
 	if err != nil {
-		return fmt.Errorf("failed to create role: %w", err)
+		return fmt.Errorf("error create role: %w", err)
 	}
 
 	return nil
@@ -180,7 +180,7 @@ func (r *RoleMongoRepo) Get(ctx context.Context, id uuid.UUID) (*authz.Role, err
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("failed to get role: %w", err)
+		return nil, fmt.Errorf("could not get role: %w", err)
 	}
 
 	return r.fromDocument(&doc)
@@ -196,7 +196,7 @@ func (r *RoleMongoRepo) GetByName(ctx context.Context, name string) (*authz.Role
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("failed to get role by name: %w", err)
+		return nil, fmt.Errorf("could not get role by name: %w", err)
 	}
 
 	return r.fromDocument(&doc)
@@ -223,7 +223,7 @@ func (r *RoleMongoRepo) Save(ctx context.Context, role *authz.Role) error {
 
 	result, err := r.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return fmt.Errorf("failed to update role: %w", err)
+		return fmt.Errorf("error update role: %w", err)
 	}
 
 	if result.MatchedCount == 0 {
@@ -245,7 +245,7 @@ func (r *RoleMongoRepo) Delete(ctx context.Context, id uuid.UUID) error {
 
 	result, err := r.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return fmt.Errorf("failed to delete role: %w", err)
+		return fmt.Errorf("error delete role: %w", err)
 	}
 
 	if result.MatchedCount == 0 {
@@ -262,7 +262,7 @@ func (r *RoleMongoRepo) List(ctx context.Context) ([]*authz.Role, error) {
 
 	cursor, err := r.collection.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query roles: %w", err)
+		return nil, fmt.Errorf("error query roles: %w", err)
 	}
 	defer cursor.Close(ctx)
 
@@ -271,12 +271,12 @@ func (r *RoleMongoRepo) List(ctx context.Context) ([]*authz.Role, error) {
 	for cursor.Next(ctx) {
 		var doc roleDocument
 		if err := cursor.Decode(&doc); err != nil {
-			return nil, fmt.Errorf("failed to decode role document: %w", err)
+			return nil, fmt.Errorf("error decode role document: %w", err)
 		}
 
 		role, err := r.fromDocument(&doc)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert document to role: %w", err)
+			return nil, fmt.Errorf("error convert document to role: %w", err)
 		}
 
 		roles = append(roles, role)
@@ -296,7 +296,7 @@ func (r *RoleMongoRepo) ListByStatus(ctx context.Context, status string) ([]*aut
 
 	cursor, err := r.collection.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query roles by status: %w", err)
+		return nil, fmt.Errorf("error query roles by status: %w", err)
 	}
 	defer cursor.Close(ctx)
 
@@ -305,12 +305,12 @@ func (r *RoleMongoRepo) ListByStatus(ctx context.Context, status string) ([]*aut
 	for cursor.Next(ctx) {
 		var doc roleDocument
 		if err := cursor.Decode(&doc); err != nil {
-			return nil, fmt.Errorf("failed to decode role document: %w", err)
+			return nil, fmt.Errorf("error decode role document: %w", err)
 		}
 
 		role, err := r.fromDocument(&doc)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert document to role: %w", err)
+			return nil, fmt.Errorf("error convert document to role: %w", err)
 		}
 
 		roles = append(roles, role)

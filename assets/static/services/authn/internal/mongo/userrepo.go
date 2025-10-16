@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/username/repo/services/authn/internal/auth"
+	"github.com/username/repo/services/authn/internal/authn"
 	"github.com/username/repo/services/authn/internal/config"
 	authpkg "github.com/username/repo/pkg/lib/auth"
 )
@@ -124,7 +124,7 @@ type userDocument struct {
 }
 
 // toDocument converts a User entity to MongoDB document.
-func (r *UserMongoRepo) toDocument(user *auth.User) *userDocument {
+func (r *UserMongoRepo) toDocument(user *authn.User) *userDocument {
 	return &userDocument{
 		ID:            user.ID.String(),
 		EmailCT:       user.EmailCT,
@@ -143,13 +143,13 @@ func (r *UserMongoRepo) toDocument(user *auth.User) *userDocument {
 }
 
 // fromDocument converts a MongoDB document to User entity.
-func (r *UserMongoRepo) fromDocument(doc *userDocument) (*auth.User, error) {
+func (r *UserMongoRepo) fromDocument(doc *userDocument) (*authn.User, error) {
 	id, err := uuid.Parse(doc.ID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid user ID format: %w", err)
 	}
 
-	return &auth.User{
+	return &authn.User{
 		ID:            id,
 		EmailCT:       doc.EmailCT,
 		EmailIV:       doc.EmailIV,
@@ -167,7 +167,7 @@ func (r *UserMongoRepo) fromDocument(doc *userDocument) (*auth.User, error) {
 }
 
 // Create creates a new User in MongoDB.
-func (r *UserMongoRepo) Create(ctx context.Context, user *auth.User) error {
+func (r *UserMongoRepo) Create(ctx context.Context, user *authn.User) error {
 	if user == nil {
 		return fmt.Errorf("user cannot be nil")
 	}
@@ -179,14 +179,14 @@ func (r *UserMongoRepo) Create(ctx context.Context, user *auth.User) error {
 
 	_, err := r.collection.InsertOne(ctx, doc)
 	if err != nil {
-		return fmt.Errorf("failed to create user: %w", err)
+		return fmt.Errorf("error create user: %w", err)
 	}
 
 	return nil
 }
 
 // Get retrieves a User by ID from MongoDB.
-func (r *UserMongoRepo) Get(ctx context.Context, id uuid.UUID) (*auth.User, error) {
+func (r *UserMongoRepo) Get(ctx context.Context, id uuid.UUID) (*authn.User, error) {
 	filter := bson.M{"_id": id.String()}
 
 	var doc userDocument
@@ -195,14 +195,14 @@ func (r *UserMongoRepo) Get(ctx context.Context, id uuid.UUID) (*auth.User, erro
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
+		return nil, fmt.Errorf("could not get user: %w", err)
 	}
 
 	return r.fromDocument(&doc)
 }
 
 // GetByEmailLookup retrieves a User by encrypted email lookup hash.
-func (r *UserMongoRepo) GetByEmailLookup(ctx context.Context, lookup []byte) (*auth.User, error) {
+func (r *UserMongoRepo) GetByEmailLookup(ctx context.Context, lookup []byte) (*authn.User, error) {
 	filter := bson.M{"email_lookup": lookup}
 
 	var doc userDocument
@@ -211,14 +211,14 @@ func (r *UserMongoRepo) GetByEmailLookup(ctx context.Context, lookup []byte) (*a
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("failed to get user by email lookup: %w", err)
+		return nil, fmt.Errorf("could not get user by email lookup: %w", err)
 	}
 
 	return r.fromDocument(&doc)
 }
 
 // Save updates an existing User in MongoDB.
-func (r *UserMongoRepo) Save(ctx context.Context, user *auth.User) error {
+func (r *UserMongoRepo) Save(ctx context.Context, user *authn.User) error {
 	if user == nil {
 		return fmt.Errorf("user cannot be nil")
 	}
@@ -243,7 +243,7 @@ func (r *UserMongoRepo) Save(ctx context.Context, user *auth.User) error {
 
 	result, err := r.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return fmt.Errorf("failed to update user: %w", err)
+		return fmt.Errorf("error update user: %w", err)
 	}
 
 	if result.MatchedCount == 0 {
@@ -265,7 +265,7 @@ func (r *UserMongoRepo) Delete(ctx context.Context, id uuid.UUID) error {
 
 	result, err := r.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return fmt.Errorf("failed to delete user: %w", err)
+		return fmt.Errorf("error delete user: %w", err)
 	}
 
 	if result.MatchedCount == 0 {
@@ -276,27 +276,27 @@ func (r *UserMongoRepo) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // List retrieves all active Users from MongoDB.
-func (r *UserMongoRepo) List(ctx context.Context) ([]*auth.User, error) {
+func (r *UserMongoRepo) List(ctx context.Context) ([]*authn.User, error) {
 	filter := bson.M{"status": bson.M{"$ne": "deleted"}}
 	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}})
 
 	cursor, err := r.collection.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query users: %w", err)
+		return nil, fmt.Errorf("error query users: %w", err)
 	}
 	defer cursor.Close(ctx)
 
-	var users []*auth.User
+	var users []*authn.User
 
 	for cursor.Next(ctx) {
 		var doc userDocument
 		if err := cursor.Decode(&doc); err != nil {
-			return nil, fmt.Errorf("failed to decode user document: %w", err)
+			return nil, fmt.Errorf("error decode user document: %w", err)
 		}
 
 		user, err := r.fromDocument(&doc)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert document to user: %w", err)
+			return nil, fmt.Errorf("error convert document to user: %w", err)
 		}
 
 		users = append(users, user)
@@ -310,27 +310,27 @@ func (r *UserMongoRepo) List(ctx context.Context) ([]*auth.User, error) {
 }
 
 // ListByStatus retrieves Users filtered by status from MongoDB.
-func (r *UserMongoRepo) ListByStatus(ctx context.Context, status string) ([]*auth.User, error) {
+func (r *UserMongoRepo) ListByStatus(ctx context.Context, status string) ([]*authn.User, error) {
 	filter := bson.M{"status": status}
 	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}})
 
 	cursor, err := r.collection.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query users by status: %w", err)
+		return nil, fmt.Errorf("error query users by status: %w", err)
 	}
 	defer cursor.Close(ctx)
 
-	var users []*auth.User
+	var users []*authn.User
 
 	for cursor.Next(ctx) {
 		var doc userDocument
 		if err := cursor.Decode(&doc); err != nil {
-			return nil, fmt.Errorf("failed to decode user document: %w", err)
+			return nil, fmt.Errorf("error decode user document: %w", err)
 		}
 
 		user, err := r.fromDocument(&doc)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert document to user: %w", err)
+			return nil, fmt.Errorf("error convert document to user: %w", err)
 		}
 
 		users = append(users, user)

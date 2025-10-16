@@ -1,6 +1,8 @@
 module github.com/username/repo/services/authn
 
-go 1.23
+go 1.24.0
+
+toolchain go1.24.7
 
 // Dependencies are resolved by go.work workspace
 // The workspace includes both the monorepo root and this service

@@ -28,3 +28,4 @@ type GrantRepo interface {
 	ListByScope(ctx context.Context, scope Scope) ([]*Grant, error)
 	ListExpired(ctx context.Context) ([]*Grant, error)
 }
+

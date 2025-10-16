@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/username/repo/services/authn/internal/auth"
+	"github.com/username/repo/services/authn/internal/authn"
 	"github.com/username/repo/services/authn/internal/config"
 	authpkg "github.com/username/repo/pkg/lib/auth"
 )
@@ -85,14 +85,14 @@ func (r *UserSQLiteRepo) createUsersTable(ctx context.Context) error {
 	`
 
 	if _, err := r.db.ExecContext(ctx, query); err != nil {
-		return fmt.Errorf("failed to create users table: %w", err)
+		return fmt.Errorf("error create users table: %w", err)
 	}
 
 	return nil
 }
 
 // Create creates a new User in SQLite.
-func (r *UserSQLiteRepo) Create(ctx context.Context, user *auth.User) error {
+func (r *UserSQLiteRepo) Create(ctx context.Context, user *authn.User) error {
 	if user == nil {
 		return fmt.Errorf("user cannot be nil")
 	}
@@ -125,14 +125,14 @@ func (r *UserSQLiteRepo) Create(ctx context.Context, user *auth.User) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("failed to create user: %w", err)
+		return fmt.Errorf("error create user: %w", err)
 	}
 
 	return nil
 }
 
 // Get retrieves a User by ID from SQLite.
-func (r *UserSQLiteRepo) Get(ctx context.Context, id uuid.UUID) (*auth.User, error) {
+func (r *UserSQLiteRepo) Get(ctx context.Context, id uuid.UUID) (*authn.User, error) {
 	query := `
 	SELECT id, email_ct, email_iv, email_tag, email_lookup,
 	       password_hash, password_salt, mfa_secret_ct, status,
@@ -140,7 +140,7 @@ func (r *UserSQLiteRepo) Get(ctx context.Context, id uuid.UUID) (*auth.User, err
 	FROM users WHERE id = ?
 	`
 
-	user := &auth.User{}
+	user := &authn.User{}
 	var statusStr string
 
 	err := r.db.QueryRowContext(ctx, query, id.String()).Scan(
@@ -163,7 +163,7 @@ func (r *UserSQLiteRepo) Get(ctx context.Context, id uuid.UUID) (*auth.User, err
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
+		return nil, fmt.Errorf("could not get user: %w", err)
 	}
 
 	// Convert status string back to enum type
@@ -173,7 +173,7 @@ func (r *UserSQLiteRepo) Get(ctx context.Context, id uuid.UUID) (*auth.User, err
 }
 
 // GetByEmailLookup retrieves a User by encrypted email lookup hash.
-func (r *UserSQLiteRepo) GetByEmailLookup(ctx context.Context, lookup []byte) (*auth.User, error) {
+func (r *UserSQLiteRepo) GetByEmailLookup(ctx context.Context, lookup []byte) (*authn.User, error) {
 	query := `
 	SELECT id, email_ct, email_iv, email_tag, email_lookup,
 	       password_hash, password_salt, mfa_secret_ct, status,
@@ -181,7 +181,7 @@ func (r *UserSQLiteRepo) GetByEmailLookup(ctx context.Context, lookup []byte) (*
 	FROM users WHERE email_lookup = ?
 	`
 
-	user := &auth.User{}
+	user := &authn.User{}
 	var statusStr string
 
 	err := r.db.QueryRowContext(ctx, query, lookup).Scan(
@@ -204,7 +204,7 @@ func (r *UserSQLiteRepo) GetByEmailLookup(ctx context.Context, lookup []byte) (*
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("failed to get user by email lookup: %w", err)
+		return nil, fmt.Errorf("could not get user by email lookup: %w", err)
 	}
 
 	// Convert status string back to enum type
@@ -214,7 +214,7 @@ func (r *UserSQLiteRepo) GetByEmailLookup(ctx context.Context, lookup []byte) (*
 }
 
 // Save updates an existing User in SQLite.
-func (r *UserSQLiteRepo) Save(ctx context.Context, user *auth.User) error {
+func (r *UserSQLiteRepo) Save(ctx context.Context, user *authn.User) error {
 	if user == nil {
 		return fmt.Errorf("user cannot be nil")
 	}
@@ -244,12 +244,12 @@ func (r *UserSQLiteRepo) Save(ctx context.Context, user *auth.User) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("failed to update user: %w", err)
+		return fmt.Errorf("error update user: %w", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
+		return fmt.Errorf("could not get rows affected: %w", err)
 	}
 
 	if rowsAffected == 0 {
@@ -270,12 +270,12 @@ func (r *UserSQLiteRepo) Delete(ctx context.Context, id uuid.UUID) error {
 
 	result, err := r.db.ExecContext(ctx, query, id.String())
 	if err != nil {
-		return fmt.Errorf("failed to delete user: %w", err)
+		return fmt.Errorf("error delete user: %w", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
+		return fmt.Errorf("could not get rows affected: %w", err)
 	}
 
 	if rowsAffected == 0 {
@@ -286,7 +286,7 @@ func (r *UserSQLiteRepo) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // List retrieves all active Users from SQLite.
-func (r *UserSQLiteRepo) List(ctx context.Context) ([]*auth.User, error) {
+func (r *UserSQLiteRepo) List(ctx context.Context) ([]*authn.User, error) {
 	query := `
 	SELECT id, email_ct, email_iv, email_tag, email_lookup,
 	       password_hash, password_salt, mfa_secret_ct, status,
@@ -297,14 +297,14 @@ func (r *UserSQLiteRepo) List(ctx context.Context) ([]*auth.User, error) {
 
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query users: %w", err)
+		return nil, fmt.Errorf("error query users: %w", err)
 	}
 	defer rows.Close()
 
-	var users []*auth.User
+	var users []*authn.User
 
 	for rows.Next() {
-		user := &auth.User{}
+		user := &authn.User{}
 		var statusStr string
 
 		err := rows.Scan(
@@ -324,7 +324,7 @@ func (r *UserSQLiteRepo) List(ctx context.Context) ([]*auth.User, error) {
 		)
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan user: %w", err)
+			return nil, fmt.Errorf("error scan user: %w", err)
 		}
 
 		user.Status = authpkg.UserStatus(statusStr)
@@ -339,7 +339,7 @@ func (r *UserSQLiteRepo) List(ctx context.Context) ([]*auth.User, error) {
 }
 
 // ListByStatus retrieves Users filtered by status from SQLite.
-func (r *UserSQLiteRepo) ListByStatus(ctx context.Context, status string) ([]*auth.User, error) {
+func (r *UserSQLiteRepo) ListByStatus(ctx context.Context, status string) ([]*authn.User, error) {
 	query := `
 	SELECT id, email_ct, email_iv, email_tag, email_lookup,
 	       password_hash, password_salt, mfa_secret_ct, status,
@@ -350,14 +350,14 @@ func (r *UserSQLiteRepo) ListByStatus(ctx context.Context, status string) ([]*au
 
 	rows, err := r.db.QueryContext(ctx, query, status)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query users by status: %w", err)
+		return nil, fmt.Errorf("error query users by status: %w", err)
 	}
 	defer rows.Close()
 
-	var users []*auth.User
+	var users []*authn.User
 
 	for rows.Next() {
-		user := &auth.User{}
+		user := &authn.User{}
 		var statusStr string
 
 		err := rows.Scan(
@@ -377,7 +377,7 @@ func (r *UserSQLiteRepo) ListByStatus(ctx context.Context, status string) ([]*au
 		)
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan user: %w", err)
+			return nil, fmt.Errorf("error scan user: %w", err)
 		}
 
 		user.Status = authpkg.UserStatus(statusStr)

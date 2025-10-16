@@ -41,13 +41,13 @@ const (
 	// Queries for List's Tags child entities
 
 	// QueryCreateListTags creates new Tag records for a List aggregate.
-	QueryCreateListTags = `INSERT INTO tags (name, color) VALUES `
+	QueryCreateListTags = `INSERT INTO tags (color, name) VALUES `
 
 	// QueryGetListTags retrieves all Tag records for a specific List aggregate.
-	QueryGetListTags = `SELECT name, color FROM tags WHERE List_id = ? ORDER BY created_at`
+	QueryGetListTags = `SELECT color, name FROM tags WHERE List_id = ? ORDER BY created_at`
 
 	// QueryUpdateListTag updates an existing Tag record within a List aggregate.
-	QueryUpdateListTag = `UPDATE tags SET name = ?, color = ? WHERE id = ?`
+	QueryUpdateListTag = `UPDATE tags SET color = ?, name = ? WHERE id = ?`
 
 	// QueryDeleteListTags deletes all Tag records for a specific List aggregate.
 	QueryDeleteListTags = `DELETE FROM tags WHERE List_id = ?`

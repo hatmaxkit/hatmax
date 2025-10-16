@@ -37,7 +37,7 @@ func (r *ListMongoRepo) Create(ctx context.Context, aggregate *todo.List) error 
 
 	_, err := r.collection.InsertOne(ctx, aggregate)
 	if err != nil {
-		return fmt.Errorf("failed to create List aggregate: %w", err)
+		return fmt.Errorf("could not create List aggregate: %w", err)
 	}
 
 	return nil
@@ -54,7 +54,7 @@ func (r *ListMongoRepo) Get(ctx context.Context, id uuid.UUID) (*todo.List, erro
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("List aggregate with ID %s not found", id.String())
 		}
-		return nil, fmt.Errorf("failed to get List aggregate: %w", err)
+		return nil, fmt.Errorf("could not get List aggregate: %w", err)
 	}
 
 	return &aggregate, nil
@@ -74,7 +74,7 @@ func (r *ListMongoRepo) Save(ctx context.Context, aggregate *todo.List) error {
 
 	result, err := r.collection.ReplaceOne(ctx, filter, aggregate, opts)
 	if err != nil {
-		return fmt.Errorf("failed to save List aggregate: %w", err)
+		return fmt.Errorf("could not save List aggregate: %w", err)
 	}
 
 	if result.MatchedCount == 0 {
@@ -91,7 +91,7 @@ func (r *ListMongoRepo) Delete(ctx context.Context, id uuid.UUID) error {
 
 	result, err := r.collection.DeleteOne(ctx, filter)
 	if err != nil {
-		return fmt.Errorf("failed to delete List aggregate: %w", err)
+		return fmt.Errorf("could not delete List aggregate: %w", err)
 	}
 
 	if result.DeletedCount == 0 {
@@ -106,7 +106,7 @@ func (r *ListMongoRepo) Delete(ctx context.Context, id uuid.UUID) error {
 func (r *ListMongoRepo) List(ctx context.Context) ([]*todo.List, error) {
 	cursor, err := r.collection.Find(ctx, bson.M{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to list List aggregates: %w", err)
+		return nil, fmt.Errorf("could not list List aggregates: %w", err)
 	}
 	defer cursor.Close(ctx)
 
@@ -115,7 +115,7 @@ func (r *ListMongoRepo) List(ctx context.Context) ([]*todo.List, error) {
 	for cursor.Next(ctx) {
 		var aggregate todo.List
 		if err := cursor.Decode(&aggregate); err != nil {
-			return nil, fmt.Errorf("failed to decode List aggregate: %w", err)
+			return nil, fmt.Errorf("could not decode List aggregate: %w", err)
 		}
 		aggregates = append(aggregates, &aggregate)
 	}
