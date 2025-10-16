@@ -1,4 +1,4 @@
-module github.com/adrianpk/hatmax-ref/services/auth
+module github.com/username/repo/services/authz
 
 go 1.23
 

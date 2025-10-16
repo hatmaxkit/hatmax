@@ -52,7 +52,7 @@ func createTestTables(db *sql.DB) error {
 	_, err := db.Exec(`
 		CREATE TABLE lists (
 			id TEXT PRIMARY KEY,
-			-- TODO: Add proper column definitions for name, description
+			-- TODO: Add proper column definitions for description, name
 			name TEXT,
 			description TEXT,
 			created_at DATETIME,
@@ -91,7 +91,7 @@ func createTestTables(db *sql.DB) error {
 		CREATE TABLE tags (
 			id TEXT PRIMARY KEY,
 			List_id TEXT NOT NULL,
-			-- TODO: Add proper column definitions for name, color
+			-- TODO: Add proper column definitions for color, name
 			name TEXT,
 			color TEXT,
 			text TEXT,

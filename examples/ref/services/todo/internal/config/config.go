@@ -36,7 +36,7 @@ type LogConfig struct {
 func New() *Config {
 	return &Config{
 		Server: ServerConfig{
-			Port: ":8084",
+			Port: ":8085",
 		},
 		Database: DatabaseConfig{
 			Path: "./app.db",
@@ -57,7 +57,7 @@ func LoadConfig(path, envPrefix string, args []string) (*Config, error) {
 
 	// Setup pflag
 	fs := pflag.NewFlagSet(args[0], pflag.ExitOnError)
-	fs.String("server.port", ":8084", "Server listen address")
+	fs.String("server.port", ":8085", "Server listen address")
 	fs.String("database.path", "./app.db", "Path to the SQLite database file")
 	fs.String("log.level", "info", "Log level (debug, info, error)")
 	fs.Parse(args[1:])

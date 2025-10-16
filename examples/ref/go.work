@@ -3,6 +3,6 @@ go 1.24.7
 use (
 	./pkg/lib/auth
 	./pkg/lib/core
-	./services/auth
+	./services/authn
 	./services/todo
 )

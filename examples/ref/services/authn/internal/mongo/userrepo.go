@@ -10,9 +10,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/username/repo/services/auth/internal/auth"
-	"github.com/username/repo/services/auth/internal/config"
-	authpkg "github.com/username/repo/pkg/lib/auth"
+	authpkg "github.com/adrianpk/hatmax-ref/pkg/lib/auth"
+	"github.com/adrianpk/hatmax-ref/services/authn/internal/auth"
+	"github.com/adrianpk/hatmax-ref/services/authn/internal/config"
 )
 
 // UserMongoRepo implements the UserRepo interface using MongoDB.
@@ -108,37 +108,37 @@ func (r *UserMongoRepo) createIndexes(ctx context.Context) error {
 
 // userDocument represents the MongoDB document structure.
 type userDocument struct {
-	ID            string    `bson:"_id"`
-	EmailCT       []byte    `bson:"email_ct"`
-	EmailIV       []byte    `bson:"email_iv"`
-	EmailTag      []byte    `bson:"email_tag"`
-	EmailLookup   []byte    `bson:"email_lookup"`
-	PasswordHash  []byte    `bson:"password_hash"`
-	PasswordSalt  []byte    `bson:"password_salt"`
-	MFASecretCT   []byte    `bson:"mfa_secret_ct,omitempty"`
-	Status        string    `bson:"status"`
-	CreatedAt     time.Time `bson:"created_at"`
-	CreatedBy     string    `bson:"created_by"`
-	UpdatedAt     time.Time `bson:"updated_at"`
-	UpdatedBy     string    `bson:"updated_by"`
+	ID           string    `bson:"_id"`
+	EmailCT      []byte    `bson:"email_ct"`
+	EmailIV      []byte    `bson:"email_iv"`
+	EmailTag     []byte    `bson:"email_tag"`
+	EmailLookup  []byte    `bson:"email_lookup"`
+	PasswordHash []byte    `bson:"password_hash"`
+	PasswordSalt []byte    `bson:"password_salt"`
+	MFASecretCT  []byte    `bson:"mfa_secret_ct,omitempty"`
+	Status       string    `bson:"status"`
+	CreatedAt    time.Time `bson:"created_at"`
+	CreatedBy    string    `bson:"created_by"`
+	UpdatedAt    time.Time `bson:"updated_at"`
+	UpdatedBy    string    `bson:"updated_by"`
 }
 
 // toDocument converts a User entity to MongoDB document.
 func (r *UserMongoRepo) toDocument(user *auth.User) *userDocument {
 	return &userDocument{
-		ID:            user.ID.String(),
-		EmailCT:       user.EmailCT,
-		EmailIV:       user.EmailIV,
-		EmailTag:      user.EmailTag,
-		EmailLookup:   user.EmailLookup,
-		PasswordHash:  user.PasswordHash,
-		PasswordSalt:  user.PasswordSalt,
-		MFASecretCT:   user.MFASecretCT,
-		Status:        string(user.Status),
-		CreatedAt:     user.CreatedAt,
-		CreatedBy:     user.CreatedBy,
-		UpdatedAt:     user.UpdatedAt,
-		UpdatedBy:     user.UpdatedBy,
+		ID:           user.ID.String(),
+		EmailCT:      user.EmailCT,
+		EmailIV:      user.EmailIV,
+		EmailTag:     user.EmailTag,
+		EmailLookup:  user.EmailLookup,
+		PasswordHash: user.PasswordHash,
+		PasswordSalt: user.PasswordSalt,
+		MFASecretCT:  user.MFASecretCT,
+		Status:       string(user.Status),
+		CreatedAt:    user.CreatedAt,
+		CreatedBy:    user.CreatedBy,
+		UpdatedAt:    user.UpdatedAt,
+		UpdatedBy:    user.UpdatedBy,
 	}
 }
 
@@ -150,19 +150,19 @@ func (r *UserMongoRepo) fromDocument(doc *userDocument) (*auth.User, error) {
 	}
 
 	return &auth.User{
-		ID:            id,
-		EmailCT:       doc.EmailCT,
-		EmailIV:       doc.EmailIV,
-		EmailTag:      doc.EmailTag,
-		EmailLookup:   doc.EmailLookup,
-		PasswordHash:  doc.PasswordHash,
-		PasswordSalt:  doc.PasswordSalt,
-		MFASecretCT:   doc.MFASecretCT,
-		Status:        authpkg.UserStatus(doc.Status),
-		CreatedAt:     doc.CreatedAt,
-		CreatedBy:     doc.CreatedBy,
-		UpdatedAt:     doc.UpdatedAt,
-		UpdatedBy:     doc.UpdatedBy,
+		ID:           id,
+		EmailCT:      doc.EmailCT,
+		EmailIV:      doc.EmailIV,
+		EmailTag:     doc.EmailTag,
+		EmailLookup:  doc.EmailLookup,
+		PasswordHash: doc.PasswordHash,
+		PasswordSalt: doc.PasswordSalt,
+		MFASecretCT:  doc.MFASecretCT,
+		Status:       authpkg.UserStatus(doc.Status),
+		CreatedAt:    doc.CreatedAt,
+		CreatedBy:    doc.CreatedBy,
+		UpdatedAt:    doc.UpdatedAt,
+		UpdatedBy:    doc.UpdatedBy,
 	}, nil
 }
 
@@ -228,16 +228,16 @@ func (r *UserMongoRepo) Save(ctx context.Context, user *auth.User) error {
 	filter := bson.M{"_id": user.ID.String()}
 	update := bson.M{
 		"$set": bson.M{
-			"email_ct":       user.EmailCT,
-			"email_iv":       user.EmailIV,
-			"email_tag":      user.EmailTag,
-			"email_lookup":   user.EmailLookup,
-			"password_hash":  user.PasswordHash,
-			"password_salt":  user.PasswordSalt,
-			"mfa_secret_ct":  user.MFASecretCT,
-			"status":         string(user.Status),
-			"updated_at":     user.UpdatedAt,
-			"updated_by":     user.UpdatedBy,
+			"email_ct":      user.EmailCT,
+			"email_iv":      user.EmailIV,
+			"email_tag":     user.EmailTag,
+			"email_lookup":  user.EmailLookup,
+			"password_hash": user.PasswordHash,
+			"password_salt": user.PasswordSalt,
+			"mfa_secret_ct": user.MFASecretCT,
+			"status":        string(user.Status),
+			"updated_at":    user.UpdatedAt,
+			"updated_by":    user.UpdatedBy,
 		},
 	}
 

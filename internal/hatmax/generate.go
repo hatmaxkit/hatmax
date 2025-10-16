@@ -99,16 +99,16 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 
 	// Check if we should generate auth service
 	if shouldGenerateAuthService(config) {
-		logStep("Generating auth service...")
+		logStep("Generating authn service...")
 		if err := generateAuthService(outputDir, config, tmplFS); err != nil {
-			return fmt.Errorf("error generating auth service: %w", err)
+			return fmt.Errorf("error generating authn service: %w", err)
 		}
-		logSuccess("Auth service generated successfully")
+		logSuccess("Authn service generated successfully")
 	}
 
 	for serviceName := range config.Services {
-		// Skip auth service - it's generated statically
-		if serviceName == "auth" {
+		// Skip authn service - it's generated statically
+		if serviceName == "authn" {
 			continue
 		}
 		
@@ -597,11 +597,11 @@ func generateAuthLibrary(outputDir string, config Config, tmplFS fs.FS) error {
 	return nil
 }
 
-// shouldGenerateAuthService checks if there's an auth service configured
+// shouldGenerateAuthService checks if there's an authn service configured
 func shouldGenerateAuthService(config Config) bool {
 	for serviceName, service := range config.Services {
-		// Check if there's a service named "auth" or any service with auth configuration
-		if serviceName == "auth" || (service.Auth != nil && service.Auth.Enabled) {
+		// Check if there's a service named "authn" or any service with auth configuration
+		if serviceName == "authn" || (service.Auth != nil && service.Auth.Enabled) {
 			return true
 		}
 	}
@@ -610,15 +610,15 @@ func shouldGenerateAuthService(config Config) bool {
 
 // generateAuthService copies the static auth service and updates module paths
 func generateAuthService(outputDir string, config Config, tmplFS fs.FS) error {
-	// Create the auth service directory
-	authServiceDir := filepath.Join(outputDir, "services", "auth")
-	if err := os.MkdirAll(authServiceDir, 0o755); err != nil {
-		return fmt.Errorf("cannot create auth service directory: %w", err)
+	// Create the authn service directory
+	authnServiceDir := filepath.Join(outputDir, "services", "authn")
+	if err := os.MkdirAll(authnServiceDir, 0o755); err != nil {
+		return fmt.Errorf("cannot create authn service directory: %w", err)
 	}
 
-	// Copy all files from assets/static/services/auth directory
-	staticAuthServiceDir := "assets/static/services/auth"
-	err := filepath.Walk(staticAuthServiceDir, func(path string, info os.FileInfo, err error) error {
+	// Copy all files from assets/static/services/authn directory
+	staticAuthnServiceDir := "assets/static/services/authn"
+	err := filepath.Walk(staticAuthnServiceDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -642,20 +642,20 @@ func generateAuthService(outputDir string, config Config, tmplFS fs.FS) error {
 		updatedContent := strings.ReplaceAll(string(content), "github.com/username/repo", baseModulePath)
 
 		// Get relative path from static dir
-		relPath, err := filepath.Rel(staticAuthServiceDir, path)
+		relPath, err := filepath.Rel(staticAuthnServiceDir, path)
 		if err != nil {
 			return fmt.Errorf("cannot get relative path: %w", err)
 		}
 
 		// Write file to destination
-		destPath := filepath.Join(authServiceDir, relPath)
+		destPath := filepath.Join(authnServiceDir, relPath)
 		// Create directory if needed
 		if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
 			return fmt.Errorf("cannot create directory %s: %w", filepath.Dir(destPath), err)
 		}
 
 		if err := os.WriteFile(destPath, []byte(updatedContent), 0o644); err != nil {
-			return fmt.Errorf("cannot write auth service file %s: %w", destPath, err)
+			return fmt.Errorf("cannot write authn service file %s: %w", destPath, err)
 		}
 
 		logCreated(destPath)
@@ -663,7 +663,7 @@ func generateAuthService(outputDir string, config Config, tmplFS fs.FS) error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("error copying static auth service: %w", err)
+		return fmt.Errorf("error copying static authn service: %w", err)
 	}
 
 	return nil
