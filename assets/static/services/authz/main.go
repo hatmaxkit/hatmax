@@ -12,16 +12,16 @@ import (
 	"github.com/username/repo/pkg/lib/core"
 	"github.com/username/repo/services/authz/internal/config"
 	"github.com/username/repo/services/authz/internal/mongo"
-	"github.com/username/repo/services/authz/internal/auth"
+	"github.com/username/repo/services/authz/internal/authz"
 )
 
 const (
-	name    = "auth"
+	name    = "authz"
 	version = "0.1.0"
 )
 
 func main() {
-	cfg, err := config.LoadConfig("config.yaml", "AUTH_", os.Args)
+	cfg, err := config.LoadConfig("config.yaml", "AUTHZ_", os.Args)
 	if err != nil {
 		log.Fatalf("Cannot setup %s(%s): %v", name, version, err)
 	}
@@ -39,14 +39,26 @@ func main() {
 	router := chi.NewRouter()
 
 	var deps []any
-	UserRepo := mongo.NewUserMongoRepo(xparams)
-	deps = append(deps, UserRepo)
-
-	UserHandler := auth.NewUserHandler(UserRepo, xparams)
-	deps = append(deps, UserHandler)
-
-	AuthHandler := auth.NewAuthHandler(UserRepo, xparams)
-	deps = append(deps, AuthHandler)
+	
+	// Repository setup
+	roleRepo := mongo.NewRoleMongoRepo(xparams)
+	deps = append(deps, roleRepo)
+	
+	grantRepo := mongo.NewGrantMongoRepo(xparams)
+	deps = append(deps, grantRepo)
+	
+	// Policy engine setup
+	policyEngine := authz.NewPolicyEngine(roleRepo, grantRepo)
+	
+	// Handler setup
+	roleHandler := authz.NewRoleHandler(roleRepo, xparams)
+	deps = append(deps, roleHandler)
+	
+	grantHandler := authz.NewGrantHandler(grantRepo, roleRepo, xparams)
+	deps = append(deps, grantHandler)
+	
+	policyHandler := authz.NewPolicyHandler(policyEngine, xparams)
+	deps = append(deps, policyHandler)
 
 	starts, stops := core.Setup(ctx, router, deps...)
 

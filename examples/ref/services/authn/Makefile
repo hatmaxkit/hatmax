@@ -2,7 +2,7 @@
 
 .PHONY: all build run test test-v test-short coverage coverage-html coverage-func coverage-profile coverage-check coverage-100 clean lint fmt vet tidy tidy-fmt quick-test help check ci
 
-APP_NAME := auth
+APP_NAME := authn
 BUILD_DIR := bin
 BIN_NAME := $(APP_NAME)
 GO_VERSION := 1.23
@@ -171,8 +171,8 @@ ci: fmt vet test coverage-100 lint
 # Temp handy quick test for this service
 quick-test: build
 	@echo "Quick testing $(BIN_NAME)..."
-	@echo "Cleaning up any existing processes on port 8081..."
-	@lsof -ti:8081 | xargs -r kill || true
+	@echo "Cleaning up any existing processes on port 8082..."
+	@lsof -ti:8082 | xargs -r kill || true
 	@sleep 1
-	@timeout 5s bash -c './bin/$(BIN_NAME) & sleep 2 && curl -s http://localhost:8081/users && echo "\n✅ Quick test successful"' || echo "⚠️  Quick test completed (timeout expected)"
+	@timeout 5s bash -c './bin/$(BIN_NAME) & sleep 2 && curl -s http://localhost:8082/users && echo "\n✅ Quick test successful"' || echo "⚠️  Quick test completed (timeout expected)"
 	@echo "Quick test complete."

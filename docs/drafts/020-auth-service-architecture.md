@@ -404,7 +404,233 @@ The gateway defines extraction methods:
 7. **Returns** data to gateway
 8. **Gateway** assembles fragments and responds with HTML/HTMX
 
-## 13. Future Extensions
+## 13. Practical Authorization Scenarios
+
+### 13.1 Business Application: Todo List Service
+
+Consider an enterprise todo list application accessed through an HTMX web interface. The web layer translates user interactions into internal API calls to the todo service, which requires proper authorization through AuthZ.
+
+#### 13.2 Role Definitions
+
+Roles define what actions users can perform based on their organizational responsibilities:
+
+```bash
+# Functional Roles
+- "admin"              # Full system access
+- "manager"            # Team management capabilities
+- "employee"           # Individual contributor access
+- "viewer"             # Read-only access
+
+# Department-Specific Roles  
+- "hr_manager"         # Human Resources management
+- "finance_viewer"     # Financial data access
+- "marketing_employee" # Marketing team member
+```
+
+#### 13.3 Permission Structure
+
+Permissions represent specific actions available in the system:
+
+```bash
+# Basic CRUD Operations
+- "read:todos"         # View todo lists
+- "create:todos"       # Create new todos
+- "update:todos"       # Edit existing todos  
+- "delete:todos"       # Remove todos
+
+# Administrative Functions
+- "manage:users"       # User management
+- "view:reports"       # System analytics
+- "export:data"        # Data export capabilities
+
+# Advanced Operations
+- "assign:todos"       # Assign todos to others
+- "archive:projects"   # Archive completed projects
+```
+
+#### 13.4 Resource Scoping
+
+Scopes define the data boundaries for permission application:
+
+```bash
+# Ownership-Based Scopes
+- "/todos/own"          # User's personal todos only
+- "/todos/team"         # Team-shared todos  
+- "/todos/department"   # Department-wide todos
+- "/todos/all"          # Organization-wide access
+
+# Content-Based Scopes
+- "/todos/personal"     # Personal task lists
+- "/todos/project/*"    # Project-specific todos
+- "/reports/analytics"  # System reporting data
+```
+
+### 13.5 Real-World User Examples
+
+#### Example A: Marketing Employee (John)
+```bash
+# Role Assignment
+ROLE: "marketing_employee"
+PERMISSIONS: ["read:todos", "create:todos", "update:todos"]
+
+# Resource Grants
+GRANT: user_john → role "marketing_employee" → scope "/todos/own"
+GRANT: user_john → role "marketing_employee" → scope "/todos/team"
+```
+
+**Result**: John can view, create, and edit his personal todos plus his marketing team's shared todos, but cannot delete or access other departments.
+
+#### Example B: Finance Manager (Sarah)
+```bash
+# Role Assignment  
+ROLE: "finance_manager"
+PERMISSIONS: ["read:todos", "create:todos", "update:todos", "delete:todos", "view:reports"]
+
+# Resource Grants
+GRANT: user_sarah → role "finance_manager" → scope "/todos/department"
+GRANT: user_sarah → role "finance_manager" → scope "/reports/analytics"
+```
+
+**Result**: Sarah has full CRUD access to all finance department todos and can view system reports.
+
+#### Example C: System Administrator (Mike)
+```bash
+# Role Assignment
+ROLE: "admin"
+PERMISSIONS: ["*"] # Wildcard for all permissions
+
+# Global Access Grants
+GRANT: user_mike → role "admin" → scope "/todos/all"
+GRANT: user_mike → role "admin" → scope "/reports/all"
+```
+
+**Result**: Mike has unrestricted access to all system functions and data.
+
+### 13.6 Authorization Flow Example
+
+When John attempts to view a team todo item:
+
+1. **Web Interface**: User clicks "View Todo #456 - Marketing Campaign"
+2. **HTMX Request**: `GET /teams/marketing/todos/456`
+3. **Gateway Translation**: Maps to internal API `GET /api/todos/456`
+4. **Todo Service**: Queries AuthZ before processing:
+   ```json
+   {
+     "user_id": "john_uuid_here",
+     "permission": "read:todos",
+     "scope": {"type": "resource", "id": "/todos/team"}
+   }
+   ```
+5. **AuthZ Response**: `{"allowed": true}` ✅
+6. **Todo Service**: Returns todo data
+7. **Web Interface**: Renders todo details via HTMX
+
+### 13.7 Setup Automation Scripts
+
+Practical scripts for configuring authorization in development/staging:
+
+#### Role Creation Script
+```bash
+#!/bin/bash
+# setup-todo-roles.sh - Create all necessary roles
+
+AUTHZ_URL="http://localhost:8083"
+
+# Create basic roles
+curl -X POST $AUTHZ_URL/authz/roles -H "Content-Type: application/json" -d '{
+  "name": "employee",
+  "description": "Standard employee access", 
+  "permissions": ["read:todos", "create:todos", "update:todos"]
+}'
+
+curl -X POST $AUTHZ_URL/authz/roles -H "Content-Type: application/json" -d '{
+  "name": "manager",
+  "description": "Team management access",
+  "permissions": ["read:todos", "create:todos", "update:todos", "delete:todos", "assign:todos"]
+}'
+
+curl -X POST $AUTHZ_URL/authz/roles -H "Content-Type: application/json" -d '{
+  "name": "admin", 
+  "description": "Full system access",
+  "permissions": ["*"]
+}'
+```
+
+#### User Permission Assignment
+```bash
+#!/bin/bash
+# assign-user-permissions.sh - Grant roles to specific users
+
+USER_EMAIL="john@company.com"
+USER_ROLE="employee"
+RESOURCE_SCOPE="/todos/team"
+
+# Get user ID from AuthN service
+USER_ID=$(curl -s "$AUTHN_URL/authn/users?email=$USER_EMAIL" | jq -r '.data.id')
+
+# Grant role to user
+curl -X POST $AUTHZ_URL/authz/grants -H "Content-Type: application/json" -d "{
+  \"user_id\": \"$USER_ID\",
+  \"role_name\": \"$USER_ROLE\", 
+  \"resource\": \"$RESOURCE_SCOPE\"
+}"
+```
+
+### 13.8 Testing Authorization Scenarios
+
+Comprehensive testing approach for various access patterns:
+
+```bash
+#!/bin/bash
+# test-todo-permissions.sh - Verify authorization works correctly
+
+# Test employee access to own todos
+test_permission "$EMPLOYEE_USER" "read:todos" "/todos/own" true
+
+# Test employee cannot delete todos
+test_permission "$EMPLOYEE_USER" "delete:todos" "/todos/own" false
+
+# Test manager can delete team todos  
+test_permission "$MANAGER_USER" "delete:todos" "/todos/team" true
+
+# Test cross-department access denied
+test_permission "$MARKETING_USER" "read:todos" "/todos/finance" false
+```
+
+### 13.9 Integration Considerations
+
+#### Web Layer Authorization Checks
+The HTMX web interface should validate permissions before rendering UI elements:
+
+```html
+<!-- Only show delete button for users with delete:todos permission -->
+<div hx-get="/api/permissions/check?permission=delete:todos&resource=/todos/team" 
+     hx-trigger="load"
+     hx-target="#delete-button-container">
+</div>
+```
+
+#### Service-to-Service Authorization
+Each microservice should validate tokens and re-check permissions:
+
+```go
+// In todo service handler
+func (h *TodoHandler) DeleteTodo(w http.ResponseWriter, r *http.Request) {
+    userID := extractUserFromToken(r)
+    todoID := chi.URLParam(r, "id")
+    
+    // Re-verify permission before processing
+    allowed, err := h.authz.CheckPermission(r.Context(), userID, "delete:todos", "/todos/team")
+    if err != nil || !allowed {
+        http.Error(w, "Forbidden", http.StatusForbidden)
+        return
+    }
+    
+    // Process deletion
+}
+```
+
+## 14. Future Extensions
 
 ### Planned Enhancements
 - **Generic context types** (beyond "team")
@@ -414,9 +640,9 @@ The gateway defines extraction methods:
 - **Request-ID propagation** and OpenTelemetry tracing
 - **Redis or embedded SQLite** for local PDP cache
 
-## 14. HatMax Integration
+## 15. HatMax Integration
 
-### 14.1 Service Definition
+### 15.1 Service Definition
 
 This architecture would be generated from a HatMax service definition:
 

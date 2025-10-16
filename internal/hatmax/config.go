@@ -21,6 +21,7 @@ type Config struct {
 // Service defines a microservice within the monorepo.
 type Service struct {
 	Kind         string                   `yaml:"kind"`
+	Preset       string                   `yaml:"preset,omitempty"` // "auth", "authz", etc.
 	RepoImpl     StringOrSlice            `yaml:"repo_impl"`
 	SQLiteDriver string                   `yaml:"sqlite_driver,omitempty"` // "stdlib", "sqlx", "sqlc"
 	Auth         *AuthConfig              `yaml:"auth,omitempty"`

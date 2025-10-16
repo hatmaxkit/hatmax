@@ -16,7 +16,7 @@ GO_VET=go vet
 GO_VULNCHECK=govulncheck
 
 # Phony targets ensure that make doesn't confuse a target with a file of the same name.
-.PHONY: all build run test test-v test-short coverage coverage-html coverage-func coverage-profile coverage-check coverage-100 clean fmt lint vet check test-generated full-test help ci
+.PHONY: all build run test test-v test-short coverage coverage-html coverage-func coverage-profile coverage-check coverage-100 clean fmt lint vet check test-generated full-test help ci run-all stop-all
 
 all: build
 
@@ -40,6 +40,10 @@ help:
 	@echo "  clean        - Clean generated files and binaries"
 	@echo "  check        - Run all generator quality checks"
 	@echo "  ci           - Run CI pipeline with strict checks"
+	@echo ""
+	@echo "Service management:"
+	@echo "  run-all      - Kill ports, regenerate, and start all services"
+	@echo "  stop-all     - Stop all running services"
 
 # Build the generator binary.
 build:
@@ -161,3 +165,61 @@ clean:
 	@go clean -testcache
 	@rm -f coverage.out coverage.html
 	@echo "Cleanup complete."
+
+# Service Management Targets
+
+# Kill ports, regenerate project, and start all services
+run-all:
+	@echo "🚀 Starting full development environment..."
+	@echo "🔪 Killing processes on ports 8080-8090..."
+	@for port in 8080 8081 8082 8083 8084 8085 8086 8087 8088 8089 8090; do \
+		if lsof -ti:$$port >/dev/null 2>&1; then \
+			echo "🔪 Killing process on port $$port"; \
+			lsof -ti:$$port | xargs -r kill -9 || true; \
+		fi; \
+	done
+	@sleep 2
+	@echo "🏗️  Regenerating monorepo..."
+	@$(MAKE) run
+	@echo "🚀 Starting services..."
+	@echo "   📦 Building and starting AuthN..."
+	@cd $(APP_DIR)/services/authn && direnv allow >/dev/null 2>&1 || true && make build >/dev/null 2>&1 && nohup make run > authn.log 2>&1 & AUTHN_PID=$$!; echo $$AUTHN_PID > authn.pid; sleep 3; if ps -p $$AUTHN_PID >/dev/null 2>&1; then echo "✅ AuthN started on port 8082 (PID: $$AUTHN_PID)"; else echo "❌ AuthN failed to start"; fi
+	@echo "   📦 Building and starting AuthZ..."
+	@cd $(APP_DIR)/services/authz && direnv allow >/dev/null 2>&1 || true && make build >/dev/null 2>&1 && nohup make run > authz.log 2>&1 & AUTHZ_PID=$$!; echo $$AUTHZ_PID > authz.pid; sleep 3; if ps -p $$AUTHZ_PID >/dev/null 2>&1; then echo "✅ AuthZ started on port 8083 (PID: $$AUTHZ_PID)"; else echo "❌ AuthZ failed to start"; fi
+	@echo "   📦 Building and starting Todo..."
+	@cd $(APP_DIR)/services/todo && make build >/dev/null 2>&1 && nohup make run > todo.log 2>&1 & TODO_PID=$$!; echo $$TODO_PID > todo.pid; sleep 3; if ps -p $$TODO_PID >/dev/null 2>&1; then echo "✅ Todo started on port 8080 (PID: $$TODO_PID)"; else echo "❌ Todo failed to start"; fi
+	@echo ""
+	@echo "🎉 All services started!"
+	@echo "📡 Services running:"
+	@echo "   • AuthN: http://localhost:8082 (authentication)"
+	@echo "   • AuthZ: http://localhost:8083 (authorization)"
+	@echo "   • Todo:  http://localhost:8080 (business logic)"
+	@echo ""
+	@echo "📁 Test scripts available:"
+	@echo "   • AuthN: scripts/curl/authn/"
+	@echo "   • AuthZ: scripts/curl/authz/"
+	@echo ""
+	@echo "🛑 To stop all services: make stop-all"
+
+# Stop all running services
+stop-all:
+	@echo "🛑 Stopping all services..."
+	@for port in 8080 8081 8082 8083 8084 8085 8086 8087 8088 8089 8090; do \
+		if lsof -ti:$$port >/dev/null 2>&1; then \
+			echo "🛑 Stopping process on port $$port"; \
+			lsof -ti:$$port | xargs -r kill -9 || true; \
+		fi; \
+	done
+	@for service in authn authz todo; do \
+		for pid_file in $(APP_DIR)/services/$$service/$$service.pid; do \
+			if [ -f "$$pid_file" ]; then \
+				pid=$$(cat "$$pid_file"); \
+				if ps -p "$$pid" >/dev/null 2>&1; then \
+					echo "🛑 Stopping $$service (PID: $$pid)"; \
+					kill -9 "$$pid" 2>/dev/null || true; \
+				fi; \
+				rm -f "$$pid_file"; \
+			fi; \
+		done; \
+	done
+	@echo "✅ All services stopped"

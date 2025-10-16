@@ -106,9 +106,18 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		logSuccess("Authn service generated successfully")
 	}
 
+	// Check if we should generate authz service
+	if shouldGenerateAuthzService(config) {
+		logStep("Generating authz service...")
+		if err := generateAuthzService(outputDir, config, tmplFS); err != nil {
+			return fmt.Errorf("error generating authz service: %w", err)
+		}
+		logSuccess("Authz service generated successfully")
+	}
+
 	for serviceName := range config.Services {
-		// Skip authn service - it's generated statically
-		if serviceName == "authn" {
+		// Skip authn and authz services - they're generated statically
+		if serviceName == "authn" || serviceName == "authz" {
 			continue
 		}
 		
@@ -600,8 +609,8 @@ func generateAuthLibrary(outputDir string, config Config, tmplFS fs.FS) error {
 // shouldGenerateAuthService checks if there's an authn service configured
 func shouldGenerateAuthService(config Config) bool {
 	for serviceName, service := range config.Services {
-		// Check if there's a service named "authn" or any service with auth configuration
-		if serviceName == "authn" || (service.Auth != nil && service.Auth.Enabled) {
+		// Check if there's a service named "authn" with auth preset
+		if serviceName == "authn" && service.Preset == "auth" {
 			return true
 		}
 	}
@@ -664,6 +673,78 @@ func generateAuthService(outputDir string, config Config, tmplFS fs.FS) error {
 
 	if err != nil {
 		return fmt.Errorf("error copying static authn service: %w", err)
+	}
+
+	return nil
+}
+
+// shouldGenerateAuthzService checks if there's an authz service configured
+func shouldGenerateAuthzService(config Config) bool {
+	for serviceName, service := range config.Services {
+		// Check if there's a service named "authz" with authz preset
+		if serviceName == "authz" && service.Preset == "authz" {
+			return true
+		}
+	}
+	return false
+}
+
+// generateAuthzService copies the static authz service and updates module paths
+func generateAuthzService(outputDir string, config Config, tmplFS fs.FS) error {
+	// Create the authz service directory
+	authzServiceDir := filepath.Join(outputDir, "services", "authz")
+	if err := os.MkdirAll(authzServiceDir, 0o755); err != nil {
+		return fmt.Errorf("cannot create authz service directory: %w", err)
+	}
+
+	// Copy all files from assets/static/services/authz directory
+	staticAuthzServiceDir := "assets/static/services/authz"
+	err := filepath.Walk(staticAuthzServiceDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		// Read file content
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("cannot read static file %s: %w", path, err)
+		}
+
+		// Replace module path placeholders
+		baseModulePath := "github.com/adrianpk/hatmax-" + filepath.Base(outputDir)
+		if config.Package != "" {
+			baseModulePath = config.Package
+		}
+
+		updatedContent := strings.ReplaceAll(string(content), "github.com/username/repo", baseModulePath)
+
+		// Get relative path from static dir
+		relPath, err := filepath.Rel(staticAuthzServiceDir, path)
+		if err != nil {
+			return fmt.Errorf("cannot get relative path: %w", err)
+		}
+
+		// Write file to destination
+		destPath := filepath.Join(authzServiceDir, relPath)
+		// Create directory if needed
+		if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
+			return fmt.Errorf("cannot create directory %s: %w", filepath.Dir(destPath), err)
+		}
+
+		if err := os.WriteFile(destPath, []byte(updatedContent), 0o644); err != nil {
+			return fmt.Errorf("cannot write authz service file %s: %w", destPath, err)
+		}
+
+		logCreated(destPath)
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("error copying static authz service: %w", err)
 	}
 
 	return nil
