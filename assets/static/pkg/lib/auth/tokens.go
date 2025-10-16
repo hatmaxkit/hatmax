@@ -289,7 +289,7 @@ func GeneratePASETOToken(claims TokenClaims, privateKey ed25519.PrivateKey) (str
 	// Marshal to JSON
 	payloadJSON, err := json.Marshal(payload)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal token payload: %w", err)
+		return "", fmt.Errorf("could not marshal token payload: %w", err)
 	}
 	
 	// Sign with Ed25519 (simplified PASETO v4.public implementation)
@@ -314,12 +314,12 @@ func VerifyPASETOToken(token string, publicKey ed25519.PublicKey) (*TokenClaims,
 	// Decode payload and signature
 	payload, err := decodeBase64URL(parts[2])
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode payload: %w", err)
+		return nil, fmt.Errorf("could not decode payload: %w", err)
 	}
 	
 	signature, err := decodeBase64URL(parts[3])
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode signature: %w", err)
+		return nil, fmt.Errorf("could not decode signature: %w", err)
 	}
 	
 	// Verify signature
@@ -330,7 +330,7 @@ func VerifyPASETOToken(token string, publicKey ed25519.PublicKey) (*TokenClaims,
 	// Parse claims
 	var rawClaims map[string]interface{}
 	if err := json.Unmarshal(payload, &rawClaims); err != nil {
-		return nil, fmt.Errorf("failed to parse token claims: %w", err)
+		return nil, fmt.Errorf("could not parse token claims: %w", err)
 	}
 	
 	// Convert to TokenClaims struct

@@ -26,7 +26,7 @@ func (p *PolicyEngine) Has(ctx context.Context, userID uuid.UUID, permission str
 	// Get all active grants for the user
 	grants, err := p.grantRepo.ListByUserID(ctx, userID)
 	if err != nil {
-		return false, fmt.Errorf("failed to get user grants: %w", err)
+		return false, fmt.Errorf("could not get user grants: %w", err)
 	}
 
 	// Filter active and non-expired grants
@@ -47,7 +47,7 @@ func (p *PolicyEngine) Has(ctx context.Context, userID uuid.UUID, permission str
 			if grant.MatchesScope(scope) {
 				hasPermission, err := p.roleHasPermission(ctx, grant.Value, permission)
 				if err != nil {
-					return false, fmt.Errorf("failed to check role permission: %w", err)
+					return false, fmt.Errorf("error check role permission: %w", err)
 				}
 				if hasPermission {
 					return true, nil
@@ -63,7 +63,7 @@ func (p *PolicyEngine) Has(ctx context.Context, userID uuid.UUID, permission str
 func (p *PolicyEngine) GetUserPermissions(ctx context.Context, userID uuid.UUID, scope Scope) ([]string, error) {
 	grants, err := p.grantRepo.ListByUserID(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get user grants: %w", err)
+		return nil, fmt.Errorf("could not get user grants: %w", err)
 	}
 
 	activeGrants := p.filterActiveGrants(grants)
@@ -81,7 +81,7 @@ func (p *PolicyEngine) GetUserPermissions(ctx context.Context, userID uuid.UUID,
 		if grant.GrantType == GrantTypeRole && grant.MatchesScope(scope) {
 			rolePerms, err := p.getRolePermissions(ctx, grant.Value)
 			if err != nil {
-				return nil, fmt.Errorf("failed to get role permissions: %w", err)
+				return nil, fmt.Errorf("could not get role permissions: %w", err)
 			}
 			for _, perm := range rolePerms {
 				permissions[perm] = true
@@ -118,7 +118,7 @@ func (p *PolicyEngine) roleHasPermission(ctx context.Context, roleID string, per
 
 	role, err := p.roleRepo.Get(ctx, id)
 	if err != nil {
-		return false, fmt.Errorf("failed to get role: %w", err)
+		return false, fmt.Errorf("could not get role: %w", err)
 	}
 	if role == nil {
 		return false, nil
@@ -136,7 +136,7 @@ func (p *PolicyEngine) getRolePermissions(ctx context.Context, roleID string) ([
 
 	role, err := p.roleRepo.Get(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get role: %w", err)
+		return nil, fmt.Errorf("could not get role: %w", err)
 	}
 	if role == nil {
 		return nil, nil

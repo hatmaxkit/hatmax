@@ -201,7 +201,7 @@ func (r *GrantMongoRepo) Create(ctx context.Context, grant *authz.Grant) error {
 
 	_, err := r.collection.InsertOne(ctx, doc)
 	if err != nil {
-		return fmt.Errorf("failed to create grant: %w", err)
+		return fmt.Errorf("error create grant: %w", err)
 	}
 
 	return nil
@@ -217,7 +217,7 @@ func (r *GrantMongoRepo) Get(ctx context.Context, id uuid.UUID) (*authz.Grant, e
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("failed to get grant: %w", err)
+		return nil, fmt.Errorf("could not get grant: %w", err)
 	}
 
 	return r.fromDocument(&doc)
@@ -249,7 +249,7 @@ func (r *GrantMongoRepo) Save(ctx context.Context, grant *authz.Grant) error {
 
 	result, err := r.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return fmt.Errorf("failed to update grant: %w", err)
+		return fmt.Errorf("error update grant: %w", err)
 	}
 
 	if result.MatchedCount == 0 {
@@ -271,7 +271,7 @@ func (r *GrantMongoRepo) Delete(ctx context.Context, id uuid.UUID) error {
 
 	result, err := r.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return fmt.Errorf("failed to delete grant: %w", err)
+		return fmt.Errorf("error delete grant: %w", err)
 	}
 
 	if result.MatchedCount == 0 {
@@ -288,7 +288,7 @@ func (r *GrantMongoRepo) List(ctx context.Context) ([]*authz.Grant, error) {
 
 	cursor, err := r.collection.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query grants: %w", err)
+		return nil, fmt.Errorf("error query grants: %w", err)
 	}
 	defer cursor.Close(ctx)
 
@@ -297,12 +297,12 @@ func (r *GrantMongoRepo) List(ctx context.Context) ([]*authz.Grant, error) {
 	for cursor.Next(ctx) {
 		var doc grantDocument
 		if err := cursor.Decode(&doc); err != nil {
-			return nil, fmt.Errorf("failed to decode grant document: %w", err)
+			return nil, fmt.Errorf("error decode grant document: %w", err)
 		}
 
 		grant, err := r.fromDocument(&doc)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert document to grant: %w", err)
+			return nil, fmt.Errorf("error convert document to grant: %w", err)
 		}
 
 		grants = append(grants, grant)
@@ -325,7 +325,7 @@ func (r *GrantMongoRepo) ListByUserID(ctx context.Context, userID uuid.UUID) ([]
 
 	cursor, err := r.collection.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query grants by user ID: %w", err)
+		return nil, fmt.Errorf("error query grants by user ID: %w", err)
 	}
 	defer cursor.Close(ctx)
 
@@ -334,12 +334,12 @@ func (r *GrantMongoRepo) ListByUserID(ctx context.Context, userID uuid.UUID) ([]
 	for cursor.Next(ctx) {
 		var doc grantDocument
 		if err := cursor.Decode(&doc); err != nil {
-			return nil, fmt.Errorf("failed to decode grant document: %w", err)
+			return nil, fmt.Errorf("error decode grant document: %w", err)
 		}
 
 		grant, err := r.fromDocument(&doc)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert document to grant: %w", err)
+			return nil, fmt.Errorf("error convert document to grant: %w", err)
 		}
 
 		grants = append(grants, grant)
@@ -363,7 +363,7 @@ func (r *GrantMongoRepo) ListByScope(ctx context.Context, scope authz.Scope) ([]
 
 	cursor, err := r.collection.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query grants by scope: %w", err)
+		return nil, fmt.Errorf("error query grants by scope: %w", err)
 	}
 	defer cursor.Close(ctx)
 
@@ -372,12 +372,12 @@ func (r *GrantMongoRepo) ListByScope(ctx context.Context, scope authz.Scope) ([]
 	for cursor.Next(ctx) {
 		var doc grantDocument
 		if err := cursor.Decode(&doc); err != nil {
-			return nil, fmt.Errorf("failed to decode grant document: %w", err)
+			return nil, fmt.Errorf("error decode grant document: %w", err)
 		}
 
 		grant, err := r.fromDocument(&doc)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert document to grant: %w", err)
+			return nil, fmt.Errorf("error convert document to grant: %w", err)
 		}
 
 		grants = append(grants, grant)
@@ -401,7 +401,7 @@ func (r *GrantMongoRepo) ListExpired(ctx context.Context) ([]*authz.Grant, error
 
 	cursor, err := r.collection.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query expired grants: %w", err)
+		return nil, fmt.Errorf("error query expired grants: %w", err)
 	}
 	defer cursor.Close(ctx)
 
@@ -410,12 +410,12 @@ func (r *GrantMongoRepo) ListExpired(ctx context.Context) ([]*authz.Grant, error
 	for cursor.Next(ctx) {
 		var doc grantDocument
 		if err := cursor.Decode(&doc); err != nil {
-			return nil, fmt.Errorf("failed to decode grant document: %w", err)
+			return nil, fmt.Errorf("error decode grant document: %w", err)
 		}
 
 		grant, err := r.fromDocument(&doc)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert document to grant: %w", err)
+			return nil, fmt.Errorf("error convert document to grant: %w", err)
 		}
 
 		grants = append(grants, grant)

@@ -63,7 +63,7 @@ func (h *AuthzHelper) CheckPermission(ctx context.Context, userID, permission, r
 
 	// Cache the result
 	h.setCachedPermission(userID, permission, resource, allowed)
-	
+
 	return allowed, nil
 }
 
@@ -71,17 +71,17 @@ func (h *AuthzHelper) CheckPermission(ctx context.Context, userID, permission, r
 // Returns map of permission results - useful for UI rendering
 func (h *AuthzHelper) CheckMultiplePermissions(ctx context.Context, userID string, checks []PermissionCheck) (map[string]bool, error) {
 	results := make(map[string]bool)
-	
+
 	for _, check := range checks {
 		allowed, err := h.CheckPermission(ctx, userID, check.Permission, check.Resource)
 		if err != nil {
-			return nil, fmt.Errorf("failed to check %s:%s: %w", check.Permission, check.Resource, err)
+			return nil, fmt.Errorf("error check %s:%s: %w", check.Permission, check.Resource, err)
 		}
-		
+
 		key := fmt.Sprintf("%s:%s", check.Permission, check.Resource)
 		results[key] = allowed
 	}
-	
+
 	return results, nil
 }
 
@@ -94,30 +94,30 @@ type PermissionCheck struct {
 // getCachedPermission retrieves cached permission if not expired
 func (h *AuthzHelper) getCachedPermission(userID, permission, resource string) (bool, bool) {
 	key := h.cacheKey(userID, permission, resource)
-	
+
 	h.cache.mutex.RLock()
 	defer h.cache.mutex.RUnlock()
-	
+
 	cached, exists := h.cache.permissions[key]
 	if !exists {
 		return false, false
 	}
-	
+
 	// Check if expired
 	if time.Now().After(cached.ExpiresAt) {
 		return false, false
 	}
-	
+
 	return cached.Allowed, true
 }
 
 // setCachedPermission caches a permission result
 func (h *AuthzHelper) setCachedPermission(userID, permission, resource string, allowed bool) {
 	key := h.cacheKey(userID, permission, resource)
-	
+
 	h.cache.mutex.Lock()
 	defer h.cache.mutex.Unlock()
-	
+
 	h.cache.permissions[key] = CachedPermission{
 		Allowed:   allowed,
 		ExpiresAt: time.Now().Add(h.cache.defaultTTL),
@@ -134,7 +134,7 @@ func (h *AuthzHelper) cacheKey(userID, permission, resource string) string {
 func (h *AuthzHelper) ClearUserCache(userID string) {
 	h.cache.mutex.Lock()
 	defer h.cache.mutex.Unlock()
-	
+
 	prefix := userID + ":"
 	for key := range h.cache.permissions {
 		if len(key) > len(prefix) && key[:len(prefix)] == prefix {
@@ -148,7 +148,7 @@ func (h *AuthzHelper) ClearUserCache(userID string) {
 func (h *AuthzHelper) ClearExpiredCache() {
 	h.cache.mutex.Lock()
 	defer h.cache.mutex.Unlock()
-	
+
 	now := time.Now()
 	for key, cached := range h.cache.permissions {
 		if now.After(cached.ExpiresAt) {

@@ -99,23 +99,6 @@ func GetUserPermissions(grants []Grant, roles []Role, scope Scope, now time.Time
 	return permissions
 }
 
-func HasAnyPermission(grants []Grant, roles []Role, permissions []string, scope Scope, now time.Time) bool {
-	for _, permission := range permissions {
-		if EvaluatePermissions(grants, roles, permission, scope, now) {
-			return true
-		}
-	}
-	return false
-}
-
-func HasAllPermissions(grants []Grant, roles []Role, permissions []string, scope Scope, now time.Time) bool {
-	for _, permission := range permissions {
-		if !EvaluatePermissions(grants, roles, permission, scope, now) {
-			return false
-		}
-	}
-	return true
-}
 
 func GetEffectiveScopes(grants []Grant, now time.Time) []Scope {
 	var scopes []Scope

@@ -66,7 +66,7 @@ func (h *{{.ModelName}}Handler) Create{{.ModelName}}(w http.ResponseWriter, r *h
 	}
 
 	if err := h.svc.Create(ctx, &model); err != nil {
-		log.Error("failed to create {{.ModelLower}}", "error", err)
+		log.Error("could not create {{.ModelLower}}", "error", err)
 		core.RespondError(w, http.StatusInternalServerError, "Could not create {{.ModelLower}}")
 		return
 	}
@@ -86,7 +86,7 @@ func (h *{{.ModelName}}Handler) Get{{.ModelName}}(w http.ResponseWriter, r *http
 
 	model, err := h.svc.Get(ctx, id)
 	if err != nil {
-		log.Error("failed to get {{.ModelLower}}", "error", err, "id", id.String())
+		log.Error("could not retrieve {{.ModelLower}}", "error", err, "id", id.String())
 		core.RespondError(w, http.StatusInternalServerError, "Could not retrieve {{.ModelLower}}")
 		return
 	}
@@ -126,7 +126,7 @@ func (h *{{.ModelName}}Handler) Update{{.ModelName}}(w http.ResponseWriter, r *h
 	}
 
 	if err := h.svc.Update(ctx, &model); err != nil {
-		log.Error("failed to update {{.ModelLower}}", "error", err, "id", id.String())
+		log.Error("could not update {{.ModelLower}}", "error", err, "id", id.String())
 		core.RespondError(w, http.StatusInternalServerError, "Could not update {{.ModelLower}}")
 		return
 	}
@@ -152,7 +152,7 @@ func (h *{{.ModelName}}Handler) Delete{{.ModelName}}(w http.ResponseWriter, r *h
 	}
 
 	if err := h.svc.Delete(ctx, id); err != nil {
-		log.Error("failed to delete {{.ModelLower}}", "error", err, "id", id.String())
+		log.Error("could not delete {{.ModelLower}}", "error", err, "id", id.String())
 		core.RespondError(w, http.StatusInternalServerError, "Could not delete {{.ModelLower}}")
 		return
 	}
@@ -170,7 +170,7 @@ func (h *{{.ModelName}}Handler) List{{.ModelPlural}}(w http.ResponseWriter, r *h
 
 	models, err := h.svc.List(ctx)
 	if err != nil {
-		log.Error("failed to list {{.ModelPluralLower}}", "error", err)
+		log.Error("could not list {{.ModelPluralLower}}", "error", err)
 		core.RespondError(w, http.StatusInternalServerError, "Could not list {{.ModelPluralLower}}")
 		return
 	}
@@ -205,7 +205,7 @@ func (h *{{.ModelName}}Handler) decode{{.ModelName}}Payload(w http.ResponseWrite
 
 	var model {{.ModelName}}
 	if err := dec.Decode(&model); err != nil {
-		log.Error("failed to decode request body", "error", err)
+		log.Error("could not decode request body", "error", err)
 		core.RespondError(w, http.StatusBadRequest, "Request body could not be decoded")
 		return {{.ModelName}}{}, false
 	}

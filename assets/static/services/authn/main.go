@@ -12,7 +12,7 @@ import (
 	"github.com/username/repo/pkg/lib/core"
 	"github.com/username/repo/services/authn/internal/config"
 	"github.com/username/repo/services/authn/internal/mongo"
-	"github.com/username/repo/services/authn/internal/auth"
+	"github.com/username/repo/services/authn/internal/authn"
 )
 
 const (
@@ -42,10 +42,10 @@ func main() {
 	UserRepo := mongo.NewUserMongoRepo(xparams)
 	deps = append(deps, UserRepo)
 
-	UserHandler := auth.NewUserHandler(UserRepo, xparams)
+	UserHandler := authn.NewUserHandler(UserRepo, xparams)
 	deps = append(deps, UserHandler)
 
-	AuthHandler := auth.NewAuthHandler(UserRepo, xparams)
+	AuthHandler := authn.NewAuthHandler(UserRepo, xparams)
 	deps = append(deps, AuthHandler)
 
 	starts, stops := core.Setup(ctx, router, deps...)

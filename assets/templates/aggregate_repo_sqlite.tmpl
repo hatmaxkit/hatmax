@@ -66,7 +66,7 @@ func (r *{{.AggregateName}}SQLiteRepo) Create(ctx context.Context, aggregate *{{
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return fmt.Errorf("could not begin transaction: %w", err)
 	}
 	defer tx.Rollback()
 
@@ -74,16 +74,16 @@ func (r *{{.AggregateName}}SQLiteRepo) Create(ctx context.Context, aggregate *{{
 	aggregate.BeforeCreate()
 
 	if err := r.insertRoot(ctx, tx, aggregate); err != nil {
-		return fmt.Errorf("failed to insert aggregate root: %w", err)
+		return fmt.Errorf("could not insert aggregate root: %w", err)
 	}
 	{{range .Children}}
 	if err := r.insert{{.ChildModelName}}s(ctx, tx, aggregate.GetID(), aggregate.{{.Name}}); err != nil {
-		return fmt.Errorf("failed to insert {{.Name}}: %w", err)
+		return fmt.Errorf("could not insert {{.Name}}: %w", err)
 	}
 	{{end}}
 
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return fmt.Errorf("could not commit transaction: %w", err)
 	}
 
 	return nil
@@ -94,12 +94,12 @@ func (r *{{.AggregateName}}SQLiteRepo) Create(ctx context.Context, aggregate *{{
 func (r *{{.AggregateName}}SQLiteRepo) Get(ctx context.Context, id uuid.UUID) (*{{.PackageName}}.{{.AggregateName}}, error) {
 	aggregate, err := r.getRoot(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get aggregate root: %w", err)
+		return nil, fmt.Errorf("could not get aggregate root: %w", err)
 	}
 	{{range .Children}}
 	{{.Name}}, err := r.get{{.ChildModelName}}s(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get {{.Name}}: %w", err)
+		return nil, fmt.Errorf("could not get {{.Name}}: %w", err)
 	}
 	aggregate.{{.Name}} = {{.Name}}
 	{{end}}
@@ -116,23 +116,23 @@ func (r *{{.AggregateName}}SQLiteRepo) Save(ctx context.Context, aggregate *{{.P
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return fmt.Errorf("could not begin transaction: %w", err)
 	}
 	defer tx.Rollback()
 
 	aggregate.BeforeUpdate()
 
 	if err := r.updateRoot(ctx, tx, aggregate); err != nil {
-		return fmt.Errorf("failed to update aggregate root: %w", err)
+		return fmt.Errorf("could not update aggregate root: %w", err)
 	}
 	{{range .Children}}
 	if err := r.save{{.ChildModelName}}s(ctx, tx, aggregate.GetID(), aggregate.{{.Name}}); err != nil {
-		return fmt.Errorf("failed to save {{.Name}}: %w", err)
+		return fmt.Errorf("could not save {{.Name}}: %w", err)
 	}
 	{{end}}
 
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return fmt.Errorf("could not commit transaction: %w", err)
 	}
 
 	return nil
@@ -143,24 +143,24 @@ func (r *{{.AggregateName}}SQLiteRepo) Save(ctx context.Context, aggregate *{{.P
 func (r *{{.AggregateName}}SQLiteRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return fmt.Errorf("could not begin transaction: %w", err)
 	}
 	defer tx.Rollback()
 
 	{{range .Children}}
 	if err := r.delete{{.ChildModelName}}s(ctx, tx, id); err != nil {
-		return fmt.Errorf("failed to delete {{.Name}}: %w", err)
+		return fmt.Errorf("could not delete {{.Name}}: %w", err)
 	}
 	{{end}}
 
 	result, err := tx.ExecContext(ctx, QueryDelete{{.AggregateName}}Root, id.String())
 	if err != nil {
-		return fmt.Errorf("failed to delete aggregate root: %w", err)
+		return fmt.Errorf("could not delete aggregate root: %w", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
+		return fmt.Errorf("could not get rows affected: %w", err)
 	}
 
 	if rowsAffected == 0 {
@@ -168,7 +168,7 @@ func (r *{{.AggregateName}}SQLiteRepo) Delete(ctx context.Context, id uuid.UUID)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return fmt.Errorf("could not commit transaction: %w", err)
 	}
 
 	return nil
@@ -179,7 +179,7 @@ func (r *{{.AggregateName}}SQLiteRepo) Delete(ctx context.Context, id uuid.UUID)
 func (r *{{.AggregateName}}SQLiteRepo) List(ctx context.Context) ([]*{{.PackageName}}.{{.AggregateName}}, error) {
 	rows, err := r.db.QueryContext(ctx, QueryList{{.AggregateName}}Root)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query aggregate IDs: %w", err)
+		return nil, fmt.Errorf("could not query aggregate IDs: %w", err)
 	}
 	defer rows.Close()
 
@@ -188,17 +188,17 @@ func (r *{{.AggregateName}}SQLiteRepo) List(ctx context.Context) ([]*{{.PackageN
 	for rows.Next() {
 		var idStr string
 		if err := rows.Scan(&idStr); err != nil {
-			return nil, fmt.Errorf("failed to scan aggregate ID: %w", err)
+			return nil, fmt.Errorf("could not scan aggregate ID: %w", err)
 		}
 
 		id, err := uuid.Parse(idStr)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse UUID %s: %w", idStr, err)
+			return nil, fmt.Errorf("could not parse UUID %s: %w", idStr, err)
 		}
 
 		aggregate, err := r.Get(ctx, id)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get aggregate %s: %w", idStr, err)
+			return nil, fmt.Errorf("could not get aggregate %s: %w", idStr, err)
 		}
 
 		aggregates = append(aggregates, aggregate)
@@ -229,12 +229,12 @@ func (r *{{.AggregateName}}SQLiteRepo) getRoot(ctx context.Context, id uuid.UUID
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("{{.AggregateName}} aggregate with ID %s not found", id.String())
 		}
-		return nil, fmt.Errorf("failed to scan aggregate root: %w", err)
+		return nil, fmt.Errorf("could not scan aggregate root: %w", err)
 	}
 
 	parsedID, err := uuid.Parse(idStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse UUID %s: %w", idStr, err)
+		return nil, fmt.Errorf("could not parse UUID %s: %w", idStr, err)
 	}
 	aggregate.SetID(parsedID)
 
@@ -249,7 +249,7 @@ func (r *{{.AggregateName}}SQLiteRepo) updateRoot(ctx context.Context, tx *sql.T
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
+		return fmt.Errorf("could not get rows affected: %w", err)
 	}
 
 	if rowsAffected == 0 {
@@ -319,7 +319,7 @@ func (r *{{$.AggregateName}}SQLiteRepo) get{{.ChildModelName}}sWithTx(ctx contex
 		
 		id, err := uuid.Parse(idStr)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse UUID %s: %w", idStr, err)
+			return nil, fmt.Errorf("error parse UUID %s: %w", idStr, err)
 		}
 		item.SetID(id)
 		
@@ -333,7 +333,7 @@ func (r *{{$.AggregateName}}SQLiteRepo) save{{.ChildModelName}}s(ctx context.Con
 	// Get current items from database using the transaction
 	currentItems, err := r.get{{.ChildModelName}}sWithTx(ctx, tx, rootID)
 	if err != nil {
-		return fmt.Errorf("failed to get current items: %w", err)
+		return fmt.Errorf("could not get current items: %w", err)
 	}
 
 	// Compute diff
@@ -342,19 +342,19 @@ func (r *{{$.AggregateName}}SQLiteRepo) save{{.ChildModelName}}s(ctx context.Con
 	// Apply changes
 	if len(toDelete) > 0 {
 		if err := r.delete{{.ChildModelName}}sByIDs(ctx, tx, toDelete); err != nil {
-			return fmt.Errorf("failed to delete items: %w", err)
+			return fmt.Errorf("error delete items: %w", err)
 		}
 	}
 
 	if len(toInsert) > 0 {
 		if err := r.insert{{.ChildModelName}}s(ctx, tx, rootID, toInsert); err != nil {
-			return fmt.Errorf("failed to insert items: %w", err)
+			return fmt.Errorf("error insert items: %w", err)
 		}
 	}
 
 	if len(toUpdate) > 0 {
 		if err := r.update{{.ChildModelName}}s(ctx, tx, toUpdate); err != nil {
-			return fmt.Errorf("failed to update items: %w", err)
+			return fmt.Errorf("error update items: %w", err)
 		}
 	}
 
@@ -391,7 +391,7 @@ func (r *{{$.AggregateName}}SQLiteRepo) update{{.ChildModelName}}s(ctx context.C
 		query := `UPDATE {{.TableName}} SET {{.UpdateFields}}, updated_at = ? WHERE id = ?`
 		_, err := tx.ExecContext(ctx, query, {{.UpdateValues}}, item.UpdatedAt, item.GetID().String())
 		if err != nil {
-			return fmt.Errorf("failed to update item %s: %w", item.GetID().String(), err)
+			return fmt.Errorf("error update item %s: %w", item.GetID().String(), err)
 		}
 	}
 	return nil

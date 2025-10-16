@@ -97,6 +97,13 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		logSuccess("Auth library generated successfully")
 	}
 
+	// Generate fake library (always generate for testing)
+	logStep("Generating fake library...")
+	if err := generateFakeLibrary(outputDir, config, tmplFS); err != nil {
+		return fmt.Errorf("error generating fake library: %w", err)
+	}
+	logSuccess("Fake library generated successfully")
+
 	// Check if we should generate auth service
 	if shouldGenerateAuthService(config) {
 		logStep("Generating authn service...")
@@ -495,6 +502,9 @@ func generateMonorepoWorkspace(outputDir string, config Config) error {
 		workspaceBuilder.WriteString("\t./pkg/lib/auth\n")
 	}
 
+	// Always include fake library for testing
+	workspaceBuilder.WriteString("\t./pkg/lib/fake\n")
+
 	for serviceName := range config.Services {
 		workspaceBuilder.WriteString(fmt.Sprintf("\t./services/%s\n", serviceName))
 	}
@@ -558,8 +568,8 @@ func generateAuthLibrary(outputDir string, config Config, tmplFS fs.FS) error {
 		return fmt.Errorf("cannot create auth library directory: %w", err)
 	}
 
-	// Copy all files from assets/static/auth directory
-	staticAuthDir := "assets/static/auth"
+	// Copy all files from assets/static/pkg/lib/auth directory
+	staticAuthDir := "assets/static/pkg/lib/auth"
 	err := filepath.Walk(staticAuthDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -745,6 +755,62 @@ func generateAuthzService(outputDir string, config Config, tmplFS fs.FS) error {
 
 	if err != nil {
 		return fmt.Errorf("error copying static authz service: %w", err)
+	}
+
+	return nil
+}
+
+// generateFakeLibrary copies the static fake library and updates module paths
+func generateFakeLibrary(outputDir string, config Config, tmplFS fs.FS) error {
+	// Create the fake library directory at monorepo level
+	fakeDir := filepath.Join(outputDir, "pkg", "lib", "fake")
+	if err := os.MkdirAll(fakeDir, 0o755); err != nil {
+		return fmt.Errorf("cannot create fake library directory: %w", err)
+	}
+
+	// Copy all files from assets/static/pkg/lib/fake directory
+	staticFakeDir := "assets/static/pkg/lib/fake"
+	err := filepath.Walk(staticFakeDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		// Read file content
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("cannot read static file %s: %w", path, err)
+		}
+
+		// Replace module path placeholders
+		fakeModulePath := "github.com/adrianpk/hatmax-" + filepath.Base(outputDir) + "/pkg/lib/fake"
+		if config.Package != "" {
+			fakeModulePath = config.Package + "/pkg/lib/fake"
+		}
+
+		updatedContent := strings.ReplaceAll(string(content), "github.com/username/repo/pkg/lib/fake", fakeModulePath)
+
+		// Get relative path from static dir
+		relPath, err := filepath.Rel(staticFakeDir, path)
+		if err != nil {
+			return fmt.Errorf("cannot get relative path: %w", err)
+		}
+
+		// Write file to destination
+		destPath := filepath.Join(fakeDir, relPath)
+		if err := os.WriteFile(destPath, []byte(updatedContent), 0o644); err != nil {
+			return fmt.Errorf("cannot write fake file %s: %w", destPath, err)
+		}
+
+		logCreated(destPath)
+	return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("error copying static fake library: %w", err)
 	}
 
 	return nil
