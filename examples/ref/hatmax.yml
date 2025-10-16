@@ -21,10 +21,10 @@ deployment:
       domain: "localhost"
 
 services:
-  auth:
+  authn:
     kind: domain
     preset: auth  # Predefined auth implementation - models and aggregates included by default
-    repo_impl: [sqlite]
+    repo_impl: [sqlite, mongo]
     deployment:
       nomad:
         port: 8081

@@ -10,18 +10,18 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/username/repo/pkg/lib/core"
-	"github.com/username/repo/services/auth/internal/config"
-	"github.com/username/repo/services/auth/internal/mongo"
-	"github.com/username/repo/services/auth/internal/auth"
+	"github.com/username/repo/services/authn/internal/config"
+	"github.com/username/repo/services/authn/internal/mongo"
+	"github.com/username/repo/services/authn/internal/auth"
 )
 
 const (
-	name    = "auth"
+	name    = "authn"
 	version = "0.1.0"
 )
 
 func main() {
-	cfg, err := config.LoadConfig("config.yaml", "AUTH_", os.Args)
+	cfg, err := config.LoadConfig("config.yaml", "AUTHN_", os.Args)
 	if err != nil {
 		log.Fatalf("Cannot setup %s(%s): %v", name, version, err)
 	}

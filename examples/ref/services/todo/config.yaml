@@ -4,7 +4,7 @@
 server:
   # The port the server will listen on.
   # Env: TODO_SERVER_PORT
-  port: ":8084"
+  port: ":8085"
 
 database:
   # Path to the SQLite database file.

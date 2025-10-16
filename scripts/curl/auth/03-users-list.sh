@@ -5,7 +5,7 @@
 
 echo "Testing auth users list..."
 
-curl -X GET http://localhost:8081/users \
+curl -X GET http://localhost:8082/users \
   -H "Content-Type: application/json" \
   -w "\nHTTP Status: %{http_code}\n" \
   -v

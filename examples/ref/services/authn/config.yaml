@@ -1,0 +1,41 @@
+# Default configuration for the auth service.
+# Values can be overridden by environment variables or command-line flags.
+
+server:
+  # The port the server will listen on.
+  # Env: AUTH_SERVER_PORT
+  port: ":8082"
+
+database:
+  # Path to the SQLite database file.
+  # Env: AUTH_DATABASE_PATH
+  path: "./auth.db"
+  
+  # MongoDB connection string.
+  # Env: AUTH_DATABASE_MONGO_URL
+  mongo_url: "${AUTH_DATABASE_MONGO_URL:-mongodb://localhost:27017}"
+  
+  # MongoDB database name.
+  # Env: AUTH_DATABASE_MONGO_DATABASE  
+  mongo_database: "${AUTH_DATABASE_MONGO_DATABASE:-auth}"
+
+auth:
+  # AES-GCM encryption key for PII data (32 bytes).
+  # Env: AUTH_ENCRYPTION_KEY
+  encryption_key: "${AUTH_ENCRYPTION_KEY:-change-me-32-byte-key-for-aes-gcm}"
+  
+  # HMAC signing key for lookup hashes.
+  # Env: AUTH_SIGNING_KEY  
+  signing_key: "${AUTH_SIGNING_KEY:-change-me-signing-key-for-hmac}"
+  
+  # Session TTL duration.
+  # Env: AUTH_SESSION_TTL
+  session_ttl: "${AUTH_SESSION_TTL:-24h}"
+  
+  # Ed25519 private key for signing tokens (base64 encoded).
+  # Env: AUTH_TOKEN_PRIVATE_KEY
+  token_private_key: "${AUTH_TOKEN_PRIVATE_KEY:-}"
+  
+  # Ed25519 public key for verifying tokens (base64 encoded).
+  # Env: AUTH_TOKEN_PUBLIC_KEY  
+  token_public_key: "${AUTH_TOKEN_PUBLIC_KEY:-}"

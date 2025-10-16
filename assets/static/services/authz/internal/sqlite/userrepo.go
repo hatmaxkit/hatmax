@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/username/repo/services/auth/internal/auth"
-	"github.com/username/repo/services/auth/internal/config"
+	"github.com/username/repo/services/authz/internal/auth"
+	"github.com/username/repo/services/authz/internal/config"
 	authpkg "github.com/username/repo/pkg/lib/auth"
 )
 

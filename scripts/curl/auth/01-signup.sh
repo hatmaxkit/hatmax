@@ -19,7 +19,7 @@ fi
 
 echo "Testing auth signup with email: $EMAIL"
 
-curl -X POST http://localhost:8081/auth/signup \
+curl -X POST http://localhost:8082/authn/signup \
   -H "Content-Type: application/json" \
   -d "{
     \"email\": \"$EMAIL\",
