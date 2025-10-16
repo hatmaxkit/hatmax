@@ -27,7 +27,7 @@ services:
     repo_impl: [sqlite, mongo]
     deployment:
       nomad:
-        port: 8081
+        port: 8082
         replicas: 1
         resources:
           cpu: 256
@@ -36,11 +36,31 @@ services:
           path: "/health"
           interval: "30s"
         traefik:
-          rule: "PathPrefix(`/auth`)"
+          rule: "PathPrefix(`/authn`)"
           priority: 200
         consul:
-          service_name: "auth"
-          tags: ["auth", "v1"]
+          service_name: "authn"
+          tags: ["authn", "v1"]
+  authz:
+    kind: domain
+    preset: authz  # Predefined authorization implementation - roles, grants, policies included by default
+    repo_impl: [sqlite, mongo]
+    deployment:
+      nomad:
+        port: 8083
+        replicas: 1
+        resources:
+          cpu: 256
+          memory: 128
+        health_check:
+          path: "/health"
+          interval: "30s"
+        traefik:
+          rule: "PathPrefix(`/authz`)"
+          priority: 201
+        consul:
+          service_name: "authz"
+          tags: ["authz", "v1"]
   todo:
     kind: atom
     repo_impl: [sqlite, mongo]

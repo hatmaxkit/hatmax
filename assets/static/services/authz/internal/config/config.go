@@ -105,19 +105,19 @@ func LoadConfig(path, envPrefix string, args []string) (*Config, error) {
 	}
 
 	// Manual environment variable override (Koanf precedence is unreliable)
-	if val := os.Getenv("AUTH_ENCRYPTION_KEY"); val != "" {
+	if val := os.Getenv("AUTHZ_ENCRYPTION_KEY"); val != "" {
 		cfg.Auth.EncryptionKey = val
 	}
-	if val := os.Getenv("AUTH_SIGNING_KEY"); val != "" {
+	if val := os.Getenv("AUTHZ_SIGNING_KEY"); val != "" {
 		cfg.Auth.SigningKey = val
 	}
-	if val := os.Getenv("AUTH_SESSION_TTL"); val != "" {
+	if val := os.Getenv("AUTHZ_SESSION_TTL"); val != "" {
 		cfg.Auth.SessionTTL = val
 	}
-	if val := os.Getenv("AUTH_TOKEN_PRIVATE_KEY"); val != "" {
+	if val := os.Getenv("AUTHZ_TOKEN_PRIVATE_KEY"); val != "" {
 		cfg.Auth.TokenPrivateKey = val
 	}
-	if val := os.Getenv("AUTH_TOKEN_PUBLIC_KEY"); val != "" {
+	if val := os.Getenv("AUTHZ_TOKEN_PUBLIC_KEY"); val != "" {
 		cfg.Auth.TokenPublicKey = val
 	}
 

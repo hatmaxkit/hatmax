@@ -10,18 +10,18 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/adrianpk/hatmax-ref/pkg/lib/core"
-	"github.com/adrianpk/hatmax-ref/services/authn/internal/auth"
-	"github.com/adrianpk/hatmax-ref/services/authn/internal/config"
-	"github.com/adrianpk/hatmax-ref/services/authn/internal/mongo"
+	"github.com/adrianpk/hatmax-ref/services/authz/internal/authz"
+	"github.com/adrianpk/hatmax-ref/services/authz/internal/config"
+	"github.com/adrianpk/hatmax-ref/services/authz/internal/mongo"
 )
 
 const (
-	name    = "authn"
+	name    = "authz"
 	version = "0.1.0"
 )
 
 func main() {
-	cfg, err := config.LoadConfig("config.yaml", "AUTHN_", os.Args)
+	cfg, err := config.LoadConfig("config.yaml", "AUTHZ_", os.Args)
 	if err != nil {
 		log.Fatalf("Cannot setup %s(%s): %v", name, version, err)
 	}
@@ -39,14 +39,26 @@ func main() {
 	router := chi.NewRouter()
 
 	var deps []any
-	UserRepo := mongo.NewUserMongoRepo(xparams)
-	deps = append(deps, UserRepo)
 
-	UserHandler := auth.NewUserHandler(UserRepo, xparams)
-	deps = append(deps, UserHandler)
+	// Repository setup
+	roleRepo := mongo.NewRoleMongoRepo(xparams)
+	deps = append(deps, roleRepo)
 
-	AuthHandler := auth.NewAuthHandler(UserRepo, xparams)
-	deps = append(deps, AuthHandler)
+	grantRepo := mongo.NewGrantMongoRepo(xparams)
+	deps = append(deps, grantRepo)
+
+	// Policy engine setup
+	policyEngine := authz.NewPolicyEngine(roleRepo, grantRepo)
+
+	// Handler setup
+	roleHandler := authz.NewRoleHandler(roleRepo, xparams)
+	deps = append(deps, roleHandler)
+
+	grantHandler := authz.NewGrantHandler(grantRepo, roleRepo, xparams)
+	deps = append(deps, grantHandler)
+
+	policyHandler := authz.NewPolicyHandler(policyEngine, xparams)
+	deps = append(deps, policyHandler)
 
 	starts, stops := core.Setup(ctx, router, deps...)
 
