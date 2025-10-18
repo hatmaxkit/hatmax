@@ -30,3 +30,7 @@ From a single declarative spec, HatMax produces:
 - Shared operational components: logging, tracing, configuration, metrics, and health checks
 - Deployment descriptors: Docker Compose, Nomad, or similar manifests
 - Testing scaffolds for unit and integration tests
+
+## Goals
+
+For detailed information about HatMax's objectives, see [Goals](docs/goals.md).
