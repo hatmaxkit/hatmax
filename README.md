@@ -34,3 +34,9 @@ From a single declarative spec, HatMax produces:
 ## Goals
 
 For detailed information about HatMax's objectives, see [Goals](docs/goals.md).
+
+## Misc
+
+![Admin Dashboard](docs/img/gallery/admin-dashboard.png)
+
+See more in the [Gallery](docs/gallery.md).

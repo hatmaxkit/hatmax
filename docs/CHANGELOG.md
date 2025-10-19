@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2025-10-19] - Admin Interface
+
+### Added
+- **Admin Service Interface**: Web-based administration panel with user, role, and permission management capabilities
+- **Template-Based Code Generation**: Standardized template-based approach for all generated libraries.
+
+### Improved
+- **MongoDB Repository Support**: Enhanced MongoDB repository generation with better document handling
+- **Authentication Service Refinement**: Renamed auth service to authn for clarity and improved configuration loading
+- **Code Generation Pipeline**: More robust template processing with better error handling
+
 ## [2025-10-15] - Authentication Service Implementation
 
 ### Added

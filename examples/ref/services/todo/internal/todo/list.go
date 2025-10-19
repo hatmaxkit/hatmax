@@ -10,14 +10,14 @@ import (
 // List is the aggregate root for the List domain.
 type List struct {
 	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
 	Description string    `json:"description"`
+	Name        string    `json:"name"`
 	CreatedAt   time.Time `json:"created_at"`
 	CreatedBy   string    `json:"created_by"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	UpdatedBy   string    `json:"updated_by"`
-	Items       []Item    `json:"items"`
 	Tags        []Tag     `json:"tags"`
+	Items       []Item    `json:"items"`
 }
 
 // GetID returns the ID of the List (implements Identifiable interface).
