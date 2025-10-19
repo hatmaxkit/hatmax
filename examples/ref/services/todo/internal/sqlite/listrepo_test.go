@@ -91,7 +91,7 @@ func createTestTables(db *sql.DB) error {
 		CREATE TABLE tags (
 			id TEXT PRIMARY KEY,
 			List_id TEXT NOT NULL,
-			-- TODO: Add proper column definitions for color, name
+			-- TODO: Add proper column definitions for name, color
 			name TEXT,
 			color TEXT,
 			text TEXT,

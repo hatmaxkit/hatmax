@@ -560,7 +560,7 @@ func shouldGenerateAuthLibrary(config Config) bool {
 	return true
 }
 
-// generateAuthLibrary copies the static auth library and updates module path
+// generateAuthLibrary generates the auth library using templates
 func generateAuthLibrary(outputDir string, config Config, tmplFS fs.FS) error {
 	// Create the auth library directory at monorepo level
 	authDir := filepath.Join(outputDir, "pkg", "lib", "auth")
@@ -568,50 +568,155 @@ func generateAuthLibrary(outputDir string, config Config, tmplFS fs.FS) error {
 		return fmt.Errorf("cannot create auth library directory: %w", err)
 	}
 
-	// Copy all files from assets/static/pkg/lib/auth directory
-	staticAuthDir := "assets/static/pkg/lib/auth"
-	err := filepath.Walk(staticAuthDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		// Read file content
-		content, err := os.ReadFile(path)
-		if err != nil {
-			return fmt.Errorf("cannot read static file %s: %w", path, err)
-		}
-
-		// Replace module path placeholder
-		authModulePath := "github.com/adrianpk/hatmax-" + filepath.Base(outputDir) + "/pkg/lib/auth"
-		if config.Package != "" {
-			authModulePath = config.Package + "/pkg/lib/auth"
-		}
-
-		updatedContent := strings.ReplaceAll(string(content), "github.com/username/repo/pkg/lib/auth", authModulePath)
-
-		// Get relative path from static dir
-		relPath, err := filepath.Rel(staticAuthDir, path)
-		if err != nil {
-			return fmt.Errorf("cannot get relative path: %w", err)
-		}
-
-		// Write file to destination
-		destPath := filepath.Join(authDir, relPath)
-		if err := os.WriteFile(destPath, []byte(updatedContent), 0o644); err != nil {
-			return fmt.Errorf("cannot write auth file %s: %w", destPath, err)
-		}
-
-		logCreated(destPath)
-		return nil
-	})
-
-	if err != nil {
-		return fmt.Errorf("error copying static auth library: %w", err)
+	// Generate go.mod for the auth library module
+	if err := generateAuthGoMod(outputDir, config); err != nil {
+		return fmt.Errorf("cannot generate auth go.mod: %w", err)
 	}
+
+	// Get templates filesystem
+	templateFS, err := fs.Sub(tmplFS, "assets/templates")
+	if err != nil {
+		return fmt.Errorf("cannot create templates sub-filesystem: %w", err)
+	}
+
+	// Generate each auth library file
+	authFileMapping := map[string]string{
+		"auth_authzhelper.tmpl":      "authzhelper.go",
+		"auth_authzhelper_test.tmpl": "authzhelper_test.go",
+		"auth_crypto.tmpl":           "crypto.go",
+		"auth_crypto_test.tmpl":      "crypto_test.go",
+		"auth_errors.tmpl":           "errors.go",
+		"auth_permissions.tmpl":      "permissions.go",
+		"auth_permissions_test.tmpl": "permissions_test.go",
+		"auth_policies.tmpl":         "policies.go",
+		"auth_policies_test.tmpl":    "policies_test.go",
+		"auth_tokens.tmpl":           "tokens.go",
+		"auth_tokens_test.tmpl":      "tokens_test.go",
+		"auth_types.tmpl":            "types.go",
+		"auth_validation.tmpl":       "validation.go",
+		"auth_validation_test.tmpl":  "validation_test.go",
+	}
+
+	// Generate each auth library file
+	for templateFile, outputFile := range authFileMapping {
+		tmpl, err := template.ParseFS(templateFS, templateFile)
+		if err != nil {
+			return fmt.Errorf("cannot parse template %s: %w", templateFile, err)
+		}
+
+		filePath := filepath.Join(authDir, outputFile)
+		if err := executeTemplate(tmpl, filePath, nil); err != nil {
+			return fmt.Errorf("cannot generate auth file %s: %w", outputFile, err)
+		}
+
+		logCreated(filePath)
+	}
+
+	return nil
+}
+
+// generateAuthGoMod generates a go.mod file for the auth library module
+func generateAuthGoMod(outputDir string, config Config) error {
+	// Use the package field from config for the auth library module
+	authModulePath := "github.com/adrianpk/hatmax-" + filepath.Base(outputDir) + "/pkg/lib/auth"
+	if config.Package != "" {
+		authModulePath = config.Package + "/pkg/lib/auth"
+	}
+
+	// Create auth library go.mod with all necessary dependencies
+	goModContent := fmt.Sprintf(`module %s
+
+go 1.23
+
+require (
+	github.com/google/uuid v1.6.0
+)
+`, authModulePath)
+
+	// Write go.mod to the auth library directory
+	authDir := filepath.Join(outputDir, "pkg", "lib", "auth")
+	goModPath := filepath.Join(authDir, "go.mod")
+	if err := os.WriteFile(goModPath, []byte(goModContent), 0o644); err != nil {
+		return fmt.Errorf("cannot write auth go.mod: %w", err)
+	}
+	logCreated(goModPath)
+
+	return nil
+}
+
+// generateFakeLibrary generates the fake library using templates
+func generateFakeLibrary(outputDir string, config Config, tmplFS fs.FS) error {
+	// Create the fake library directory at monorepo level
+	fakeDir := filepath.Join(outputDir, "pkg", "lib", "fake")
+	if err := os.MkdirAll(fakeDir, 0o755); err != nil {
+		return fmt.Errorf("cannot create fake library directory: %w", err)
+	}
+
+	// Generate go.mod for the fake library module
+	if err := generateFakeGoMod(outputDir, config); err != nil {
+		return fmt.Errorf("cannot generate fake go.mod: %w", err)
+	}
+
+	// Get templates filesystem
+	templateFS, err := fs.Sub(tmplFS, "assets/templates")
+	if err != nil {
+		return fmt.Errorf("cannot create templates sub-filesystem: %w", err)
+	}
+
+	// Generate each fake library file
+	fakeFileMapping := map[string]string{
+		"fake_grantrepo.tmpl":      "grantrepo.go",
+		"fake_grantrepo_test.tmpl": "grantrepo_test.go",
+		"fake_logger.tmpl":         "logger.go",
+		"fake_logger_test.tmpl":    "logger_test.go",
+		"fake_rolerepo.tmpl":       "rolerepo.go",
+		"fake_rolerepo_test.tmpl":  "rolerepo_test.go",
+		"fake_types.tmpl":          "types.go",
+	}
+
+	// Generate each fake library file
+	for templateFile, outputFile := range fakeFileMapping {
+		tmpl, err := template.ParseFS(templateFS, templateFile)
+		if err != nil {
+			return fmt.Errorf("cannot parse template %s: %w", templateFile, err)
+		}
+
+		filePath := filepath.Join(fakeDir, outputFile)
+		if err := executeTemplate(tmpl, filePath, nil); err != nil {
+			return fmt.Errorf("cannot generate fake file %s: %w", outputFile, err)
+		}
+
+		logCreated(filePath)
+	}
+
+	return nil
+}
+
+// generateFakeGoMod generates a go.mod file for the fake library module
+func generateFakeGoMod(outputDir string, config Config) error {
+	// Use the package field from config for the fake library module
+	fakeModulePath := "github.com/adrianpk/hatmax-" + filepath.Base(outputDir) + "/pkg/lib/fake"
+	if config.Package != "" {
+		fakeModulePath = config.Package + "/pkg/lib/fake"
+	}
+
+	// Create fake library go.mod with all necessary dependencies
+	goModContent := fmt.Sprintf(`module %s
+
+go 1.23
+
+require (
+	github.com/google/uuid v1.6.0
+)
+`, fakeModulePath)
+
+	// Write go.mod to the fake library directory
+	fakeDir := filepath.Join(outputDir, "pkg", "lib", "fake")
+	goModPath := filepath.Join(fakeDir, "go.mod")
+	if err := os.WriteFile(goModPath, []byte(goModContent), 0o644); err != nil {
+		return fmt.Errorf("cannot write fake go.mod: %w", err)
+	}
+	logCreated(goModPath)
 
 	return nil
 }
@@ -760,58 +865,3 @@ func generateAuthzService(outputDir string, config Config, tmplFS fs.FS) error {
 	return nil
 }
 
-// generateFakeLibrary copies the static fake library and updates module paths
-func generateFakeLibrary(outputDir string, config Config, tmplFS fs.FS) error {
-	// Create the fake library directory at monorepo level
-	fakeDir := filepath.Join(outputDir, "pkg", "lib", "fake")
-	if err := os.MkdirAll(fakeDir, 0o755); err != nil {
-		return fmt.Errorf("cannot create fake library directory: %w", err)
-	}
-
-	// Copy all files from assets/static/pkg/lib/fake directory
-	staticFakeDir := "assets/static/pkg/lib/fake"
-	err := filepath.Walk(staticFakeDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		// Read file content
-		content, err := os.ReadFile(path)
-		if err != nil {
-			return fmt.Errorf("cannot read static file %s: %w", path, err)
-		}
-
-		// Replace module path placeholders
-		fakeModulePath := "github.com/adrianpk/hatmax-" + filepath.Base(outputDir) + "/pkg/lib/fake"
-		if config.Package != "" {
-			fakeModulePath = config.Package + "/pkg/lib/fake"
-		}
-
-		updatedContent := strings.ReplaceAll(string(content), "github.com/username/repo/pkg/lib/fake", fakeModulePath)
-
-		// Get relative path from static dir
-		relPath, err := filepath.Rel(staticFakeDir, path)
-		if err != nil {
-			return fmt.Errorf("cannot get relative path: %w", err)
-		}
-
-		// Write file to destination
-		destPath := filepath.Join(fakeDir, relPath)
-		if err := os.WriteFile(destPath, []byte(updatedContent), 0o644); err != nil {
-			return fmt.Errorf("cannot write fake file %s: %w", destPath, err)
-		}
-
-		logCreated(destPath)
-	return nil
-	})
-
-	if err != nil {
-		return fmt.Errorf("error copying static fake library: %w", err)
-	}
-
-	return nil
-}

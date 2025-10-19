@@ -15,8 +15,8 @@ type User struct {
 	PasswordHash []byte
 	PasswordSalt []byte
 	MFASecretCT  []byte
-	CreatedAt    time.Time
 	Status       UserStatus
+	CreatedAt    time.Time
 }
 
 type UserStatus string
