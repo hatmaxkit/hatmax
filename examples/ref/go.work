@@ -1,11 +1,10 @@
-go 1.24.0
-
-toolchain go1.24.7
+go 1.24.7
 
 use (
 	./pkg/lib/auth
 	./pkg/lib/core
 	./pkg/lib/fake
+	./services/admin
 	./services/authn
 	./services/authz
 	./services/todo

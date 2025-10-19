@@ -5,7 +5,7 @@ BINARY_NAME=hatmax
 APP_DIR=examples/ref
 OUTPUT_DIR=examples/ref/services
 SERVICE_NAME?=todo
-PORT?=8080
+PORT?=8085
 
 # Go related commands
 GOFUMPT=gofumpt
@@ -182,18 +182,21 @@ run-all:
 	@echo "🏗️  Regenerating monorepo..."
 	@$(MAKE) run
 	@echo "🚀 Starting services..."
+	@echo "   📦 Building and starting Admin..."
+	@cd $(APP_DIR)/services/admin && make build >/dev/null 2>&1 && nohup make run > admin.log 2>&1 & ADMIN_PID=$$!; echo $$ADMIN_PID > admin.pid; sleep 3; if ps -p $$ADMIN_PID >/dev/null 2>&1; then echo "✅ Admin started on port 8081 (PID: $$ADMIN_PID)"; else echo "❌ Admin failed to start"; fi
 	@echo "   📦 Building and starting AuthN..."
 	@cd $(APP_DIR)/services/authn && direnv allow >/dev/null 2>&1 || true && make build >/dev/null 2>&1 && nohup make run > authn.log 2>&1 & AUTHN_PID=$$!; echo $$AUTHN_PID > authn.pid; sleep 3; if ps -p $$AUTHN_PID >/dev/null 2>&1; then echo "✅ AuthN started on port 8082 (PID: $$AUTHN_PID)"; else echo "❌ AuthN failed to start"; fi
 	@echo "   📦 Building and starting AuthZ..."
 	@cd $(APP_DIR)/services/authz && direnv allow >/dev/null 2>&1 || true && make build >/dev/null 2>&1 && nohup make run > authz.log 2>&1 & AUTHZ_PID=$$!; echo $$AUTHZ_PID > authz.pid; sleep 3; if ps -p $$AUTHZ_PID >/dev/null 2>&1; then echo "✅ AuthZ started on port 8083 (PID: $$AUTHZ_PID)"; else echo "❌ AuthZ failed to start"; fi
 	@echo "   📦 Building and starting Todo..."
-	@cd $(APP_DIR)/services/todo && make build >/dev/null 2>&1 && nohup make run > todo.log 2>&1 & TODO_PID=$$!; echo $$TODO_PID > todo.pid; sleep 3; if ps -p $$TODO_PID >/dev/null 2>&1; then echo "✅ Todo started on port 8080 (PID: $$TODO_PID)"; else echo "❌ Todo failed to start"; fi
+	@cd $(APP_DIR)/services/todo && make build >/dev/null 2>&1 && nohup make run > todo.log 2>&1 & TODO_PID=$$!; echo $$TODO_PID > todo.pid; sleep 3; if ps -p $$TODO_PID >/dev/null 2>&1; then echo "✅ Todo started on port 8085 (PID: $$TODO_PID)"; else echo "❌ Todo failed to start"; fi
 	@echo ""
 	@echo "🎉 All services started!"
 	@echo "📡 Services running:"
+	@echo "   • Admin: http://localhost:8081 (system administration)"
 	@echo "   • AuthN: http://localhost:8082 (authentication)"
 	@echo "   • AuthZ: http://localhost:8083 (authorization)"
-	@echo "   • Todo:  http://localhost:8080 (business logic)"
+	@echo "   • Todo:  http://localhost:8085 (business logic)"
 	@echo ""
 	@echo "📁 Test scripts available:"
 	@echo "   • AuthN: scripts/curl/authn/"
@@ -210,7 +213,7 @@ stop-all:
 			lsof -ti:$$port | xargs -r kill -9 || true; \
 		fi; \
 	done
-	@for service in authn authz todo; do \
+	@for service in admin authn authz todo; do \
 		for pid_file in $(APP_DIR)/services/$$service/$$service.pid; do \
 			if [ -f "$$pid_file" ]; then \
 				pid=$$(cat "$$pid_file"); \

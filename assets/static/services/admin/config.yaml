@@ -1,0 +1,14 @@
+server:
+  port: ":8081"
+
+services:
+  authn_url: "http://localhost:8081"
+  authz_url: "http://localhost:8082"
+  estate_url: "http://localhost:8083"
+
+auth:
+  cache_ttl: "5m"
+  session_secret: "change-this-in-production"
+
+log:
+  level: "info"

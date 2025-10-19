@@ -122,9 +122,16 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 		logSuccess("Authz service generated successfully")
 	}
 
+	// Generate admin service (always generate for system administration)
+	logStep("Generating admin service...")
+	if err := generateAdminService(outputDir, config, tmplFS); err != nil {
+		return fmt.Errorf("error generating admin service: %w", err)
+	}
+	logSuccess("Admin service generated successfully")
+
 	for serviceName := range config.Services {
-		// Skip authn and authz services - they're generated statically
-		if serviceName == "authn" || serviceName == "authz" {
+		// Skip authn, authz, and admin services - they're generated statically
+		if serviceName == "authn" || serviceName == "authz" || serviceName == "admin" {
 			continue
 		}
 		
@@ -296,6 +303,67 @@ func GenerateAction(c *cli.Context, tmplFS fs.FS) error {
 	return nil
 }
 
+// generateAdminService copies the static admin service and updates module paths
+func generateAdminService(outputDir string, config Config, tmplFS fs.FS) error {
+	// Create the admin service directory
+	adminServiceDir := filepath.Join(outputDir, "services", "admin")
+	if err := os.MkdirAll(adminServiceDir, 0o755); err != nil {
+		return fmt.Errorf("cannot create admin service directory: %w", err)
+	}
+
+	// Copy all files from assets/static/services/admin directory
+	staticAdminServiceDir := "assets/static/services/admin"
+	err := filepath.Walk(staticAdminServiceDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		// Read file content
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("cannot read static file %s: %w", path, err)
+		}
+
+		// Replace module path placeholders
+		baseModulePath := "github.com/adrianpk/hatmax-" + filepath.Base(outputDir)
+		if config.Package != "" {
+			baseModulePath = config.Package
+		}
+
+		updatedContent := strings.ReplaceAll(string(content), "github.com/adrianpk/hatmax-ref", baseModulePath)
+
+		// Get relative path from static dir
+		relPath, err := filepath.Rel(staticAdminServiceDir, path)
+		if err != nil {
+			return fmt.Errorf("cannot get relative path: %w", err)
+		}
+
+		// Write file to destination
+		destPath := filepath.Join(adminServiceDir, relPath)
+		// Create directory if needed
+		if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
+			return fmt.Errorf("cannot create directory %s: %w", filepath.Dir(destPath), err)
+		}
+
+		if err := os.WriteFile(destPath, []byte(updatedContent), 0o644); err != nil {
+			return fmt.Errorf("cannot write admin service file %s: %w", destPath, err)
+		}
+
+		logCreated(destPath)
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("error copying static admin service: %w", err)
+	}
+
+	return nil
+}
+
 func copyConfigToMonorepoRoot(configFile, outputDir string) error {
 	content, err := os.ReadFile(configFile)
 	if err != nil {
@@ -411,6 +479,8 @@ func generateMonorepoCoreLibrary(outputDir string, config Config, tmplFS fs.FS) 
 		"core_model.tmpl":      "model.go",
 		"core_response.tmpl":   "response.go",
 		"core_validation.tmpl": "validation.go",
+		"core_fileserver.tmpl": "fileserver.go",
+		"core_template.tmpl":   "template.go",
 	}
 
 	// Generate each core library file
@@ -463,20 +533,20 @@ func generateCoreGoMod(outputDir string, config Config) error {
 
 go 1.23
 
-	require (
-		github.com/gertd/go-pluralize v0.2.1
-		github.com/go-chi/chi/v5 v5.2.3
-		github.com/google/uuid v1.6.0
-		github.com/knadh/koanf/parsers/yaml v1.1.0
-		github.com/knadh/koanf/providers/env v1.1.0
-		github.com/knadh/koanf/providers/file v1.0.0
-		github.com/knadh/koanf/providers/posflag v1.0.1
-		github.com/knadh/koanf/providers/rawbytes v1.0.0
-		github.com/knadh/koanf/v2 v2.3.0
-		github.com/mattn/go-sqlite3 v1.14.32
-		github.com/spf13/pflag v1.0.10
-		go.mongodb.org/mongo-driver v1.17.4
-	)
+require (
+	github.com/gertd/go-pluralize v0.2.1
+	github.com/go-chi/chi/v5 v5.2.3
+	github.com/google/uuid v1.6.0
+	github.com/knadh/koanf/parsers/yaml v1.1.0
+	github.com/knadh/koanf/providers/env v1.1.0
+	github.com/knadh/koanf/providers/file v1.0.0
+	github.com/knadh/koanf/providers/posflag v1.0.1
+	github.com/knadh/koanf/providers/rawbytes v1.0.0
+	github.com/knadh/koanf/v2 v2.3.0
+	github.com/mattn/go-sqlite3 v1.14.32
+	github.com/spf13/pflag v1.0.10
+	go.mongodb.org/mongo-driver v1.17.4
+)
 `, coreModulePath)
 
 	// Write go.mod to the core library directory
@@ -504,6 +574,9 @@ func generateMonorepoWorkspace(outputDir string, config Config) error {
 
 	// Always include fake library for testing
 	workspaceBuilder.WriteString("\t./pkg/lib/fake\n")
+
+	// Always include admin service for system administration
+	workspaceBuilder.WriteString("\t./services/admin\n")
 
 	for serviceName := range config.Services {
 		workspaceBuilder.WriteString(fmt.Sprintf("\t./services/%s\n", serviceName))
@@ -581,20 +654,21 @@ func generateAuthLibrary(outputDir string, config Config, tmplFS fs.FS) error {
 
 	// Generate each auth library file
 	authFileMapping := map[string]string{
-		"auth_authzhelper.tmpl":      "authzhelper.go",
-		"auth_authzhelper_test.tmpl": "authzhelper_test.go",
-		"auth_crypto.tmpl":           "crypto.go",
-		"auth_crypto_test.tmpl":      "crypto_test.go",
-		"auth_errors.tmpl":           "errors.go",
-		"auth_permissions.tmpl":      "permissions.go",
-		"auth_permissions_test.tmpl": "permissions_test.go",
-		"auth_policies.tmpl":         "policies.go",
-		"auth_policies_test.tmpl":    "policies_test.go",
-		"auth_tokens.tmpl":           "tokens.go",
-		"auth_tokens_test.tmpl":      "tokens_test.go",
-		"auth_types.tmpl":            "types.go",
-		"auth_validation.tmpl":       "validation.go",
-		"auth_validation_test.tmpl":  "validation_test.go",
+		"auth_authzhelper.tmpl":         "authzhelper.go",
+		"auth_authzhelper_test.tmpl":    "authzhelper_test.go",
+		"auth_crypto.tmpl":              "crypto.go",
+		"auth_crypto_test.tmpl":         "crypto_test.go",
+		"auth_errors.tmpl":              "errors.go",
+		"auth_permissions.tmpl":         "permissions.go",
+		"auth_permissions_registry.tmpl": "permissions_registry.go",
+		"auth_permissions_test.tmpl":    "permissions_test.go",
+		"auth_policies.tmpl":            "policies.go",
+		"auth_policies_test.tmpl":       "policies_test.go",
+		"auth_tokens.tmpl":              "tokens.go",
+		"auth_tokens_test.tmpl":         "tokens_test.go",
+		"auth_types.tmpl":               "types.go",
+		"auth_validation.tmpl":          "validation.go",
+		"auth_validation_test.tmpl":     "validation_test.go",
 	}
 
 	// Generate each auth library file

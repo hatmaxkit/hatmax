@@ -9,8 +9,8 @@ import (
 // Item is a child of an aggregate root.
 type Item struct {
 	ID        uuid.UUID `json:"id"`
-	Text      string    `json:"text"`
 	Done      bool      `json:"done"`
+	Text      string    `json:"text"`
 	CreatedAt time.Time `json:"created_at"`
 	CreatedBy string    `json:"created_by"`
 	UpdatedAt time.Time `json:"updated_at"`
