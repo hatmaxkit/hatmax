@@ -452,7 +452,7 @@ func (r *ListSQLiteRepo) insertTags(ctx context.Context, tx *sql.Tx, rootID uuid
 		return nil
 	}
 
-	query := `INSERT INTO tags (id, List_id, color, name, created_at, updated_at) VALUES {{.Placeholders}}`
+	query := `INSERT INTO tags (id, List_id, name, color, created_at, updated_at) VALUES {{.Placeholders}}`
 
 	var args []interface{}
 	var placeholders []string
@@ -462,7 +462,7 @@ func (r *ListSQLiteRepo) insertTags(ctx context.Context, tx *sql.Tx, rootID uuid
 		item.BeforeCreate()
 
 		placeholders = append(placeholders, "(?, ?, ?, ?, ?, ?)")
-		args = append(args, item.GetID().String(), rootID.String(), item.Color, item.Name, item.CreatedAt, item.UpdatedAt)
+		args = append(args, item.GetID().String(), rootID.String(), item.Name, item.Color, item.CreatedAt, item.UpdatedAt)
 	}
 
 	finalQuery := strings.Replace(query, "{{.Placeholders}}", strings.Join(placeholders, ", "), 1)
@@ -475,7 +475,7 @@ func (r *ListSQLiteRepo) getTags(ctx context.Context, rootID uuid.UUID) ([]todo.
 }
 
 func (r *ListSQLiteRepo) getTagsWithTx(ctx context.Context, tx *sql.Tx, rootID uuid.UUID) ([]todo.Tag, error) {
-	query := `SELECT id, color, name, created_at, updated_at FROM tags WHERE List_id = ? ORDER BY created_at`
+	query := `SELECT id, name, color, created_at, updated_at FROM tags WHERE List_id = ? ORDER BY created_at`
 
 	var rows *sql.Rows
 	var err error
@@ -497,7 +497,7 @@ func (r *ListSQLiteRepo) getTagsWithTx(ctx context.Context, tx *sql.Tx, rootID u
 		var item todo.Tag
 		var idStr string
 
-		err := rows.Scan(&idStr, &item.Color, &item.Name, &item.CreatedAt, &item.UpdatedAt)
+		err := rows.Scan(&idStr, &item.Name, &item.Color, &item.CreatedAt, &item.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -573,8 +573,8 @@ func (r *ListSQLiteRepo) updateTags(ctx context.Context, tx *sql.Tx, items []tod
 	for _, item := range items {
 		item.BeforeUpdate()
 
-		query := `UPDATE tags SET color = ?, name = ?, updated_at = ? WHERE id = ?`
-		_, err := tx.ExecContext(ctx, query, item.Color, item.Name, item.UpdatedAt, item.GetID().String())
+		query := `UPDATE tags SET name = ?, color = ?, updated_at = ? WHERE id = ?`
+		_, err := tx.ExecContext(ctx, query, item.Name, item.Color, item.UpdatedAt, item.GetID().String())
 		if err != nil {
 			return fmt.Errorf("error update item %s: %w", item.GetID().String(), err)
 		}
