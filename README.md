@@ -22,7 +22,6 @@ HatMax is built to help you reason clearly and maintain your systems over time, 
 - **Standard library first:** everything starts with Go’s stdlib and code you own. When a well-established alternative exists, HatMax may offer it as an optional implementation, allowing you to choose the approach that best fits you.
 - **Transparent code:** generated services are plain Go, readable and modifiable, with no hidden layers or reflection magic.
 
-
 From a single declarative spec, HatMax produces:
 - The full monorepo structure.
 - Boilerplate for each service: models, repositories, handlers, and application layers
@@ -40,3 +39,9 @@ For detailed information about HatMax's objectives, see [Goals](docs/goals.md).
 ![Admin Dashboard](docs/img/gallery/admin-dashboard.png)
 
 See more in the [Gallery](docs/gallery.md).
+
+---
+
+## Note
+
+It turns out that building a generator also requires building, in parallel, a reference implementation. In this case, it is based on the careful extraction of patterns that have emerged in different personal and commercial projects I have worked on. That process introduces some friction, so I decided to focus on a separate repository, [Pulap](https://github.com/pulap/pulap), which serves as a reference implementation. The intention is not to wait until Pulap is fully complete before bringing updates into HatMax, which would make little sense, but rather to integrate them in batches, each representing a clearly implemented piece of functionality. Several of these updates are pending push and will be published soon.
