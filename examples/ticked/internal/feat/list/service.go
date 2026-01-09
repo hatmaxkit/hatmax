@@ -4,20 +4,24 @@ import (
 	"context"
 	"errors"
 
+	"github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/audit"
 	"github.com/hatmaxkit/hatmax/log"
+	"github.com/hatmaxkit/hatmax/pubsub"
 )
 
 // Service provides todo list business logic.
 type Service struct {
-	store Store
-	log   log.Logger
+	store     Store
+	publisher pubsub.Publisher
+	log       log.Logger
 }
 
 // NewService creates a new list service.
-func NewService(store Store, log log.Logger) *Service {
+func NewService(store Store, publisher pubsub.Publisher, log log.Logger) *Service {
 	return &Service{
-		store: store,
-		log:   log,
+		store:     store,
+		publisher: publisher,
+		log:       log,
 	}
 }
 
@@ -54,6 +58,7 @@ func (s *Service) AddItem(ctx context.Context, userID, text string) (*TodoItem, 
 		return nil, err
 	}
 
+	s.publishEvent(ctx, "todo.item.added", userID, item.ItemID, map[string]string{"title": text})
 	s.log.Infof("added item %s to list for user %s", item.ItemID, userID)
 	return item, nil
 }
@@ -74,6 +79,9 @@ func (s *Service) ToggleItem(ctx context.Context, userID, itemID string) (*TodoI
 		return nil, err
 	}
 
+	if item.Completed {
+		s.publishEvent(ctx, "todo.item.completed", userID, itemID, nil)
+	}
 	s.log.Infof("toggled item %s for user %s", itemID, userID)
 	return item, nil
 }
@@ -93,6 +101,7 @@ func (s *Service) RemoveItem(ctx context.Context, userID, itemID string) error {
 		return err
 	}
 
+	s.publishEvent(ctx, "todo.item.removed", userID, itemID, nil)
 	s.log.Infof("removed item %s from list for user %s", itemID, userID)
 	return nil
 }
@@ -115,4 +124,26 @@ func (s *Service) UpdateItem(ctx context.Context, userID, itemID, text string) (
 	item, _ := list.GetItem(itemID)
 	s.log.Infof("updated item %s for user %s", itemID, userID)
 	return item, nil
+}
+
+func (s *Service) publishEvent(ctx context.Context, eventType, userID, itemID string, extra map[string]string) {
+	if s.publisher == nil {
+		return
+	}
+
+	payload := map[string]string{
+		"event_type": eventType,
+		"item_id":    itemID,
+	}
+	for k, v := range extra {
+		payload[k] = v
+	}
+
+	env := pubsub.NewEnvelope(audit.Topic, payload).
+		WithMetadata("user_id", userID).
+		WithMetadata("source", "hatmax")
+
+	if err := s.publisher.Publish(ctx, audit.Topic, env); err != nil {
+		s.log.Errorf("cannot publish audit event: %v", err)
+	}
 }

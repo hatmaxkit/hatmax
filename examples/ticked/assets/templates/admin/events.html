@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/ticked.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="nav-left">
+            <a href="/list" class="nav-brand">Ticked</a>
+            <a href="/admin" class="nav-link">Admin</a>
+        </div>
+        <div class="nav-right">
+            <span class="nav-user">{{.UserEmail}}</span>
+            <form hx-post="/signout" hx-target="body" hx-swap="innerHTML" style="display: inline; margin: 0;">
+                <button type="submit" class="btn-link">Sign Out</button>
+            </form>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <h1>Audit Events</h1>
+
+        <div class="events-list">
+            {{range .Events}}
+            <div class="event-row">
+                <span class="event-time">{{.CreatedAt.Format "15:04:05"}}</span>
+                <span class="event-type"><span class="badge badge-event">{{.EventType}}</span></span>
+                <span class="event-item-id" title="{{.ItemID}}">{{if .ItemID}}{{.ItemID}}{{else}}-{{end}}</span>
+                <span class="event-source"><span class="badge badge-role">{{.Source}}</span></span>
+            </div>
+            {{else}}
+            <div class="empty-state">No events recorded yet.</div>
+            {{end}}
+        </div>
+
+        <div class="back-link">
+            <a href="/admin">&larr; Back to Dashboard</a>
+        </div>
+    </main>
+
+    <button type="button" id="theme-toggle" title="Toggle theme (Alt+D)">🌙</button>
+    <script src="/static/ticked.js"></script>
+</body>
+</html>

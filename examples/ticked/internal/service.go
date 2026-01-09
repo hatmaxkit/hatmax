@@ -12,11 +12,13 @@ import (
 	"github.com/hatmaxkit/hatmax/config"
 	"github.com/hatmaxkit/hatmax/db"
 	adminfeat "github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/admin"
+	auditfeat "github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/audit"
 	authfeat "github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/auth"
 	listfeat "github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/list"
 	"github.com/hatmaxkit/hatmax/examples/ticked/internal/sqlcgen"
 	"github.com/hatmaxkit/hatmax/log"
 	"github.com/hatmaxkit/hatmax/middleware"
+	"github.com/hatmaxkit/hatmax/pubsub/postgres"
 	"github.com/hatmaxkit/hatmax/web"
 )
 
@@ -27,8 +29,10 @@ type Service struct {
 	log      log.Logger
 	database *db.Database
 	tmplMgr  *web.TemplateManager
+	broker   *postgres.Broker
 
 	authSvc      *auth.Service
+	auditSvc     *auditfeat.Service
 	authHandler  *authfeat.Handler
 	listHandler  *listfeat.Handler
 	adminHandler *adminfeat.Handler
@@ -58,17 +62,30 @@ func (s *Service) Start(ctx context.Context) error {
 		return err
 	}
 
+	// Create and start pubsub broker
+	s.broker = postgres.NewBroker(s.database.GetDB(), postgres.DefaultConfig(), s.log)
+	if err := s.broker.Start(ctx); err != nil {
+		return err
+	}
+
 	sqlcQueries := sqlcgen.New(s.database.GetDB())
+
+	// Create audit service and start subscription
+	auditStore := auditfeat.NewPostgresStore(s.database.GetDB())
+	s.auditSvc = auditfeat.NewService(s.broker, auditStore, s.log)
+	if err := s.auditSvc.Start(ctx); err != nil {
+		return err
+	}
 
 	authQueries := authfeat.NewQueries(sqlcQueries)
 	s.authSvc = auth.NewService(authQueries, s.cfg, s.log)
 
 	listStore := listfeat.NewPostgresStore(s.database.GetDB())
-	listSvc := listfeat.NewService(listStore, s.log)
+	listSvc := listfeat.NewService(listStore, s.broker, s.log)
 
 	s.authHandler = authfeat.NewHandler(s.authSvc, authQueries, s.tmplMgr, s.log)
 	s.listHandler = listfeat.NewHandler(listSvc, s.tmplMgr, s.log)
-	s.adminHandler = adminfeat.NewHandler(authQueries, s.tmplMgr, s.log)
+	s.adminHandler = adminfeat.NewHandler(authQueries, auditStore, s.tmplMgr, s.log)
 
 	s.log.Info("Service started successfully")
 	return nil
@@ -76,6 +93,12 @@ func (s *Service) Start(ctx context.Context) error {
 
 // Stop gracefully shuts down the service.
 func (s *Service) Stop(ctx context.Context) error {
+	if s.broker != nil {
+		if err := s.broker.Close(); err != nil {
+			s.log.Errorf("broker close error: %v", err)
+		}
+	}
+
 	if err := s.database.Stop(ctx); err != nil {
 		s.log.Errorf("database stop error: %v", err)
 	}

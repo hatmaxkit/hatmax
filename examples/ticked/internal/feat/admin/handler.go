@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	hatmaxAuth "github.com/hatmaxkit/hatmax/auth"
+	"github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/audit"
 	tickedAuth "github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/auth"
 	"github.com/hatmaxkit/hatmax/log"
 	"github.com/hatmaxkit/hatmax/web"
@@ -14,17 +15,19 @@ import (
 
 // Handler handles admin HTTP requests.
 type Handler struct {
-	queries *tickedAuth.Queries
-	tmpl    *web.TemplateManager
-	log     log.Logger
+	queries    *tickedAuth.Queries
+	auditStore audit.Store
+	tmpl       *web.TemplateManager
+	log        log.Logger
 }
 
 // NewHandler creates a new admin handler.
-func NewHandler(queries *tickedAuth.Queries, tmpl *web.TemplateManager, log log.Logger) *Handler {
+func NewHandler(queries *tickedAuth.Queries, auditStore audit.Store, tmpl *web.TemplateManager, log log.Logger) *Handler {
 	return &Handler{
-		queries: queries,
-		tmpl:    tmpl,
-		log:     log,
+		queries:    queries,
+		auditStore: auditStore,
+		tmpl:       tmpl,
+		log:        log,
 	}
 }
 
@@ -35,6 +38,7 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 	r.Get("/admin/users/{userID}", h.handleUserDetail)
 	r.Post("/admin/users/{userID}/roles", h.handleUpdateRoles)
 	r.Post("/admin/users/{userID}/toggle", h.handleToggleActive)
+	r.Get("/admin/events", h.handleListEvents)
 }
 
 func (h *Handler) handleDashboard(w http.ResponseWriter, r *http.Request) {
@@ -153,4 +157,22 @@ func (h *Handler) handleToggleActive(w http.ResponseWriter, r *http.Request) {
 	// HTMX redirect back to user detail
 	w.Header().Set("HX-Redirect", "/admin/users/"+userID)
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) handleListEvents(w http.ResponseWriter, r *http.Request) {
+	currentUser, _ := hatmaxAuth.GetUser(r.Context())
+
+	events, err := h.auditStore.List(r.Context(), 100)
+	if err != nil {
+		h.log.Errorf("list events failed: %v", err)
+		http.Error(w, "Failed to load events", http.StatusInternalServerError)
+		return
+	}
+
+	data := map[string]interface{}{
+		"Title":     "Audit Events - Ticked Admin",
+		"UserEmail": currentUser.Email,
+		"Events":    events,
+	}
+	h.tmpl.Render(w, "admin", "events", data)
 }
