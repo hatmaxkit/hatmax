@@ -11,7 +11,7 @@ import (
 var migrateTestAssetsFS embed.FS
 
 func TestNewMigrator(t *testing.T) {
-	log := logger.NewLogger("error")
+	logger := log.NewTestLogger("error")
 
 	tests := []struct {
 		name   string
@@ -29,7 +29,7 @@ func TestNewMigrator(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			migrator := newMigrator(migrateTestAssetsFS, tt.engine, log)
+			migrator := newMigrator(migrateTestAssetsFS, tt.engine, logger)
 
 			if migrator == nil {
 				t.Error("expected migrator to be created")
@@ -43,8 +43,8 @@ func TestNewMigrator(t *testing.T) {
 }
 
 func TestMigratorSetPath(t *testing.T) {
-	log := logger.NewLogger("error")
-	migrator := newMigrator(migrateTestAssetsFS, "postgres", log)
+	logger := log.NewTestLogger("error")
+	migrator := newMigrator(migrateTestAssetsFS, "postgres", logger)
 
 	tests := []struct {
 		name string
@@ -72,8 +72,8 @@ func TestMigratorSetPath(t *testing.T) {
 }
 
 func TestMigratorLoadFileMigrations(t *testing.T) {
-	log := logger.NewLogger("error")
-	migrator := newMigrator(migrateTestAssetsFS, "postgres", log)
+	logger := log.NewTestLogger("error")
+	migrator := newMigrator(migrateTestAssetsFS, "postgres", logger)
 	migrator.setPath("testdata/migration/postgres")
 
 	migrations, err := migrator.loadFileMigrations()
@@ -100,8 +100,8 @@ func TestMigratorLoadFileMigrations(t *testing.T) {
 }
 
 func TestMigratorLoadFileMigrationsOrdering(t *testing.T) {
-	log := logger.NewLogger("error")
-	migrator := newMigrator(migrateTestAssetsFS, "postgres", log)
+	logger := log.NewTestLogger("error")
+	migrator := newMigrator(migrateTestAssetsFS, "postgres", logger)
 	migrator.setPath("testdata/migration/postgres")
 
 	migrations, err := migrator.loadFileMigrations()
@@ -118,8 +118,8 @@ func TestMigratorLoadFileMigrationsOrdering(t *testing.T) {
 }
 
 func TestMigratorFindPendingMigrations(t *testing.T) {
-	log := logger.NewLogger("error")
-	migrator := newMigrator(migrateTestAssetsFS, "postgres", log)
+	logger := log.NewTestLogger("error")
+	migrator := newMigrator(migrateTestAssetsFS, "postgres", logger)
 
 	fileMigrations := []Migration{
 		{Datetime: "20250101", Name: "create-users"},
@@ -147,8 +147,8 @@ func TestMigratorFindPendingMigrations(t *testing.T) {
 }
 
 func TestMigratorFindPendingMigrationsNone(t *testing.T) {
-	log := logger.NewLogger("error")
-	migrator := newMigrator(migrateTestAssetsFS, "postgres", log)
+	logger := log.NewTestLogger("error")
+	migrator := newMigrator(migrateTestAssetsFS, "postgres", logger)
 
 	fileMigrations := []Migration{
 		{Datetime: "20250101", Name: "create-users"},

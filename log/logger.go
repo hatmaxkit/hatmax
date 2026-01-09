@@ -1,10 +1,12 @@
-package logger
+package log
 
 import (
 	"fmt"
 	"log/slog"
 	"os"
 	"strings"
+
+	"github.com/hatmaxkit/hatmax/config"
 )
 
 // LogLevel represents the severity level for logging.
@@ -32,12 +34,23 @@ type slogLogger struct {
 	logLevel LogLevel
 }
 
-// NewLogger creates a logger with the specified level.
+// NewLogger creates a logger from configuration.
+// Reads log level from cfg.Log.Level.
 // Accepts: "debug", "dbg", "info", "inf", "error", "err" (case-insensitive).
 // Defaults to InfoLevel if level string is unrecognized.
 // Output format is JSON if LOG_FORMAT=json, otherwise human-readable text.
-func NewLogger(logLevelStr string) Logger {
-	level := parseLevel(logLevelStr)
+func NewLogger(cfg *config.Config) Logger {
+	return newLoggerWithLevel(cfg.Log.Level)
+}
+
+// NewTestLogger creates a logger with the specified level string.
+// For use in tests where a full config is not needed.
+func NewTestLogger(levelStr string) Logger {
+	return newLoggerWithLevel(levelStr)
+}
+
+func newLoggerWithLevel(levelStr string) Logger {
+	level := parseLevel(levelStr)
 
 	var handler slog.Handler
 	if os.Getenv("LOG_FORMAT") == "json" {

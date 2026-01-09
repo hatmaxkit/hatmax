@@ -38,11 +38,11 @@ type Queries interface {
 type Service struct {
 	queries Queries
 	cfg     *config.Config
-	log     logger.Logger
+	log     log.Logger
 }
 
 // NewService creates a new auth service.
-func NewService(queries Queries, cfg *config.Config, log logger.Logger) *Service {
+func NewService(queries Queries, cfg *config.Config, log log.Logger) *Service {
 	return &Service{
 		queries: queries,
 		cfg:     cfg,

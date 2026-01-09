@@ -125,6 +125,10 @@ HatMax is focused on single-binary applications with straightforward patterns:
 - **Authorization** - Core auth primitives as building blocks
 - **Interface** - Standard HTTP handlers and middleware
 
+## Gallery
+
+See the [Gallery](docs/gallery.md) for visual examples of the HatMax design system and the ticked reference implementation.
+
 ## Development
 
 ### Running Tests

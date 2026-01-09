@@ -104,8 +104,8 @@ func (m *mockQueries) DeleteExpiredSessions(ctx context.Context) error {
 func TestSignup(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
-	log := logger.NewNoopLogger()
-	svc := NewService(queries, cfg, log)
+	logger := log.NewTestLogger("error")
+	svc := NewService(queries, cfg, logger)
 
 	tests := []struct {
 		name      string
@@ -186,8 +186,8 @@ func TestSignup(t *testing.T) {
 func TestSignin(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
-	log := logger.NewNoopLogger()
-	svc := NewService(queries, cfg, log)
+	logger := log.NewTestLogger("error")
+	svc := NewService(queries, cfg, logger)
 
 	// Create a test user
 	user, _ := svc.Signup(context.Background(), "test@example.com", "password123")
@@ -257,8 +257,8 @@ func TestSignin(t *testing.T) {
 func TestSigninInactiveUser(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
-	log := logger.NewNoopLogger()
-	svc := NewService(queries, cfg, log)
+	logger := log.NewTestLogger("error")
+	svc := NewService(queries, cfg, logger)
 
 	// Create a test user and mark as inactive
 	user, _ := svc.Signup(context.Background(), "inactive@example.com", "password123")
@@ -274,8 +274,8 @@ func TestSigninInactiveUser(t *testing.T) {
 func TestSignout(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
-	log := logger.NewNoopLogger()
-	svc := NewService(queries, cfg, log)
+	logger := log.NewTestLogger("error")
+	svc := NewService(queries, cfg, logger)
 
 	// Create a test user and session
 	_, _ = svc.Signup(context.Background(), "test@example.com", "password123")
@@ -329,8 +329,8 @@ func TestSignout(t *testing.T) {
 func TestValidateSession(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
-	log := logger.NewNoopLogger()
-	svc := NewService(queries, cfg, log)
+	logger := log.NewTestLogger("error")
+	svc := NewService(queries, cfg, logger)
 
 	// Create a test user and session
 	user, _ := svc.Signup(context.Background(), "test@example.com", "password123")
@@ -402,8 +402,8 @@ func TestValidateSession(t *testing.T) {
 func TestValidateSessionInactiveUser(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
-	log := logger.NewNoopLogger()
-	svc := NewService(queries, cfg, log)
+	logger := log.NewTestLogger("error")
+	svc := NewService(queries, cfg, logger)
 
 	// Create a test user and session
 	user, _ := svc.Signup(context.Background(), "test@example.com", "password123")
@@ -422,8 +422,8 @@ func TestValidateSessionInactiveUser(t *testing.T) {
 func TestGetUserByID(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
-	log := logger.NewNoopLogger()
-	svc := NewService(queries, cfg, log)
+	logger := log.NewTestLogger("error")
+	svc := NewService(queries, cfg, logger)
 
 	// Create a test user
 	user, _ := svc.Signup(context.Background(), "test@example.com", "password123")
@@ -478,8 +478,8 @@ func TestGetUserByID(t *testing.T) {
 func TestCleanupExpiredSessions(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
-	log := logger.NewNoopLogger()
-	svc := NewService(queries, cfg, log)
+	logger := log.NewTestLogger("error")
+	svc := NewService(queries, cfg, logger)
 
 	// Create a test user
 	user, _ := svc.Signup(context.Background(), "test@example.com", "password123")

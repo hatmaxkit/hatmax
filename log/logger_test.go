@@ -1,4 +1,4 @@
-package logger
+package log
 
 import (
 	"bytes"
@@ -60,7 +60,7 @@ func TestToSlogLevel(t *testing.T) {
 	}
 }
 
-func TestNewLogger(t *testing.T) {
+func TestNewTestLogger(t *testing.T) {
 	tests := []struct {
 		name      string
 		level     string
@@ -74,10 +74,10 @@ func TestNewLogger(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			logger := NewLogger(tt.level)
+			logger := NewTestLogger(tt.level)
 			slogLogger, ok := logger.(*slogLogger)
 			if !ok {
-				t.Fatal("NewLogger did not return *slogLogger")
+				t.Fatal("NewTestLogger did not return *slogLogger")
 			}
 			if slogLogger.logLevel != tt.wantLevel {
 				t.Errorf("logLevel = %v, want %v", slogLogger.logLevel, tt.wantLevel)

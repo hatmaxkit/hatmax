@@ -13,8 +13,8 @@ import (
 func TestRequireAuth(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
-	log := logger.NewNoopLogger()
-	svc := NewService(queries, cfg, log)
+	logger := log.NewTestLogger("error")
+	svc := NewService(queries, cfg, logger)
 
 	// Create a test user and session
 	_, _ = svc.Signup(context.Background(), "test@example.com", "password123")
@@ -96,8 +96,8 @@ func TestRequireAuth(t *testing.T) {
 func TestOptionalAuth(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
-	log := logger.NewNoopLogger()
-	svc := NewService(queries, cfg, log)
+	logger := log.NewTestLogger("error")
+	svc := NewService(queries, cfg, logger)
 
 	// Create a test user and session
 	_, _ = svc.Signup(context.Background(), "test@example.com", "password123")

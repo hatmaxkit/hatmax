@@ -173,8 +173,8 @@ func TestStartSuccess(t *testing.T) {
 	registrars := []RouteRegistrar{comp1, comp2}
 	r := chi.NewRouter()
 
-	log := logger.NewNoopLogger()
-	err := Start(context.Background(), log, starts, stops, registrars, r)
+	logger := log.NewTestLogger("error")
+	err := Start(context.Background(), logger, starts, stops, registrars, r)
 
 	if err != nil {
 		t.Errorf("expected no error, got %v", err)
@@ -208,8 +208,8 @@ func TestStartWithFirstComponentFailure(t *testing.T) {
 	}
 
 	r := chi.NewRouter()
-	log := logger.NewNoopLogger()
-	err := Start(context.Background(), log, starts, stops, nil, r)
+	logger := log.NewTestLogger("error")
+	err := Start(context.Background(), logger, starts, stops, nil, r)
 
 	if err != testErr {
 		t.Errorf("expected error %v, got %v", testErr, err)
@@ -243,8 +243,8 @@ func TestStartWithSecondComponentFailure(t *testing.T) {
 	}
 
 	r := chi.NewRouter()
-	log := logger.NewNoopLogger()
-	err := Start(context.Background(), log, starts, stops, nil, r)
+	logger := log.NewTestLogger("error")
+	err := Start(context.Background(), logger, starts, stops, nil, r)
 
 	if err != testErr {
 		t.Errorf("expected error %v, got %v", testErr, err)
@@ -279,8 +279,8 @@ func TestStartWithRollbackFailure(t *testing.T) {
 	}
 
 	r := chi.NewRouter()
-	log := logger.NewNoopLogger()
-	err := Start(context.Background(), log, starts, stops, nil, r)
+	logger := log.NewTestLogger("error")
+	err := Start(context.Background(), logger, starts, stops, nil, r)
 
 	if err != testErr {
 		t.Errorf("expected error %v, got %v", testErr, err)
@@ -303,11 +303,11 @@ func TestShutdown(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	log := logger.NewNoopLogger()
+	logger := log.NewTestLogger("error")
 
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		Shutdown(srv.Config, log, stops)
+		Shutdown(srv.Config, logger, stops)
 	}()
 
 	time.Sleep(200 * time.Millisecond)
@@ -348,8 +348,8 @@ func TestShutdownStopsInReverseOrder(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	log := logger.NewNoopLogger()
-	Shutdown(srv.Config, log, stops)
+	logger := log.NewTestLogger("error")
+	Shutdown(srv.Config, logger, stops)
 
 	expectedOrder := []int{3, 2, 1}
 	if len(stopOrder) != len(expectedOrder) {
@@ -376,8 +376,8 @@ func TestShutdownWithStopError(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	log := logger.NewNoopLogger()
-	Shutdown(srv.Config, log, stops)
+	logger := log.NewTestLogger("error")
+	Shutdown(srv.Config, logger, stops)
 
 	if !comp2.stopped.Load() {
 		t.Error("expected comp2 to be stopped despite comp1 error")

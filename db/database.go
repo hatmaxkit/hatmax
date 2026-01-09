@@ -6,6 +6,7 @@ import (
 	"embed"
 	"fmt"
 
+	"github.com/hatmaxkit/hatmax/config"
 	"github.com/hatmaxkit/hatmax/log"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -18,24 +19,18 @@ type Database struct {
 	connectionString string
 	schema           string
 	migrationPath    string
-	log              logger.Logger
+	log              log.Logger
 }
 
-// Config holds database configuration.
-type Config struct {
-	ConnectionString string
-	Schema           string
-}
-
-// New creates a new Database instance.
+// New creates a new Database instance from configuration.
 // The engine parameter specifies the database type (e.g., "postgres").
 // Migrations will be loaded from assets/migration/{engine}/ by default.
-func New(assetsFS embed.FS, engine string, cfg Config, log logger.Logger) *Database {
+func New(assetsFS embed.FS, engine string, cfg *config.Config, log log.Logger) *Database {
 	return &Database{
 		assetsFS:         assetsFS,
 		engine:           engine,
-		connectionString: cfg.ConnectionString,
-		schema:           cfg.Schema,
+		connectionString: cfg.Database.ConnectionString(),
+		schema:           cfg.Database.Schema,
 		log:              log,
 	}
 }

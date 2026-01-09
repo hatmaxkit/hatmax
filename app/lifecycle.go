@@ -57,7 +57,7 @@ func Setup(ctx context.Context, r chi.Router, comps ...any) (
 //
 // This ensures transactional-like behavior: either all components start successfully
 // or none remain running.
-func Start(ctx context.Context, log logger.Logger, starts []func(context.Context) error, stops []func(context.Context) error, registrars []RouteRegistrar, router chi.Router) error {
+func Start(ctx context.Context, log log.Logger, starts []func(context.Context) error, stops []func(context.Context) error, registrars []RouteRegistrar, router chi.Router) error {
 	for i, start := range starts {
 		if err := start(ctx); err != nil {
 			log.Errorf("error starting component #%d: %v", i, err)
@@ -97,7 +97,7 @@ func Serve(router chi.Router, port string) error {
 //
 // This ensures proper cleanup cascade: server stops accepting requests,
 // then components clean up in reverse dependency order.
-func Shutdown(srv *http.Server, log logger.Logger, stops []func(context.Context) error) {
+func Shutdown(srv *http.Server, log log.Logger, stops []func(context.Context) error) {
 	log.Info("Shutting down gracefully, press Ctrl+C again to force")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/env"
@@ -19,6 +20,7 @@ type Config struct {
 	Server   ServerConfig   `koanf:"server"`
 	Database DatabaseConfig `koanf:"database"`
 	Auth     AuthConfig     `koanf:"auth"`
+	PubSub   PubSubConfig   `koanf:"pubsub"`
 }
 
 // LogConfig holds logging configuration.
@@ -50,6 +52,23 @@ type AuthConfig struct {
 	BCryptCost     int    `koanf:"bcrypt_cost"`
 }
 
+// PubSubConfig holds pub/sub configuration.
+type PubSubConfig struct {
+	Enabled      bool   `koanf:"enabled"`
+	PollInterval string `koanf:"poll_interval"`
+	BatchSize    int    `koanf:"batch_size"`
+}
+
+// PollIntervalDuration parses the PollInterval string as a duration.
+// Returns 100ms if parsing fails.
+func (c PubSubConfig) PollIntervalDuration() time.Duration {
+	d, err := time.ParseDuration(c.PollInterval)
+	if err != nil {
+		return 100 * time.Millisecond
+	}
+	return d
+}
+
 // New creates a new Config with sensible defaults.
 func New() *Config {
 	return &Config{
@@ -73,6 +92,11 @@ func New() *Config {
 			SessionTTL:     "24h",
 			PasswordMinLen: 8,
 			BCryptCost:     12,
+		},
+		PubSub: PubSubConfig{
+			Enabled:      false,
+			PollInterval: "100ms",
+			BatchSize:    100,
 		},
 	}
 }
@@ -110,6 +134,9 @@ func Load(path, envPrefix string, args []string) (*Config, error) {
 	fs.String("auth.session_ttl", "24h", "Session TTL")
 	fs.Int("auth.password_min_len", 8, "Minimum password length")
 	fs.Int("auth.bcrypt_cost", 12, "BCrypt cost factor")
+	fs.Bool("pubsub.enabled", false, "Enable pub/sub")
+	fs.String("pubsub.poll_interval", "100ms", "Pub/sub poll interval")
+	fs.Int("pubsub.batch_size", 100, "Pub/sub batch size")
 	fs.Parse(args[1:])
 
 	raw, err := os.ReadFile(path)

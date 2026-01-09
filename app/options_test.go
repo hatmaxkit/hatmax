@@ -134,8 +134,8 @@ func TestMultipleOptionsIntegration(t *testing.T) {
 }
 
 func TestNewRouter(t *testing.T) {
-	log := logger.NewLogger("error")
-	r := NewRouter(log, WithPing(), WithDebugRoutes())
+	logger := log.NewTestLogger("error")
+	r := NewRouter(logger, WithPing(), WithDebugRoutes())
 
 	// Test that ping endpoint works
 	req := httptest.NewRequest(http.MethodGet, "/ping", nil)

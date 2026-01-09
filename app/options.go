@@ -13,7 +13,7 @@ import (
 type RouterOption func(chi.Router) error
 
 // NewRouter creates a new chi router with the provided options applied.
-func NewRouter(log logger.Logger, opts ...RouterOption) chi.Router {
+func NewRouter(log log.Logger, opts ...RouterOption) chi.Router {
 	r := chi.NewRouter()
 
 	for _, opt := range opts {
