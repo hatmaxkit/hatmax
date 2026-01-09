@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/ticked.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="nav-left">
+            <a href="/list" class="nav-brand">Ticked</a>
+        </div>
+        <div class="nav-right">
+            <span class="nav-user">{{.UserEmail}}</span>
+            <form hx-post="/signout" hx-target="body" hx-swap="innerHTML" style="display: inline; margin: 0;">
+                <button type="submit" class="btn-link">Sign Out</button>
+            </form>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <h1>My Todo List</h1>
+
+        <form id="add-item-form"
+              hx-post="/list/items"
+              hx-target="#items-list"
+              hx-swap="afterbegin"
+              hx-on::after-request="this.reset()"
+              class="add-form">
+            <input type="text" name="text" placeholder="What needs to be done?" required autofocus maxlength="500">
+            <button type="submit" class="btn-primary">Add</button>
+        </form>
+
+        <div id="items-list" class="items-list">
+            {{range .Items}}
+                {{template "assets/templates/todos/item.html" .}}
+            {{else}}
+                <div class="empty-state">No items yet. Add one above!</div>
+            {{end}}
+        </div>
+    </main>
+
+    <button type="button" id="theme-toggle" title="Toggle theme (Alt+D)">🌙</button>
+    <script src="/static/ticked.js"></script>
+</body>
+</html>

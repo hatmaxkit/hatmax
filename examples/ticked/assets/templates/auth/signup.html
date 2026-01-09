@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/ticked.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h1>Sign Up for Ticked</h1>
+
+            <div class="note">
+                <p>The first user to sign up will be granted admin privileges.</p>
+            </div>
+
+            {{if .Error}}
+            <div class="error">{{.Error}}</div>
+            {{end}}
+
+            <form hx-post="/signup" hx-target="body" hx-swap="innerHTML">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="email@example.com" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required minlength="8">
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required minlength="8">
+                </div>
+
+                <button type="submit" class="btn-primary">Sign Up</button>
+            </form>
+
+            <p class="auth-link">
+                Already have an account? <a href="/signin">Sign in</a>
+            </p>
+        </div>
+    </div>
+
+    <button type="button" id="theme-toggle" title="Toggle theme (Alt+D)">🌙</button>
+    <script src="/static/ticked.js"></script>
+</body>
+</html>

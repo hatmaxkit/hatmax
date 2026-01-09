@@ -1,0 +1,20 @@
+log:
+  level: info
+
+server:
+  port: ":8080"
+  host: localhost
+
+database:
+  host: localhost
+  port: 5432
+  user: dev
+  password: dev
+  database: tickedhm
+  sslmode: disable
+  schema: public
+
+auth:
+  session_ttl: "24h"
+  password_min_len: 8
+  bcrypt_cost: 12

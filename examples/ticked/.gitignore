@@ -1,0 +1,6 @@
+# Binary
+ticked
+
+# Runtime files
+*.log
+*.pid

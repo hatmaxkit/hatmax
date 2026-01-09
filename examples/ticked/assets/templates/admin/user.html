@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/ticked.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="nav-left">
+            <a href="/list" class="nav-brand">Ticked</a>
+            <a href="/admin" class="nav-link">Admin</a>
+        </div>
+        <div class="nav-right">
+            <span class="nav-user">{{.UserEmail}}</span>
+            <form hx-post="/signout" hx-target="body" hx-swap="innerHTML" style="display: inline; margin: 0;">
+                <button type="submit" class="btn-link">Sign Out</button>
+            </form>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <h1>User Details</h1>
+
+        <div class="user-detail-card">
+            <div class="detail-row">
+                <span class="detail-label">ID:</span>
+                <span class="detail-value">{{.User.ID}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Email:</span>
+                <span class="detail-value">{{.User.Email}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span class="detail-value">
+                    {{if .User.Active}}
+                    <span class="badge badge-active">Active</span>
+                    {{else}}
+                    <span class="badge badge-inactive">Inactive</span>
+                    {{end}}
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Roles:</span>
+                <span class="detail-value">
+                    {{if .User.Roles}}
+                        {{range .User.Roles}}<span class="badge badge-role">{{.}}</span> {{end}}
+                    {{else}}
+                        <span class="text-muted">No roles assigned</span>
+                    {{end}}
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Created:</span>
+                <span class="detail-value">{{.User.CreatedAt.Format "2006-01-02 15:04:05"}}</span>
+            </div>
+        </div>
+
+        <div class="user-actions-panel">
+            <h2>Manage Roles</h2>
+            <form hx-post="/admin/users/{{.User.ID}}/roles" hx-target="body" hx-swap="innerHTML">
+                <div class="form-group">
+                    <label for="roles">Roles (comma-separated):</label>
+                    <input type="text" id="roles" name="roles" value="{{.RolesString}}" placeholder="admin, user">
+                </div>
+                <button type="submit" class="btn-primary">Update Roles</button>
+            </form>
+
+            <h2>Account Status</h2>
+            <form hx-post="/admin/users/{{.User.ID}}/toggle" hx-target="body" hx-swap="innerHTML">
+                {{if .User.Active}}
+                <button type="submit" class="btn-danger">Deactivate User</button>
+                {{else}}
+                <button type="submit" class="btn-success">Activate User</button>
+                {{end}}
+            </form>
+        </div>
+
+        <div class="back-link">
+            <a href="/admin/users">&larr; Back to Users</a>
+        </div>
+    </main>
+
+    <button type="button" id="theme-toggle" title="Toggle theme (Alt+D)">🌙</button>
+    <script src="/static/ticked.js"></script>
+</body>
+</html>
