@@ -3,7 +3,7 @@
 //   sqlc v1.30.0
 // source: users.sql
 
-package sqlcgen
+package dal
 
 import (
 	"context"

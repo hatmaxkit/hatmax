@@ -21,30 +21,48 @@ type Migration struct {
 	Down     string
 }
 
-// Migrator handles database migrations with version tracking.
-type Migrator struct {
-	db       *sql.DB
-	log      log.Logger
-	assetsFS embed.FS
-	engine   string
-	path     string
+// DBProvider provides access to a database connection.
+type DBProvider interface {
+	GetDB() *sql.DB
 }
 
-// newMigrator creates a new Migrator.
-func newMigrator(assetsFS embed.FS, engine string, log log.Logger) *Migrator {
+// Migrator handles database migrations with version tracking.
+type Migrator struct {
+	dbProvider DBProvider
+	db         *sql.DB
+	log        log.Logger
+	assetsFS   embed.FS
+	engine     string
+	path       string
+}
+
+// NewMigrator creates a new Migrator.
+func NewMigrator(dbProvider DBProvider, assetsFS embed.FS, engine string, log log.Logger) *Migrator {
 	return &Migrator{
-		assetsFS: assetsFS,
-		engine:   engine,
-		log:      log,
+		dbProvider: dbProvider,
+		assetsFS:   assetsFS,
+		engine:     engine,
+		log:        log,
 	}
 }
 
-func (m *Migrator) setDB(db *sql.DB) {
-	m.db = db
+// SetPath sets a custom migration path.
+func (m *Migrator) SetPath(path string) {
+	m.path = path
 }
 
-func (m *Migrator) setPath(path string) {
-	m.path = path
+// Start runs pending migrations.
+func (m *Migrator) Start(ctx context.Context) error {
+	m.db = m.dbProvider.GetDB()
+	if m.db == nil {
+		return fmt.Errorf("database connection not available")
+	}
+	return m.run(ctx)
+}
+
+// Stop is a no-op for Migrator.
+func (m *Migrator) Stop(ctx context.Context) error {
+	return nil
 }
 
 // run executes pending migrations in order.

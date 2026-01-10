@@ -37,10 +37,17 @@ type subscription struct {
 	done       chan struct{}
 }
 
+// DBProvider provides access to the database connection.
+// This allows the broker to be created before the database is started.
+type DBProvider interface {
+	GetDB() *sql.DB
+}
+
 // Broker implements pubsub.Broker using PostgreSQL.
 // Messages are stored in an append-only table and delivered via polling.
 // Each subscriber maintains its own offset for fan-out semantics.
 type Broker struct {
+	dbProvider    DBProvider
 	db            *sql.DB
 	cfg           Config
 	log           log.Logger
@@ -50,10 +57,10 @@ type Broker struct {
 }
 
 // NewBroker creates a new PostgreSQL-backed pubsub broker.
-// The db parameter should be an open connection to PostgreSQL.
-func NewBroker(db *sql.DB, cfg Config, log log.Logger) *Broker {
+// The dbProvider should provide access to an open PostgreSQL connection.
+func NewBroker(dbProvider DBProvider, cfg Config, log log.Logger) *Broker {
 	return &Broker{
-		db:            db,
+		dbProvider:    dbProvider,
 		cfg:           cfg,
 		log:           log.With("component", "pubsub"),
 		subscriptions: make(map[string]*subscription),
@@ -63,6 +70,10 @@ func NewBroker(db *sql.DB, cfg Config, log log.Logger) *Broker {
 // Start initializes the pubsub schema.
 // Implements app.Startable interface.
 func (b *Broker) Start(ctx context.Context) error {
+	b.db = b.dbProvider.GetDB()
+	if b.db == nil {
+		return fmt.Errorf("database connection not available")
+	}
 	if _, err := b.db.ExecContext(ctx, Schema); err != nil {
 		return fmt.Errorf("cannot create pubsub schema: %w", err)
 	}

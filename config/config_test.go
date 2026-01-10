@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 func TestNew(t *testing.T) {
@@ -311,5 +312,44 @@ auth:
 
 	if cfg.Auth.BCryptCost != 14 {
 		t.Errorf("Auth.BCryptCost = %d, want 14", cfg.Auth.BCryptCost)
+	}
+}
+
+func TestPollIntervalDuration(t *testing.T) {
+	tests := []struct {
+		name     string
+		interval string
+		want     time.Duration
+	}{
+		{
+			name:     "valid duration 200ms",
+			interval: "200ms",
+			want:     200 * time.Millisecond,
+		},
+		{
+			name:     "valid duration 1s",
+			interval: "1s",
+			want:     1 * time.Second,
+		},
+		{
+			name:     "invalid duration returns default",
+			interval: "invalid",
+			want:     100 * time.Millisecond,
+		},
+		{
+			name:     "empty duration returns default",
+			interval: "",
+			want:     100 * time.Millisecond,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := PubSubConfig{PollInterval: tt.interval}
+			got := cfg.PollIntervalDuration()
+			if got != tt.want {
+				t.Errorf("PollIntervalDuration() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

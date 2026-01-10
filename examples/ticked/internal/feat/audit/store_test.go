@@ -2,18 +2,26 @@ package audit
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
 	"github.com/hatmaxkit/hatmax/testhelper"
 )
 
+type fakeDBProvider struct {
+	db *sql.DB
+}
+
+func (f *fakeDBProvider) GetDB() *sql.DB {
+	return f.db
+}
+
 func setupTestStore(t *testing.T) (*PostgresStore, func()) {
 	t.Helper()
 
 	db, _, cleanup := testhelper.SetupTestDB(t)
 
-	// Create audit_log table
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS audit_log (
 			id TEXT PRIMARY KEY,
@@ -29,7 +37,11 @@ func setupTestStore(t *testing.T) (*PostgresStore, func()) {
 		t.Fatalf("cannot create audit_log table: %v", err)
 	}
 
-	store := NewPostgresStore(db)
+	dbProvider := &fakeDBProvider{db: db}
+	store := NewPostgresStore(dbProvider)
+	if err := store.Start(context.Background()); err != nil {
+		t.Fatalf("cannot start store: %v", err)
+	}
 	return store, cleanup
 }
 

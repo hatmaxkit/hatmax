@@ -11,20 +11,17 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-// Database wraps a sql.DB connection with lifecycle management and migrations.
+// Database wraps a sql.DB connection with lifecycle management.
 type Database struct {
 	DB               *sql.DB
 	assetsFS         embed.FS
 	engine           string
 	connectionString string
 	schema           string
-	migrationPath    string
 	log              log.Logger
 }
 
 // New creates a new Database instance from configuration.
-// The engine parameter specifies the database type (e.g., "postgres").
-// Migrations will be loaded from assets/migration/{engine}/ by default.
 func New(assetsFS embed.FS, engine string, cfg *config.Config, log log.Logger) *Database {
 	return &Database{
 		assetsFS:         assetsFS,
@@ -35,14 +32,7 @@ func New(assetsFS embed.FS, engine string, cfg *config.Config, log log.Logger) *
 	}
 }
 
-// SetMigrationPath sets a custom migration path.
-// If not set, defaults to assets/migration/{engine}/
-func (d *Database) SetMigrationPath(path string) {
-	d.migrationPath = path
-}
-
-// Start opens the database connection, verifies connectivity, and runs migrations.
-// Implements app.Startable interface.
+// Start opens the database connection and verifies connectivity.
 func (d *Database) Start(ctx context.Context) error {
 	db, err := sql.Open("pgx", d.connectionString)
 	if err != nil {
@@ -59,15 +49,6 @@ func (d *Database) Start(ctx context.Context) error {
 
 	if err := d.ensureSchema(ctx); err != nil {
 		return fmt.Errorf("cannot ensure schema: %w", err)
-	}
-
-	migrator := newMigrator(d.assetsFS, d.engine, d.log)
-	migrator.setDB(d.DB)
-	if d.migrationPath != "" {
-		migrator.setPath(d.migrationPath)
-	}
-	if err := migrator.run(ctx); err != nil {
-		return fmt.Errorf("cannot run migrations: %w", err)
 	}
 
 	return nil

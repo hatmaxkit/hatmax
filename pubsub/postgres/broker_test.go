@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"sync"
 	"testing"
@@ -11,11 +12,24 @@ import (
 	"github.com/hatmaxkit/hatmax/testhelper"
 )
 
+// testDBProvider wraps *sql.DB to implement DBProvider for tests.
+type testDBProvider struct {
+	db *sql.DB
+}
+
+func (t *testDBProvider) GetDB() *sql.DB {
+	return t.db
+}
+
+func wrapDB(db *sql.DB) DBProvider {
+	return &testDBProvider{db: db}
+}
+
 func TestBrokerStartCreatesSchema(t *testing.T) {
 	db, _, cleanup := testhelper.SetupTestDB(t)
 	defer cleanup()
 
-	broker := NewBroker(db, DefaultConfig(), testhelper.TestLogger())
+	broker := NewBroker(wrapDB(db), DefaultConfig(), testhelper.TestLogger())
 
 	ctx := context.Background()
 	if err := broker.Start(ctx); err != nil {
@@ -40,7 +54,7 @@ func TestBrokerPublishStoresMessage(t *testing.T) {
 	db, _, cleanup := testhelper.SetupTestDB(t)
 	defer cleanup()
 
-	broker := NewBroker(db, DefaultConfig(), testhelper.TestLogger())
+	broker := NewBroker(wrapDB(db), DefaultConfig(), testhelper.TestLogger())
 	ctx := context.Background()
 
 	if err := broker.Start(ctx); err != nil {
@@ -72,7 +86,7 @@ func TestBrokerSubscribeDeliversMessages(t *testing.T) {
 	cfg := DefaultConfig()
 	cfg.PollInterval = 10 * time.Millisecond // Speed up for tests
 
-	broker := NewBroker(db, cfg, testhelper.TestLogger())
+	broker := NewBroker(wrapDB(db), cfg, testhelper.TestLogger())
 	ctx := context.Background()
 
 	if err := broker.Start(ctx); err != nil {
@@ -126,7 +140,7 @@ func TestBrokerFanOut(t *testing.T) {
 	cfg := DefaultConfig()
 	cfg.PollInterval = 10 * time.Millisecond
 
-	broker := NewBroker(db, cfg, testhelper.TestLogger())
+	broker := NewBroker(wrapDB(db), cfg, testhelper.TestLogger())
 	ctx := context.Background()
 
 	if err := broker.Start(ctx); err != nil {
@@ -179,7 +193,7 @@ func TestBrokerDifferentTopics(t *testing.T) {
 	cfg := DefaultConfig()
 	cfg.PollInterval = 10 * time.Millisecond
 
-	broker := NewBroker(db, cfg, testhelper.TestLogger())
+	broker := NewBroker(wrapDB(db), cfg, testhelper.TestLogger())
 	ctx := context.Background()
 
 	if err := broker.Start(ctx); err != nil {
@@ -229,7 +243,7 @@ func TestBrokerNamedSubscriberResumes(t *testing.T) {
 	ctx := context.Background()
 
 	// First broker instance
-	broker1 := NewBroker(db, cfg, testhelper.TestLogger())
+	broker1 := NewBroker(wrapDB(db), cfg, testhelper.TestLogger())
 	if err := broker1.Start(ctx); err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
@@ -250,7 +264,7 @@ func TestBrokerNamedSubscriberResumes(t *testing.T) {
 	broker1.Close()
 
 	// Second broker instance (simulating restart)
-	broker2 := NewBroker(db, cfg, testhelper.TestLogger())
+	broker2 := NewBroker(wrapDB(db), cfg, testhelper.TestLogger())
 	if err := broker2.Start(ctx); err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
@@ -288,7 +302,7 @@ func TestBrokerEphemeralSubscriberGetsNewID(t *testing.T) {
 	cfg := DefaultConfig()
 	cfg.PollInterval = 10 * time.Millisecond
 
-	broker := NewBroker(db, cfg, testhelper.TestLogger())
+	broker := NewBroker(wrapDB(db), cfg, testhelper.TestLogger())
 	ctx := context.Background()
 
 	if err := broker.Start(ctx); err != nil {
@@ -318,7 +332,7 @@ func TestBrokerDuplicateSubscriberIDFails(t *testing.T) {
 	db, _, cleanup := testhelper.SetupTestDB(t)
 	defer cleanup()
 
-	broker := NewBroker(db, DefaultConfig(), testhelper.TestLogger())
+	broker := NewBroker(wrapDB(db), DefaultConfig(), testhelper.TestLogger())
 	ctx := context.Background()
 
 	if err := broker.Start(ctx); err != nil {
@@ -347,7 +361,7 @@ func TestBrokerPublishAfterCloseFails(t *testing.T) {
 	db, _, cleanup := testhelper.SetupTestDB(t)
 	defer cleanup()
 
-	broker := NewBroker(db, DefaultConfig(), testhelper.TestLogger())
+	broker := NewBroker(wrapDB(db), DefaultConfig(), testhelper.TestLogger())
 	ctx := context.Background()
 
 	if err := broker.Start(ctx); err != nil {
@@ -366,7 +380,7 @@ func TestBrokerSubscribeAfterCloseFails(t *testing.T) {
 	db, _, cleanup := testhelper.SetupTestDB(t)
 	defer cleanup()
 
-	broker := NewBroker(db, DefaultConfig(), testhelper.TestLogger())
+	broker := NewBroker(wrapDB(db), DefaultConfig(), testhelper.TestLogger())
 	ctx := context.Background()
 
 	if err := broker.Start(ctx); err != nil {
@@ -387,7 +401,7 @@ func TestBrokerStopMethod(t *testing.T) {
 	db, _, cleanup := testhelper.SetupTestDB(t)
 	defer cleanup()
 
-	broker := NewBroker(db, DefaultConfig(), testhelper.TestLogger())
+	broker := NewBroker(wrapDB(db), DefaultConfig(), testhelper.TestLogger())
 	ctx := context.Background()
 
 	if err := broker.Start(ctx); err != nil {
@@ -403,7 +417,7 @@ func TestBrokerCloseIdempotent(t *testing.T) {
 	db, _, cleanup := testhelper.SetupTestDB(t)
 	defer cleanup()
 
-	broker := NewBroker(db, DefaultConfig(), testhelper.TestLogger())
+	broker := NewBroker(wrapDB(db), DefaultConfig(), testhelper.TestLogger())
 	ctx := context.Background()
 
 	if err := broker.Start(ctx); err != nil {
@@ -426,7 +440,7 @@ func TestBrokerHandlerError(t *testing.T) {
 	cfg := DefaultConfig()
 	cfg.PollInterval = 10 * time.Millisecond
 
-	broker := NewBroker(db, cfg, testhelper.TestLogger())
+	broker := NewBroker(wrapDB(db), cfg, testhelper.TestLogger())
 	ctx := context.Background()
 
 	if err := broker.Start(ctx); err != nil {
@@ -464,7 +478,7 @@ func TestBrokerWithMetadata(t *testing.T) {
 	cfg := DefaultConfig()
 	cfg.PollInterval = 10 * time.Millisecond
 
-	broker := NewBroker(db, cfg, testhelper.TestLogger())
+	broker := NewBroker(wrapDB(db), cfg, testhelper.TestLogger())
 	ctx := context.Background()
 
 	if err := broker.Start(ctx); err != nil {

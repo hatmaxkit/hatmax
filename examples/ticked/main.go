@@ -10,10 +10,17 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hatmaxkit/hatmax/app"
+	"github.com/hatmaxkit/hatmax/auth"
 	"github.com/hatmaxkit/hatmax/config"
-	"github.com/hatmaxkit/hatmax/examples/ticked/internal"
+	"github.com/hatmaxkit/hatmax/db"
+	auditfeat "github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/audit"
+	authfeat "github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/auth"
+	listfeat "github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/list"
+	tickedweb "github.com/hatmaxkit/hatmax/examples/ticked/internal/web"
 	"github.com/hatmaxkit/hatmax/log"
 	"github.com/hatmaxkit/hatmax/middleware"
+	"github.com/hatmaxkit/hatmax/pubsub/postgres"
+	"github.com/hatmaxkit/hatmax/web"
 )
 
 //go:embed assets/*
@@ -40,15 +47,33 @@ func main() {
 	router.Use(middleware.DefaultStack()...)
 	app.ApplyRouterOptions(router, app.WithPing(), app.WithDebugRoutes())
 
-	var deps []any
+	database := db.New(assetsFS, "postgres", cfg, logger)
+	migrator := db.NewMigrator(database, assetsFS, "postgres", logger)
+	tmplMgr := web.NewTemplateManager(assetsFS, logger)
+	broker := postgres.NewBroker(database, postgres.DefaultConfig(), logger)
 
-	svc, err := internal.New(assetsFS, cfg, logger)
-	if err != nil {
-		logger.Errorf("Cannot create service: %v", err)
-		os.Exit(1)
+	auditStore := auditfeat.NewPostgresStore(database)
+	listStore := listfeat.NewPostgresStore(database)
+	authQueries := authfeat.NewQueries(database)
+
+	auditSvc := auditfeat.NewService(broker, auditStore, logger)
+	baseAuthSvc := auth.NewService(authQueries, cfg, logger)
+	authSvc := authfeat.NewService(baseAuthSvc, authQueries, logger)
+	listSvc := listfeat.NewService(listStore, broker, logger)
+
+	webHandler := tickedweb.NewHandler(assetsFS, authSvc, authQueries, listSvc, auditStore, tmplMgr, logger)
+
+	deps := []any{
+		database,
+		migrator,
+		tmplMgr,
+		broker,
+		auditStore,
+		listStore,
+		authQueries,
+		auditSvc,
+		webHandler,
 	}
-
-	deps = append(deps, svc)
 
 	starts, stops, registrars := app.Setup(ctx, router, deps...)
 

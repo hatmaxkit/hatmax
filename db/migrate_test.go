@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"embed"
 	"testing"
 
@@ -10,8 +11,17 @@ import (
 //go:embed testdata
 var migrateTestAssetsFS embed.FS
 
+type fakeDBProvider struct {
+	db *sql.DB
+}
+
+func (f *fakeDBProvider) GetDB() *sql.DB {
+	return f.db
+}
+
 func TestNewMigrator(t *testing.T) {
 	logger := log.NewTestLogger("error")
+	dbProvider := &fakeDBProvider{}
 
 	tests := []struct {
 		name   string
@@ -29,7 +39,7 @@ func TestNewMigrator(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			migrator := newMigrator(migrateTestAssetsFS, tt.engine, logger)
+			migrator := NewMigrator(dbProvider, migrateTestAssetsFS, tt.engine, logger)
 
 			if migrator == nil {
 				t.Error("expected migrator to be created")
@@ -44,7 +54,8 @@ func TestNewMigrator(t *testing.T) {
 
 func TestMigratorSetPath(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	migrator := newMigrator(migrateTestAssetsFS, "postgres", logger)
+	dbProvider := &fakeDBProvider{}
+	migrator := NewMigrator(dbProvider, migrateTestAssetsFS, "postgres", logger)
 
 	tests := []struct {
 		name string
@@ -62,7 +73,7 @@ func TestMigratorSetPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			migrator.setPath(tt.path)
+			migrator.SetPath(tt.path)
 
 			if migrator.path != tt.path {
 				t.Errorf("expected path %q, got %q", tt.path, migrator.path)
@@ -73,8 +84,9 @@ func TestMigratorSetPath(t *testing.T) {
 
 func TestMigratorLoadFileMigrations(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	migrator := newMigrator(migrateTestAssetsFS, "postgres", logger)
-	migrator.setPath("testdata/migration/postgres")
+	dbProvider := &fakeDBProvider{}
+	migrator := NewMigrator(dbProvider, migrateTestAssetsFS, "postgres", logger)
+	migrator.SetPath("testdata/migration/postgres")
 
 	migrations, err := migrator.loadFileMigrations()
 	if err != nil {
@@ -85,7 +97,6 @@ func TestMigratorLoadFileMigrations(t *testing.T) {
 		t.Error("expected at least one migration file")
 	}
 
-	// Verify migration structure
 	for _, m := range migrations {
 		if m.Datetime == "" {
 			t.Error("expected migration to have datetime")
@@ -101,15 +112,15 @@ func TestMigratorLoadFileMigrations(t *testing.T) {
 
 func TestMigratorLoadFileMigrationsOrdering(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	migrator := newMigrator(migrateTestAssetsFS, "postgres", logger)
-	migrator.setPath("testdata/migration/postgres")
+	dbProvider := &fakeDBProvider{}
+	migrator := NewMigrator(dbProvider, migrateTestAssetsFS, "postgres", logger)
+	migrator.SetPath("testdata/migration/postgres")
 
 	migrations, err := migrator.loadFileMigrations()
 	if err != nil {
 		t.Fatalf("loadFileMigrations failed: %v", err)
 	}
 
-	// Verify migrations are sorted by datetime
 	for i := 1; i < len(migrations); i++ {
 		if migrations[i-1].Datetime > migrations[i].Datetime {
 			t.Errorf("migrations not sorted: %s > %s", migrations[i-1].Datetime, migrations[i].Datetime)
@@ -119,7 +130,8 @@ func TestMigratorLoadFileMigrationsOrdering(t *testing.T) {
 
 func TestMigratorFindPendingMigrations(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	migrator := newMigrator(migrateTestAssetsFS, "postgres", logger)
+	dbProvider := &fakeDBProvider{}
+	migrator := NewMigrator(dbProvider, migrateTestAssetsFS, "postgres", logger)
 
 	fileMigrations := []Migration{
 		{Datetime: "20250101", Name: "create-users"},
@@ -148,7 +160,8 @@ func TestMigratorFindPendingMigrations(t *testing.T) {
 
 func TestMigratorFindPendingMigrationsNone(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	migrator := newMigrator(migrateTestAssetsFS, "postgres", logger)
+	dbProvider := &fakeDBProvider{}
+	migrator := NewMigrator(dbProvider, migrateTestAssetsFS, "postgres", logger)
 
 	fileMigrations := []Migration{
 		{Datetime: "20250101", Name: "create-users"},

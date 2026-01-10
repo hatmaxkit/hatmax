@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.30.0
 
-package sqlcgen
+package dal
 
 import (
 	"database/sql"

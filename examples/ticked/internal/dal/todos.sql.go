@@ -3,7 +3,7 @@
 //   sqlc v1.30.0
 // source: todos.sql
 
-package sqlcgen
+package dal
 
 import (
 	"context"

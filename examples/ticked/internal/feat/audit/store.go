@@ -25,14 +25,34 @@ type Store interface {
 	List(ctx context.Context, limit int) ([]Record, error)
 }
 
+// DBProvider provides access to a database connection.
+type DBProvider interface {
+	GetDB() *sql.DB
+}
+
 // PostgresStore implements Store using PostgreSQL.
 type PostgresStore struct {
-	db *sql.DB
+	dbProvider DBProvider
+	db         *sql.DB
 }
 
 // NewPostgresStore creates a new PostgreSQL-backed audit store.
-func NewPostgresStore(db *sql.DB) *PostgresStore {
-	return &PostgresStore{db: db}
+func NewPostgresStore(dbProvider DBProvider) *PostgresStore {
+	return &PostgresStore{dbProvider: dbProvider}
+}
+
+// Start obtains the database connection.
+func (s *PostgresStore) Start(ctx context.Context) error {
+	s.db = s.dbProvider.GetDB()
+	if s.db == nil {
+		return fmt.Errorf("database connection not available")
+	}
+	return nil
+}
+
+// Stop is a no-op for PostgresStore.
+func (s *PostgresStore) Stop(ctx context.Context) error {
+	return nil
 }
 
 // Save persists an audit record.

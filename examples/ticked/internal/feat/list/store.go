@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hatmaxkit/hatmax/examples/ticked/internal/sqlcgen"
+	"github.com/hatmaxkit/hatmax/examples/ticked/internal/dal"
 )
 
 var ErrNotFound = errors.New("todo list not found")
@@ -19,18 +19,36 @@ type Store interface {
 	Delete(ctx context.Context, listID string) error
 }
 
+// DBProvider provides access to a database connection.
+type DBProvider interface {
+	GetDB() *sql.DB
+}
+
 // PostgresStore implements Store using PostgreSQL.
 type PostgresStore struct {
-	db *sql.DB
-	q  *sqlcgen.Queries
+	dbProvider DBProvider
+	db         *sql.DB
+	q          *dal.Queries
 }
 
 // NewPostgresStore creates a new PostgreSQL-backed store.
-func NewPostgresStore(db *sql.DB) *PostgresStore {
-	return &PostgresStore{
-		db: db,
-		q:  sqlcgen.New(db),
+func NewPostgresStore(dbProvider DBProvider) *PostgresStore {
+	return &PostgresStore{dbProvider: dbProvider}
+}
+
+// Start obtains the database connection.
+func (s *PostgresStore) Start(ctx context.Context) error {
+	s.db = s.dbProvider.GetDB()
+	if s.db == nil {
+		return fmt.Errorf("database connection not available")
 	}
+	s.q = dal.New(s.db)
+	return nil
+}
+
+// Stop is a no-op for PostgresStore.
+func (s *PostgresStore) Stop(ctx context.Context) error {
+	return nil
 }
 
 // FindByUserID retrieves a todo list by user ID.
@@ -84,7 +102,7 @@ func (s *PostgresStore) Save(ctx context.Context, list *TodoList) error {
 	qtx := s.q.WithTx(tx)
 
 	// Upsert the list
-	err = qtx.UpsertTodoList(ctx, sqlcgen.UpsertTodoListParams{
+	err = qtx.UpsertTodoList(ctx, dal.UpsertTodoListParams{
 		ID:        list.ListID,
 		UserID:    list.UserID,
 		CreatedAt: list.CreatedAt,
@@ -102,14 +120,14 @@ func (s *PostgresStore) Save(ctx context.Context, list *TodoList) error {
 	return tx.Commit()
 }
 
-func (s *PostgresStore) syncItems(ctx context.Context, qtx *sqlcgen.Queries, list *TodoList) error {
+func (s *PostgresStore) syncItems(ctx context.Context, qtx *dal.Queries, list *TodoList) error {
 	// Get existing items
 	existing, err := qtx.GetTodoItemsByListID(ctx, list.ListID)
 	if err != nil {
 		return err
 	}
 
-	existingByID := make(map[string]sqlcgen.TodoItem)
+	existingByID := make(map[string]dal.TodoItem)
 	for _, item := range existing {
 		existingByID[item.ID] = item
 	}
@@ -126,7 +144,7 @@ func (s *PostgresStore) syncItems(ctx context.Context, qtx *sqlcgen.Queries, lis
 		}
 
 		if _, exists := existingByID[item.ItemID]; exists {
-			err := qtx.UpdateTodoItem(ctx, sqlcgen.UpdateTodoItemParams{
+			err := qtx.UpdateTodoItem(ctx, dal.UpdateTodoItemParams{
 				ID:          item.ItemID,
 				Text:        item.Text,
 				Completed:   item.Completed,
@@ -136,7 +154,7 @@ func (s *PostgresStore) syncItems(ctx context.Context, qtx *sqlcgen.Queries, lis
 				return fmt.Errorf("update item %s: %w", item.ItemID, err)
 			}
 		} else {
-			err := qtx.InsertTodoItem(ctx, sqlcgen.InsertTodoItemParams{
+			err := qtx.InsertTodoItem(ctx, dal.InsertTodoItemParams{
 				ID:          item.ItemID,
 				ListID:      list.ListID,
 				Text:        item.Text,

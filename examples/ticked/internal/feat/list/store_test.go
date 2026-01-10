@@ -2,11 +2,20 @@ package list
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
 	"github.com/hatmaxkit/hatmax/testhelper"
 )
+
+type fakeDBProvider struct {
+	db *sql.DB
+}
+
+func (f *fakeDBProvider) GetDB() *sql.DB {
+	return f.db
+}
 
 func setupTestStore(t *testing.T) (*PostgresStore, func()) {
 	t.Helper()
@@ -34,7 +43,11 @@ func setupTestStore(t *testing.T) (*PostgresStore, func()) {
 		t.Fatalf("cannot create tables: %v", err)
 	}
 
-	store := NewPostgresStore(db)
+	dbProvider := &fakeDBProvider{db: db}
+	store := NewPostgresStore(dbProvider)
+	if err := store.Start(context.Background()); err != nil {
+		t.Fatalf("cannot start store: %v", err)
+	}
 	return store, cleanup
 }
 
