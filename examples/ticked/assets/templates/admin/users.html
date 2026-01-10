@@ -10,7 +10,7 @@
 <body>
     <nav class="nav-container">
         <div class="nav-left">
-            <a href="/list" class="nav-brand">Ticked</a>
+            <a href="/list-items" class="nav-brand">Ticked</a>
             <a href="/admin" class="nav-link">Admin</a>
         </div>
         <div class="nav-right">
@@ -35,7 +35,7 @@
                     {{end}}
                 </div>
                 <div class="user-actions">
-                    <a href="/admin/users/{{.ID}}" class="btn-secondary">Details</a>
+                    <a href="/admin/get-user?id={{.ID}}" class="btn-secondary">Details</a>
                 </div>
             </div>
             {{else}}

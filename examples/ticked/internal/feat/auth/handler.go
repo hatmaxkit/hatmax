@@ -76,7 +76,7 @@ func (h *Handler) handleSignin(w http.ResponseWriter, r *http.Request) {
 	auth.SetSessionCookie(w, session.Token, maxAge)
 
 	// HTMX redirect
-	w.Header().Set("HX-Redirect", "/list")
+	w.Header().Set("HX-Redirect", "/list-items")
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -144,7 +144,7 @@ func (h *Handler) handleSignup(w http.ResponseWriter, r *http.Request) {
 	auth.SetSessionCookie(w, session.Token, maxAge)
 
 	// HTMX redirect
-	w.Header().Set("HX-Redirect", "/list")
+	w.Header().Set("HX-Redirect", "/list-items")
 	w.WriteHeader(http.StatusOK)
 }
 

@@ -230,7 +230,7 @@ func TestEnvelopeWithMetadata(t *testing.T) {
 
 func TestEnvelopeNewEnvelopeWithMetadata(t *testing.T) {
 	metadata := map[string]string{
-		"source": "test",
+		"source":  "test",
 		"version": "1.0",
 	}
 

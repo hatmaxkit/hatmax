@@ -38,7 +38,7 @@ func main() {
 
 	router := chi.NewRouter()
 	router.Use(middleware.DefaultStack()...)
-	app.ApplyRouterOptions(router, app.WithDebugRoutes())
+	app.ApplyRouterOptions(router, app.WithPing(), app.WithDebugRoutes())
 
 	var deps []any
 

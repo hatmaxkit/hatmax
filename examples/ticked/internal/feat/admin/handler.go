@@ -34,11 +34,11 @@ func NewHandler(queries *tickedAuth.Queries, auditStore audit.Store, tmpl *web.T
 // RegisterRoutes registers admin routes on the router.
 func (h *Handler) RegisterRoutes(r chi.Router) {
 	r.Get("/admin", h.handleDashboard)
-	r.Get("/admin/users", h.handleListUsers)
-	r.Get("/admin/users/{userID}", h.handleUserDetail)
-	r.Post("/admin/users/{userID}/roles", h.handleUpdateRoles)
-	r.Post("/admin/users/{userID}/toggle", h.handleToggleActive)
-	r.Get("/admin/events", h.handleListEvents)
+	r.Get("/admin/list-users", h.handleListUsers)
+	r.Get("/admin/get-user", h.handleGetUser)
+	r.Post("/admin/update-roles", h.handleUpdateRoles)
+	r.Post("/admin/toggle-user", h.handleToggleUser)
+	r.Get("/admin/list-events", h.handleListEvents)
 }
 
 func (h *Handler) handleDashboard(w http.ResponseWriter, r *http.Request) {
@@ -51,9 +51,9 @@ func (h *Handler) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"Title":       "Admin Dashboard - Ticked",
-		"UserEmail":   currentUser.Email,
-		"TotalUsers":  count,
+		"Title":      "Admin Dashboard - Ticked",
+		"UserEmail":  currentUser.Email,
+		"TotalUsers": count,
 	}
 	h.tmpl.Render(w, "admin", "dashboard", data)
 }
@@ -76,9 +76,13 @@ func (h *Handler) handleListUsers(w http.ResponseWriter, r *http.Request) {
 	h.tmpl.Render(w, "admin", "users", data)
 }
 
-func (h *Handler) handleUserDetail(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	currentUser, _ := hatmaxAuth.GetUser(r.Context())
-	userID := chi.URLParam(r, "userID")
+	userID := r.URL.Query().Get("id")
+	if userID == "" {
+		http.Error(w, "Missing id parameter", http.StatusBadRequest)
+		return
+	}
 
 	user, err := h.queries.GetUserByID(r.Context(), userID)
 	if err != nil {
@@ -97,11 +101,15 @@ func (h *Handler) handleUserDetail(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) handleUpdateRoles(w http.ResponseWriter, r *http.Request) {
-	userID := chi.URLParam(r, "userID")
-
 	form, err := web.ParseForm(r)
 	if err != nil {
 		http.Error(w, "Invalid form", http.StatusBadRequest)
+		return
+	}
+
+	userID := form.String("id")
+	if userID == "" {
+		http.Error(w, "Missing id parameter", http.StatusBadRequest)
 		return
 	}
 
@@ -124,16 +132,25 @@ func (h *Handler) handleUpdateRoles(w http.ResponseWriter, r *http.Request) {
 
 	h.log.Infof("updated roles for user %s: %v", userID, roles)
 
-	// HTMX redirect back to user detail
-	w.Header().Set("HX-Redirect", "/admin/users/"+userID)
+	w.Header().Set("HX-Redirect", "/admin/get-user?id="+userID)
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *Handler) handleToggleActive(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) handleToggleUser(w http.ResponseWriter, r *http.Request) {
 	currentUser, _ := hatmaxAuth.GetUser(r.Context())
-	userID := chi.URLParam(r, "userID")
 
-	// Prevent self-deactivation
+	form, err := web.ParseForm(r)
+	if err != nil {
+		http.Error(w, "Invalid form", http.StatusBadRequest)
+		return
+	}
+
+	userID := form.String("id")
+	if userID == "" {
+		http.Error(w, "Missing id parameter", http.StatusBadRequest)
+		return
+	}
+
 	if userID == currentUser.ID {
 		http.Error(w, "Cannot deactivate yourself", http.StatusBadRequest)
 		return
@@ -154,8 +171,7 @@ func (h *Handler) handleToggleActive(w http.ResponseWriter, r *http.Request) {
 
 	h.log.Infof("toggled active for user %s: %v", userID, newActive)
 
-	// HTMX redirect back to user detail
-	w.Header().Set("HX-Redirect", "/admin/users/"+userID)
+	w.Header().Set("HX-Redirect", "/admin/get-user?id="+userID)
 	w.WriteHeader(http.StatusOK)
 }
 

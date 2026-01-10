@@ -79,8 +79,8 @@ func TestPostgresStoreSaveWithItems(t *testing.T) {
 	now := time.Now().Truncate(time.Microsecond)
 
 	list := &TodoList{
-		ListID:    "list-1",
-		UserID:    "user-1",
+		ListID: "list-1",
+		UserID: "user-1",
 		Items: []TodoItem{
 			{ItemID: "item-1", Text: "First", Completed: false, CreatedAt: now},
 			{ItemID: "item-2", Text: "Second", Completed: true, CreatedAt: now, CompletedAt: &now},
@@ -112,8 +112,8 @@ func TestPostgresStoreUpdateItems(t *testing.T) {
 	now := time.Now().Truncate(time.Microsecond)
 
 	list := &TodoList{
-		ListID:    "list-1",
-		UserID:    "user-1",
+		ListID: "list-1",
+		UserID: "user-1",
 		Items: []TodoItem{
 			{ItemID: "item-1", Text: "Original", Completed: false, CreatedAt: now},
 		},
@@ -144,8 +144,8 @@ func TestPostgresStoreDeleteItems(t *testing.T) {
 	now := time.Now().Truncate(time.Microsecond)
 
 	list := &TodoList{
-		ListID:    "list-1",
-		UserID:    "user-1",
+		ListID: "list-1",
+		UserID: "user-1",
 		Items: []TodoItem{
 			{ItemID: "item-1", Text: "First", CreatedAt: now},
 			{ItemID: "item-2", Text: "Second", CreatedAt: now},
@@ -184,8 +184,8 @@ func TestPostgresStoreDelete(t *testing.T) {
 	now := time.Now().Truncate(time.Microsecond)
 
 	list := &TodoList{
-		ListID:    "list-1",
-		UserID:    "user-1",
+		ListID: "list-1",
+		UserID: "user-1",
 		Items: []TodoItem{
 			{ItemID: "item-1", Text: "Test", CreatedAt: now},
 		},

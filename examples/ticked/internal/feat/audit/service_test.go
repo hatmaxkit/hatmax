@@ -138,8 +138,8 @@ func TestServiceHandleEventInvalidPayload(t *testing.T) {
 
 	// Publish event with invalid payload type (int instead of map[string]string)
 	env := pubsub.NewEnvelope(Topic, 12345). // Invalid payload
-						WithMetadata("user_id", "user-1").
-						WithMetadata("source", "hatmax")
+							WithMetadata("user_id", "user-1").
+							WithMetadata("source", "hatmax")
 
 	if err := broker.Publish(ctx, Topic, env); err != nil {
 		t.Fatalf("Publish failed: %v", err)

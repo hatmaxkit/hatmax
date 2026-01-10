@@ -20,6 +20,7 @@ If you've built a few Go web apps and found yourself copying similar patterns (l
 
 - **Single binary deployment** - Build applications that compile to one executable. Simple deployment, straightforward operations.
 - **Just use Postgres** - Leverage Postgres for relational data, JSONB, full-text search, pub/sub, and queues. Start simple, add specialized tools only when truly needed.
+- **PubSub** - Domain events with no external broker. Default implementation uses Postgres `LISTEN`/`NOTIFY`.
 - **HTML + HTMX** - Server-side rendering with HTMX for dynamic interactions. Build modern UX with straightforward patterns.
 - **Explicit over magic** - Every dependency visible in constructors, every middleware applied manually, every lifecycle hook opt-in.
 

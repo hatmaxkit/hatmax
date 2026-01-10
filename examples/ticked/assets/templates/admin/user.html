@@ -10,7 +10,7 @@
 <body>
     <nav class="nav-container">
         <div class="nav-left">
-            <a href="/list" class="nav-brand">Ticked</a>
+            <a href="/list-items" class="nav-brand">Ticked</a>
             <a href="/admin" class="nav-link">Admin</a>
         </div>
         <div class="nav-right">
@@ -61,7 +61,8 @@
 
         <div class="user-actions-panel">
             <h2>Manage Roles</h2>
-            <form hx-post="/admin/users/{{.User.ID}}/roles" hx-target="body" hx-swap="innerHTML">
+            <form hx-post="/admin/update-roles" hx-target="body" hx-swap="innerHTML">
+                <input type="hidden" name="id" value="{{.User.ID}}">
                 <div class="form-group">
                     <label for="roles">Roles (comma-separated):</label>
                     <input type="text" id="roles" name="roles" value="{{.RolesString}}" placeholder="admin, user">
@@ -70,7 +71,8 @@
             </form>
 
             <h2>Account Status</h2>
-            <form hx-post="/admin/users/{{.User.ID}}/toggle" hx-target="body" hx-swap="innerHTML">
+            <form hx-post="/admin/toggle-user" hx-target="body" hx-swap="innerHTML">
+                <input type="hidden" name="id" value="{{.User.ID}}">
                 {{if .User.Active}}
                 <button type="submit" class="btn-danger">Deactivate User</button>
                 {{else}}
@@ -80,7 +82,7 @@
         </div>
 
         <div class="back-link">
-            <a href="/admin/users">&larr; Back to Users</a>
+            <a href="/admin/list-users">&larr; Back to Users</a>
         </div>
     </main>
 

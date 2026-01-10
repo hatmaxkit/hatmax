@@ -29,12 +29,12 @@ func DefaultConfig() Config {
 
 // subscription holds a registered handler and its tracking state.
 type subscription struct {
-	id           string
-	topic        string
-	handler      pubsub.Handler
-	lastOffset   int64
-	cancel       context.CancelFunc
-	done         chan struct{}
+	id         string
+	topic      string
+	handler    pubsub.Handler
+	lastOffset int64
+	cancel     context.CancelFunc
+	done       chan struct{}
 }
 
 // Broker implements pubsub.Broker using PostgreSQL.

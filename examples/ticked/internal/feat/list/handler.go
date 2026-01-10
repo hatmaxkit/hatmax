@@ -28,13 +28,13 @@ func NewHandler(svc *Service, tmpl *web.TemplateManager, log log.Logger) *Handle
 
 // RegisterRoutes registers list routes on the router.
 func (h *Handler) RegisterRoutes(r chi.Router) {
-	r.Get("/list", h.handleList)
-	r.Post("/list/items", h.handleAddItem)
-	r.Post("/list/items/{itemID}/toggle", h.handleToggleItem)
-	r.Delete("/list/items/{itemID}", h.handleRemoveItem)
+	r.Get("/list-items", h.handleListItems)
+	r.Post("/add-item", h.handleAddItem)
+	r.Post("/toggle-item", h.handleToggleItem)
+	r.Post("/delete-item", h.handleDeleteItem)
 }
 
-func (h *Handler) handleList(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) handleListItems(w http.ResponseWriter, r *http.Request) {
 	user, ok := auth.GetUser(r.Context())
 	if !ok {
 		http.Redirect(w, r, "/signin", http.StatusSeeOther)
@@ -93,7 +93,13 @@ func (h *Handler) handleToggleItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	itemID := chi.URLParam(r, "itemID")
+	form, err := web.ParseForm(r)
+	if err != nil {
+		http.Error(w, "Invalid form", http.StatusBadRequest)
+		return
+	}
+
+	itemID := form.String("id")
 	if itemID == "" {
 		http.Error(w, "Item ID required", http.StatusBadRequest)
 		return
@@ -106,23 +112,28 @@ func (h *Handler) handleToggleItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return the updated item partial for HTMX
 	h.tmpl.RenderPartial(w, "todos", "item", item)
 }
 
-func (h *Handler) handleRemoveItem(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) handleDeleteItem(w http.ResponseWriter, r *http.Request) {
 	user, ok := auth.GetUser(r.Context())
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	itemID := chi.URLParam(r, "itemID")
+	form, err := web.ParseForm(r)
+	if err != nil {
+		http.Error(w, "Invalid form", http.StatusBadRequest)
+		return
+	}
+
+	itemID := form.String("id")
 	if itemID == "" {
 		http.Error(w, "Item ID required", http.StatusBadRequest)
 		return
 	}
 
-	err := h.svc.RemoveItem(r.Context(), user.ID, itemID)
+	err = h.svc.RemoveItem(r.Context(), user.ID, itemID)
 	htmx.RespondDelete(w, err, h.log)
 }

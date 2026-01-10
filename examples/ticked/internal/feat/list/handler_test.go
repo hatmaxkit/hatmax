@@ -57,10 +57,10 @@ func TestHandlerRegisterRoutes(t *testing.T) {
 	})
 
 	expectedRoutes := []string{
-		"GET /list",
-		"POST /list/items",
-		"POST /list/items/{itemID}/toggle",
-		"DELETE /list/items/{itemID}",
+		"GET /list-items",
+		"POST /add-item",
+		"POST /toggle-item",
+		"POST /delete-item",
 	}
 
 	for _, exp := range expectedRoutes {
@@ -77,28 +77,28 @@ func TestHandlerRegisterRoutes(t *testing.T) {
 	}
 }
 
-func TestHandleListNoUser(t *testing.T) {
+func TestHandleListItemsNoUser(t *testing.T) {
 	h := setupTestHandler(t)
 
-	req := httptest.NewRequest("GET", "/list", nil)
+	req := httptest.NewRequest("GET", "/list-items", nil)
 	w := httptest.NewRecorder()
 
-	h.handleList(w, req)
+	h.handleListItems(w, req)
 
 	if w.Code != http.StatusSeeOther {
 		t.Errorf("expected redirect status %d, got %d", http.StatusSeeOther, w.Code)
 	}
 }
 
-func TestHandleListWithUser(t *testing.T) {
+func TestHandleListItemsWithUser(t *testing.T) {
 	h := setupTestHandler(t)
 
-	req := httptest.NewRequest("GET", "/list", nil)
+	req := httptest.NewRequest("GET", "/list-items", nil)
 	ctx := auth.WithUser(req.Context(), &auth.User{ID: "user-1", Email: "test@example.com"})
 	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
 
-	h.handleList(w, req)
+	h.handleListItems(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
@@ -112,7 +112,7 @@ func TestHandleListWithUser(t *testing.T) {
 func TestHandleAddItemNoUser(t *testing.T) {
 	h := setupTestHandler(t)
 
-	req := httptest.NewRequest("POST", "/list/items", nil)
+	req := httptest.NewRequest("POST", "/add-item", nil)
 	w := httptest.NewRecorder()
 
 	h.handleAddItem(w, req)
@@ -127,7 +127,7 @@ func TestHandleAddItemEmptyText(t *testing.T) {
 
 	form := url.Values{}
 	form.Set("text", "")
-	req := httptest.NewRequest("POST", "/list/items", strings.NewReader(form.Encode()))
+	req := httptest.NewRequest("POST", "/add-item", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	ctx := auth.WithUser(req.Context(), &auth.User{ID: "user-1", Email: "test@example.com"})
 	req = req.WithContext(ctx)
@@ -145,7 +145,7 @@ func TestHandleAddItemSuccess(t *testing.T) {
 
 	form := url.Values{}
 	form.Set("text", "Buy milk")
-	req := httptest.NewRequest("POST", "/list/items", strings.NewReader(form.Encode()))
+	req := httptest.NewRequest("POST", "/add-item", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	ctx := auth.WithUser(req.Context(), &auth.User{ID: "user-1", Email: "test@example.com"})
 	req = req.WithContext(ctx)
@@ -165,7 +165,10 @@ func TestHandleAddItemSuccess(t *testing.T) {
 func TestHandleToggleItemNoUser(t *testing.T) {
 	h := setupTestHandler(t)
 
-	req := httptest.NewRequest("POST", "/list/items/123/toggle", nil)
+	form := url.Values{}
+	form.Set("id", "123")
+	req := httptest.NewRequest("POST", "/toggle-item", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	w := httptest.NewRecorder()
 
 	h.handleToggleItem(w, req)
@@ -178,7 +181,10 @@ func TestHandleToggleItemNoUser(t *testing.T) {
 func TestHandleToggleItemNoItemID(t *testing.T) {
 	h := setupTestHandler(t)
 
-	req := httptest.NewRequest("POST", "/list/items//toggle", nil)
+	form := url.Values{}
+	form.Set("id", "")
+	req := httptest.NewRequest("POST", "/toggle-item", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	ctx := auth.WithUser(req.Context(), &auth.User{ID: "user-1", Email: "test@example.com"})
 	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
@@ -190,28 +196,34 @@ func TestHandleToggleItemNoItemID(t *testing.T) {
 	}
 }
 
-func TestHandleRemoveItemNoUser(t *testing.T) {
+func TestHandleDeleteItemNoUser(t *testing.T) {
 	h := setupTestHandler(t)
 
-	req := httptest.NewRequest("DELETE", "/list/items/123", nil)
+	form := url.Values{}
+	form.Set("id", "123")
+	req := httptest.NewRequest("POST", "/delete-item", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	w := httptest.NewRecorder()
 
-	h.handleRemoveItem(w, req)
+	h.handleDeleteItem(w, req)
 
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("expected status %d, got %d", http.StatusUnauthorized, w.Code)
 	}
 }
 
-func TestHandleRemoveItemNoItemID(t *testing.T) {
+func TestHandleDeleteItemNoItemID(t *testing.T) {
 	h := setupTestHandler(t)
 
-	req := httptest.NewRequest("DELETE", "/list/items/", nil)
+	form := url.Values{}
+	form.Set("id", "")
+	req := httptest.NewRequest("POST", "/delete-item", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	ctx := auth.WithUser(req.Context(), &auth.User{ID: "user-1", Email: "test@example.com"})
 	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
 
-	h.handleRemoveItem(w, req)
+	h.handleDeleteItem(w, req)
 
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("expected status %d, got %d", http.StatusBadRequest, w.Code)
@@ -228,10 +240,10 @@ func TestHandleToggleItemSuccess(t *testing.T) {
 	ctx := context.Background()
 	item, _ := svc.AddItem(ctx, "user-1", "Test item")
 
-	req := httptest.NewRequest("POST", "/list/items/"+item.ItemID+"/toggle", nil)
-	rctx := chi.NewRouteContext()
-	rctx.URLParams.Add("itemID", item.ItemID)
-	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+	form := url.Values{}
+	form.Set("id", item.ItemID)
+	req := httptest.NewRequest("POST", "/toggle-item", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req = req.WithContext(auth.WithUser(req.Context(), &auth.User{ID: "user-1", Email: "test@example.com"}))
 	w := httptest.NewRecorder()
 
@@ -252,10 +264,10 @@ func TestHandleToggleItemNotFound(t *testing.T) {
 	ctx := context.Background()
 	svc.AddItem(ctx, "user-1", "Test item")
 
-	req := httptest.NewRequest("POST", "/list/items/nonexistent/toggle", nil)
-	rctx := chi.NewRouteContext()
-	rctx.URLParams.Add("itemID", "nonexistent")
-	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+	form := url.Values{}
+	form.Set("id", "nonexistent")
+	req := httptest.NewRequest("POST", "/toggle-item", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req = req.WithContext(auth.WithUser(req.Context(), &auth.User{ID: "user-1", Email: "test@example.com"}))
 	w := httptest.NewRecorder()
 
@@ -266,7 +278,7 @@ func TestHandleToggleItemNotFound(t *testing.T) {
 	}
 }
 
-func TestHandleRemoveItemSuccess(t *testing.T) {
+func TestHandleDeleteItemSuccess(t *testing.T) {
 	store := newMockStore()
 	svc := NewService(store, nil, log.NewNoopLogger())
 	tmpl := web.NewTemplateManager(testAssetsFS, log.NewNoopLogger())
@@ -276,21 +288,21 @@ func TestHandleRemoveItemSuccess(t *testing.T) {
 	ctx := context.Background()
 	item, _ := svc.AddItem(ctx, "user-1", "Test item")
 
-	req := httptest.NewRequest("DELETE", "/list/items/"+item.ItemID, nil)
-	rctx := chi.NewRouteContext()
-	rctx.URLParams.Add("itemID", item.ItemID)
-	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+	form := url.Values{}
+	form.Set("id", item.ItemID)
+	req := httptest.NewRequest("POST", "/delete-item", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req = req.WithContext(auth.WithUser(req.Context(), &auth.User{ID: "user-1", Email: "test@example.com"}))
 	w := httptest.NewRecorder()
 
-	h.handleRemoveItem(w, req)
+	h.handleDeleteItem(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
 	}
 }
 
-func TestHandleRemoveItemNotFound(t *testing.T) {
+func TestHandleDeleteItemNotFound(t *testing.T) {
 	store := newMockStore()
 	svc := NewService(store, nil, log.NewNoopLogger())
 	tmpl := web.NewTemplateManager(testAssetsFS, log.NewNoopLogger())
@@ -300,12 +312,12 @@ func TestHandleRemoveItemNotFound(t *testing.T) {
 	ctx := context.Background()
 	svc.AddItem(ctx, "user-1", "Test item")
 
-	req := httptest.NewRequest("DELETE", "/list/items/nonexistent", nil)
-	rctx := chi.NewRouteContext()
-	rctx.URLParams.Add("itemID", "nonexistent")
-	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+	form := url.Values{}
+	form.Set("id", "nonexistent")
+	req := httptest.NewRequest("POST", "/delete-item", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req = req.WithContext(auth.WithUser(req.Context(), &auth.User{ID: "user-1", Email: "test@example.com"}))
 	w := httptest.NewRecorder()
 
-	h.handleRemoveItem(w, req)
+	h.handleDeleteItem(w, req)
 }

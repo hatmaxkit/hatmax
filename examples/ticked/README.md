@@ -2,7 +2,7 @@
 
 Single-binary todo list application demonstrating HatMax framework patterns with authentication, event-driven architecture, and Postgres-based pub/sub.
 
-Nobody implements a todo list with this level of infrastructure in the real world. But a todo list is the archetypical example for a reason: it's familiar, simple to understand, and lets us focus on the framework patterns rather than complex business logic.
+A todo list is the archetypical example for a reason: it's familiar, simple to understand, and lets us focus on the framework patterns rather than complex business logic.
 
 ## Architecture
 
@@ -140,6 +140,8 @@ TICKED_DATABASE_HOST=db.example.com make run
 
 ## API Endpoints
 
+Routes follow CQRS-light pattern: verb-noun style, GET for queries, POST for commands.
+
 ### Auth
 - `GET /signup` - Signup page
 - `POST /signup` - Register user
@@ -148,17 +150,17 @@ TICKED_DATABASE_HOST=db.example.com make run
 - `POST /signout` - Logout
 
 ### List
-- `GET /list` - Todo list view
-- `POST /list/items` - Add item
-- `POST /list/items/{itemID}/toggle` - Toggle item
-- `DELETE /list/items/{itemID}` - Delete item
+- `GET /list-items` - Todo list view
+- `POST /add-item` - Add item
+- `POST /toggle-item` - Toggle item completion
+- `POST /delete-item` - Delete item
 
 ### Admin
 - `GET /admin` - Dashboard
-- `GET /admin/users` - Users list
-- `GET /admin/users/{userID}` - User details
-- `POST /admin/users/{userID}/toggle` - Toggle user active status
-- `POST /admin/users/{userID}/roles` - Update user roles
-- `GET /admin/events` - Audit events
+- `GET /admin/list-users` - Users list
+- `GET /admin/get-user?id=xxx` - User details
+- `POST /admin/update-roles` - Update user roles
+- `POST /admin/toggle-user` - Toggle user active status
+- `GET /admin/list-events` - Audit events
 
 > Use `GET /debug/routes` to list all registered endpoints.

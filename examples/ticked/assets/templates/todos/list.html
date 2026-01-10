@@ -10,7 +10,7 @@
 <body>
     <nav class="nav-container">
         <div class="nav-left">
-            <a href="/list" class="nav-brand">Ticked</a>
+            <a href="/list-items" class="nav-brand">Ticked</a>
         </div>
         <div class="nav-right">
             <span class="nav-user">{{.UserEmail}}</span>
@@ -24,7 +24,7 @@
         <h1>My Todo List</h1>
 
         <form id="add-item-form"
-              hx-post="/list/items"
+              hx-post="/add-item"
               hx-target="#items-list"
               hx-swap="afterbegin"
               hx-on::after-request="this.reset()"
