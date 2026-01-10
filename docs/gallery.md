@@ -15,3 +15,9 @@
 ![Admin Dashboard - Dark Mode](img/gallery/admin-dashboard-dark.png)
 
 ![Admin Edit User](img/gallery/admin-edit-user.png)
+
+![Admin Dashboard](img/gallery/admin-dashboard.png)
+
+![Admin List Users](img/gallery/admin-list-users.png)
+
+![Admin List Events](img/gallery/admin-list-events.png)
