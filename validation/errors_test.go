@@ -198,7 +198,7 @@ func TestValidationErrorsAddError(t *testing.T) {
 			}
 
 			lastError := errors[len(errors)-1]
-			if lastError != tt.err {
+			if lastError.Field != tt.err.Field || lastError.Message != tt.err.Message {
 				t.Errorf("ValidationErrors.AddError() last error = %v, want %v", lastError, tt.err)
 			}
 		})

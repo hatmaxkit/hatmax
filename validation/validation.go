@@ -122,3 +122,79 @@ func ValidateUsername(username string) error {
 func NormalizeEmail(email string) string {
 	return strings.ToLower(strings.TrimSpace(email))
 }
+
+// --- Field Validators (return ValidationError) ---
+
+var (
+	// phoneRegex matches common phone formats including E.164
+	phoneRegex = regexp.MustCompile(`^[\+]?[(]?[0-9]{1,3}[)]?[-\s\.]?[0-9]{1,4}[-\s\.]?[0-9]{1,4}[-\s\.]?[0-9]{1,9}$`)
+	// htmlTagRegex matches HTML tags
+	htmlTagRegex = regexp.MustCompile(`<[^>]*>`)
+)
+
+// ValidateEmailField validates email format and returns a ValidationError.
+// Returns empty ValidationError if value is empty (use with Required for mandatory fields).
+func ValidateEmailField(field, value string) ValidationError {
+	if value == "" {
+		return ValidationError{}
+	}
+
+	if err := ValidateEmail(value); err != nil {
+		return ValidationError{
+			Field:   field,
+			Rule:    "Email",
+			Message: "must be a valid email address",
+		}
+	}
+	return ValidationError{}
+}
+
+// ValidatePhoneField validates phone number format.
+// Returns empty ValidationError if value is empty (use with Required for mandatory fields).
+func ValidatePhoneField(field, value string) ValidationError {
+	if value == "" {
+		return ValidationError{}
+	}
+
+	// Remove common separators for validation
+	cleaned := strings.ReplaceAll(value, " ", "")
+	cleaned = strings.ReplaceAll(cleaned, "-", "")
+	cleaned = strings.ReplaceAll(cleaned, ".", "")
+	cleaned = strings.ReplaceAll(cleaned, "(", "")
+	cleaned = strings.ReplaceAll(cleaned, ")", "")
+
+	// Check minimum length (country code + some digits)
+	if len(cleaned) < 7 || len(cleaned) > 15 {
+		return ValidationError{
+			Field:   field,
+			Rule:    "Phone",
+			Message: "must be a valid phone number",
+		}
+	}
+
+	if !phoneRegex.MatchString(value) {
+		return ValidationError{
+			Field:   field,
+			Rule:    "Phone",
+			Message: "must be a valid phone number",
+		}
+	}
+	return ValidationError{}
+}
+
+// NoHTML validates that a string contains no HTML tags.
+// Returns empty ValidationError if value is empty.
+func NoHTML(field, value string) ValidationError {
+	if value == "" {
+		return ValidationError{}
+	}
+
+	if htmlTagRegex.MatchString(value) {
+		return ValidationError{
+			Field:   field,
+			Rule:    "NoHTML",
+			Message: "must not contain HTML tags",
+		}
+	}
+	return ValidationError{}
+}

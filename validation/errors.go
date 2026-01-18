@@ -8,8 +8,10 @@ import (
 )
 
 type ValidationError struct {
-	Field   string
-	Message string
+	Field   string         // Field name (for UI mapping)
+	Rule    string         // Rule that was violated (e.g., "Required", "MaxLength")
+	Message string         // Human-readable message
+	Params  map[string]any // Rule parameters (e.g., {"max": 100})
 }
 
 func (e ValidationError) Error() string {
@@ -180,6 +182,140 @@ func IntInRange(field string, value, min, max int) ValidationError {
 func StringOneOf(field, value string, allowed []string) ValidationError {
 	if !OneOf(value, allowed) {
 		return ValidationError{Field: field, Message: fmt.Sprintf("must be one of: %s", strings.Join(allowed, ", "))}
+	}
+	return ValidationError{}
+}
+
+// ByField returns the first error message for a specific field, or empty string.
+func (e ValidationErrors) ByField(field string) string {
+	for _, err := range e {
+		if err.Field == field {
+			return err.Message
+		}
+	}
+	return ""
+}
+
+// First returns the first ValidationError, or empty if none.
+func (e ValidationErrors) First() ValidationError {
+	if len(e) > 0 {
+		return e[0]
+	}
+	return ValidationError{}
+}
+
+// AsMap returns errors as a map of field name to slice of messages.
+func (e ValidationErrors) AsMap() map[string][]string {
+	result := make(map[string][]string)
+	for _, err := range e {
+		result[err.Field] = append(result[err.Field], err.Message)
+	}
+	return result
+}
+
+// NewSingleError creates a ValidationErrors with a single error.
+func NewSingleError(field, message string) ValidationErrors {
+	return ValidationErrors{{Field: field, Message: message}}
+}
+
+// NewError creates a ValidationErrors with a single general error.
+func NewError(message string) ValidationErrors {
+	return ValidationErrors{{Message: message}}
+}
+
+// IsEmpty checks if a ValidationError is empty (no error).
+func (e ValidationError) IsEmpty() bool {
+	return e.Field == "" && e.Rule == "" && e.Message == ""
+}
+
+// --- Float Predicates ---
+
+// MinValueFloat checks if a float is at least the minimum value.
+func MinValueFloat(value, min float64) bool {
+	return value >= min
+}
+
+// MaxValueFloat checks if a float does not exceed the maximum value.
+func MaxValueFloat(value, max float64) bool {
+	return value <= max
+}
+
+// IsPositive checks if a float is greater than zero.
+func IsPositive(value float64) bool {
+	return value > 0
+}
+
+// IsNonNegative checks if a float is zero or greater.
+func IsNonNegative(value float64) bool {
+	return value >= 0
+}
+
+// FloatInRange checks if a float is within the specified range (inclusive).
+func FloatInRange(value, min, max float64) bool {
+	return value >= min && value <= max
+}
+
+// --- Float Validators ---
+
+// FloatMinValue validates that a float is at least the minimum value.
+func FloatMinValue(field string, value, min float64) ValidationError {
+	if !MinValueFloat(value, min) {
+		return ValidationError{
+			Field:   field,
+			Rule:    "MinValue",
+			Message: fmt.Sprintf("must be at least %.2f", min),
+			Params:  map[string]any{"min": min},
+		}
+	}
+	return ValidationError{}
+}
+
+// FloatMaxValue validates that a float does not exceed the maximum value.
+func FloatMaxValue(field string, value, max float64) ValidationError {
+	if !MaxValueFloat(value, max) {
+		return ValidationError{
+			Field:   field,
+			Rule:    "MaxValue",
+			Message: fmt.Sprintf("must be at most %.2f", max),
+			Params:  map[string]any{"max": max},
+		}
+	}
+	return ValidationError{}
+}
+
+// FloatPositive validates that a float is greater than zero.
+func FloatPositive(field string, value float64) ValidationError {
+	if !IsPositive(value) {
+		return ValidationError{
+			Field:   field,
+			Rule:    "Positive",
+			Message: "must be greater than zero",
+		}
+	}
+	return ValidationError{}
+}
+
+// FloatNonNegative validates that a float is zero or greater.
+func FloatNonNegative(field string, value float64) ValidationError {
+	if !IsNonNegative(value) {
+		return ValidationError{
+			Field:   field,
+			Rule:    "NonNegative",
+			Message: "must be zero or greater",
+		}
+	}
+	return ValidationError{}
+}
+
+// FloatInRangeValidator validates that a float is within the specified range.
+func FloatInRangeValidator(field string, value, min, max float64) ValidationError {
+	if !FloatInRange(value, min, max) {
+		return ValidationError{
+			Field:   field,
+			Rule:    "InRange",
+			Message: fmt.Sprintf("must be between %.2f and %.2f", min, max),
+			Params:  map[string]any{"min": min, "max": max},
+		}
 	}
 	return ValidationError{}
 }

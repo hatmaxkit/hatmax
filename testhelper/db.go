@@ -1,3 +1,7 @@
+// Copyright 2024 The Hatmax Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package testhelper
 
 import (
@@ -42,14 +46,39 @@ func setupCIDatabase(t *testing.T, ctx context.Context) (*sql.DB, string, func()
 
 	schema := fmt.Sprintf("test_%d_%s", time.Now().UnixNano(), randomString(8))
 
-	connStr := fmt.Sprintf(
+	// Connection string WITHOUT search_path for schema creation
+	baseConnStr := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		dbHost, dbPort, dbUser, dbPassword, dbName,
 	)
 
-	db, err := sql.Open("pgx", connStr)
+	// Create schema using a temporary connection
+	setupDB, err := sql.Open("pgx", baseConnStr)
 	if err != nil {
 		t.Fatalf("cannot open database: %v", err)
+	}
+
+	if err := setupDB.PingContext(ctx); err != nil {
+		setupDB.Close()
+		t.Fatalf("cannot ping database: %v", err)
+	}
+
+	_, err = setupDB.ExecContext(ctx, fmt.Sprintf("CREATE SCHEMA %s", schema))
+	if err != nil {
+		setupDB.Close()
+		t.Fatalf("cannot create schema %s: %v", schema, err)
+	}
+	setupDB.Close()
+
+	// Connection string WITH search_path so ALL connections use the correct schema
+	connStr := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=%s",
+		dbHost, dbPort, dbUser, dbPassword, dbName, schema,
+	)
+
+	db, err := sql.Open("pgx", connStr)
+	if err != nil {
+		t.Fatalf("cannot open database with search_path: %v", err)
 	}
 
 	if err := db.PingContext(ctx); err != nil {
@@ -57,22 +86,16 @@ func setupCIDatabase(t *testing.T, ctx context.Context) (*sql.DB, string, func()
 		t.Fatalf("cannot ping database: %v", err)
 	}
 
-	_, err = db.ExecContext(ctx, fmt.Sprintf("CREATE SCHEMA %s", schema))
-	if err != nil {
-		db.Close()
-		t.Fatalf("cannot create schema %s: %v", schema, err)
-	}
-
-	_, err = db.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
-	if err != nil {
-		db.Close()
-		t.Fatalf("cannot set search_path: %v", err)
-	}
-
 	cleanup := func() {
-		_, _ = db.ExecContext(context.Background(),
-			fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", schema))
 		db.Close()
+		// Use base connection (without search_path) to drop the schema
+		cleanupDB, err := sql.Open("pgx", baseConnStr)
+		if err != nil {
+			return
+		}
+		defer cleanupDB.Close()
+		_, _ = cleanupDB.ExecContext(context.Background(),
+			fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", schema))
 	}
 
 	return db, schema, cleanup

@@ -21,7 +21,7 @@ If you've built a few Go web apps and found yourself copying similar patterns (l
 - **Single binary deployment** - Build applications that compile to one executable. Simple deployment, straightforward operations.
 - **Just use Postgres** - Leverage Postgres for relational data, JSONB, full-text search, pub/sub, and queues. Start simple, add specialized tools only when truly needed.
 - **PubSub** - Domain events with no external broker. Default implementation uses Postgres `LISTEN`/`NOTIFY`.
-- **HTML + HTMX** - Server-side rendering with HTMX for dynamic interactions. Build modern UX with straightforward patterns.
+- **HTML + htmx** - Server-side rendering with htmx for dynamic interactions. Build modern UX with straightforward patterns.
 - **Explicit over magic** - Every dependency visible in constructors, every middleware applied manually, every lifecycle hook opt-in.
 
 ## What's Included
@@ -33,7 +33,7 @@ If you've built a few Go web apps and found yourself copying similar patterns (l
 - **Database** - Postgres connection pooling, migrations, transactions, and health checks
 - **HTTP middleware** - Request tracking, logging, panic recovery, and CORS
 - **Model utilities** - ID generation, timestamp helpers, and common patterns
-- **Templates** - HTML rendering with embedded assets and HTMX support
+- **Templates** - HTML rendering with embedded assets and htmx support
 - **Type-safe queries** - Integration with sqlc for compile-time SQL validation
 - **Testing patterns** - Comprehensive test coverage with practical examples
 
@@ -121,14 +121,15 @@ HatMax is focused on single-binary applications with straightforward patterns:
 
 - **Database** - Postgres-first approach with sqlc for type-safe queries
 - **Architecture** - Monolithic applications that deploy as one executable
-- **Presentation** - HTML templates with HTMX for interactive experiences
+- **Presentation** - HTML templates with htmx for interactive experiences
 - **Data layer** - Direct SQL queries, explicit service coordination
 - **Authorization** - Core auth primitives as building blocks
 - **Interface** - Standard HTTP handlers and middleware
 
-## Gallery
+## Documentation
 
-See the [Gallery](docs/gallery.md) for visual examples of the HatMax design system and the ticked reference implementation.
+- [Features](docs/features.md) - Package overview
+- [Gallery](docs/gallery.md) - Visual examples
 
 ## Development
 
@@ -153,18 +154,13 @@ make check
 
 ## Status
 
-HatMax is under active development. The library API is stabilizing but may change before v1.0. Contributions and feedback are welcome.
+HatMax is under active development. The library API is stabilizing but may change before v1.0.
 
 **Current focus:**
 - Core library packages (app, log, config, db, auth, middleware, model)
 - Authentication primitives (signup, signin, sessions, middleware)
 - Comprehensive test coverage and examples
 - Example application demonstrating all features
-
-**Roadmap:**
-- v1.0: Stable library API with full test coverage
-- v1.x: Optional code generator for scaffolding new projects
-- Future: Advanced features (rate limiting, background jobs, file uploads)
 
 ## License
 
