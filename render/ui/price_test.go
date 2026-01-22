@@ -139,3 +139,64 @@ func TestPriceRange(t *testing.T) {
 		})
 	}
 }
+
+func TestRegisterCurrency(t *testing.T) {
+	tests := []struct {
+		name     string
+		code     string
+		symbol   string
+		position CurrencyPosition
+	}{
+		{
+			name:     "new currency with symbol before",
+			code:     "TEST1",
+			symbol:   "T$",
+			position: SymbolBefore,
+		},
+		{
+			name:     "new currency with symbol after",
+			code:     "TEST2",
+			symbol:   "TK",
+			position: SymbolAfter,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RegisterCurrency(tt.code, tt.symbol, tt.position)
+
+			if CurrencySymbol[tt.code] != tt.symbol {
+				t.Errorf("CurrencySymbol[%q] = %q, want %q", tt.code, CurrencySymbol[tt.code], tt.symbol)
+			}
+
+			format, ok := CurrencyFormats[tt.code]
+			if !ok {
+				t.Fatalf("CurrencyFormats[%q] not found", tt.code)
+			}
+			if format.Symbol != tt.symbol {
+				t.Errorf("format.Symbol = %q, want %q", format.Symbol, tt.symbol)
+			}
+			if format.Position != tt.position {
+				t.Errorf("format.Position = %v, want %v", format.Position, tt.position)
+			}
+		})
+	}
+}
+
+func TestRegisterCurrencyUsedInFormatPrice(t *testing.T) {
+	RegisterCurrency("JPY", "¥", SymbolBefore)
+
+	got := FormatPrice(1000, "JPY")
+	want := "¥1,000"
+	if got != want {
+		t.Errorf("FormatPrice with registered currency = %q, want %q", got, want)
+	}
+
+	RegisterCurrency("CHF", "Fr.", SymbolAfter)
+
+	got = FormatPrice(500, "CHF")
+	want = "500 Fr."
+	if got != want {
+		t.Errorf("FormatPrice with symbol after = %q, want %q", got, want)
+	}
+}

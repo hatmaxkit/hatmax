@@ -45,6 +45,12 @@ var CurrencyFormats = map[string]CurrencyFormat{
 	"MXN": {Symbol: "$", Position: SymbolBefore},
 }
 
+// RegisterCurrency adds or updates a currency format.
+func RegisterCurrency(code, symbol string, position CurrencyPosition) {
+	CurrencySymbol[code] = symbol
+	CurrencyFormats[code] = CurrencyFormat{Symbol: symbol, Position: position}
+}
+
 // defaultPrinter is used for number formatting.
 // Will be replaced by locale-aware printer in Phase 2.
 var defaultPrinter = message.NewPrinter(language.English)
