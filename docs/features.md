@@ -13,9 +13,9 @@
 | Package | Description |
 |---------|-------------|
 | `web` | Chi router helpers, response utilities, flash messages |
-| `middleware` | Request ID, role-based access, middleware stack |
+| `middleware` | Request ID, role-based access, middleware stack, IP-based rate limiting |
 | `render` | Template FuncMap utilities |
-| `render/ui` | UI components (Badge, Chip, Price, Stat) |
+| `render/ui` | UI components (Badge, Chip, Price, Stat), dynamic currency registration |
 | `modal` | Modal dialog configuration |
 | `pagination` | Generic pagination (`Result[T]`) |
 
@@ -24,16 +24,17 @@
 | Package | Description |
 |---------|-------------|
 | `auth` | Authentication service, middleware, context helpers |
-| `crypto` | PASETO v4 tokens, AES-256-GCM encryption, Argon2id hashing |
+| `crypto` | PASETO v4 tokens, AES-256-GCM encryption, Argon2id hashing, TOTP/MFA with QR codes and backup codes |
 
 ## Data
 
 | Package | Description |
 |---------|-------------|
 | `db` | PostgreSQL connection (pgx/v5), migrations |
-| `model` | Base types (ID, timestamps), password hashing, roles |
+| `model` | Base types (ID, timestamps), password hashing, roles, nullable UUID utilities |
 | `validation` | Field validation (fluent API), error handling |
-| `seed` | Database seeding with tracking |
+| `seed` | Database seeding with tracking, symbolic references (Ref/RefMap) |
+| `slug` | URL-friendly slug generation with Unicode support |
 
 ## Media
 
@@ -48,5 +49,7 @@
 
 | Package | Description |
 |---------|-------------|
+| `mailer` | Email delivery (SMTP, SendGrid, AWS SES) |
 | `pubsub` | Publish/subscribe messaging |
 | `testhelper` | Testing utilities |
+| `fake` | Test doubles (mailer) |
