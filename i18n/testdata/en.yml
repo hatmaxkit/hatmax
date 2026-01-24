@@ -1,0 +1,14 @@
+common:
+  search: "Search"
+  back: "Back"
+  submit: "Submit"
+
+user:
+  name: "Name"
+  email: "Email"
+  role: "Role"
+  only_english: "Only in English"
+
+actions:
+  save: "Save"
+  delete: "Delete"

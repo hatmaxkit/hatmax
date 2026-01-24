@@ -44,6 +44,18 @@ type Store interface {
 }
 ```
 
+## Value Helpers
+
+```go
+// Parse from string (returns zero value if empty)
+b, err := settings.ParseBool("true")   // true, nil
+n, err := settings.ParseInt("42")      // 42, nil
+
+// Format to string
+s := settings.FormatBool(true)   // "true"
+s := settings.FormatInt(42)      // "42"
+```
+
 ## Notes
 
 Complements `config/`: config is static (YAML, env vars, flags at startup), settings is dynamic (DB, editable at runtime via admin UI).

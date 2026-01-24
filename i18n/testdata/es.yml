@@ -1,0 +1,13 @@
+common:
+  search: "Buscar"
+  back: "Volver"
+  submit: "Enviar"
+
+user:
+  name: "Nombre"
+  email: "Correo"
+  role: "Rol"
+
+actions:
+  save: "Guardar"
+  delete: "Eliminar"

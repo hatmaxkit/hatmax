@@ -13,11 +13,13 @@
 | Package | Description |
 |---------|-------------|
 | `web` | Chi router helpers, response utilities, flash messages |
-| `middleware` | Request ID, role-based access, middleware stack, IP-based rate limiting |
-| `render` | Template FuncMap utilities |
+| `middleware` | Request ID, role-based access, rate limiting, locale detection, static cache |
+| `render` | Template FuncMap utilities, i18n integration |
 | `render/ui` | UI components (Badge, Chip, Price, Stat), dynamic currency registration |
 | `modal` | Modal dialog configuration |
 | `pagination` | Generic pagination (`Result[T]`) |
+| `i18n` | Internationalization with YAML translation files |
+| `settings` | Runtime key-value configuration with schema validation |
 
 ## Auth & Security
 
