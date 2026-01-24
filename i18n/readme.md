@@ -5,12 +5,12 @@ Internationalization support with YAML translation files.
 ## Usage
 
 ```go
-//go:embed locales
-var localesFS embed.FS
+//go:embed assets
+var assetsFS embed.FS
 
 // Load translations
 translator := i18n.New()
-translator.LoadFromFS(localesFS, "locales")
+translator.LoadFromFS(assetsFS, "assets/locales")
 
 // Get translation
 text := translator.Get("es", "common.search") // "Buscar"
@@ -27,9 +27,23 @@ locales := translator.AvailableLocales() // ["en", "es"]
 translator.HasLocale("de") // false
 ```
 
+## Directory Structure
+
+Locale files are loaded from the specified path within the embedded filesystem:
+
+```
+assets/
+└── locales/
+    ├── en.yml      # locale "en"
+    ├── es.yml      # locale "es"
+    └── pt-BR.yaml  # locale "pt-BR" (.yaml also supported)
+```
+
+Each filename (without extension) becomes the locale code. Subdirectories are ignored. Only `.yml` and `.yaml` files are processed.
+
 ## Translation Files
 
-YAML files named by locale (e.g., `en.yml`, `es.yml`):
+YAML files use nested keys that are flattened with dot notation:
 
 ```yaml
 common:

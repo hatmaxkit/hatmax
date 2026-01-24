@@ -2,15 +2,44 @@
 
 HTTP utilities for templates, forms, and htmx.
 
-## Usage
+## Template Manager
 
 ```go
-// Render full page
-web.RenderTemplate(w, tmpl, "page.html", data, log)
+//go:embed assets
+var assetsFS embed.FS
+
+tm := web.NewTemplateManager(assetsFS, log)
+tm.Start(ctx)
+
+// Render full page (namespace="auth", template="login")
+tm.Render(w, "auth", "login", data)
 
 // Render partial (htmx response)
-web.RenderPartial(w, tmpl, "row.html", data, log)
+tm.RenderPartial(w, "tasks", "row", data)
+```
 
+### Directory Structure
+
+Templates are loaded from `assets/templates/{namespace}/`:
+
+```
+assets/
+└── templates/
+    ├── auth/
+    │   ├── login.html
+    │   └── register.html
+    ├── tasks/
+    │   ├── list.html
+    │   └── row.html
+    └── shared/
+        └── layout.html
+```
+
+Only `.html` files are processed. The namespace parameter in `Render()` maps to the subdirectory name.
+
+## Utilities
+
+```go
 // Redirect (htmx-aware)
 web.RedirectOrHXRedirect(w, r, "/dashboard")
 
