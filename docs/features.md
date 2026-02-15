@@ -13,9 +13,10 @@
 | Package | Description |
 |---------|-------------|
 | `web` | Chi router helpers, response utilities, flash messages |
+| `htmx` | HTMX primitives (triggers, actions, targets, swaps), response headers, template helpers |
 | `middleware` | Request ID, role-based access, rate limiting, locale detection, static cache |
 | `render` | Template FuncMap utilities, i18n integration |
-| `render/ui` | UI components (Badge, Chip, Price, Stat), dynamic currency registration |
+| `render/ui` | UI components (Badge, Chip, Price, Stat, Button, Link, Form, Input, Alert, Toast) |
 | `modal` | Modal dialog configuration |
 | `pagination` | Generic pagination (`Result[T]`) |
 | `i18n` | Internationalization with YAML translation files |
@@ -55,3 +56,16 @@
 | `pubsub` | Publish/subscribe messaging |
 | `testhelper` | Testing utilities |
 | `fake` | Test doubles (mailer) |
+
+## Migrations
+
+### `web/htmx` → `htmx`
+
+Two HTMX packages coexist during transition:
+
+| Package | Content |
+|---------|---------|
+| `web/htmx` | Legacy, minimal: `RespondDelete(w, err, log)` with error handling |
+| `htmx` | Full HTMX support: triggers, actions, targets, swaps, headers, OOB, template helpers |
+
+For new code, use `htmx`. See `htmx/readme.md` for usage.

@@ -7,6 +7,9 @@ Template FuncMap with UI components and utilities.
 ```go
 tmpl := template.New("").Funcs(render.FuncMap())
 
+// With HTMX helpers
+tmpl := template.New("").Funcs(render.FuncMapWithHTMX())
+
 // Or merge with your own
 funcs := render.MergeFuncMaps(render.FuncMap(), myFuncMap)
 
@@ -37,6 +40,26 @@ In templates:
 {{statusBadge "published"}}
 {{formatPrice 1999 "USD"}}
 {{stat "Users" 1234}}
+
+<!-- Buttons -->
+{{btn "Save"}}
+{{btnSubmit "Submit"}}
+{{btnDanger "Delete"}}
+
+<!-- Links -->
+{{link "Home" "/"}}
+{{linkBlank "Docs" "https://docs.example.com"}}
+{{linkBoosted "Page" "/page"}}
+
+<!-- Forms -->
+{{(text "username").Placeholder "Enter username"}}
+{{(email "email").Required}}
+{{(field "Email" "email").Error .Errors.email}}
+
+<!-- Alerts -->
+{{alertSuccess "Saved!"}}
+{{alertError "Something went wrong"}}
+{{(flash "Done!").AutoDismiss 5}}
 ```
 
-Components: chips, pills, badges, prices, stats. See `ui/` for details.
+Components: chips, pills, badges, prices, stats, buttons, links, forms, alerts. See `ui/` for details.
