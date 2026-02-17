@@ -57,15 +57,3 @@
 | `testhelper` | Testing utilities |
 | `fake` | Test doubles (mailer) |
 
-## Migrations
-
-### `web/htmx` → `htmx`
-
-Two HTMX packages coexist during transition:
-
-| Package | Content |
-|---------|---------|
-| `web/htmx` | Legacy, minimal: `RespondDelete(w, err, log)` with error handling |
-| `htmx` | Full HTMX support: triggers, actions, targets, swaps, headers, OOB, template helpers |
-
-For new code, use `htmx`. See `htmx/readme.md` for usage.

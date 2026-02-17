@@ -16,7 +16,7 @@ import (
 	"github.com/hatmaxkit/hatmax/log"
 	"github.com/hatmaxkit/hatmax/middleware"
 	"github.com/hatmaxkit/hatmax/web"
-	"github.com/hatmaxkit/hatmax/web/htmx"
+	"github.com/hatmaxkit/hatmax/htmx"
 )
 
 // authService defines the auth operations needed by the handler.
@@ -359,7 +359,12 @@ func (h *Handler) handleDeleteItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.listSvc.RemoveItem(r.Context(), user.ID, itemID)
-	htmx.RespondDelete(w, err, h.log)
+	if err != nil {
+		h.log.Errorf("error deleting item: %v", err)
+		http.Error(w, "Cannot delete", http.StatusInternalServerError)
+		return
+	}
+	htmx.RespondDelete(w)
 }
 
 // --- Admin handlers ---
