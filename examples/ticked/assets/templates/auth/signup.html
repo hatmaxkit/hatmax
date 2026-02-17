@@ -36,7 +36,7 @@
                     <input type="password" id="confirm_password" name="confirm_password" required minlength="8">
                 </div>
 
-                <button type="submit" class="btn-primary">Sign Up</button>
+                {{with btnSubmit "Sign Up"}}{{with .Primary}}{{.Render}}{{end}}{{end}}
             </form>
 
             <p class="auth-link">

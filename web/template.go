@@ -15,18 +15,34 @@ import (
 type TemplateManager struct {
 	fs        embed.FS
 	templates *template.Template
+	funcMap   template.FuncMap
 	log       log.Logger
 }
 
-func NewTemplateManager(fs embed.FS, log log.Logger) *TemplateManager {
-	return &TemplateManager{
+type TemplateOption func(*TemplateManager)
+
+func WithFuncMap(fm template.FuncMap) TemplateOption {
+	return func(m *TemplateManager) {
+		m.funcMap = fm
+	}
+}
+
+func NewTemplateManager(fs embed.FS, log log.Logger, opts ...TemplateOption) *TemplateManager {
+	m := &TemplateManager{
 		fs:  fs,
 		log: log,
 	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
 }
 
 func (m *TemplateManager) Start(ctx context.Context) error {
 	tmpl := template.New("")
+	if m.funcMap != nil {
+		tmpl = tmpl.Funcs(m.funcMap)
+	}
 
 	err := fs.WalkDir(m.fs, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {

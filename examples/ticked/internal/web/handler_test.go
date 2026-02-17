@@ -14,6 +14,7 @@ import (
 	"github.com/hatmaxkit/hatmax/auth"
 	"github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/audit"
 	"github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/list"
+	"github.com/hatmaxkit/hatmax/kit"
 	"github.com/hatmaxkit/hatmax/log"
 	"github.com/hatmaxkit/hatmax/web"
 )
@@ -40,7 +41,7 @@ func (f *fakeAuditStore) List(ctx context.Context, limit int) ([]audit.Record, e
 
 func TestHandlerRegisterRoutes(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	tmplMgr := web.NewTemplateManager(testAssetsFS, logger)
+	tmplMgr := web.NewTemplateManager(testAssetsFS, logger, web.WithFuncMap(kit.FuncMap()))
 
 	h := &Handler{
 		tmpl: tmplMgr,
@@ -103,7 +104,7 @@ func TestHandleIndex(t *testing.T) {
 
 func TestHandleSigninForm(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	tmplMgr := web.NewTemplateManager(testAssetsFS, logger)
+	tmplMgr := web.NewTemplateManager(testAssetsFS, logger, web.WithFuncMap(kit.FuncMap()))
 	tmplMgr.Start(context.Background())
 
 	h := &Handler{
@@ -123,7 +124,7 @@ func TestHandleSigninForm(t *testing.T) {
 
 func TestHandleSignupForm(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	tmplMgr := web.NewTemplateManager(testAssetsFS, logger)
+	tmplMgr := web.NewTemplateManager(testAssetsFS, logger, web.WithFuncMap(kit.FuncMap()))
 	tmplMgr.Start(context.Background())
 
 	h := &Handler{
@@ -143,7 +144,7 @@ func TestHandleSignupForm(t *testing.T) {
 
 func TestHandleSignin_EmptyFields(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	tmplMgr := web.NewTemplateManager(testAssetsFS, logger)
+	tmplMgr := web.NewTemplateManager(testAssetsFS, logger, web.WithFuncMap(kit.FuncMap()))
 	tmplMgr.Start(context.Background())
 
 	h := &Handler{
@@ -182,7 +183,7 @@ func TestHandleSignin_EmptyFields(t *testing.T) {
 
 func TestHandleSignup_EmptyFields(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	tmplMgr := web.NewTemplateManager(testAssetsFS, logger)
+	tmplMgr := web.NewTemplateManager(testAssetsFS, logger, web.WithFuncMap(kit.FuncMap()))
 	tmplMgr.Start(context.Background())
 
 	h := &Handler{
@@ -263,7 +264,7 @@ func TestHandleListItems_NoUser(t *testing.T) {
 
 func TestHandleListItems_WithUser(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	tmplMgr := web.NewTemplateManager(testAssetsFS, logger)
+	tmplMgr := web.NewTemplateManager(testAssetsFS, logger, web.WithFuncMap(kit.FuncMap()))
 	tmplMgr.Start(context.Background())
 
 	h := &Handler{
@@ -338,7 +339,7 @@ func TestHandleAddItem_EmptyText(t *testing.T) {
 
 func TestHandleAddItem_Success(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	tmplMgr := web.NewTemplateManager(testAssetsFS, logger)
+	tmplMgr := web.NewTemplateManager(testAssetsFS, logger, web.WithFuncMap(kit.FuncMap()))
 	tmplMgr.Start(context.Background())
 
 	h := &Handler{
@@ -410,7 +411,7 @@ func TestHandleDeleteItem_NoUser(t *testing.T) {
 
 func TestHandleDashboard(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	tmplMgr := web.NewTemplateManager(testAssetsFS, logger)
+	tmplMgr := web.NewTemplateManager(testAssetsFS, logger, web.WithFuncMap(kit.FuncMap()))
 	tmplMgr.Start(context.Background())
 
 	h := &Handler{
@@ -434,7 +435,7 @@ func TestHandleDashboard(t *testing.T) {
 
 func TestHandleListUsers(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	tmplMgr := web.NewTemplateManager(testAssetsFS, logger)
+	tmplMgr := web.NewTemplateManager(testAssetsFS, logger, web.WithFuncMap(kit.FuncMap()))
 	tmplMgr.Start(context.Background())
 
 	h := &Handler{
@@ -482,7 +483,7 @@ func TestHandleGetUser_MissingID(t *testing.T) {
 
 func TestHandleGetUser_Success(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	tmplMgr := web.NewTemplateManager(testAssetsFS, logger)
+	tmplMgr := web.NewTemplateManager(testAssetsFS, logger, web.WithFuncMap(kit.FuncMap()))
 	tmplMgr.Start(context.Background())
 
 	h := &Handler{
@@ -603,7 +604,7 @@ func TestHandleToggleUser_SelfDeactivate(t *testing.T) {
 
 func TestHandleListEvents(t *testing.T) {
 	logger := log.NewTestLogger("error")
-	tmplMgr := web.NewTemplateManager(testAssetsFS, logger)
+	tmplMgr := web.NewTemplateManager(testAssetsFS, logger, web.WithFuncMap(kit.FuncMap()))
 	tmplMgr.Start(context.Background())
 
 	h := &Handler{

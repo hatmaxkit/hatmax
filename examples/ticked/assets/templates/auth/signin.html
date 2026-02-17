@@ -27,7 +27,7 @@
                     <input type="password" id="password" name="password" required>
                 </div>
 
-                <button type="submit" class="btn-primary">Sign In</button>
+                {{with btnSubmit "Sign In"}}{{with .Primary}}{{.Render}}{{end}}{{end}}
             </form>
 
             <p class="auth-link">

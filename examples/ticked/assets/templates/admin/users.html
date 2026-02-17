@@ -29,13 +29,13 @@
             <div class="user-row">
                 <div class="user-info">
                     <span class="user-email">{{.Email}}</span>
-                    {{if not .Active}}<span class="badge badge-inactive">Inactive</span>{{end}}
+                    {{if not .Active}}{{with chip "Inactive"}}{{with .Danger}}{{.Render}}{{end}}{{end}}{{end}}
                     {{range .Roles}}
-                    <span class="badge badge-role">{{.}}</span>
+                    {{with chip .}}{{with .Info}}{{.Render}}{{end}}{{end}}
                     {{end}}
                 </div>
                 <div class="user-actions">
-                    <a href="/admin/get-user?id={{.ID}}" class="btn-secondary">Details</a>
+                    <a href="/admin/get-user?id={{.ID}}" class="btn btn--secondary">Details</a>
                 </div>
             </div>
             {{else}}

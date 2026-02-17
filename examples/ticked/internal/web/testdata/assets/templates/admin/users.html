@@ -1,1 +1,54 @@
-<html><body>users</body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/ticked.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="nav-left">
+            <a href="/list-items" class="nav-brand">Ticked</a>
+            <a href="/admin" class="nav-link">Admin</a>
+        </div>
+        <div class="nav-right">
+            <span class="nav-user">{{.UserEmail}}</span>
+            <form hx-post="/signout" hx-target="body" hx-swap="innerHTML" style="display: inline; margin: 0;">
+                <button type="submit" class="btn-link">Sign Out</button>
+            </form>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <h1>Users</h1>
+
+        <div class="users-list">
+            {{range .Users}}
+            <div class="user-row">
+                <div class="user-info">
+                    <span class="user-email">{{.Email}}</span>
+                    {{if not .Active}}{{with chip "Inactive"}}{{with .Danger}}{{.Render}}{{end}}{{end}}{{end}}
+                    {{range .Roles}}
+                    {{with chip .}}{{with .Info}}{{.Render}}{{end}}{{end}}
+                    {{end}}
+                </div>
+                <div class="user-actions">
+                    <a href="/admin/get-user?id={{.ID}}" class="btn btn--secondary">Details</a>
+                </div>
+            </div>
+            {{else}}
+            <div class="empty-state">No users found.</div>
+            {{end}}
+        </div>
+
+        <div class="back-link">
+            <a href="/admin">&larr; Back to Dashboard</a>
+        </div>
+    </main>
+
+    <button type="button" id="theme-toggle" title="Toggle theme (Alt+D)">🌙</button>
+    <script src="/static/ticked.js"></script>
+</body>
+</html>
