@@ -6,10 +6,10 @@ import (
 
 	"github.com/hatmaxkit/hatmax/htmx"
 	"github.com/hatmaxkit/hatmax/i18n"
-	"github.com/hatmaxkit/hatmax/render/ui"
 )
 
-// FuncMap returns a template.FuncMap with all render functions.
+// FuncMap returns a template.FuncMap with base render functions.
+// For UI components, use ui.FuncMap() which extends this.
 func FuncMap() template.FuncMap {
 	return template.FuncMap{
 		// String
@@ -32,66 +32,6 @@ func FuncMap() template.FuncMap {
 			}
 			return result
 		},
-
-		// Chips
-		"chip":          ui.Chip,
-		"chipMuted":     ui.ChipMuted,
-		"chipWithClass": ui.ChipWithClass,
-
-		// Pills
-		"pill":          ui.Pill,
-		"pillMuted":     ui.PillMuted,
-		"pillWithClass": ui.PillWithClass,
-
-		// Badges
-		"badge":               ui.Badge,
-		"badgeWithVariant":    ui.BadgeWithVariant,
-		"statusBadge":         ui.StatusBadge,
-		"statusBadgeWithIcon": ui.StatusBadgeWithIcon,
-
-		// Prices
-		"formatPrice":        ui.FormatPrice,
-		"priceTag":           ui.PriceTag,
-		"priceTagNegotiable": ui.PriceTagNegotiable,
-		"priceRange":         ui.PriceRange,
-
-		// Stats
-		"formatNumber": ui.FormatNumber,
-		"stat":         ui.Stat,
-		"statWithIcon": ui.StatWithIcon,
-		"statCompact":  ui.StatCompact,
-
-		// Buttons
-		"btn":       ui.Btn,
-		"btnSubmit": ui.BtnSubmit,
-		"btnDanger": ui.BtnDanger,
-
-		// Links
-		"link":        ui.A,
-		"linkBlank":   ui.ABlank,
-		"linkBoosted": ui.ABoosted,
-		"navLink":     ui.Nav,
-
-		// Forms
-		"form":     ui.NewForm,
-		"input":    ui.NewInput,
-		"text":     ui.Text,
-		"email":    ui.Email,
-		"password": ui.Password,
-		"number":   ui.Number,
-		"hidden":   ui.Hidden,
-		"search":   ui.Search,
-		"field":    ui.NewField,
-
-		// Alerts
-		"alert":        ui.NewAlert,
-		"alertInfo":    ui.AlertInfoMsg,
-		"alertSuccess": ui.AlertSuccessMsg,
-		"alertWarning": ui.AlertWarningMsg,
-		"alertDanger":  ui.AlertDangerMsg,
-		"alertError":   ui.AlertErrorMsg,
-		"flash":        ui.NewFlash,
-		"toast":        ui.NewToast,
 	}
 }
 

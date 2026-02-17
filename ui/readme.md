@@ -192,6 +192,58 @@ Custom emojis:
 chip := ui.NewChip("Coffee").Emoji("☕")
 ```
 
+### Alerts, Flash, and Toast
+
+```go
+alert := ui.NewAlert("Something happened").Info().Dismissible()
+alert := ui.AlertSuccess("Saved successfully!")
+
+flash := ui.NewFlash("Changes saved").Success().AutoDismiss(5)
+
+toast := ui.NewToast("New message").
+    Title("Notification").
+    Position("top-right").
+    Duration(3000)
+```
+
+### Link
+
+```go
+link := ui.NewLink("Click here", "/page")
+link := ui.ABlank("External", "https://example.com") // target="_blank"
+link := ui.ABoosted("Navigate", "/page")             // hx-boost
+
+// With HTMX
+link := ui.NewLink("Load", "/").HX().Get("/api").TargetID("content").Done()
+```
+
+### StatusBadge
+
+```go
+badge := ui.StatusBadge("active")   // green, "Active"
+badge := ui.StatusBadge("draft")    // yellow, "Draft"
+badge := ui.StatusBadge("expired")  // red, "Expired"
+
+// With icon
+badge := ui.StatusBadgeWithIcon("active") // "● Active"
+
+// Register custom status
+ui.RegisterStatus("pending", ui.StatusConfig{
+    Variant: ui.VariantWarning,
+    Label:   "Pending Review",
+    Icon:    "⏳",
+})
+```
+
+## Format Integration
+
+Formatting functions from `format` package are available in templates:
+
+```html
+<span class="price">{{ formatPrice .Amount .Currency }}</span>
+<span class="count">{{ formatNumber .Count }}</span>
+```
+
 ## Variants
 
-Chip, Label, and Button support: Primary, Secondary, Success, Warning, Danger, Info, Muted.
+Chip, Label, Button, and Alert support: Primary, Secondary, Success, Warning, Danger, Info, Muted.

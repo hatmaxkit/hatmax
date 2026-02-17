@@ -10,7 +10,6 @@ import (
 
 // Link represents an interactive link component with optional HTMX support.
 type Link struct {
-	BaseInteractive
 	text     string
 	href     string
 	target   string
@@ -20,7 +19,7 @@ type Link struct {
 	title    string
 	download string
 	boosted  bool
-	external bool
+	attrs    *htmx.Attrs
 }
 
 // NewLink creates a new link with the given text and href.
@@ -37,17 +36,15 @@ func (l *Link) Target(target string) *Link {
 	return l
 }
 
-// Blank opens the link in a new tab.
+// Blank opens the link in a new tab with security attributes.
 func (l *Link) Blank() *Link {
 	l.target = "_blank"
 	l.rel = "noopener noreferrer"
-	l.external = true
 	return l
 }
 
 // External marks the link as external and adds appropriate rel attribute.
 func (l *Link) External() *Link {
-	l.external = true
 	if l.rel == "" {
 		l.rel = "noopener noreferrer"
 	}
@@ -91,8 +88,8 @@ func (l *Link) Boost() *Link {
 }
 
 // WithAttrs sets HTMX attributes for the link.
-func (l *Link) WithAttrs(attrs *htmx.Attrs) InteractiveComponent {
-	l.SetAttrs(attrs)
+func (l *Link) WithAttrs(attrs *htmx.Attrs) *Link {
+	l.attrs = attrs
 	return l
 }
 
@@ -105,41 +102,41 @@ func (l *Link) HX() *LinkHX {
 func (l *Link) Render() template.HTML {
 	var attrs []string
 
-	attrs = append(attrs, fmt.Sprintf(`href="%s"`, escape(l.href)))
+	attrs = append(attrs, fmt.Sprintf(`href="%s"`, template.HTMLEscapeString(l.href)))
 
 	if l.class != "" {
-		attrs = append(attrs, fmt.Sprintf(`class="%s"`, escape(l.class)))
+		attrs = append(attrs, fmt.Sprintf(`class="%s"`, template.HTMLEscapeString(l.class)))
 	}
 
 	if l.id != "" {
-		attrs = append(attrs, fmt.Sprintf(`id="%s"`, escape(l.id)))
+		attrs = append(attrs, fmt.Sprintf(`id="%s"`, template.HTMLEscapeString(l.id)))
 	}
 
 	if l.target != "" {
-		attrs = append(attrs, fmt.Sprintf(`target="%s"`, escape(l.target)))
+		attrs = append(attrs, fmt.Sprintf(`target="%s"`, template.HTMLEscapeString(l.target)))
 	}
 
 	if l.rel != "" {
-		attrs = append(attrs, fmt.Sprintf(`rel="%s"`, escape(l.rel)))
+		attrs = append(attrs, fmt.Sprintf(`rel="%s"`, template.HTMLEscapeString(l.rel)))
 	}
 
 	if l.title != "" {
-		attrs = append(attrs, fmt.Sprintf(`title="%s"`, escape(l.title)))
+		attrs = append(attrs, fmt.Sprintf(`title="%s"`, template.HTMLEscapeString(l.title)))
 	}
 
 	if l.download != "" {
-		attrs = append(attrs, fmt.Sprintf(`download="%s"`, escape(l.download)))
+		attrs = append(attrs, fmt.Sprintf(`download="%s"`, template.HTMLEscapeString(l.download)))
 	}
 
 	if l.boosted {
 		attrs = append(attrs, `hx-boost="true"`)
 	}
 
-	if l.HasAttrs() {
-		attrs = append(attrs, string(l.HXAttrs()))
+	if l.attrs != nil {
+		attrs = append(attrs, string(l.attrs.HTML()))
 	}
 
-	return template.HTML(fmt.Sprintf(`<a %s>%s</a>`, strings.Join(attrs, " "), escape(l.text)))
+	return template.HTML(fmt.Sprintf(`<a %s>%s</a>`, strings.Join(attrs, " "), template.HTMLEscapeString(l.text)))
 }
 
 // LinkHX provides a fluent interface for building HTMX-enabled links.
@@ -148,7 +145,7 @@ type LinkHX struct {
 	attrs *htmx.Attrs
 }
 
-// Get sets a GET action (replacing the href behavior).
+// Get sets a GET action.
 func (lh *LinkHX) Get(url string) *LinkHX {
 	lh.attrs.Get(url)
 	return lh
@@ -160,21 +157,9 @@ func (lh *LinkHX) Post(url string) *LinkHX {
 	return lh
 }
 
-// Target sets the HTMX target selector.
-func (lh *LinkHX) Target(target htmx.Target) *LinkHX {
-	lh.attrs.Target(target)
-	return lh
-}
-
 // TargetID sets a target by ID.
 func (lh *LinkHX) TargetID(id string) *LinkHX {
 	lh.attrs.TargetID(id)
-	return lh
-}
-
-// Swap sets the swap strategy.
-func (lh *LinkHX) Swap(swap htmx.Swap) *LinkHX {
-	lh.attrs.Swap(swap)
 	return lh
 }
 
@@ -196,27 +181,15 @@ func (lh *LinkHX) PushURL(url string) *LinkHX {
 	return lh
 }
 
-// PushHref enables pushing the link's href to history.
-func (lh *LinkHX) PushHref() *LinkHX {
-	lh.attrs.PushURL(lh.link.href)
-	return lh
-}
-
 // Select sets the selector for partial content.
 func (lh *LinkHX) Select(selector string) *LinkHX {
 	lh.attrs.Select(selector)
 	return lh
 }
 
-// Trigger sets the trigger.
-func (lh *LinkHX) Trigger(trigger htmx.Trigger) *LinkHX {
-	lh.attrs.Trigger(trigger)
-	return lh
-}
-
 // Done finalizes and returns the link.
 func (lh *LinkHX) Done() *Link {
-	lh.link.SetAttrs(lh.attrs)
+	lh.link.attrs = lh.attrs
 	return lh.link
 }
 
@@ -238,48 +211,4 @@ func ABlank(text, href string) *Link {
 // ABoosted creates a boosted link.
 func ABoosted(text, href string) *Link {
 	return NewLink(text, href).Boost()
-}
-
-// NavLink represents a navigation link with active state.
-type NavLink struct {
-	Link
-	active bool
-}
-
-// NewNavLink creates a new navigation link.
-func NewNavLink(text, href string) *NavLink {
-	return &NavLink{
-		Link: Link{
-			text: text,
-			href: href,
-		},
-	}
-}
-
-// Active sets the link as active.
-func (n *NavLink) Active(active bool) *NavLink {
-	n.active = active
-	return n
-}
-
-// Render renders the navigation link to HTML.
-func (n *NavLink) Render() template.HTML {
-	var classes []string
-	classes = append(classes, "nav-link")
-
-	if n.active {
-		classes = append(classes, "nav-link--active")
-	}
-
-	if n.class != "" {
-		classes = append(classes, n.class)
-	}
-
-	n.class = strings.Join(classes, " ")
-	return n.Link.Render()
-}
-
-// Nav creates a navigation link.
-func Nav(text, href string) *NavLink {
-	return NewNavLink(text, href)
 }

@@ -1,16 +1,22 @@
 # render
 
-Template FuncMap with UI components and utilities.
+Base template FuncMap with string, math, and i18n utilities.
+
+For UI components, use `ui.FuncMap()` which extends this.
 
 ## Usage
 
 ```go
+// Base functions only
 tmpl := template.New("").Funcs(render.FuncMap())
 
 // With HTMX helpers
 tmpl := template.New("").Funcs(render.FuncMapWithHTMX())
 
-// Or merge with your own
+// Full UI kit (recommended)
+tmpl := template.New("").Funcs(ui.FuncMap())
+
+// Merge with your own
 funcs := render.MergeFuncMaps(render.FuncMap(), myFuncMap)
 
 // With i18n support
@@ -19,7 +25,7 @@ translator.LoadFromFS(localesFS, "locales")
 funcs := render.MergeFuncMaps(render.FuncMap(), render.I18nFuncMap(translator))
 ```
 
-In templates:
+## Available Functions
 
 ```html
 <!-- String -->
@@ -33,33 +39,14 @@ In templates:
 {{add 1 2}}        <!-- 3 -->
 {{sub 5 2}}        <!-- 3 -->
 {{range seq 1 5}}  <!-- 1, 2, 3, 4, 5 -->
-
-<!-- UI Components -->
-{{chip "Active"}}
-{{badge "New" "success"}}
-{{statusBadge "published"}}
-{{formatPrice 1999 "USD"}}
-{{stat "Users" 1234}}
-
-<!-- Buttons -->
-{{btn "Save"}}
-{{btnSubmit "Submit"}}
-{{btnDanger "Delete"}}
-
-<!-- Links -->
-{{link "Home" "/"}}
-{{linkBlank "Docs" "https://docs.example.com"}}
-{{linkBoosted "Page" "/page"}}
-
-<!-- Forms -->
-{{(text "username").Placeholder "Enter username"}}
-{{(email "email").Required}}
-{{(field "Email" "email").Error .Errors.email}}
-
-<!-- Alerts -->
-{{alertSuccess "Saved!"}}
-{{alertError "Something went wrong"}}
-{{(flash "Done!").AutoDismiss 5}}
 ```
 
-Components: chips, pills, badges, prices, stats, buttons, links, forms, alerts. See `ui/` for details.
+## UI Components
+
+For UI components (chips, buttons, alerts, forms, etc.), use `ui.FuncMap()`:
+
+```go
+tmpl := template.New("").Funcs(ui.FuncMap())
+```
+
+See `ui/readme.md` for component documentation.
