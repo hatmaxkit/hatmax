@@ -1,4 +1,4 @@
-package kit
+package ui
 
 // Emoji represents an emoji character.
 type Emoji string

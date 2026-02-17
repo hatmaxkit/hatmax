@@ -1,4 +1,4 @@
-package kit
+package ui
 
 import (
 	"testing"
@@ -7,12 +7,12 @@ import (
 	"github.com/hatmaxkit/hatmax/log"
 )
 
-func TestKitFuncMap(t *testing.T) {
+func TestUIFuncMap(t *testing.T) {
 	cfg := config.New()
 	logger := log.NewTestLogger("error")
-	kit := New(cfg, logger)
+	u := New(cfg, logger)
 
-	fm := kit.FuncMap()
+	fm := u.FuncMap()
 
 	funcs := []string{
 		"chip", "label",

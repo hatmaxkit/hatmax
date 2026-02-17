@@ -17,7 +17,7 @@
 | `middleware` | Request ID, role-based access, rate limiting, locale detection, static cache |
 | `render` | Template FuncMap utilities, i18n integration |
 | `render/ui` | UI components (Badge, Chip, Price, Stat, Button, Link, Form, Input, Alert, Toast) |
-| `kit` | UI kit with dependency injection, HTMX-first components, emoji support, CSRF integration |
+| `ui` | UI kit with dependency injection, HTMX-first components, emoji support, CSRF integration |
 | `modal` | Modal dialog configuration |
 | `pagination` | Generic pagination (`Result[T]`) |
 | `i18n` | Internationalization with YAML translation files |

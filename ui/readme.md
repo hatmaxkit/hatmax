@@ -1,21 +1,21 @@
-# kit
+# ui
 
 UI kit with dependency injection, emoji support, and HTMX-first components.
 
 ## Usage
 
 ```go
-kit := kit.New(cfg, log,
-    kit.WithSettings(settingsSvc),
-    kit.WithOverlay(os.DirFS("./custom")),
-    kit.WithCSRFFunc(csrf.Token),  // integrate with your CSRF middleware
+ui := ui.New(cfg, log,
+    ui.WithSettings(settingsSvc),
+    ui.WithOverlay(os.DirFS("./custom")),
+    ui.WithCSRFFunc(csrf.Token),  // integrate with your CSRF middleware
 )
 
 // Template functions
-tmpl := template.New("page").Funcs(kit.FuncMap())
+tmpl := template.New("page").Funcs(ui.FuncMap())
 
 // Or standalone (no kit instance)
-tmpl := template.New("page").Funcs(kit.FuncMap())
+tmpl := template.New("page").Funcs(ui.FuncMap())
 ```
 
 ## CSRF Integration
@@ -24,14 +24,14 @@ The kit integrates with external CSRF middleware via `WithCSRFFunc`:
 
 ```go
 // Your CSRF package provides a function to extract token from context
-kit := kit.New(cfg, log, kit.WithCSRFFunc(csrf.Token))
+ui := ui.New(cfg, log, ui.WithCSRFFunc(csrf.Token))
 
 // Then in handlers, get token from kit
-token := kit.CSRFToken(r.Context())
+token := ui.CSRFToken(r.Context())
 
 // Pass to forms
-form := kit.NewForm().Action("/submit").CSRFToken(token)
-deleteBtn := kit.NewDeleteButton("Delete", "/items/1").CSRFToken(token)
+form := ui.NewForm().Action("/submit").CSRFToken(token)
+deleteBtn := ui.NewDeleteButton("Delete", "/items/1").CSRFToken(token)
 ```
 
 ## Components
@@ -39,49 +39,49 @@ deleteBtn := kit.NewDeleteButton("Delete", "/items/1").CSRFToken(token)
 ### Chip (rounded) and Label (squared)
 
 ```go
-chip := kit.NewChip("Active").Emoji(kit.EmojiCheck).Success()
-label := kit.NewLabel("Important").Emoji(kit.EmojiWarning).Warning()
+chip := ui.NewChip("Active").Emoji(ui.EmojiCheck).Success()
+label := ui.NewLabel("Important").Emoji(ui.EmojiWarning).Warning()
 ```
 
 ### Button
 
 ```go
-btn := kit.NewButton("Save").Emoji(kit.EmojiSave).Primary()
-btn := kit.NewButton("Delete").Emoji(kit.EmojiTrash).Danger()
+btn := ui.NewButton("Save").Emoji(ui.EmojiSave).Primary()
+btn := ui.NewButton("Delete").Emoji(ui.EmojiTrash).Danger()
 
 // With HTMX
-btn := kit.NewButton("Load").HX().Get("/data").TargetID("result").Done()
+btn := ui.NewButton("Load").HX().Get("/data").TargetID("result").Done()
 ```
 
 ### Layout
 
 ```go
-page := kit.NewPage("Dashboard").
+page := ui.NewPage("Dashboard").
     Header(header).
     Content(content).
     Footer(footer)
 
-header := kit.NewPageHeader("Settings").
+header := ui.NewPageHeader("Settings").
     Subtitle("Configure your app").
     Breadcrumbs(
-        kit.Breadcrumb{Label: "Home", Href: "/"},
-        kit.Breadcrumb{Label: "Settings"},
+        ui.Breadcrumb{Label: "Home", Href: "/"},
+        ui.Breadcrumb{Label: "Settings"},
     ).
     Actions(saveBtn, cancelBtn)
 
-container := kit.NewContainer().Content(html).Fluid()
+container := ui.NewContainer().Content(html).Fluid()
 ```
 
 ### Navigation
 
 ```go
-nav := kit.NewNavGrid().
-    AddItem(kit.EmojiHome, "Dashboard", "/").
-    AddItem(kit.EmojiSettings, "Settings", "/settings").
-    AddItemWithBadge(kit.EmojiMail, "Messages", "/messages", "5").
+nav := ui.NewNavGrid().
+    AddItem(ui.EmojiHome, "Dashboard", "/").
+    AddItem(ui.EmojiSettings, "Settings", "/settings").
+    AddItemWithBadge(ui.EmojiMail, "Messages", "/messages", "5").
     Cols(3)
 
-menu := kit.NewNav().
+menu := ui.NewNav().
     AddLink("Home", "/", true).
     AddLink("About", "/about", false).
     Vertical()
@@ -90,15 +90,15 @@ menu := kit.NewNav().
 ### Table
 
 ```go
-table := kit.NewTable().
+table := ui.NewTable().
     Columns(
-        kit.Col("name", "Name").WithWidth("200px"),
-        kit.Col("email", "Email"),
-        kit.Col("actions", "").WithAlign("right"),
+        ui.Col("name", "Name").WithWidth("200px"),
+        ui.Col("email", "Email"),
+        ui.Col("actions", "").WithAlign("right"),
     ).
     Rows(
-        kit.NewRow(kit.Text("Alice"), kit.Text("alice@example.com"), kit.HTML(actions)),
-        kit.NewRow(kit.Text("Bob"), kit.Text("bob@example.com"), kit.HTML(actions)),
+        ui.NewRow(ui.Text("Alice"), ui.Text("alice@example.com"), ui.HTML(actions)),
+        ui.NewRow(ui.Text("Bob"), ui.Text("bob@example.com"), ui.HTML(actions)),
     ).
     Striped().
     Hoverable().
@@ -108,7 +108,7 @@ table := kit.NewTable().
 ### Form (with CSRF support)
 
 ```go
-form := kit.NewForm().
+form := ui.NewForm().
     Action("/submit").
     CSRFToken(csrfToken).
     Post()
@@ -120,7 +120,7 @@ form := kit.NewForm().
 {{ form.Close }}
 
 // With HTMX
-form := kit.NewForm().
+form := ui.NewForm().
     HX().Post("/api/submit").TargetID("result").Done().
     CSRFToken(csrfToken)
 ```
@@ -129,13 +129,13 @@ form := kit.NewForm().
 
 ```go
 // Safe delete: renders as form, not link (bots can't accidentally trigger)
-deleteBtn := kit.NewDeleteButton("Delete", "/items/123").
+deleteBtn := ui.NewDeleteButton("Delete", "/items/123").
     CSRFToken(csrfToken).
     Confirm("Are you sure?").
-    Emoji(kit.EmojiTrash)
+    Emoji(ui.EmojiTrash)
 
 // With HTMX
-deleteBtn := kit.NewDeleteButton("Delete", "").
+deleteBtn := ui.NewDeleteButton("Delete", "").
     HX().Delete("/api/items/123").SwapDelete().Confirm("Sure?").Done().
     CSRFToken(csrfToken)
 ```
@@ -149,7 +149,7 @@ schemas := []settings.Schema{
     {Key: "theme", Type: settings.Enum, Options: []string{"light", "dark"}},
 }
 
-form := kit.NewSettingsForm(schemas).
+form := ui.NewSettingsForm(schemas).
     Values(currentValues).
     Errors(validationErrors).
     Action("/settings").
@@ -159,7 +159,7 @@ form := kit.NewSettingsForm(schemas).
 ### Assets
 
 ```go
-assets := kit.NewAssets(embeddedFS).
+assets := ui.NewAssets(embeddedFS).
     WithOverlay(os.DirFS("./custom")).
     WithPrefix("/static")
 
@@ -172,24 +172,24 @@ url := assets.URL("css/style.css") // "/static/css/style.css"
 ## Emoji Presets
 
 ```go
-kit.EmojiCheck    // ✅
-kit.EmojiCross    // ❌
-kit.EmojiWarning  // ⚠️
-kit.EmojiInfo     // ℹ️
-kit.EmojiStar     // ⭐
-kit.EmojiHeart    // ❤️
-kit.EmojiTrash    // 🗑
-kit.EmojiSettings // ⚙
-kit.EmojiUser     // 👤
-kit.EmojiHome     // 🏠
-kit.EmojiSave     // 💾
+ui.EmojiCheck    // ✅
+ui.EmojiCross    // ❌
+ui.EmojiWarning  // ⚠️
+ui.EmojiInfo     // ℹ️
+ui.EmojiStar     // ⭐
+ui.EmojiHeart    // ❤️
+ui.EmojiTrash    // 🗑
+ui.EmojiSettings // ⚙
+ui.EmojiUser     // 👤
+ui.EmojiHome     // 🏠
+ui.EmojiSave     // 💾
 // ... see emoji.go for full list
 ```
 
 Custom emojis:
 
 ```go
-chip := kit.NewChip("Coffee").Emoji("☕")
+chip := ui.NewChip("Coffee").Emoji("☕")
 ```
 
 ## Variants
