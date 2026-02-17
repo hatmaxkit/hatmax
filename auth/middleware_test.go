@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/hatmaxkit/hatmax/config"
 	"github.com/hatmaxkit/hatmax/log"
@@ -225,5 +226,146 @@ func TestClearSessionCookie(t *testing.T) {
 	}
 	if cookie.MaxAge != -1 {
 		t.Errorf("ClearSessionCookie() cookie.MaxAge = %v, want -1", cookie.MaxAge)
+	}
+}
+
+func TestRequireTOTP(t *testing.T) {
+	tests := []struct {
+		name         string
+		cfg          TOTPEnforcement
+		user         *User
+		wantStatus   int
+		wantRedirect string
+	}{
+		{
+			name: "enforcement disabled",
+			cfg: TOTPEnforcement{
+				Enabled: func() bool { return false },
+			},
+			user:       &User{TOTPEnabled: false},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name: "enforcement nil",
+			cfg:  TOTPEnforcement{},
+			user: &User{TOTPEnabled: false},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name: "totp enabled",
+			cfg: TOTPEnforcement{
+				Enabled: func() bool { return true },
+			},
+			user:       &User{TOTPEnabled: true},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name: "totp not enabled redirects",
+			cfg: TOTPEnforcement{
+				Enabled:   func() bool { return true },
+				GraceDays: func() int { return 0 },
+			},
+			user:         &User{TOTPEnabled: false},
+			wantStatus:   http.StatusSeeOther,
+			wantRedirect: "/totp-setup",
+		},
+		{
+			name: "custom setup url",
+			cfg: TOTPEnforcement{
+				Enabled:   func() bool { return true },
+				GraceDays: func() int { return 0 },
+				SetupURL:  "/settings/2fa",
+			},
+			user:         &User{TOTPEnabled: false},
+			wantStatus:   http.StatusSeeOther,
+			wantRedirect: "/settings/2fa",
+		},
+		{
+			name: "no user in context passes",
+			cfg: TOTPEnforcement{
+				Enabled: func() bool { return true },
+			},
+			user:       nil,
+			wantStatus: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			})
+
+			middleware := RequireTOTP(tt.cfg)
+			wrapped := middleware(handler)
+
+			req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+			if tt.user != nil {
+				ctx := WithUser(req.Context(), tt.user)
+				req = req.WithContext(ctx)
+			}
+
+			w := httptest.NewRecorder()
+			wrapped.ServeHTTP(w, req)
+
+			if w.Code != tt.wantStatus {
+				t.Errorf("RequireTOTP() status = %v, want %v", w.Code, tt.wantStatus)
+			}
+
+			if tt.wantRedirect != "" {
+				location := w.Header().Get("Location")
+				if location != tt.wantRedirect {
+					t.Errorf("RequireTOTP() redirect = %v, want %v", location, tt.wantRedirect)
+				}
+			}
+		})
+	}
+}
+
+func TestRequireTOTPGracePeriod(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	cfg := TOTPEnforcement{
+		Enabled:   func() bool { return true },
+		GraceDays: func() int { return 7 },
+	}
+
+	middleware := RequireTOTP(cfg)
+	wrapped := middleware(handler)
+
+	// User created recently should pass
+	recentUser := &User{
+		TOTPEnabled: false,
+		CreatedAt:   time.Now().AddDate(0, 0, -3),
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+	ctx := WithUser(req.Context(), recentUser)
+	req = req.WithContext(ctx)
+
+	w := httptest.NewRecorder()
+	wrapped.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("RequireTOTP() with grace period status = %v, want %v", w.Code, http.StatusOK)
+	}
+
+	// User created long ago should redirect
+	oldUser := &User{
+		TOTPEnabled: false,
+		CreatedAt:   time.Now().AddDate(0, 0, -30),
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/protected", nil)
+	ctx = WithUser(req.Context(), oldUser)
+	req = req.WithContext(ctx)
+
+	w = httptest.NewRecorder()
+	wrapped.ServeHTTP(w, req)
+
+	if w.Code != http.StatusSeeOther {
+		t.Errorf("RequireTOTP() outside grace period status = %v, want %v", w.Code, http.StatusSeeOther)
 	}
 }

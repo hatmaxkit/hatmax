@@ -84,3 +84,51 @@ func ClearSessionCookie(w http.ResponseWriter) {
 	}
 	http.SetCookie(w, cookie)
 }
+
+// TOTPEnforcement configures 2FA enforcement behavior.
+type TOTPEnforcement struct {
+	Enabled   func() bool
+	GraceDays func() int
+	SetupURL  string
+}
+
+// RequireTOTP is a middleware that enforces 2FA setup.
+// It should be used after RequireAuth.
+func RequireTOTP(cfg TOTPEnforcement) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if cfg.Enabled == nil || !cfg.Enabled() {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			user, ok := GetUser(r.Context())
+			if !ok {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			if user.TOTPEnabled {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			graceDays := 0
+			if cfg.GraceDays != nil {
+				graceDays = cfg.GraceDays()
+			}
+
+			if user.InTOTPGracePeriod(graceDays) {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			setupURL := cfg.SetupURL
+			if setupURL == "" {
+				setupURL = "/totp-setup"
+			}
+
+			http.Redirect(w, r, setupURL, http.StatusSeeOther)
+		})
+	}
+}
