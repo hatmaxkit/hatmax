@@ -14,7 +14,7 @@
 |---------|-------------|
 | `web` | Chi router helpers, response utilities, flash messages |
 | `htmx` | HTMX primitives (triggers, actions, targets, swaps), response headers, template helpers |
-| `middleware` | Request ID, role-based access, rate limiting, locale detection, static cache |
+| `middleware` | Request ID, role-based access, rate limiting, locale detection, static cache, telemetry |
 | `render` | Template FuncMap utilities, i18n integration |
 | `ui` | UI kit with HTMX-first components (Chip, Label, Button, Alert, Flash, Toast, Link, Form, Table, Nav) |
 | `format` | Formatting utilities (Price, Number) for templates |
@@ -55,6 +55,7 @@
 |---------|-------------|
 | `mailer` | Email delivery (SMTP, SendGrid, AWS SES) |
 | `pubsub` | Publish/subscribe messaging |
+| `telemetry` | Request counting, crash collection, settings schemas |
 | `testhelper` | Testing utilities |
-| `fake` | Test doubles (mailer) |
+| `fake` | Test doubles (mailer, telemetry) |
 
