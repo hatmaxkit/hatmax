@@ -25,13 +25,18 @@ const (
 
 // Schema defines constraints for a setting.
 type Schema struct {
-	Key      string
-	Type     Type
-	Default  string
-	Required bool
-	Min      *int
-	Max      *int
-	Options  []string
+	Key         string
+	Type        Type
+	Default     string
+	Label       string
+	Description string
+	Required    bool
+	Secret      bool
+	Min         *int
+	Max         *int
+	MaxLength   int
+	Options     []string
+	Labels      []string
 }
 
 // Validate checks if a value satisfies the schema constraints.
@@ -41,6 +46,10 @@ func (s Schema) Validate(raw string) error {
 	}
 	if raw == "" {
 		return nil
+	}
+
+	if s.MaxLength > 0 && len(raw) > s.MaxLength {
+		return fmt.Errorf("setting %q: max length is %d", s.Key, s.MaxLength)
 	}
 
 	switch s.Type {
@@ -69,4 +78,12 @@ func (s Schema) Validate(raw string) error {
 	}
 
 	return nil
+}
+
+// DisplayLabel returns the label or falls back to the key.
+func (s Schema) DisplayLabel() string {
+	if s.Label != "" {
+		return s.Label
+	}
+	return s.Key
 }

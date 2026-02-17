@@ -131,6 +131,30 @@ func TestSchemaValidate(t *testing.T) {
 			value:   "",
 			wantErr: false,
 		},
+		{
+			name:    "max length exceeded",
+			schema:  Schema{Key: "test.token", Type: String, MaxLength: 10},
+			value:   "this is too long",
+			wantErr: true,
+		},
+		{
+			name:    "max length at limit",
+			schema:  Schema{Key: "test.token", Type: String, MaxLength: 10},
+			value:   "exactly 10",
+			wantErr: false,
+		},
+		{
+			name:    "max length under limit",
+			schema:  Schema{Key: "test.token", Type: String, MaxLength: 10},
+			value:   "short",
+			wantErr: false,
+		},
+		{
+			name:    "max length zero ignored",
+			schema:  Schema{Key: "test.token", Type: String, MaxLength: 0},
+			value:   "any length is fine",
+			wantErr: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -138,6 +162,38 @@ func TestSchemaValidate(t *testing.T) {
 			err := tt.schema.Validate(tt.value)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Schema.Validate(%q) error = %v, wantErr %v", tt.value, err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestSchemaDisplayLabel(t *testing.T) {
+	tests := []struct {
+		name   string
+		schema Schema
+		want   string
+	}{
+		{
+			name:   "returns label when set",
+			schema: Schema{Key: "site.name", Label: "Site Name"},
+			want:   "Site Name",
+		},
+		{
+			name:   "falls back to key",
+			schema: Schema{Key: "site.name"},
+			want:   "site.name",
+		},
+		{
+			name:   "empty label falls back to key",
+			schema: Schema{Key: "site.name", Label: ""},
+			want:   "site.name",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.schema.DisplayLabel(); got != tt.want {
+				t.Errorf("Schema.DisplayLabel() = %q, want %q", got, tt.want)
 			}
 		})
 	}
