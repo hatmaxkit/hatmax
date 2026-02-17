@@ -17,7 +17,7 @@ import (
 	authfeat "github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/auth"
 	listfeat "github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/list"
 	tickedweb "github.com/hatmaxkit/hatmax/examples/ticked/internal/web"
-	"github.com/hatmaxkit/hatmax/kit"
+	"github.com/hatmaxkit/hatmax/ui"
 	"github.com/hatmaxkit/hatmax/log"
 	"github.com/hatmaxkit/hatmax/middleware"
 	"github.com/hatmaxkit/hatmax/pubsub/postgres"
@@ -50,7 +50,7 @@ func main() {
 
 	database := db.New(assetsFS, "postgres", cfg, logger)
 	migrator := db.NewMigrator(database, assetsFS, "postgres", logger)
-	tmplMgr := web.NewTemplateManager(assetsFS, logger, web.WithFuncMap(kit.FuncMap()))
+	tmplMgr := web.NewTemplateManager(assetsFS, logger, web.WithFuncMap(ui.FuncMap()))
 	broker := postgres.NewBroker(database, postgres.DefaultConfig(), logger)
 
 	auditStore := auditfeat.NewPostgresStore(database)

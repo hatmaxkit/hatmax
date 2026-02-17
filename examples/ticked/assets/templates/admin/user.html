@@ -37,9 +37,9 @@
                 <span class="detail-label">Status:</span>
                 <span class="detail-value">
                     {{if .User.Active}}
-                    <span class="badge badge-active">Active</span>
+                    {{with chip "Active"}}{{with .Success}}{{.Render}}{{end}}{{end}}
                     {{else}}
-                    <span class="badge badge-inactive">Inactive</span>
+                    {{with chip "Inactive"}}{{with .Danger}}{{.Render}}{{end}}{{end}}
                     {{end}}
                 </span>
             </div>
@@ -47,7 +47,7 @@
                 <span class="detail-label">Roles:</span>
                 <span class="detail-value">
                     {{if .User.Roles}}
-                        {{range .User.Roles}}<span class="badge badge-role">{{.}}</span> {{end}}
+                        {{range .User.Roles}}{{with chip .}}{{with .Info}}{{.Render}}{{end}}{{end}} {{end}}
                     {{else}}
                         <span class="text-muted">No roles assigned</span>
                     {{end}}
@@ -67,16 +67,16 @@
                     <label for="roles">Roles (comma-separated):</label>
                     <input type="text" id="roles" name="roles" value="{{.RolesString}}" placeholder="admin, user">
                 </div>
-                <button type="submit" class="btn-primary">Update Roles</button>
+                {{with btnSubmit "Update Roles"}}{{with .Primary}}{{.Render}}{{end}}{{end}}
             </form>
 
             <h2>Account Status</h2>
             <form hx-post="/admin/toggle-user" hx-target="body" hx-swap="innerHTML">
                 <input type="hidden" name="id" value="{{.User.ID}}">
                 {{if .User.Active}}
-                <button type="submit" class="btn-danger">Deactivate User</button>
+                {{with btnSubmit "Deactivate User"}}{{with .Danger}}{{.Render}}{{end}}{{end}}
                 {{else}}
-                <button type="submit" class="btn-success">Activate User</button>
+                {{with btnSubmit "Activate User"}}{{with .Success}}{{.Render}}{{end}}{{end}}
                 {{end}}
             </form>
         </div>

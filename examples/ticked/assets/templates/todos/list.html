@@ -30,7 +30,7 @@
               hx-on::after-request="this.reset()"
               class="add-form">
             <input type="text" name="text" placeholder="What needs to be done?" required autofocus maxlength="500">
-            <button type="submit" class="btn-primary">Add</button>
+            {{with btnSubmit "Add"}}{{with .Primary}}{{.Render}}{{end}}{{end}}
         </form>
 
         <div id="items-list" class="items-list">

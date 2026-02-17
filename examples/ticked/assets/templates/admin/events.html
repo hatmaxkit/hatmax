@@ -28,9 +28,9 @@
             {{range .Events}}
             <div class="event-row">
                 <span class="event-time">{{.CreatedAt.Format "15:04:05"}}</span>
-                <span class="event-type"><span class="badge badge-event">{{.EventType}}</span></span>
+                <span class="event-type">{{with chip .EventType}}{{.Render}}{{end}}</span>
                 <span class="event-item-id" title="{{.ItemID}}">{{if .ItemID}}{{.ItemID}}{{else}}-{{end}}</span>
-                <span class="event-source"><span class="badge badge-role">{{.Source}}</span></span>
+                <span class="event-source">{{with chip .Source}}{{with .Info}}{{.Render}}{{end}}{{end}}</span>
             </div>
             {{else}}
             <div class="empty-state">No events recorded yet.</div>
