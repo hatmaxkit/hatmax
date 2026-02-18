@@ -55,6 +55,7 @@
 |---------|-------------|
 | `mailer` | Email delivery (SMTP, SendGrid, AWS SES) |
 | `pubsub` | Publish/subscribe messaging |
+| `scheduler` | Job scheduling with pluggable storage, concurrent workers, dynamic settings |
 | `telemetry` | Request counting, crash collection, settings schemas |
 | `testhelper` | Testing utilities |
 | `fake` | Test doubles (mailer, telemetry) |
