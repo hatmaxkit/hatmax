@@ -96,19 +96,15 @@ jobs:
       - name: Generate coverage report
         run: go tool cover -html=coverage.out -o coverage.html
 
-      - name: Convert coverage to Cobertura format
-        run: |
-          go install github.com/boumenot/gocover-cobertura@latest
-          gocover-cobertura < coverage.out > coverage.xml
-
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         continue-on-error: true
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
+          files: ./coverage.out
+          flags: unittests
+          name: codecov-hatmax
           verbose: true
-          fail_ci_if_error: false
 
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4

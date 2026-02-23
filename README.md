@@ -6,7 +6,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/hatmaxkit/hatmax.svg)](https://pkg.go.dev/github.com/hatmaxkit/hatmax)
 [![CI](https://github.com/hatmaxkit/hatmax/actions/workflows/ci.yml/badge.svg)](https://github.com/hatmaxkit/hatmax/actions)
-[![codecov](https://codecov.io/gh/hatmaxkit/hatmax/branch/main/graph/badge.svg?token=VDYCRMI31Q)](https://codecov.io/gh/hatmaxkit/hatmax)
+[![codecov](https://codecov.io/gh/hatmaxkit/hatmax/graph/badge.svg?token=VDYCRMI31Q)](https://codecov.io/gh/hatmaxkit/hatmax)
 
 **A composable Go toolkit for building web applications with consistent wiring, clear configuration boundaries, and predictable package integration.**
 
