@@ -59,6 +59,7 @@ func OOBNone() OOB {
 // Target sets an explicit target selector for the OOB swap.
 func (o OOB) Target(selector string) OOB {
 	o.selector = selector
+
 	return o
 }
 
@@ -67,6 +68,7 @@ func (o OOB) String() string {
 	if o.selector != "" {
 		return fmt.Sprintf("%s:%s", o.swap, o.selector)
 	}
+
 	return o.swap
 }
 
@@ -95,18 +97,21 @@ func OOBWrap(id string) *OOBWrapper {
 // Tag sets the HTML tag for the wrapper (default: div).
 func (w *OOBWrapper) Tag(tag string) *OOBWrapper {
 	w.tag = tag
+
 	return w
 }
 
 // Swap sets the swap strategy for the OOB update.
 func (w *OOBWrapper) Swap(oob OOB) *OOBWrapper {
 	w.oob = oob
+
 	return w
 }
 
 // Class adds CSS classes to the wrapper.
 func (w *OOBWrapper) Class(classes ...string) *OOBWrapper {
 	w.classes = append(w.classes, classes...)
+
 	return w
 }
 
@@ -116,6 +121,7 @@ func (w *OOBWrapper) Open() template.HTML {
 	if len(w.classes) > 0 {
 		classAttr = fmt.Sprintf(` class="%s"`, template.HTMLEscapeString(joinClasses(w.classes)))
 	}
+
 	return template.HTML(fmt.Sprintf(`<%s id="%s" hx-swap-oob="%s"%s>`,
 		w.tag,
 		template.HTMLEscapeString(w.id),
@@ -132,11 +138,14 @@ func (w *OOBWrapper) Close() template.HTML {
 // joinClasses joins CSS class names with spaces.
 func joinClasses(classes []string) string {
 	result := ""
+
 	for i, c := range classes {
 		if i > 0 {
 			result += " "
 		}
+
 		result += c
 	}
+
 	return result
 }

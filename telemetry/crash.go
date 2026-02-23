@@ -48,6 +48,7 @@ func (c *CrashCollector) RecordPanic(message, endpoint, method string) {
 	if existing, ok := c.crashes[key]; ok {
 		existing.Count++
 		existing.LastSeen = now
+
 		return
 	}
 
@@ -78,6 +79,7 @@ func (c *CrashCollector) GetAndResetCrashes() []CrashEvent {
 	}
 
 	c.crashes = make(map[string]*CrashEvent)
+
 	return result
 }
 
@@ -87,16 +89,19 @@ func (c *CrashCollector) crashKey(message, endpoint string) string {
 
 func (c *CrashCollector) captureStack() []string {
 	var stack []string
+
 	pcs := make([]uintptr, 20)
 	n := runtime.Callers(4, pcs)
 	frames := runtime.CallersFrames(pcs[:n])
 
 	for {
 		frame, more := frames.Next()
+
 		funcName := frame.Function
 		if funcName != "" {
 			stack = append(stack, funcName)
 		}
+
 		if !more || len(stack) >= 10 {
 			break
 		}
@@ -109,5 +114,6 @@ func (c *CrashCollector) sanitizeMessage(msg string) string {
 	if len(msg) > 200 {
 		return msg[:200]
 	}
+
 	return msg
 }

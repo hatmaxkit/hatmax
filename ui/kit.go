@@ -35,6 +35,7 @@ func New(cfg *config.Config, log log.Logger, opts ...Option) *Kit {
 	for _, opt := range opts {
 		opt(k)
 	}
+
 	return k
 }
 
@@ -71,6 +72,7 @@ func (k *Kit) CSRFToken(ctx context.Context) string {
 	if k.csrfFunc == nil {
 		return ""
 	}
+
 	return k.csrfFunc(ctx)
 }
 

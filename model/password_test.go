@@ -44,6 +44,7 @@ func TestHashPassword(t *testing.T) {
 
 func TestComparePassword(t *testing.T) {
 	password := "password123"
+
 	hash, err := HashPassword(password)
 	if err != nil {
 		t.Fatalf("cannot hash password: %v", err)

@@ -21,6 +21,7 @@ func (f *fakeCounter) IncrementRequests() {
 func (f *fakeCounter) getCount() int {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+
 	return f.count
 }
 
@@ -45,8 +46,10 @@ func (f *fakeCrashRecorder) RecordPanic(message, endpoint, method string) {
 func (f *fakeCrashRecorder) getCalls() []crashCall {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+
 	result := make([]crashCall, len(f.calls))
 	copy(result, f.calls)
+
 	return result
 }
 
@@ -56,6 +59,7 @@ func TestTelemetryCounter(t *testing.T) {
 		handlerCalled := 0
 		handler := TelemetryCounter(counter)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			handlerCalled++
+
 			w.WriteHeader(http.StatusOK)
 		}))
 
@@ -66,9 +70,11 @@ func TestTelemetryCounter(t *testing.T) {
 		if rec.Code != http.StatusOK {
 			t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
 		}
+
 		if counter.getCount() != 1 {
 			t.Errorf("counter = %d, want 1", counter.getCount())
 		}
+
 		if handlerCalled != 1 {
 			t.Errorf("handler called %d times, want 1", handlerCalled)
 		}
@@ -95,6 +101,7 @@ func TestTelemetryCounter(t *testing.T) {
 		handlerCalled := 0
 		handler := TelemetryCounter(nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			handlerCalled++
+
 			w.WriteHeader(http.StatusOK)
 		}))
 
@@ -105,6 +112,7 @@ func TestTelemetryCounter(t *testing.T) {
 		if rec.Code != http.StatusOK {
 			t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
 		}
+
 		if handlerCalled != 1 {
 			t.Errorf("handler called %d times, want 1", handlerCalled)
 		}
@@ -125,6 +133,7 @@ func TestTelemetryRecovery(t *testing.T) {
 		if rec.Code != http.StatusOK {
 			t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
 		}
+
 		if len(recorder.getCalls()) != 0 {
 			t.Errorf("records = %d, want 0", len(recorder.getCalls()))
 		}
@@ -148,12 +157,15 @@ func TestTelemetryRecovery(t *testing.T) {
 		if len(calls) != 1 {
 			t.Fatalf("records = %d, want 1", len(calls))
 		}
+
 		if calls[0].message != "test panic" {
 			t.Errorf("message = %v, want %q", calls[0].message, "test panic")
 		}
+
 		if calls[0].endpoint != "/api/test" {
 			t.Errorf("endpoint = %q, want %q", calls[0].endpoint, "/api/test")
 		}
+
 		if calls[0].method != http.MethodPost {
 			t.Errorf("method = %q, want %q", calls[0].method, http.MethodPost)
 		}

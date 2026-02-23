@@ -142,6 +142,7 @@ func TestInterval_Next(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := Interval{Every: tt.every}
+
 			got := i.Next(base)
 			if !got.Equal(tt.want) {
 				t.Errorf("Next() = %v, want %v", got, tt.want)

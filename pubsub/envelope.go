@@ -23,6 +23,7 @@ func NewEnvelopeWithMetadata(topic string, payload any, metadata map[string]stri
 	if metadata != nil {
 		env.Metadata = metadata
 	}
+
 	return env
 }
 
@@ -31,6 +32,8 @@ func (e Envelope) WithMetadata(key, value string) Envelope {
 	if e.Metadata == nil {
 		e.Metadata = make(map[string]string)
 	}
+
 	e.Metadata[key] = value
+
 	return e
 }

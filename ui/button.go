@@ -45,12 +45,14 @@ func NewButton(text string) *Button {
 // Emoji sets the button emoji.
 func (b *Button) Emoji(e Emoji) *Button {
 	b.emoji = e
+
 	return b
 }
 
 // Variant sets the button variant.
 func (b *Button) Variant(v Variant) *Button {
 	b.variant = v
+
 	return b
 }
 
@@ -82,6 +84,7 @@ func (b *Button) Danger() *Button {
 // Size sets the button size.
 func (b *Button) Size(s ButtonSize) *Button {
 	b.size = s
+
 	return b
 }
 
@@ -98,30 +101,35 @@ func (b *Button) Large() *Button {
 // Disabled sets the button as disabled.
 func (b *Button) Disabled(disabled bool) *Button {
 	b.disabled = disabled
+
 	return b
 }
 
 // Loading sets the button to loading state.
 func (b *Button) Loading(loading bool) *Button {
 	b.loading = loading
+
 	return b
 }
 
 // Class adds custom CSS classes.
 func (b *Button) Class(class string) *Button {
 	b.class = class
+
 	return b
 }
 
 // ID sets the button ID.
 func (b *Button) ID(id string) *Button {
 	b.id = id
+
 	return b
 }
 
 // Type sets the button type (button, submit, reset).
 func (b *Button) Type(t string) *Button {
 	b.type_ = t
+
 	return b
 }
 
@@ -133,18 +141,21 @@ func (b *Button) Submit() *Button {
 // Name sets the button name attribute.
 func (b *Button) Name(name string) *Button {
 	b.name = name
+
 	return b
 }
 
 // Value sets the button value attribute.
 func (b *Button) Value(value string) *Button {
 	b.value = value
+
 	return b
 }
 
 // WithAttrs sets HTMX attributes for the button.
 func (b *Button) WithAttrs(attrs *htmx.Attrs) *Button {
 	b.attrs = attrs
+
 	return b
 }
 
@@ -156,6 +167,7 @@ func (b *Button) HX() *ButtonHX {
 // Render renders the button to HTML.
 func (b *Button) Render() template.HTML {
 	var classes []string
+
 	classes = append(classes, "btn")
 
 	if b.variant != "" {
@@ -175,6 +187,7 @@ func (b *Button) Render() template.HTML {
 	}
 
 	var attrs []string
+
 	attrs = append(attrs, fmt.Sprintf(`class="%s"`, template.HTMLEscapeString(strings.Join(classes, " "))))
 
 	if b.id != "" {
@@ -222,60 +235,70 @@ type ButtonHX struct {
 // Get sets a GET action.
 func (bh *ButtonHX) Get(url string) *ButtonHX {
 	bh.attrs.Get(url)
+
 	return bh
 }
 
 // Post sets a POST action.
 func (bh *ButtonHX) Post(url string) *ButtonHX {
 	bh.attrs.Post(url)
+
 	return bh
 }
 
 // Put sets a PUT action.
 func (bh *ButtonHX) Put(url string) *ButtonHX {
 	bh.attrs.Put(url)
+
 	return bh
 }
 
 // Delete sets a DELETE action.
 func (bh *ButtonHX) Delete(url string) *ButtonHX {
 	bh.attrs.Delete(url)
+
 	return bh
 }
 
 // TargetID sets a target by ID.
 func (bh *ButtonHX) TargetID(id string) *ButtonHX {
 	bh.attrs.TargetID(id)
+
 	return bh
 }
 
 // SwapOuter sets outer HTML swap.
 func (bh *ButtonHX) SwapOuter() *ButtonHX {
 	bh.attrs.SwapOuter()
+
 	return bh
 }
 
 // SwapInner sets inner HTML swap.
 func (bh *ButtonHX) SwapInner() *ButtonHX {
 	bh.attrs.SwapInner()
+
 	return bh
 }
 
 // SwapDelete sets delete swap.
 func (bh *ButtonHX) SwapDelete() *ButtonHX {
 	bh.attrs.SwapDelete()
+
 	return bh
 }
 
 // Confirm sets a confirmation message.
 func (bh *ButtonHX) Confirm(message string) *ButtonHX {
 	bh.attrs.Confirm(message)
+
 	return bh
 }
 
 // Done finalizes and returns the button.
 func (bh *ButtonHX) Done() *Button {
 	bh.button.attrs = bh.attrs
+
 	return bh.button
 }
 

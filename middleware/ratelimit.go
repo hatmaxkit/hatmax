@@ -23,6 +23,7 @@ func NewRateLimiter(limit int, window time.Duration) *RateLimiter {
 		window:   window,
 	}
 	go rl.cleanup()
+
 	return rl
 }
 
@@ -37,6 +38,7 @@ func (rl *RateLimiter) Allow(ip string) bool {
 	times := rl.requests[ip]
 
 	var valid []time.Time
+
 	for _, t := range times {
 		if t.After(windowStart) {
 			valid = append(valid, t)
@@ -45,11 +47,13 @@ func (rl *RateLimiter) Allow(ip string) bool {
 
 	if len(valid) >= rl.limit {
 		rl.requests[ip] = valid
+
 		return false
 	}
 
 	valid = append(valid, now)
 	rl.requests[ip] = valid
+
 	return true
 }
 
@@ -59,22 +63,26 @@ func (rl *RateLimiter) cleanup() {
 
 	for range ticker.C {
 		rl.mu.Lock()
+
 		now := time.Now()
 		windowStart := now.Add(-rl.window)
 
 		for ip, times := range rl.requests {
 			var valid []time.Time
+
 			for _, t := range times {
 				if t.After(windowStart) {
 					valid = append(valid, t)
 				}
 			}
+
 			if len(valid) == 0 {
 				delete(rl.requests, ip)
 			} else {
 				rl.requests[ip] = valid
 			}
 		}
+
 		rl.mu.Unlock()
 	}
 }
@@ -86,8 +94,10 @@ func RateLimit(limiter *RateLimiter) func(http.Handler) http.Handler {
 			ip := getClientIP(r)
 			if !limiter.Allow(ip) {
 				http.Error(w, "Too many requests", http.StatusTooManyRequests)
+
 				return
 			}
+
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -100,6 +110,7 @@ func getClientIP(r *http.Request) string {
 				return xff[:i]
 			}
 		}
+
 		return xff
 	}
 
@@ -113,5 +124,6 @@ func getClientIP(r *http.Request) string {
 			return addr[:i]
 		}
 	}
+
 	return addr
 }

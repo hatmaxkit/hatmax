@@ -27,11 +27,14 @@ func TestRequireAuth(t *testing.T) {
 		if !ok {
 			t.Error("RequireAuth() user not in context")
 			w.WriteHeader(http.StatusInternalServerError)
+
 			return
 		}
+
 		if user.Email != "test@example.com" {
 			t.Errorf("RequireAuth() user.Email = %v, want test@example.com", user.Email)
 		}
+
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -110,6 +113,7 @@ func TestOptionalAuth(t *testing.T) {
 		if ok && user.Email != "test@example.com" {
 			t.Errorf("OptionalAuth() user.Email = %v, want test@example.com", user.Email)
 		}
+
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -153,8 +157,10 @@ func TestOptionalAuth(t *testing.T) {
 
 			// Capture the context in the handler
 			var capturedCtx context.Context
+
 			testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				capturedCtx = r.Context()
+
 				w.WriteHeader(http.StatusOK)
 			})
 			testWrapped := middleware(testHandler)
@@ -190,18 +196,23 @@ func TestSetSessionCookie(t *testing.T) {
 	if cookie.Name != SessionCookieName {
 		t.Errorf("SetSessionCookie() cookie.Name = %v, want %v", cookie.Name, SessionCookieName)
 	}
+
 	if cookie.Value != token {
 		t.Errorf("SetSessionCookie() cookie.Value = %v, want %v", cookie.Value, token)
 	}
+
 	if cookie.MaxAge != maxAge {
 		t.Errorf("SetSessionCookie() cookie.MaxAge = %v, want %v", cookie.MaxAge, maxAge)
 	}
+
 	if !cookie.HttpOnly {
 		t.Error("SetSessionCookie() cookie.HttpOnly = false, want true")
 	}
+
 	if !cookie.Secure {
 		t.Error("SetSessionCookie() cookie.Secure = false, want true")
 	}
+
 	if cookie.SameSite != http.SameSiteLaxMode {
 		t.Errorf("SetSessionCookie() cookie.SameSite = %v, want %v", cookie.SameSite, http.SameSiteLaxMode)
 	}
@@ -221,9 +232,11 @@ func TestClearSessionCookie(t *testing.T) {
 	if cookie.Name != SessionCookieName {
 		t.Errorf("ClearSessionCookie() cookie.Name = %v, want %v", cookie.Name, SessionCookieName)
 	}
+
 	if cookie.Value != "" {
 		t.Errorf("ClearSessionCookie() cookie.Value = %v, want empty", cookie.Value)
 	}
+
 	if cookie.MaxAge != -1 {
 		t.Errorf("ClearSessionCookie() cookie.MaxAge = %v, want -1", cookie.MaxAge)
 	}
@@ -246,9 +259,9 @@ func TestRequireTOTP(t *testing.T) {
 			wantStatus: http.StatusOK,
 		},
 		{
-			name: "enforcement nil",
-			cfg:  TOTPEnforcement{},
-			user: &User{TOTPEnabled: false},
+			name:       "enforcement nil",
+			cfg:        TOTPEnforcement{},
+			user:       &User{TOTPEnabled: false},
 			wantStatus: http.StatusOK,
 		},
 		{

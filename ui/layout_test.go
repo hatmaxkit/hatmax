@@ -103,6 +103,7 @@ func TestPageHeaderWithActions(t *testing.T) {
 	if !strings.Contains(html, "page-header__actions") {
 		t.Error("Render() missing actions container")
 	}
+
 	if !strings.Contains(html, "<button>Save</button>") {
 		t.Error("Render() missing action content")
 	}
@@ -118,9 +119,11 @@ func TestPageWithHeaderAndFooter(t *testing.T) {
 	if !strings.Contains(html, "<header>Header</header>") {
 		t.Error("Render() missing header")
 	}
+
 	if !strings.Contains(html, "<footer>Footer</footer>") {
 		t.Error("Render() missing footer")
 	}
+
 	if !strings.Contains(html, "<p>Content</p>") {
 		t.Error("Render() missing content")
 	}

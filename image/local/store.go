@@ -25,15 +25,20 @@ func NewStore(basePath, baseURL string) *Store {
 // Put stores data at the given path.
 func (s *Store) Put(ctx context.Context, path string, data io.Reader) error {
 	fullPath := filepath.Join(s.basePath, path)
-	if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+
+	err := os.MkdirAll(filepath.Dir(fullPath), 0755)
+	if err != nil {
 		return err
 	}
+
 	f, err := os.Create(fullPath)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
+
 	_, err = io.Copy(f, data)
+
 	return err
 }
 

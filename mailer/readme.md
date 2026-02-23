@@ -5,11 +5,12 @@ Email delivery with multiple providers.
 ## Usage
 
 ```go
-// Create mailer (SMTP, SendGrid, SES, or Noop)
-mailer := mailer.NewSMTP(smtpConfig)
-mailer := mailer.NewSendGrid(apiKey, from)
-mailer := mailer.NewSES(awsConfig, from)
-mailer := mailer.NewNoop()  // for tests
+// Create mailer (SMTP, Mailgun, SendGrid, SES, or Noop)
+mailer := mailer.NewSMTPMailer(smtpConfig)
+mailer := mailer.NewMailgunMailer(mailgunConfig)
+mailer := mailer.NewSendGridMailer(sendGridConfig)
+mailer, err := mailer.NewSESMailer(ctx, sesConfig)
+mailer := mailer.NewNoopMailer(log) // for tests
 
 // Send email
 msg := &mailer.Message{
@@ -22,6 +23,18 @@ msg := &mailer.Message{
 
 if err := mailer.Send(ctx, msg); err != nil { ... }
 ```
+
+## Runtime Resolution
+
+```go
+// Static only (from config.Config.Mailer)
+m := mailer.NewFromConfig(cfg, log)
+
+// Dynamic override (settings before cfg)
+m := mailer.NewWithConfig(settingsSvc, cfg, log)
+```
+
+`NewWithConfig` resolves provider/mode with dynamic settings overrides on top of static config.
 
 ## API
 

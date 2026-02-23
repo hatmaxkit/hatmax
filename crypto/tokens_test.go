@@ -69,6 +69,7 @@ func TestGenerateToken(t *testing.T) {
 
 			if err != tt.wantErr {
 				t.Errorf("GenerateToken() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 
@@ -168,6 +169,7 @@ func TestVerifyToken(t *testing.T) {
 
 			if err != tt.wantErr {
 				t.Errorf("VerifyToken() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 
@@ -175,6 +177,7 @@ func TestVerifyToken(t *testing.T) {
 				if claims.Subject == "" {
 					t.Error("VerifyToken() returned empty Subject")
 				}
+
 				if claims.SessionID == "" {
 					t.Error("VerifyToken() returned empty SessionID")
 				}
@@ -263,6 +266,7 @@ func TestGenerateVerifyRoundtrip(t *testing.T) {
 				if claims.Context == nil {
 					t.Error("Context is nil, want non-nil")
 				}
+
 				for k, v := range tt.claims.Context {
 					if claims.Context[k] != v {
 						t.Errorf("Context[%s] = %v, want %v", k, claims.Context[k], v)

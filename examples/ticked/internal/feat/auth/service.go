@@ -52,10 +52,12 @@ func (s *Service) Signup(ctx context.Context, email, password string) (*auth.Use
 
 	// First user becomes superadmin
 	if count == 0 {
-		if err := s.counter.UpdateUserRoles(ctx, user.ID, []string{"superadmin"}, time.Now()); err != nil {
+		err = s.counter.UpdateUserRoles(ctx, user.ID, []string{"superadmin"}, time.Now())
+		if err != nil {
 			s.log.Errorf("failed to promote first user to superadmin: %v", err)
 		} else {
 			s.log.Infof("First user %s promoted to superadmin", email)
+
 			user.Roles = []string{"superadmin"}
 		}
 	}

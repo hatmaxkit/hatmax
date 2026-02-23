@@ -37,6 +37,7 @@ func NewStore(ctx context.Context, opts Options) (*Store, error) {
 	if opts.Bucket == "" {
 		return nil, fmt.Errorf("s3: bucket is required")
 	}
+
 	if opts.BaseURL == "" {
 		return nil, fmt.Errorf("s3: base_url is required")
 	}

@@ -19,12 +19,22 @@ type Config struct {
 	BatchSize    int
 }
 
+// WithDefaults applies defaults for zero values.
+func (c Config) WithDefaults() Config {
+	if c.PollInterval <= 0 {
+		c.PollInterval = 100 * time.Millisecond
+	}
+
+	if c.BatchSize <= 0 {
+		c.BatchSize = 100
+	}
+
+	return c
+}
+
 // DefaultConfig returns sensible defaults for PostgreSQL pubsub.
 func DefaultConfig() Config {
-	return Config{
-		PollInterval: 100 * time.Millisecond,
-		BatchSize:    100,
-	}
+	return Config{}.WithDefaults()
 }
 
 // subscription holds a registered handler and its tracking state.
@@ -59,6 +69,8 @@ type Broker struct {
 // NewBroker creates a new PostgreSQL-backed pubsub broker.
 // The dbProvider should provide access to an open PostgreSQL connection.
 func NewBroker(dbProvider DBProvider, cfg Config, log log.Logger) *Broker {
+	cfg = cfg.WithDefaults()
+
 	return &Broker{
 		dbProvider:    dbProvider,
 		cfg:           cfg,
@@ -74,10 +86,14 @@ func (b *Broker) Start(ctx context.Context) error {
 	if b.db == nil {
 		return fmt.Errorf("database connection not available")
 	}
-	if _, err := b.db.ExecContext(ctx, Schema); err != nil {
+
+	_, err := b.db.ExecContext(ctx, Schema)
+	if err != nil {
 		return fmt.Errorf("cannot create pubsub schema: %w", err)
 	}
+
 	b.log.Info("PubSub schema initialized")
+
 	return nil
 }
 
@@ -90,10 +106,13 @@ func (b *Broker) Stop(ctx context.Context) error {
 // Publish stores a message and makes it available to all subscribers.
 func (b *Broker) Publish(ctx context.Context, topic string, env pubsub.Envelope) error {
 	b.mu.RLock()
+
 	if b.closed {
 		b.mu.RUnlock()
+
 		return fmt.Errorf("broker is closed")
 	}
+
 	b.mu.RUnlock()
 
 	payload, err := json.Marshal(env.Payload)
@@ -110,12 +129,14 @@ func (b *Broker) Publish(ctx context.Context, topic string, env pubsub.Envelope)
 		INSERT INTO pubsub_messages (message_id, topic, payload, metadata, created_at)
 		VALUES ($1, $2, $3, $4, $5)
 	`
+
 	_, err = b.db.ExecContext(ctx, query, env.ID, topic, payload, metadata, env.Timestamp)
 	if err != nil {
 		return fmt.Errorf("cannot insert message: %w", err)
 	}
 
 	b.log.Debugf("Published message %s to topic %s", env.ID, topic)
+
 	return nil
 }
 
@@ -163,26 +184,32 @@ func (b *Broker) Subscribe(ctx context.Context, topic string, handler pubsub.Han
 	go b.pollLoop(subCtx, sub)
 
 	b.log.Infof("Subscriber %s registered for topic %s (offset: %d)", subscriberID, topic, lastOffset)
+
 	return nil
 }
 
 // Close stops all subscriptions and releases resources.
 func (b *Broker) Close() error {
 	b.mu.Lock()
+
 	if b.closed {
 		b.mu.Unlock()
+
 		return nil
 	}
+
 	b.closed = true
 
 	// Cancel all subscription contexts
 	for _, sub := range b.subscriptions {
 		sub.cancel()
 	}
+
 	subs := make([]*subscription, 0, len(b.subscriptions))
 	for _, sub := range b.subscriptions {
 		subs = append(subs, sub)
 	}
+
 	b.mu.Unlock()
 
 	// Wait for all poll loops to finish
@@ -191,6 +218,7 @@ func (b *Broker) Close() error {
 	}
 
 	b.log.Info("PubSub broker closed")
+
 	return nil
 }
 
@@ -207,12 +235,15 @@ func (b *Broker) getOrCreateSubscription(ctx context.Context, subscriberID, topi
 		// Create new subscription starting from current position
 		// This means new subscribers only see messages published after they subscribe
 		var maxID sql.NullInt64
-		if err := b.db.QueryRowContext(ctx,
+
+		err = b.db.QueryRowContext(ctx,
 			"SELECT COALESCE(MAX(id), 0) FROM pubsub_messages WHERE topic = $1",
 			topic,
-		).Scan(&maxID); err != nil {
+		).Scan(&maxID)
+		if err != nil {
 			return 0, err
 		}
+
 		lastOffset = maxID.Int64
 
 		_, err = b.db.ExecContext(ctx,
@@ -223,6 +254,7 @@ func (b *Broker) getOrCreateSubscription(ctx context.Context, subscriberID, topi
 		if err != nil {
 			return 0, err
 		}
+
 		return lastOffset, nil
 	}
 
@@ -240,7 +272,8 @@ func (b *Broker) pollLoop(ctx context.Context, sub *subscription) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			if err := b.pollMessages(ctx, sub); err != nil {
+			err := b.pollMessages(ctx, sub)
+			if err != nil {
 				b.log.Errorf("Poll error for subscriber %s: %v", sub.id, err)
 			}
 		}
@@ -263,6 +296,7 @@ func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
 	defer rows.Close()
 
 	var lastProcessedID int64
+
 	for rows.Next() {
 		var (
 			id        int64
@@ -273,19 +307,26 @@ func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
 			createdAt time.Time
 		)
 
-		if err := rows.Scan(&id, &messageID, &topic, &payload, &metadata, &createdAt); err != nil {
+		err := rows.Scan(&id, &messageID, &topic, &payload, &metadata, &createdAt)
+		if err != nil {
 			return err
 		}
 
 		var payloadData any
-		if err := json.Unmarshal(payload, &payloadData); err != nil {
+
+		err = json.Unmarshal(payload, &payloadData)
+		if err != nil {
 			b.log.Errorf("Cannot unmarshal payload for message %s: %v", messageID, err)
+
 			lastProcessedID = id
+
 			continue
 		}
 
 		var metadataMap map[string]string
-		if err := json.Unmarshal(metadata, &metadataMap); err != nil {
+
+		err = json.Unmarshal(metadata, &metadataMap)
+		if err != nil {
 			metadataMap = make(map[string]string)
 		}
 
@@ -297,7 +338,8 @@ func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
 			Metadata:  metadataMap,
 		}
 
-		if err := sub.handler(ctx, env); err != nil {
+		err = sub.handler(ctx, env)
+		if err != nil {
 			b.log.Errorf("Handler error for message %s: %v", messageID, err)
 			// Continue processing other messages
 		}
@@ -305,15 +347,18 @@ func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
 		lastProcessedID = id
 	}
 
-	if err := rows.Err(); err != nil {
+	err = rows.Err()
+	if err != nil {
 		return err
 	}
 
 	// Update offset if we processed any messages
 	if lastProcessedID > sub.lastOffset {
-		if err := b.updateOffset(ctx, sub.id, lastProcessedID); err != nil {
+		err := b.updateOffset(ctx, sub.id, lastProcessedID)
+		if err != nil {
 			return err
 		}
+
 		sub.lastOffset = lastProcessedID
 	}
 
@@ -325,5 +370,6 @@ func (b *Broker) updateOffset(ctx context.Context, subscriberID string, offset i
 		"UPDATE pubsub_subscriptions SET last_message_id = $1, updated_at = NOW() WHERE id = $2",
 		offset, subscriberID,
 	)
+
 	return err
 }

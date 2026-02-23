@@ -11,7 +11,9 @@ func TestNoopBrokerPublish(t *testing.T) {
 	ctx := context.Background()
 
 	env := NewEnvelope("test-topic", "test-payload")
-	if err := broker.Publish(ctx, "test-topic", env); err != nil {
+
+	err := broker.Publish(ctx, "test-topic", env)
+	if err != nil {
 		t.Fatalf("Publish failed: %v", err)
 	}
 
@@ -32,10 +34,12 @@ func TestNoopBrokerSubscribe(t *testing.T) {
 	called := false
 	handler := func(ctx context.Context, env Envelope) error {
 		called = true
+
 		return nil
 	}
 
-	if err := broker.Subscribe(ctx, "test-topic", handler, SubscribeOptions{}); err != nil {
+	err := broker.Subscribe(ctx, "test-topic", handler, SubscribeOptions{})
+	if err != nil {
 		t.Fatalf("Subscribe failed: %v", err)
 	}
 
@@ -65,7 +69,9 @@ func TestNoopBrokerReset(t *testing.T) {
 
 func TestNoopBrokerClose(t *testing.T) {
 	broker := NewNoopBroker()
-	if err := broker.Close(); err != nil {
+
+	err := broker.Close()
+	if err != nil {
 		t.Fatalf("Close failed: %v", err)
 	}
 }
@@ -74,27 +80,37 @@ func TestMemoryBrokerPublishSubscribe(t *testing.T) {
 	broker := NewMemoryBroker()
 	ctx := context.Background()
 
-	var received []Envelope
-	var mu sync.Mutex
+	var (
+		received []Envelope
+		mu       sync.Mutex
+	)
 
 	handler := func(ctx context.Context, env Envelope) error {
 		mu.Lock()
+
 		received = append(received, env)
+
 		mu.Unlock()
+
 		return nil
 	}
 
-	if err := broker.Subscribe(ctx, "test-topic", handler, SubscribeOptions{}); err != nil {
+	err := broker.Subscribe(ctx, "test-topic", handler, SubscribeOptions{})
+	if err != nil {
 		t.Fatalf("Subscribe failed: %v", err)
 	}
 
 	env := NewEnvelope("test-topic", "test-payload")
-	if err := broker.Publish(ctx, "test-topic", env); err != nil {
+
+	err = broker.Publish(ctx, "test-topic", env)
+	if err != nil {
 		t.Fatalf("Publish failed: %v", err)
 	}
 
 	mu.Lock()
+
 	count := len(received)
+
 	mu.Unlock()
 
 	if count != 1 {
@@ -110,20 +126,28 @@ func TestMemoryBrokerFanOut(t *testing.T) {
 	broker := NewMemoryBroker()
 	ctx := context.Background()
 
-	var count1, count2 int
-	var mu sync.Mutex
+	var (
+		count1, count2 int
+		mu             sync.Mutex
+	)
 
 	handler1 := func(ctx context.Context, env Envelope) error {
 		mu.Lock()
+
 		count1++
+
 		mu.Unlock()
+
 		return nil
 	}
 
 	handler2 := func(ctx context.Context, env Envelope) error {
 		mu.Lock()
+
 		count2++
+
 		mu.Unlock()
+
 		return nil
 	}
 
@@ -139,6 +163,7 @@ func TestMemoryBrokerFanOut(t *testing.T) {
 	if count1 != 1 {
 		t.Errorf("handler1 expected 1 call, got %d", count1)
 	}
+
 	if count2 != 1 {
 		t.Errorf("handler2 expected 1 call, got %d", count2)
 	}
@@ -152,11 +177,13 @@ func TestMemoryBrokerDifferentTopics(t *testing.T) {
 
 	broker.Subscribe(ctx, "topic1", func(ctx context.Context, env Envelope) error {
 		received1++
+
 		return nil
 	}, SubscribeOptions{})
 
 	broker.Subscribe(ctx, "topic2", func(ctx context.Context, env Envelope) error {
 		received2++
+
 		return nil
 	}, SubscribeOptions{})
 
@@ -165,6 +192,7 @@ func TestMemoryBrokerDifferentTopics(t *testing.T) {
 	if received1 != 1 {
 		t.Errorf("topic1 handler expected 1 call, got %d", received1)
 	}
+
 	if received2 != 0 {
 		t.Errorf("topic2 handler expected 0 calls, got %d", received2)
 	}
@@ -175,8 +203,10 @@ func TestMemoryBrokerClose(t *testing.T) {
 	ctx := context.Background()
 
 	called := false
+
 	broker.Subscribe(ctx, "test", func(ctx context.Context, env Envelope) error {
 		called = true
+
 		return nil
 	}, SubscribeOptions{})
 

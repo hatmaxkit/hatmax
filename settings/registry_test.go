@@ -15,9 +15,11 @@ func TestRegistryRegisterAndGet(t *testing.T) {
 	if !ok {
 		t.Fatal("expected schema to be found")
 	}
+
 	if got.Key != "site.name" {
 		t.Errorf("got key %q, want %q", got.Key, "site.name")
 	}
+
 	if got.Default != "Test" {
 		t.Errorf("got default %q, want %q", got.Default, "Test")
 	}
@@ -60,6 +62,7 @@ func TestRegistryByPrefix(t *testing.T) {
 	for i, s := range site {
 		keys[i] = s.Key
 	}
+
 	sort.Strings(keys)
 
 	want := []string{"site.logo", "site.max", "site.name"}

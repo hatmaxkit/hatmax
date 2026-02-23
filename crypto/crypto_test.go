@@ -61,6 +61,7 @@ func TestEncryptEmail(t *testing.T) {
 
 			if err != tt.wantErr {
 				t.Errorf("EncryptEmail() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 
@@ -68,6 +69,7 @@ func TestEncryptEmail(t *testing.T) {
 				if iv == "" {
 					t.Error("EncryptEmail() returned empty iv")
 				}
+
 				if tag == "" {
 					t.Error("EncryptEmail() returned empty tag")
 				}
@@ -164,6 +166,7 @@ func TestDecryptEmail(t *testing.T) {
 
 			if err != tt.wantErr {
 				t.Errorf("DecryptEmail() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 

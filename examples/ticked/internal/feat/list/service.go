@@ -31,14 +31,20 @@ func (s *Service) GetOrCreateList(ctx context.Context, userID string) (*TodoList
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			list = NewTodoList(userID)
-			if err := s.store.Save(ctx, list); err != nil {
+
+			err = s.store.Save(ctx, list)
+			if err != nil {
 				return nil, err
 			}
+
 			s.log.Infof("created new list for user %s", userID)
+
 			return list, nil
 		}
+
 		return nil, err
 	}
+
 	return list, nil
 }
 
@@ -54,12 +60,14 @@ func (s *Service) AddItem(ctx context.Context, userID, text string) (*TodoItem, 
 		return nil, err
 	}
 
-	if err := s.store.Save(ctx, list); err != nil {
+	err = s.store.Save(ctx, list)
+	if err != nil {
 		return nil, err
 	}
 
 	s.publishEvent(ctx, "todo.item.added", userID, item.ItemID, map[string]string{"title": text})
 	s.log.Infof("added item %s to list for user %s", item.ItemID, userID)
+
 	return item, nil
 }
 
@@ -75,14 +83,17 @@ func (s *Service) ToggleItem(ctx context.Context, userID, itemID string) (*TodoI
 		return nil, err
 	}
 
-	if err := s.store.Save(ctx, list); err != nil {
+	err = s.store.Save(ctx, list)
+	if err != nil {
 		return nil, err
 	}
 
 	if item.Completed {
 		s.publishEvent(ctx, "todo.item.completed", userID, itemID, nil)
 	}
+
 	s.log.Infof("toggled item %s for user %s", itemID, userID)
+
 	return item, nil
 }
 
@@ -93,16 +104,19 @@ func (s *Service) RemoveItem(ctx context.Context, userID, itemID string) error {
 		return err
 	}
 
-	if err := list.RemoveItem(itemID); err != nil {
+	err = list.RemoveItem(itemID)
+	if err != nil {
 		return err
 	}
 
-	if err := s.store.Save(ctx, list); err != nil {
+	err = s.store.Save(ctx, list)
+	if err != nil {
 		return err
 	}
 
 	s.publishEvent(ctx, "todo.item.removed", userID, itemID, nil)
 	s.log.Infof("removed item %s from list for user %s", itemID, userID)
+
 	return nil
 }
 
@@ -113,16 +127,19 @@ func (s *Service) UpdateItem(ctx context.Context, userID, itemID, text string) (
 		return nil, err
 	}
 
-	if err := list.UpdateItem(itemID, text); err != nil {
+	err = list.UpdateItem(itemID, text)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := s.store.Save(ctx, list); err != nil {
+	err = s.store.Save(ctx, list)
+	if err != nil {
 		return nil, err
 	}
 
 	item, _ := list.GetItem(itemID)
 	s.log.Infof("updated item %s for user %s", itemID, userID)
+
 	return item, nil
 }
 
@@ -143,7 +160,8 @@ func (s *Service) publishEvent(ctx context.Context, eventType, userID, itemID st
 		WithMetadata("user_id", userID).
 		WithMetadata("source", "hatmax")
 
-	if err := s.publisher.Publish(ctx, audit.Topic, env); err != nil {
+	err := s.publisher.Publish(ctx, audit.Topic, env)
+	if err != nil {
 		s.log.Errorf("cannot publish audit event: %v", err)
 	}
 }

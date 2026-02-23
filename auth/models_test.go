@@ -47,6 +47,7 @@ func TestUserHasRole(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := &User{Roles: tt.roles}
+
 			got := u.HasRole(tt.check)
 			if got != tt.want {
 				t.Errorf("HasRole(%q) = %v, want %v", tt.check, got, tt.want)
@@ -109,6 +110,7 @@ func TestUserHasAnyRole(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := &User{Roles: tt.roles}
+
 			got := u.HasAnyRole(tt.checks...)
 			if got != tt.want {
 				t.Errorf("HasAnyRole(%v) = %v, want %v", tt.checks, got, tt.want)
@@ -138,6 +140,7 @@ func TestUserNeedsTOTPSetup(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := &User{TOTPSecret: tt.totpSecret}
+
 			got := u.NeedsTOTPSetup()
 			if got != tt.want {
 				t.Errorf("NeedsTOTPSetup() = %v, want %v", got, tt.want)
@@ -196,6 +199,7 @@ func TestUserInTOTPGracePeriod(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := &User{CreatedAt: tt.createdAt}
+
 			got := u.InTOTPGracePeriod(tt.graceDays)
 			if got != tt.want {
 				t.Errorf("InTOTPGracePeriod(%d) = %v, want %v", tt.graceDays, got, tt.want)

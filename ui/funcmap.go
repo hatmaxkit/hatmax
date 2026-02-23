@@ -12,6 +12,7 @@ import (
 func (k *Kit) FuncMap() template.FuncMap {
 	fm := render.FuncMapWithHTMX()
 	addUIFuncs(fm)
+
 	return fm
 }
 
@@ -19,6 +20,7 @@ func (k *Kit) FuncMap() template.FuncMap {
 func FuncMap() template.FuncMap {
 	fm := render.FuncMapWithHTMX()
 	addUIFuncs(fm)
+
 	return fm
 }
 

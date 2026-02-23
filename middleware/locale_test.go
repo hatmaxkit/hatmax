@@ -19,6 +19,7 @@ func TestLocaleFromCookie(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/", nil)
 	req.AddCookie(&http.Cookie{Name: "locale", Value: "es"})
+
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -41,6 +42,7 @@ func TestLocaleFromAcceptLanguage(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/", nil)
 	req.Header.Set("Accept-Language", "de-DE,de;q=0.9,en;q=0.8")
+
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -85,6 +87,7 @@ func TestLocaleCookieOverridesHeader(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
 	req.AddCookie(&http.Cookie{Name: "locale", Value: "pl"})
 	req.Header.Set("Accept-Language", "de-DE,de;q=0.9")
+
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -107,6 +110,7 @@ func TestLocaleUnavailableFallsBack(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/", nil)
 	req.Header.Set("Accept-Language", "fr-FR,fr;q=0.9,de;q=0.8")
+
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -134,8 +138,10 @@ func TestParseAcceptLanguage(t *testing.T) {
 			result := parseAcceptLanguage(tt.header)
 			if len(result) != len(tt.expected) {
 				t.Errorf("expected %d locales, got %d", len(tt.expected), len(result))
+
 				return
 			}
+
 			for i, loc := range result {
 				if loc != tt.expected[i] {
 					t.Errorf("at index %d: expected %q, got %q", i, tt.expected[i], loc)
@@ -165,9 +171,11 @@ func TestSetLocaleCookie(t *testing.T) {
 	if cookie.Name != "locale" {
 		t.Errorf("expected cookie name 'locale', got %q", cookie.Name)
 	}
+
 	if cookie.Value != "de" {
 		t.Errorf("expected cookie value 'de', got %q", cookie.Value)
 	}
+
 	if !cookie.HttpOnly {
 		t.Error("expected HttpOnly flag")
 	}

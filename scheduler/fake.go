@@ -18,18 +18,21 @@ func NewFakeClock(t time.Time) *FakeClock {
 func (c *FakeClock) Now() time.Time {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
 	return c.now
 }
 
 func (c *FakeClock) Set(t time.Time) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
 	c.now = t
 }
 
 func (c *FakeClock) Advance(d time.Duration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
 	c.now = c.now.Add(d)
 }
 
@@ -59,6 +62,7 @@ func NewFakeStore() *FakeStore {
 func (s *FakeStore) AddJob(job Job) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	s.Jobs = append(s.Jobs, job)
 }
 
@@ -67,6 +71,7 @@ func (s *FakeStore) ListDue(ctx context.Context, now time.Time, limit int) ([]Jo
 	defer s.mu.Unlock()
 
 	var due []Job
+
 	for _, j := range s.Jobs {
 		if !j.ScheduledFor.After(now) {
 			due = append(due, j)
@@ -75,78 +80,93 @@ func (s *FakeStore) ListDue(ctx context.Context, now time.Time, limit int) ([]Jo
 			}
 		}
 	}
+
 	return due, nil
 }
 
 func (s *FakeStore) CreateRun(ctx context.Context, jobID, runID string, scheduledFor time.Time) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	s.Runs[runID] = &FakeRun{
 		ID:           runID,
 		JobID:        jobID,
 		ScheduledFor: scheduledFor,
 		Status:       "pending",
 	}
+
 	return nil
 }
 
 func (s *FakeStore) MarkRunning(ctx context.Context, runID string, startedAt time.Time) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	if run, ok := s.Runs[runID]; ok {
 		run.Status = "running"
 		run.StartedAt = startedAt
 	}
+
 	return nil
 }
 
 func (s *FakeStore) MarkSuccess(ctx context.Context, runID string, finishedAt time.Time, output []byte) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	if run, ok := s.Runs[runID]; ok {
 		run.Status = "success"
 		run.FinishedAt = finishedAt
 		run.Output = output
 	}
+
 	return nil
 }
 
 func (s *FakeStore) MarkFailed(ctx context.Context, runID string, finishedAt time.Time, errMsg string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	if run, ok := s.Runs[runID]; ok {
 		run.Status = "failed"
 		run.FinishedAt = finishedAt
 		run.Error = errMsg
 	}
+
 	return nil
 }
 
 func (s *FakeStore) UpdateNextRun(ctx context.Context, jobID string, lastRun, nextRun time.Time) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	for i, j := range s.Jobs {
 		if j.ID == jobID {
 			s.Jobs[i].ScheduledFor = nextRun
+
 			break
 		}
 	}
+
 	return nil
 }
 
 func (s *FakeStore) GetRun(runID string) *FakeRun {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	return s.Runs[runID]
 }
 
 func (s *FakeStore) AllRuns() []*FakeRun {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	runs := make([]*FakeRun, 0, len(s.Runs))
 	for _, r := range s.Runs {
 		runs = append(runs, r)
 	}
+
 	return runs
 }
 

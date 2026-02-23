@@ -195,4 +195,3 @@ func TestLinkShorthands(t *testing.T) {
 		})
 	}
 }
-

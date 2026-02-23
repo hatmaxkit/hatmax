@@ -57,6 +57,7 @@ func TestCounterReset(t *testing.T) {
 	if c.IncrementCount() != 0 {
 		t.Errorf("after Reset, IncrementCount() = %d, want 0", c.IncrementCount())
 	}
+
 	if c.GetAndResetCount() != 0 {
 		t.Errorf("after Reset, GetAndResetCount() = %d, want 0", c.GetAndResetCount())
 	}
@@ -94,11 +95,14 @@ func TestCounterConcurrent(t *testing.T) {
 	var wg sync.WaitGroup
 	for range 100 {
 		wg.Add(1)
+
 		go func() {
 			defer wg.Done()
+
 			c.IncrementRequests()
 		}()
 	}
+
 	wg.Wait()
 
 	if c.IncrementCount() != 100 {
@@ -130,12 +134,15 @@ func TestCrashCollectorLastRecord(t *testing.T) {
 	if last == nil {
 		t.Fatal("LastRecord() should not be nil")
 	}
+
 	if last.Message != "second" {
 		t.Errorf("Message = %v, want %q", last.Message, "second")
 	}
+
 	if last.Endpoint != "/second" {
 		t.Errorf("Endpoint = %q, want %q", last.Endpoint, "/second")
 	}
+
 	if last.Method != "POST" {
 		t.Errorf("Method = %q, want %q", last.Method, "POST")
 	}
@@ -189,6 +196,7 @@ func TestCrashCollectorGetCalls(t *testing.T) {
 	}
 
 	calls[0].Message = "modified"
+
 	original := c.GetCalls()
 	if original[0].Message == "modified" {
 		t.Error("GetCalls() should return a copy, not the original slice")
@@ -197,6 +205,7 @@ func TestCrashCollectorGetCalls(t *testing.T) {
 
 func TestCrashCollectorCustomRecordPanicFunc(t *testing.T) {
 	var capturedMessage string
+
 	c := NewCrashCollector()
 	c.RecordPanicFunc = func(message, endpoint, method string) {
 		capturedMessage = message
@@ -215,11 +224,14 @@ func TestCrashCollectorConcurrent(t *testing.T) {
 	var wg sync.WaitGroup
 	for i := range 100 {
 		wg.Add(1)
+
 		go func(id int) {
 			defer wg.Done()
+
 			c.RecordPanic("error", "/test", "GET")
 		}(i)
 	}
+
 	wg.Wait()
 
 	if c.RecordCount() != 100 {

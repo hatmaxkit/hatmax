@@ -24,6 +24,7 @@ func (m RefMap) Resolve(ref Ref) (string, error) {
 	if uuid, ok := m[ref]; ok {
 		return uuid, nil
 	}
+
 	return "", fmt.Errorf("unresolved reference: %s", ref)
 }
 
@@ -34,11 +35,13 @@ func (m RefMap) MustResolve(ref Ref) string {
 	if err != nil {
 		panic(err)
 	}
+
 	return uuid
 }
 
 // Has checks if a reference is registered.
 func (m RefMap) Has(ref Ref) bool {
 	_, ok := m[ref]
+
 	return ok
 }

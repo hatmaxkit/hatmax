@@ -18,6 +18,7 @@ func (e ValidationError) Error() string {
 	if e.Field == "" {
 		return e.Message
 	}
+
 	return fmt.Sprintf("%s: %s", e.Field, e.Message)
 }
 
@@ -32,6 +33,7 @@ func (e ValidationErrors) Error() string {
 	for _, err := range e {
 		messages = append(messages, err.Error())
 	}
+
 	return strings.Join(messages, "; ")
 }
 
@@ -53,23 +55,28 @@ func (e *ValidationErrors) Merge(other ValidationErrors) {
 
 func (e ValidationErrors) ForField(field string) []string {
 	var messages []string
+
 	for _, err := range e {
 		if err.Field == field {
 			messages = append(messages, err.Message)
 		}
 	}
+
 	return messages
 }
 
 func (e ValidationErrors) Fields() []string {
 	seen := make(map[string]bool)
+
 	var fields []string
+
 	for _, err := range e {
 		if err.Field != "" && !seen[err.Field] {
 			seen[err.Field] = true
 			fields = append(fields, err.Field)
 		}
 	}
+
 	return fields
 }
 
@@ -85,11 +92,13 @@ func (f ValidatorFunc) Validate() ValidationErrors {
 
 func Combine(validators ...Validator) ValidationErrors {
 	var errors ValidationErrors
+
 	for _, validator := range validators {
 		if validator != nil {
 			errors.Merge(validator.Validate())
 		}
 	}
+
 	return errors
 }
 
@@ -127,6 +136,7 @@ func OneOf(value string, allowed []string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -134,6 +144,7 @@ func RequiredString(field, value string) ValidationError {
 	if !IsRequired(value) {
 		return ValidationError{Field: field, Message: "is required"}
 	}
+
 	return ValidationError{}
 }
 
@@ -141,6 +152,7 @@ func RequiredUUID(field string, value uuid.UUID) ValidationError {
 	if !IsRequiredUUID(value) {
 		return ValidationError{Field: field, Message: "is required"}
 	}
+
 	return ValidationError{}
 }
 
@@ -148,6 +160,7 @@ func StringMinLength(field, value string, min int) ValidationError {
 	if !MinLength(value, min) {
 		return ValidationError{Field: field, Message: fmt.Sprintf("must be at least %d characters", min)}
 	}
+
 	return ValidationError{}
 }
 
@@ -155,6 +168,7 @@ func StringMaxLength(field, value string, max int) ValidationError {
 	if !MaxLength(value, max) {
 		return ValidationError{Field: field, Message: fmt.Sprintf("must be at most %d characters", max)}
 	}
+
 	return ValidationError{}
 }
 
@@ -162,6 +176,7 @@ func IntMinValue(field string, value, min int) ValidationError {
 	if !MinValueInt(value, min) {
 		return ValidationError{Field: field, Message: fmt.Sprintf("must be at least %d", min)}
 	}
+
 	return ValidationError{}
 }
 
@@ -169,6 +184,7 @@ func IntMaxValue(field string, value, max int) ValidationError {
 	if !MaxValueInt(value, max) {
 		return ValidationError{Field: field, Message: fmt.Sprintf("must be at most %d", max)}
 	}
+
 	return ValidationError{}
 }
 
@@ -176,6 +192,7 @@ func IntInRange(field string, value, min, max int) ValidationError {
 	if !InRange(value, min, max) {
 		return ValidationError{Field: field, Message: fmt.Sprintf("must be between %d and %d", min, max)}
 	}
+
 	return ValidationError{}
 }
 
@@ -183,6 +200,7 @@ func StringOneOf(field, value string, allowed []string) ValidationError {
 	if !OneOf(value, allowed) {
 		return ValidationError{Field: field, Message: fmt.Sprintf("must be one of: %s", strings.Join(allowed, ", "))}
 	}
+
 	return ValidationError{}
 }
 
@@ -193,6 +211,7 @@ func (e ValidationErrors) ByField(field string) string {
 			return err.Message
 		}
 	}
+
 	return ""
 }
 
@@ -201,6 +220,7 @@ func (e ValidationErrors) First() ValidationError {
 	if len(e) > 0 {
 		return e[0]
 	}
+
 	return ValidationError{}
 }
 
@@ -210,6 +230,7 @@ func (e ValidationErrors) AsMap() map[string][]string {
 	for _, err := range e {
 		result[err.Field] = append(result[err.Field], err.Message)
 	}
+
 	return result
 }
 
@@ -267,6 +288,7 @@ func FloatMinValue(field string, value, min float64) ValidationError {
 			Params:  map[string]any{"min": min},
 		}
 	}
+
 	return ValidationError{}
 }
 
@@ -280,6 +302,7 @@ func FloatMaxValue(field string, value, max float64) ValidationError {
 			Params:  map[string]any{"max": max},
 		}
 	}
+
 	return ValidationError{}
 }
 
@@ -292,6 +315,7 @@ func FloatPositive(field string, value float64) ValidationError {
 			Message: "must be greater than zero",
 		}
 	}
+
 	return ValidationError{}
 }
 
@@ -304,6 +328,7 @@ func FloatNonNegative(field string, value float64) ValidationError {
 			Message: "must be zero or greater",
 		}
 	}
+
 	return ValidationError{}
 }
 
@@ -317,5 +342,6 @@ func FloatInRangeValidator(field string, value, min, max float64) ValidationErro
 			Params:  map[string]any{"min": min, "max": max},
 		}
 	}
+
 	return ValidationError{}
 }

@@ -9,6 +9,7 @@ func TestNewRefMap(t *testing.T) {
 	if m == nil {
 		t.Fatal("expected non-nil RefMap")
 	}
+
 	if len(m) != 0 {
 		t.Errorf("expected empty map, got %d entries", len(m))
 	}
@@ -105,8 +106,10 @@ func TestRefMapResolve(t *testing.T) {
 			got, err := m.Resolve(tt.ref)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Resolve() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if got != tt.want {
 				t.Errorf("Resolve() = %q, want %q", got, tt.want)
 			}

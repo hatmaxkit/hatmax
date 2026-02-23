@@ -41,13 +41,16 @@ func Setup(ctx context.Context, r chi.Router, comps ...any) (
 		if rr, ok := c.(RouteRegistrar); ok {
 			registrars = append(registrars, rr)
 		}
+
 		if s, ok := c.(Startable); ok {
 			starts = append(starts, s.Start)
 		}
+
 		if st, ok := c.(Stoppable); ok {
 			stops = append(stops, st.Stop)
 		}
 	}
+
 	return
 }
 
@@ -59,13 +62,17 @@ func Setup(ctx context.Context, r chi.Router, comps ...any) (
 // or none remain running.
 func Start(ctx context.Context, log log.Logger, starts []func(context.Context) error, stops []func(context.Context) error, registrars []RouteRegistrar, router chi.Router) error {
 	for i, start := range starts {
-		if err := start(ctx); err != nil {
+		err := start(ctx)
+		if err != nil {
 			log.Errorf("error starting component #%d: %v", i, err)
+
 			for j := i - 1; j >= 0; j-- {
-				if rErr := stops[j](context.Background()); rErr != nil {
+				rErr := stops[j](context.Background())
+				if rErr != nil {
 					log.Errorf("error stopping component #%d during rollback: %v", j, rErr)
 				}
 			}
+
 			return err
 		}
 	}
@@ -84,7 +91,8 @@ func Serve(router chi.Router, port string) error {
 		Handler: router,
 	}
 
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	err := srv.ListenAndServe()
+	if err != nil && err != http.ErrServerClosed {
 		return err
 	}
 
@@ -103,12 +111,14 @@ func Shutdown(srv *http.Server, log log.Logger, stops []func(context.Context) er
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := srv.Shutdown(shutdownCtx); err != nil {
+	err := srv.Shutdown(shutdownCtx)
+	if err != nil {
 		log.Errorf("server shutdown failed: %v", err)
 	}
 
 	for i := len(stops) - 1; i >= 0; i-- {
-		if err := stops[i](context.Background()); err != nil {
+		err = stops[i](context.Background())
+		if err != nil {
 			log.Errorf("error stopping component #%d: %v", i, err)
 		}
 	}

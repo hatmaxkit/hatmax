@@ -7,10 +7,10 @@ import (
 
 func TestStatusBadge(t *testing.T) {
 	tests := []struct {
-		name         string
-		status       string
-		wantText     string
-		wantVariant  string
+		name        string
+		status      string
+		wantText    string
+		wantVariant string
 	}{
 		{"active", "active", "Active", "success"},
 		{"draft", "draft", "Draft", "warning"},

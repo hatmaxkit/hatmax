@@ -6,6 +6,8 @@ import (
 	"errors"
 	"testing"
 	"time"
+
+	"github.com/hatmaxkit/hatmax/config"
 )
 
 var errTest = errors.New("test error")
@@ -20,9 +22,11 @@ func TestNew(t *testing.T) {
 	if r.store != store {
 		t.Error("store not set")
 	}
+
 	if r.handlers == nil {
 		t.Error("handlers map not initialized")
 	}
+
 	if r.cfg.Interval != time.Second {
 		t.Error("config not applied")
 	}
@@ -92,13 +96,16 @@ func TestRunner_StartStop(t *testing.T) {
 	r := New(NewFakeStore(), Config{Enabled: true, Interval: 100 * time.Millisecond}, &FakeLogger{})
 
 	ctx := context.Background()
-	if err := r.Start(ctx); err != nil {
+
+	err := r.Start(ctx)
+	if err != nil {
 		t.Fatalf("Start() error = %v", err)
 	}
 
 	time.Sleep(50 * time.Millisecond)
 
-	if err := r.Stop(ctx); err != nil {
+	err = r.Stop(ctx)
+	if err != nil {
 		t.Fatalf("Stop() error = %v", err)
 	}
 }
@@ -107,7 +114,9 @@ func TestRunner_StartDisabled(t *testing.T) {
 	r := New(NewFakeStore(), Config{Enabled: false}, &FakeLogger{})
 
 	ctx := context.Background()
-	if err := r.Start(ctx); err != nil {
+
+	err := r.Start(ctx)
+	if err != nil {
 		t.Fatalf("Start() error = %v", err)
 	}
 	// Should return immediately without starting goroutine
@@ -122,8 +131,10 @@ func TestRunner_Tick(t *testing.T) {
 	r.SetClock(clock)
 
 	var processedJobs []string
+
 	r.Register("email", func(ctx context.Context, job Job) Result {
 		processedJobs = append(processedJobs, job.ID)
+
 		return Result{Output: map[string]any{"sent": true}}
 	})
 
@@ -136,13 +147,16 @@ func TestRunner_Tick(t *testing.T) {
 	})
 
 	ctx := context.Background()
-	if err := r.Tick(ctx); err != nil {
+
+	err := r.Tick(ctx)
+	if err != nil {
 		t.Fatalf("Tick() error = %v", err)
 	}
 
 	if len(processedJobs) != 1 {
 		t.Errorf("expected 1 job processed, got %d", len(processedJobs))
 	}
+
 	if processedJobs[0] != "job-1" {
 		t.Errorf("expected job-1, got %s", processedJobs[0])
 	}
@@ -151,6 +165,7 @@ func TestRunner_Tick(t *testing.T) {
 	if len(runs) != 1 {
 		t.Fatalf("expected 1 run, got %d", len(runs))
 	}
+
 	if runs[0].Status != "success" {
 		t.Errorf("expected status success, got %s", runs[0].Status)
 	}
@@ -177,9 +192,11 @@ func TestRunner_TickUnknownTaskType(t *testing.T) {
 	if len(runs) != 1 {
 		t.Fatalf("expected 1 run, got %d", len(runs))
 	}
+
 	if runs[0].Status != "failed" {
 		t.Errorf("expected status failed, got %s", runs[0].Status)
 	}
+
 	if runs[0].Error == "" {
 		t.Error("expected error message for unknown task type")
 	}
@@ -210,6 +227,7 @@ func TestRunner_TickHandlerError(t *testing.T) {
 	if len(runs) != 1 {
 		t.Fatalf("expected 1 run, got %d", len(runs))
 	}
+
 	if runs[0].Status != "failed" {
 		t.Errorf("expected status failed, got %s", runs[0].Status)
 	}
@@ -224,8 +242,10 @@ func TestRunner_TickWithWorkers(t *testing.T) {
 	r.SetClock(clock)
 
 	processed := make(chan string, 5)
+
 	r.Register("parallel", func(ctx context.Context, job Job) Result {
 		processed <- job.ID
+
 		return Result{}
 	})
 
@@ -241,10 +261,12 @@ func TestRunner_TickWithWorkers(t *testing.T) {
 	r.Tick(ctx)
 
 	close(processed)
+
 	count := 0
 	for range processed {
 		count++
 	}
+
 	if count != 5 {
 		t.Errorf("expected 5 jobs processed, got %d", count)
 	}
@@ -257,7 +279,9 @@ func TestRunner_TickNoJobs(t *testing.T) {
 	r := New(store, Config{Enabled: true}, log)
 
 	ctx := context.Background()
-	if err := r.Tick(ctx); err != nil {
+
+	err := r.Tick(ctx)
+	if err != nil {
 		t.Fatalf("Tick() error = %v", err)
 	}
 
@@ -306,6 +330,63 @@ func TestRunner_IsPaused(t *testing.T) {
 	}
 }
 
+func TestConfigFromRoot(t *testing.T) {
+	root := config.New()
+	root.Scheduler.Enabled = true
+	root.Scheduler.Interval = "30s"
+	root.Scheduler.BatchSize = 7
+	root.Scheduler.Workers = 2
+	root.Scheduler.RetryAttempts = 4
+	root.Scheduler.RetryBackoff = "2m"
+
+	got := ConfigFromRoot(root)
+
+	if !got.Enabled {
+		t.Error("Enabled not mapped")
+	}
+
+	if got.Interval != 30*time.Second {
+		t.Errorf("Interval = %v, want 30s", got.Interval)
+	}
+
+	if got.BatchSize != 7 {
+		t.Errorf("BatchSize = %d, want 7", got.BatchSize)
+	}
+
+	if got.Workers != 2 {
+		t.Errorf("Workers = %d, want 2", got.Workers)
+	}
+
+	if got.RetryAttempts != 4 {
+		t.Errorf("RetryAttempts = %d, want 4", got.RetryAttempts)
+	}
+
+	if got.RetryBackoff != 2*time.Minute {
+		t.Errorf("RetryBackoff = %v, want 2m", got.RetryBackoff)
+	}
+}
+
+func TestNewWithConfig(t *testing.T) {
+	root := config.New()
+	root.Scheduler.Enabled = true
+	root.Scheduler.Interval = "45s"
+
+	settings := &fakeSettings{paused: true}
+	r := NewWithConfig(NewFakeStore(), settings, root, &FakeLogger{})
+
+	if !r.cfg.Enabled {
+		t.Error("Enabled not mapped from root config")
+	}
+
+	if r.cfg.Interval != 45*time.Second {
+		t.Errorf("Interval = %v, want 45s", r.cfg.Interval)
+	}
+
+	if r.settings != settings {
+		t.Error("settings not set from constructor")
+	}
+}
+
 type fakeSettings struct {
 	paused bool
 }
@@ -314,6 +395,7 @@ func (s *fakeSettings) GetBool(ctx context.Context, key string) (bool, error) {
 	if key == SettingPaused {
 		return s.paused, nil
 	}
+
 	return false, nil
 }
 

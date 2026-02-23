@@ -32,7 +32,8 @@ func Locale(cfg LocaleConfig) func(http.Handler) http.Handler {
 }
 
 func detectLocale(r *http.Request, available map[string]bool, defaultLocale string) string {
-	if cookie, err := r.Cookie(LocaleCookieName); err == nil {
+	cookie, err := r.Cookie(LocaleCookieName)
+	if err == nil {
 		loc := cookie.Value
 		if len(available) == 0 || available[loc] {
 			return loc
@@ -52,12 +53,14 @@ func detectLocale(r *http.Request, available map[string]bool, defaultLocale stri
 
 func parseAcceptLanguage(header string) []string {
 	var locales []string
+
 	parts := strings.Split(header, ",")
 	for _, part := range parts {
 		part = strings.TrimSpace(part)
 		if idx := strings.Index(part, ";"); idx != -1 {
 			part = part[:idx]
 		}
+
 		part = strings.TrimSpace(part)
 		if part == "" {
 			continue
@@ -69,6 +72,7 @@ func parseAcceptLanguage(header string) []string {
 
 		locales = append(locales, strings.ToLower(part))
 	}
+
 	return locales
 }
 
@@ -76,9 +80,11 @@ func GetLocale(ctx context.Context) string {
 	if ctx == nil {
 		return "en"
 	}
+
 	if locale, ok := ctx.Value(LocaleKey).(string); ok {
 		return locale
 	}
+
 	return "en"
 }
 

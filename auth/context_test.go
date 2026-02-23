@@ -39,6 +39,7 @@ func TestGetUserID(t *testing.T) {
 			if ok != tt.wantOk {
 				t.Errorf("GetUserID() ok = %v, want %v", ok, tt.wantOk)
 			}
+
 			if id != tt.userID {
 				t.Errorf("GetUserID() id = %v, want %v", id, tt.userID)
 			}
@@ -88,6 +89,7 @@ func TestGetUser(t *testing.T) {
 			if ok != tt.wantOk {
 				t.Errorf("GetUser() ok = %v, want %v", ok, tt.wantOk)
 			}
+
 			if tt.wantOk && u.ID != tt.wantUser.ID {
 				t.Errorf("GetUser() user.ID = %v, want %v", u.ID, tt.wantUser.ID)
 			}
@@ -136,6 +138,7 @@ func TestGetSession(t *testing.T) {
 			if ok != tt.wantOk {
 				t.Errorf("GetSession() ok = %v, want %v", ok, tt.wantOk)
 			}
+
 			if tt.wantOk && s.ID != tt.wantSession.ID {
 				t.Errorf("GetSession() session.ID = %v, want %v", s.ID, tt.wantSession.ID)
 			}
@@ -145,10 +148,12 @@ func TestGetSession(t *testing.T) {
 
 func TestWithUserID(t *testing.T) {
 	ctx := WithUserID(context.Background(), "user-123")
+
 	id, ok := GetUserID(ctx)
 	if !ok {
 		t.Error("WithUserID() user ID not found in context")
 	}
+
 	if id != "user-123" {
 		t.Errorf("WithUserID() id = %v, want user-123", id)
 	}
@@ -165,10 +170,12 @@ func TestWithUser(t *testing.T) {
 	}
 
 	ctx := WithUser(context.Background(), user)
+
 	u, ok := GetUser(ctx)
 	if !ok {
 		t.Error("WithUser() user not found in context")
 	}
+
 	if u.ID != user.ID {
 		t.Errorf("WithUser() user.ID = %v, want %v", u.ID, user.ID)
 	}
@@ -184,10 +191,12 @@ func TestWithSession(t *testing.T) {
 	}
 
 	ctx := WithSession(context.Background(), session)
+
 	s, ok := GetSession(ctx)
 	if !ok {
 		t.Error("WithSession() session not found in context")
 	}
+
 	if s.ID != session.ID {
 		t.Errorf("WithSession() session.ID = %v, want %v", s.ID, session.ID)
 	}

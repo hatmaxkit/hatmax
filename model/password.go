@@ -14,20 +14,25 @@ func HashPassword(password string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("cannot hash password: %w", err)
 	}
+
 	return string(hash), nil
 }
 
 // ComparePassword compares a password with its hash.
 func ComparePassword(hash, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+
 	return err == nil
 }
 
 // GenerateRandomPassword generates a random password of the specified length.
 func GenerateRandomPassword(length int) (string, error) {
 	bytes := make([]byte, length)
-	if _, err := rand.Read(bytes); err != nil {
+
+	_, err := rand.Read(bytes)
+	if err != nil {
 		return "", fmt.Errorf("cannot generate random password: %w", err)
 	}
+
 	return base64.URLEncoding.EncodeToString(bytes)[:length], nil
 }

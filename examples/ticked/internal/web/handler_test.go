@@ -14,8 +14,8 @@ import (
 	"github.com/hatmaxkit/hatmax/auth"
 	"github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/audit"
 	"github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/list"
-	"github.com/hatmaxkit/hatmax/ui"
 	"github.com/hatmaxkit/hatmax/log"
+	"github.com/hatmaxkit/hatmax/ui"
 	"github.com/hatmaxkit/hatmax/web"
 )
 
@@ -76,6 +76,7 @@ func TestHandlerRegisterRoutes(t *testing.T) {
 	for _, rt := range routes {
 		t.Run(rt.method+" "+rt.path, func(t *testing.T) {
 			req := httptest.NewRequest(rt.method, rt.path, nil)
+
 			match := chi.NewRouteContext()
 			if !r.Match(match, req.Method, req.URL.Path) {
 				t.Errorf("route %s %s not registered", rt.method, rt.path)
@@ -170,6 +171,7 @@ func TestHandleSignin_EmptyFields(t *testing.T) {
 
 			req := httptest.NewRequest("POST", "/signin", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 			rec := httptest.NewRecorder()
 
 			h.handleSignin(rec, req)
@@ -211,6 +213,7 @@ func TestHandleSignup_EmptyFields(t *testing.T) {
 
 			req := httptest.NewRequest("POST", "/signup", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 			rec := httptest.NewRecorder()
 
 			h.handleSignup(rec, req)
@@ -232,6 +235,7 @@ func TestHandleSignout(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/signout", nil)
 	req.AddCookie(&http.Cookie{Name: auth.SessionCookieName, Value: "token123"})
+
 	rec := httptest.NewRecorder()
 
 	h.handleSignout(rec, req)
@@ -304,6 +308,7 @@ func TestHandleAddItem_NoUser(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/add-item", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	rec := httptest.NewRecorder()
 
 	h.handleAddItem(rec, req)
@@ -328,6 +333,7 @@ func TestHandleAddItem_EmptyText(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/add-item", strings.NewReader(form.Encode())).WithContext(ctx)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	rec := httptest.NewRecorder()
 
 	h.handleAddItem(rec, req)
@@ -358,6 +364,7 @@ func TestHandleAddItem_Success(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/add-item", strings.NewReader(form.Encode())).WithContext(ctx)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	rec := httptest.NewRecorder()
 
 	h.handleAddItem(rec, req)
@@ -379,6 +386,7 @@ func TestHandleToggleItem_NoUser(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/toggle-item", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	rec := httptest.NewRecorder()
 
 	h.handleToggleItem(rec, req)
@@ -400,6 +408,7 @@ func TestHandleDeleteItem_NoUser(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/delete-item", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	rec := httptest.NewRecorder()
 
 	h.handleDeleteItem(rec, req)
@@ -519,6 +528,7 @@ func TestHandleUpdateRoles_MissingID(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/admin/update-roles", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	rec := httptest.NewRecorder()
 
 	h.handleUpdateRoles(rec, req)
@@ -542,6 +552,7 @@ func TestHandleUpdateRoles_Success(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/admin/update-roles", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	rec := httptest.NewRecorder()
 
 	h.handleUpdateRoles(rec, req)
@@ -569,6 +580,7 @@ func TestHandleToggleUser_MissingID(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/admin/toggle-user", strings.NewReader(form.Encode())).WithContext(ctx)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	rec := httptest.NewRecorder()
 
 	h.handleToggleUser(rec, req)
@@ -593,6 +605,7 @@ func TestHandleToggleUser_SelfDeactivate(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/admin/toggle-user", strings.NewReader(form.Encode())).WithContext(ctx)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	rec := httptest.NewRecorder()
 
 	h.handleToggleUser(rec, req)
@@ -691,11 +704,11 @@ func (f *fakeAuthQ) UpdateUserActive(ctx context.Context, id string, active bool
 }
 
 type fakeAuthSvc struct {
-	user       *auth.User
-	session    *auth.Session
-	signupErr  error
-	signinErr  error
-	signoutErr error
+	user        *auth.User
+	session     *auth.Session
+	signupErr   error
+	signinErr   error
+	signoutErr  error
 	validateErr error
 }
 

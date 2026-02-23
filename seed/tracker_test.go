@@ -9,6 +9,7 @@ func TestNewTracker(t *testing.T) {
 	if tracker == nil {
 		t.Error("NewTracker returned nil")
 	}
+
 	if tracker.db != nil {
 		t.Error("tracker.db should be nil when initialized with nil")
 	}

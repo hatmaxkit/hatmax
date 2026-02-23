@@ -23,6 +23,7 @@ func DefaultStack() []func(http.Handler) http.Handler {
 // Use this for internal services that should only be accessible from private networks.
 func DefaultInternal() []func(http.Handler) http.Handler {
 	stack := DefaultStack()
+
 	return append(stack, InternalOnly())
 }
 
@@ -34,8 +35,10 @@ func InternalOnly() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if !isInternalIP(r.RemoteAddr) {
 				http.Error(w, "Forbidden", http.StatusForbidden)
+
 				return
 			}
+
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -67,6 +70,7 @@ func isInternalIP(remoteAddr string) bool {
 		if err != nil {
 			continue
 		}
+
 		if network.Contains(ip) {
 			return true
 		}

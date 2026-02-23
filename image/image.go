@@ -9,8 +9,8 @@ import (
 // Image represents a stored image without domain knowledge.
 type Image struct {
 	ID          uuid.UUID
-	Filename    string         // original filename
-	ContentType string         // image/jpeg, image/png, image/webp
+	Filename    string // original filename
+	ContentType string // image/jpeg, image/png, image/webp
 	SizeBytes   int64
 	Width       int
 	Height      int

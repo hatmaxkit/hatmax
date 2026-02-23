@@ -64,6 +64,7 @@ func TestAtomicCounterReset(t *testing.T) {
 	}
 
 	c.IncrementRequests()
+
 	third := c.GetAndResetRequests()
 	if third != 1 {
 		t.Errorf("third GetAndResetRequests() = %d, want 1", third)
@@ -73,8 +74,10 @@ func TestAtomicCounterReset(t *testing.T) {
 func TestAtomicCounterConcurrent(t *testing.T) {
 	c := NewCounter()
 
-	const goroutines = 100
-	const incrementsPerGoroutine = 1000
+	const (
+		goroutines             = 100
+		incrementsPerGoroutine = 1000
+	)
 
 	var wg sync.WaitGroup
 	wg.Add(goroutines)
@@ -82,6 +85,7 @@ func TestAtomicCounterConcurrent(t *testing.T) {
 	for range goroutines {
 		go func() {
 			defer wg.Done()
+
 			for range incrementsPerGoroutine {
 				c.IncrementRequests()
 			}
@@ -91,6 +95,7 @@ func TestAtomicCounterConcurrent(t *testing.T) {
 	wg.Wait()
 
 	got := c.GetAndResetRequests()
+
 	want := int64(goroutines * incrementsPerGoroutine)
 	if got != want {
 		t.Errorf("concurrent increments = %d, want %d", got, want)

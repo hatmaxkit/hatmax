@@ -16,11 +16,13 @@ import (
 
 // Config holds the application configuration.
 type Config struct {
-	Log      LogConfig      `koanf:"log"`
-	Server   ServerConfig   `koanf:"server"`
-	Database DatabaseConfig `koanf:"database"`
-	Auth     AuthConfig     `koanf:"auth"`
-	PubSub   PubSubConfig   `koanf:"pubsub"`
+	Log       LogConfig       `koanf:"log"`
+	Server    ServerConfig    `koanf:"server"`
+	Database  DatabaseConfig  `koanf:"database"`
+	Auth      AuthConfig      `koanf:"auth"`
+	PubSub    PubSubConfig    `koanf:"pubsub"`
+	Scheduler SchedulerConfig `koanf:"scheduler"`
+	Mailer    MailerConfig    `koanf:"mailer"`
 }
 
 // LogConfig holds logging configuration.
@@ -59,6 +61,65 @@ type PubSubConfig struct {
 	BatchSize    int    `koanf:"batch_size"`
 }
 
+// SchedulerConfig holds scheduler configuration.
+type SchedulerConfig struct {
+	Enabled       bool   `koanf:"enabled"`
+	Interval      string `koanf:"interval"`
+	BatchSize     int    `koanf:"batch_size"`
+	Workers       int    `koanf:"workers"`
+	RetryAttempts int    `koanf:"retry_attempts"`
+	RetryBackoff  string `koanf:"retry_backoff"`
+}
+
+// MailerConfig holds mailer configuration.
+type MailerConfig struct {
+	Enabled     bool                 `koanf:"enabled"`
+	Mode        string               `koanf:"mode"`
+	Provider    string               `koanf:"provider"`
+	DefaultFrom MailerAddressConfig  `koanf:"default_from"`
+	SMTP        MailerSMTPConfig     `koanf:"smtp"`
+	Mailgun     MailerMailgunConfig  `koanf:"mailgun"`
+	SendGrid    MailerSendGridConfig `koanf:"sendgrid"`
+	SES         MailerSESConfig      `koanf:"ses"`
+}
+
+// MailerAddressConfig holds default sender address configuration.
+type MailerAddressConfig struct {
+	Email string `koanf:"email"`
+	Name  string `koanf:"name"`
+}
+
+// MailerSMTPConfig holds SMTP provider configuration.
+type MailerSMTPConfig struct {
+	Host               string `koanf:"host"`
+	Port               int    `koanf:"port"`
+	Username           string `koanf:"username"`
+	Password           string `koanf:"password"`
+	TLS                bool   `koanf:"tls"`
+	StartTLS           bool   `koanf:"starttls"`
+	InsecureSkipVerify bool   `koanf:"insecure_skip_verify"`
+}
+
+// MailerSendGridConfig holds SendGrid provider configuration.
+type MailerSendGridConfig struct {
+	APIKey string `koanf:"api_key"`
+}
+
+// MailerMailgunConfig holds Mailgun provider configuration.
+type MailerMailgunConfig struct {
+	APIKey  string `koanf:"api_key"`
+	Domain  string `koanf:"domain"`
+	BaseURL string `koanf:"base_url"`
+}
+
+// MailerSESConfig holds SES provider configuration.
+type MailerSESConfig struct {
+	Region               string `koanf:"region"`
+	AccessKeyID          string `koanf:"access_key_id"`
+	SecretAccessKey      string `koanf:"secret_access_key"`
+	ConfigurationSetName string `koanf:"configuration_set_name"`
+}
+
 // PollIntervalDuration parses the PollInterval string as a duration.
 // Returns 100ms if parsing fails.
 func (c PubSubConfig) PollIntervalDuration() time.Duration {
@@ -66,6 +127,29 @@ func (c PubSubConfig) PollIntervalDuration() time.Duration {
 	if err != nil {
 		return 100 * time.Millisecond
 	}
+
+	return d
+}
+
+// IntervalDuration parses the scheduler interval.
+// Returns 1m if parsing fails.
+func (c SchedulerConfig) IntervalDuration() time.Duration {
+	d, err := time.ParseDuration(c.Interval)
+	if err != nil {
+		return time.Minute
+	}
+
+	return d
+}
+
+// RetryBackoffDuration parses the scheduler retry backoff.
+// Returns 1m if parsing fails.
+func (c SchedulerConfig) RetryBackoffDuration() time.Duration {
+	d, err := time.ParseDuration(c.RetryBackoff)
+	if err != nil {
+		return time.Minute
+	}
+
 	return d
 }
 
@@ -97,6 +181,29 @@ func New() *Config {
 			Enabled:      false,
 			PollInterval: "100ms",
 			BatchSize:    100,
+		},
+		Scheduler: SchedulerConfig{
+			Enabled:       false,
+			Interval:      "1m",
+			BatchSize:     20,
+			Workers:       1,
+			RetryAttempts: 3,
+			RetryBackoff:  "1m",
+		},
+		Mailer: MailerConfig{
+			Enabled:  false,
+			Mode:     "disabled",
+			Provider: "smtp",
+			DefaultFrom: MailerAddressConfig{
+				Email: "noreply@localhost",
+				Name:  "",
+			},
+			SMTP: MailerSMTPConfig{
+				Port: 587,
+			},
+			SES: MailerSESConfig{
+				Region: "us-east-1",
+			},
 		},
 	}
 }
@@ -137,30 +244,61 @@ func Load(path, envPrefix string, args []string) (*Config, error) {
 	fs.Bool("pubsub.enabled", false, "Enable pub/sub")
 	fs.String("pubsub.poll_interval", "100ms", "Pub/sub poll interval")
 	fs.Int("pubsub.batch_size", 100, "Pub/sub batch size")
+	fs.Bool("scheduler.enabled", false, "Enable scheduler")
+	fs.String("scheduler.interval", "1m", "Scheduler poll interval")
+	fs.Int("scheduler.batch_size", 20, "Scheduler batch size")
+	fs.Int("scheduler.workers", 1, "Scheduler workers")
+	fs.Int("scheduler.retry_attempts", 3, "Scheduler retry attempts")
+	fs.String("scheduler.retry_backoff", "1m", "Scheduler retry backoff")
+	fs.Bool("mailer.enabled", false, "Enable mailer")
+	fs.String("mailer.mode", "disabled", "Mailer runtime mode (disabled, dry_run, active)")
+	fs.String("mailer.provider", "smtp", "Mailer provider (smtp, mailgun, sendgrid, ses)")
+	fs.String("mailer.default_from.email", "noreply@localhost", "Default from email")
+	fs.String("mailer.default_from.name", "", "Default from name")
+	fs.String("mailer.smtp.host", "", "SMTP host")
+	fs.Int("mailer.smtp.port", 587, "SMTP port")
+	fs.String("mailer.smtp.username", "", "SMTP username")
+	fs.String("mailer.smtp.password", "", "SMTP password")
+	fs.Bool("mailer.smtp.tls", false, "SMTP implicit TLS")
+	fs.Bool("mailer.smtp.starttls", false, "SMTP STARTTLS")
+	fs.Bool("mailer.smtp.insecure_skip_verify", false, "Skip SMTP TLS cert verification")
+	fs.String("mailer.mailgun.api_key", "", "Mailgun API key")
+	fs.String("mailer.mailgun.domain", "", "Mailgun domain")
+	fs.String("mailer.mailgun.base_url", "", "Mailgun API base URL")
+	fs.String("mailer.sendgrid.api_key", "", "SendGrid API key")
+	fs.String("mailer.ses.region", "us-east-1", "SES region")
+	fs.String("mailer.ses.access_key_id", "", "SES access key id")
+	fs.String("mailer.ses.secret_access_key", "", "SES secret access key")
+	fs.String("mailer.ses.configuration_set_name", "", "SES configuration set name")
 	fs.Parse(args[1:])
 
 	raw, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read config file: %w", err)
 	}
+
 	expanded := []byte(os.ExpandEnv(string(raw)))
 
-	if err := k.Load(rawbytes.Provider(expanded), yaml.Parser()); err != nil {
+	err = k.Load(rawbytes.Provider(expanded), yaml.Parser())
+	if err != nil {
 		return nil, fmt.Errorf("cannot parse yaml: %w", err)
 	}
 
-	if err := k.Load(env.Provider(envPrefix, ".", func(s string) string {
+	err = k.Load(env.Provider(envPrefix, ".", func(s string) string {
 		return strings.Replace(strings.ToLower(
 			strings.TrimPrefix(s, envPrefix)), "_", ".", -1)
-	}), nil); err != nil {
+	}), nil)
+	if err != nil {
 		return nil, fmt.Errorf("cannot load env vars: %w", err)
 	}
 
-	if err := k.Load(posflag.Provider(fs, ".", k), nil); err != nil {
+	err = k.Load(posflag.Provider(fs, ".", k), nil)
+	if err != nil {
 		return nil, fmt.Errorf("cannot load flags: %w", err)
 	}
 
-	if err := k.Unmarshal("", cfg); err != nil {
+	err = k.Unmarshal("", cfg)
+	if err != nil {
 		return nil, fmt.Errorf("cannot unmarshal config: %w", err)
 	}
 
@@ -191,6 +329,18 @@ func (c *Config) Validate() error {
 
 	if c.Auth.BCryptCost < 4 || c.Auth.BCryptCost > 31 {
 		return fmt.Errorf("auth.bcrypt_cost must be between 4 and 31")
+	}
+
+	if c.Scheduler.BatchSize < 1 {
+		return fmt.Errorf("scheduler.batch_size must be at least 1")
+	}
+
+	if c.Scheduler.Workers < 1 {
+		return fmt.Errorf("scheduler.workers must be at least 1")
+	}
+
+	if c.Scheduler.RetryAttempts < 1 {
+		return fmt.Errorf("scheduler.retry_attempts must be at least 1")
 	}
 
 	return nil

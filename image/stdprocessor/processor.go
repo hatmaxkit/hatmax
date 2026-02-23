@@ -32,9 +32,11 @@ func NewWithQuality(jpegQuality int) *Processor {
 	if jpegQuality < 1 {
 		jpegQuality = 1
 	}
+
 	if jpegQuality > 100 {
 		jpegQuality = 100
 	}
+
 	return &Processor{jpegQuality: jpegQuality}
 }
 
@@ -70,6 +72,7 @@ func (p *Processor) Resize(ctx context.Context, input io.Reader, contentType str
 	draw.CatmullRom.Scale(dst, dst.Bounds(), src, bounds, draw.Over, nil)
 
 	var buf bytes.Buffer
+
 	outputContentType := contentType
 
 	switch format {
@@ -103,6 +106,7 @@ func (p *Processor) GetDimensions(ctx context.Context, input io.Reader, contentT
 	if err != nil {
 		return 0, 0, fmt.Errorf("cannot decode image config: %w", err)
 	}
+
 	return cfg.Width, cfg.Height, nil
 }
 

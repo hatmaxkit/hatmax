@@ -33,6 +33,7 @@ func StatusBadge(status string) *Label {
 	if cfg.Variant != "" {
 		label.Variant(cfg.Variant)
 	}
+
 	return label
 }
 
@@ -52,5 +53,6 @@ func StatusBadgeWithIcon(status string) *Label {
 	if cfg.Variant != "" {
 		label.Variant(cfg.Variant)
 	}
+
 	return label
 }

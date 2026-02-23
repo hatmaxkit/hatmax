@@ -22,10 +22,12 @@ func NullUUID(s *string) uuid.NullUUID {
 	if s == nil || *s == "" {
 		return uuid.NullUUID{Valid: false}
 	}
+
 	id, err := uuid.Parse(*s)
 	if err != nil {
 		return uuid.NullUUID{Valid: false}
 	}
+
 	return uuid.NullUUID{UUID: id, Valid: true}
 }
 
@@ -34,6 +36,8 @@ func FromNullUUID(n uuid.NullUUID) *string {
 	if !n.Valid {
 		return nil
 	}
+
 	s := n.UUID.String()
+
 	return &s
 }

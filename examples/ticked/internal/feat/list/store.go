@@ -42,7 +42,9 @@ func (s *PostgresStore) Start(ctx context.Context) error {
 	if s.db == nil {
 		return fmt.Errorf("database connection not available")
 	}
+
 	s.q = dal.New(s.db)
+
 	return nil
 }
 
@@ -58,6 +60,7 @@ func (s *PostgresStore) FindByUserID(ctx context.Context, userID string) (*TodoL
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
 		}
+
 		return nil, fmt.Errorf("get list: %w", err)
 	}
 
@@ -79,6 +82,7 @@ func (s *PostgresStore) FindByUserID(ctx context.Context, userID string) (*TodoL
 		if dbItem.CompletedAt.Valid {
 			completedAt = &dbItem.CompletedAt.Time
 		}
+
 		list.Items = append(list.Items, TodoItem{
 			ItemID:      dbItem.ID,
 			Text:        dbItem.Text,
@@ -113,7 +117,8 @@ func (s *PostgresStore) Save(ctx context.Context, list *TodoList) error {
 	}
 
 	// Sync items
-	if err := s.syncItems(ctx, qtx, list); err != nil {
+	err = s.syncItems(ctx, qtx, list)
+	if err != nil {
 		return fmt.Errorf("sync items: %w", err)
 	}
 
@@ -171,7 +176,8 @@ func (s *PostgresStore) syncItems(ctx context.Context, qtx *dal.Queries, list *T
 	// Delete removed items
 	for id := range existingByID {
 		if !seen[id] {
-			if err := qtx.DeleteTodoItem(ctx, id); err != nil {
+			err := qtx.DeleteTodoItem(ctx, id)
+			if err != nil {
 				return fmt.Errorf("delete item %s: %w", id, err)
 			}
 		}
@@ -190,11 +196,13 @@ func (s *PostgresStore) Delete(ctx context.Context, listID string) error {
 
 	qtx := s.q.WithTx(tx)
 
-	if err := qtx.DeleteTodoItemsByListID(ctx, listID); err != nil {
+	err = qtx.DeleteTodoItemsByListID(ctx, listID)
+	if err != nil {
 		return fmt.Errorf("delete items: %w", err)
 	}
 
-	if err := qtx.DeleteTodoList(ctx, listID); err != nil {
+	err = qtx.DeleteTodoList(ctx, listID)
+	if err != nil {
 		return fmt.Errorf("delete list: %w", err)
 	}
 

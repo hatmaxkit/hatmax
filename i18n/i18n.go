@@ -50,7 +50,8 @@ func (t *Translator) LoadFromFS(fs embed.FS, basePath string) error {
 			return fmt.Errorf("read %s: %w", filePath, err)
 		}
 
-		if err := t.loadLocale(locale, data); err != nil {
+		err = t.loadLocale(locale, data)
+		if err != nil {
 			return fmt.Errorf("parse %s: %w", filePath, err)
 		}
 
@@ -62,7 +63,11 @@ func (t *Translator) LoadFromFS(fs embed.FS, basePath string) error {
 
 func (t *Translator) loadLocale(locale string, data []byte) error {
 	var raw map[string]any
-	if err := yaml.Unmarshal(data, &raw); err != nil {
+
+	var err error
+
+	err = yaml.Unmarshal(data, &raw)
+	if err != nil {
 		return err
 	}
 
@@ -100,6 +105,7 @@ func (t *Translator) Get(locale, key string) string {
 			if s, ok := val.(string); ok {
 				return s
 			}
+
 			return fmt.Sprintf("%v", val)
 		}
 	}
@@ -110,6 +116,7 @@ func (t *Translator) Get(locale, key string) string {
 				if s, ok := val.(string); ok {
 					return s
 				}
+
 				return fmt.Sprintf("%v", val)
 			}
 		}
@@ -121,27 +128,33 @@ func (t *Translator) Get(locale, key string) string {
 func (t *Translator) SetDefaultLocale(locale string) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+
 	t.defaultLoc = locale
 }
 
 func (t *Translator) DefaultLocaleValue() string {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
+
 	return t.defaultLoc
 }
 
 func (t *Translator) AvailableLocales() []string {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
+
 	result := make([]string, len(t.available))
 	copy(result, t.available)
+
 	return result
 }
 
 func (t *Translator) HasLocale(locale string) bool {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
+
 	_, ok := t.translations[locale]
+
 	return ok
 }
 

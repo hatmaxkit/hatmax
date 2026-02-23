@@ -24,6 +24,7 @@ func TestFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -50,6 +51,7 @@ func TestFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -75,6 +77,7 @@ func TestFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -99,6 +102,7 @@ func TestFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -123,6 +127,7 @@ func TestFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -147,6 +152,7 @@ func TestFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -172,6 +178,7 @@ func TestFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -196,6 +203,7 @@ func TestFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -214,6 +222,7 @@ func TestFieldValidator(t *testing.T) {
 		if !errs.HasErrors() {
 			t.Error("expected MinLength error")
 		}
+
 		if len(errs) != 1 {
 			t.Errorf("expected 1 error, got %d", len(errs))
 		}
@@ -237,6 +246,7 @@ func TestUUIDFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -264,6 +274,7 @@ func TestIntFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -289,6 +300,7 @@ func TestIntFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -315,6 +327,7 @@ func TestIntFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -339,6 +352,7 @@ func TestIntFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -363,6 +377,7 @@ func TestIntFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -390,6 +405,7 @@ func TestFloatFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -415,6 +431,7 @@ func TestFloatFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -439,6 +456,7 @@ func TestFloatFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}
@@ -463,6 +481,7 @@ func TestFloatFieldValidator(t *testing.T) {
 				if tt.wantError && !errs.HasErrors() {
 					t.Error("expected error but got none")
 				}
+
 				if !tt.wantError && errs.HasErrors() {
 					t.Errorf("unexpected error: %v", errs)
 				}

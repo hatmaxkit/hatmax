@@ -79,9 +79,11 @@ func TestTableWithRows(t *testing.T) {
 	if !strings.Contains(html, "Alice") {
 		t.Error("Render() missing Alice")
 	}
+
 	if !strings.Contains(html, "Bob") {
 		t.Error("Render() missing Bob")
 	}
+
 	if !strings.Contains(html, "30") {
 		t.Error("Render() missing 30")
 	}
@@ -105,9 +107,11 @@ func TestColumnOptions(t *testing.T) {
 	if col.Width != "100px" {
 		t.Errorf("WithWidth() = %q, want %q", col.Width, "100px")
 	}
+
 	if col.Align != "right" {
 		t.Errorf("WithAlign() = %q, want %q", col.Align, "right")
 	}
+
 	if col.Class != "custom" {
 		t.Errorf("WithClass() = %q, want %q", col.Class, "custom")
 	}
@@ -119,6 +123,7 @@ func TestRowOptions(t *testing.T) {
 	if row.ID != "row-1" {
 		t.Errorf("WithID() = %q, want %q", row.ID, "row-1")
 	}
+
 	if row.Class != "highlight" {
 		t.Errorf("WithClass() = %q, want %q", row.Class, "highlight")
 	}
@@ -160,6 +165,7 @@ func TestTableColumnRender(t *testing.T) {
 	if !strings.Contains(html, `style="width: 200px"`) {
 		t.Error("Render() missing column width")
 	}
+
 	if !strings.Contains(html, `table__th--right`) {
 		t.Error("Render() missing column align class")
 	}
@@ -175,6 +181,7 @@ func TestTableRowRender(t *testing.T) {
 	if !strings.Contains(html, `id="row-1"`) {
 		t.Error("Render() missing row id")
 	}
+
 	if !strings.Contains(html, `selected`) {
 		t.Error("Render() missing row class")
 	}

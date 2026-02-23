@@ -16,7 +16,9 @@ func (a Address) String() string {
 	if a.Name == "" {
 		return a.Email
 	}
+
 	addr := mail.Address{Name: a.Name, Address: a.Email}
+
 	return addr.String()
 }
 
@@ -46,20 +48,25 @@ func (m *Message) Validate() error {
 	if m.From.Email == "" {
 		return fmt.Errorf("from address is required")
 	}
+
 	if len(m.To) == 0 {
 		return fmt.Errorf("at least one recipient is required")
 	}
+
 	for i, addr := range m.To {
 		if addr.Email == "" {
 			return fmt.Errorf("recipient %d has empty email", i)
 		}
 	}
+
 	if m.Subject == "" {
 		return fmt.Errorf("subject is required")
 	}
+
 	if m.Text == "" && m.HTML == "" {
 		return fmt.Errorf("message body is required (text or html)")
 	}
+
 	return nil
 }
 
@@ -79,5 +86,6 @@ func (m *Message) AllRecipients() []Address {
 	all = append(all, m.To...)
 	all = append(all, m.CC...)
 	all = append(all, m.BCC...)
+
 	return all
 }

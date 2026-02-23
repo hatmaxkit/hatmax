@@ -28,12 +28,15 @@ func NewParams(page, pageSize int) Params {
 	if page < 1 {
 		page = 1
 	}
+
 	if pageSize <= 0 {
 		pageSize = DefaultPageSize
 	}
+
 	if pageSize > MaxPageSize {
 		pageSize = MaxPageSize
 	}
+
 	return Params{
 		Page:     page,
 		PageSize: pageSize,
@@ -77,6 +80,7 @@ func (r *Result[T]) PreviousPage() int {
 	if r.Page > 1 {
 		return r.Page - 1
 	}
+
 	return 1
 }
 
@@ -85,6 +89,7 @@ func (r *Result[T]) NextPage() int {
 	if r.HasMore {
 		return r.Page + 1
 	}
+
 	return r.Page
 }
 
@@ -98,6 +103,7 @@ func (r *Result[T]) StartIndex() int {
 	if r.IsEmpty() {
 		return 0
 	}
+
 	return (r.Page-1)*r.PageSize + 1
 }
 
@@ -106,9 +112,11 @@ func (r *Result[T]) EndIndex() int {
 	if r.IsEmpty() {
 		return 0
 	}
+
 	end := r.Page * r.PageSize
 	if end > r.TotalCount {
 		end = r.TotalCount
 	}
+
 	return end
 }

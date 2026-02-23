@@ -14,7 +14,8 @@ func TestGenerateID(t *testing.T) {
 		t.Error("expected ID to be generated")
 	}
 
-	if _, err := uuid.Parse(id); err != nil {
+	_, err := uuid.Parse(id)
+	if err != nil {
 		t.Errorf("expected valid UUID, got error: %v", err)
 	}
 }
@@ -26,7 +27,8 @@ func TestNewID(t *testing.T) {
 		t.Error("expected ID to be generated")
 	}
 
-	if _, err := uuid.Parse(id); err != nil {
+	_, err := uuid.Parse(id)
+	if err != nil {
 		t.Errorf("expected valid UUID, got error: %v", err)
 	}
 }
@@ -88,8 +90,10 @@ func TestParseID(t *testing.T) {
 			got, err := ParseID(tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseID() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !tt.wantErr && got.String() == "" {
 				t.Error("expected valid UUID")
 			}
@@ -135,6 +139,7 @@ func TestNullUUID(t *testing.T) {
 			if got.Valid != tt.wantValid {
 				t.Errorf("NullUUID() Valid = %v, want %v", got.Valid, tt.wantValid)
 			}
+
 			if tt.wantValid && got.UUID.String() != validUUID {
 				t.Errorf("NullUUID() UUID = %v, want %v", got.UUID.String(), validUUID)
 			}
@@ -170,12 +175,16 @@ func TestFromNullUUID(t *testing.T) {
 				if got != nil {
 					t.Errorf("FromNullUUID() = %v, want nil", *got)
 				}
+
 				return
 			}
+
 			if got == nil {
 				t.Error("FromNullUUID() = nil, want non-nil")
+
 				return
 			}
+
 			if *got != validUUID.String() {
 				t.Errorf("FromNullUUID() = %v, want %v", *got, validUUID.String())
 			}

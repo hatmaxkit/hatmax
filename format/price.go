@@ -49,6 +49,7 @@ func Price(amount float64, currency string) string {
 	if format.Position == SymbolAfter {
 		return fmt.Sprintf("%s %s", formatted, format.Symbol)
 	}
+
 	return fmt.Sprintf("%s%s", format.Symbol, formatted)
 }
 
@@ -68,6 +69,7 @@ func PriceWithDecimals(amount float64, currency string) string {
 	if format.Position == SymbolAfter {
 		return fmt.Sprintf("%s %s", formatted, format.Symbol)
 	}
+
 	return fmt.Sprintf("%s%s", format.Symbol, formatted)
 }
 

@@ -13,24 +13,24 @@ import (
 
 // fakeQuerier implements the querier interface for testing.
 type fakeQuerier struct {
-	countUsers      int64
-	countErr        error
-	createUser      dal.User
-	createUserErr   error
-	getUserByEmail  dal.User
-	getUserEmailErr error
-	getUserByID     dal.User
-	getUserIDErr    error
-	createSession   dal.Session
-	createSessionErr error
+	countUsers        int64
+	countErr          error
+	createUser        dal.User
+	createUserErr     error
+	getUserByEmail    dal.User
+	getUserEmailErr   error
+	getUserByID       dal.User
+	getUserIDErr      error
+	createSession     dal.Session
+	createSessionErr  error
 	getSessionByToken dal.Session
-	getSessionErr   error
-	deleteSessionErr error
-	deleteExpiredErr error
-	listUsers       []dal.User
-	listUsersErr    error
-	updateRolesErr  error
-	updateActiveErr error
+	getSessionErr     error
+	deleteSessionErr  error
+	deleteExpiredErr  error
+	listUsers         []dal.User
+	listUsersErr      error
+	updateRolesErr    error
+	updateActiveErr   error
 }
 
 func (f *fakeQuerier) CountUsers(ctx context.Context) (int64, error) {
@@ -102,6 +102,7 @@ func TestQueries_CreateUser(t *testing.T) {
 	if user.ID != "user1" {
 		t.Errorf("expected ID user1, got %s", user.ID)
 	}
+
 	if user.Email != "test@example.com" {
 		t.Errorf("expected email test@example.com, got %s", user.Email)
 	}
@@ -474,15 +475,19 @@ func TestToAuthUser(t *testing.T) {
 	if authUser.ID != dalUser.ID {
 		t.Errorf("expected ID %s, got %s", dalUser.ID, authUser.ID)
 	}
+
 	if authUser.Email != dalUser.Email {
 		t.Errorf("expected Email %s, got %s", dalUser.Email, authUser.Email)
 	}
+
 	if authUser.PasswordHash != dalUser.PasswordHash {
 		t.Errorf("expected PasswordHash %s, got %s", dalUser.PasswordHash, authUser.PasswordHash)
 	}
+
 	if len(authUser.Roles) != len(dalUser.Roles) {
 		t.Errorf("expected %d roles, got %d", len(dalUser.Roles), len(authUser.Roles))
 	}
+
 	if authUser.Active != dalUser.Active {
 		t.Errorf("expected Active %v, got %v", dalUser.Active, authUser.Active)
 	}
@@ -504,9 +509,11 @@ func TestToAuthSession(t *testing.T) {
 	if authSession.ID != dalSession.ID {
 		t.Errorf("expected ID %s, got %s", dalSession.ID, authSession.ID)
 	}
+
 	if authSession.UserID != dalSession.UserID {
 		t.Errorf("expected UserID %s, got %s", dalSession.UserID, authSession.UserID)
 	}
+
 	if authSession.Token != dalSession.Token {
 		t.Errorf("expected Token %s, got %s", dalSession.Token, authSession.Token)
 	}

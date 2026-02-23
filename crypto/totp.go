@@ -2,12 +2,10 @@ package crypto
 
 import (
 	"bytes"
-	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base32"
 	"fmt"
 	"image/png"
-	"io"
 	"strings"
 	"time"
 
@@ -46,6 +44,7 @@ func ValidateTOTPCodeWithSkew(secret, code string, skew uint) bool {
 		Digits:    otp.DigitsSix,
 		Algorithm: otp.AlgorithmSHA1,
 	})
+
 	return valid
 }
 
@@ -57,8 +56,10 @@ func GenerateQRCodePNG(key *otp.Key, size int) ([]byte, error) {
 	}
 
 	var buf bytes.Buffer
-	if err := png.Encode(&buf, img); err != nil {
-		return nil, fmt.Errorf("cannot encode QR code as PNG: %w", err)
+
+	encodeErr := png.Encode(&buf, img)
+	if encodeErr != nil {
+		return nil, fmt.Errorf("cannot encode QR code as PNG: %w", encodeErr)
 	}
 
 	return buf.Bytes(), nil
@@ -76,8 +77,10 @@ func GenerateBackupCodes(count int) (plain, hashed []string, err error) {
 
 	for i := 0; i < count; i++ {
 		codeBytes := make([]byte, backupCodeBytes)
-		if _, err := io.ReadFull(rand.Reader, codeBytes); err != nil {
-			return nil, nil, fmt.Errorf("cannot generate backup code: %w", err)
+
+		readErr := fillRandom(codeBytes)
+		if readErr != nil {
+			return nil, nil, fmt.Errorf("cannot generate backup code: %w", readErr)
 		}
 
 		code := strings.ToUpper(base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(codeBytes))
@@ -110,5 +113,6 @@ func VerifyBackupCode(code string, hashedCodes []string) (bool, int) {
 func hashBackupCode(code string) string {
 	salt := []byte("hatmax-backup-code-salt")
 	hash := argon2.IDKey([]byte(code), salt, argonTime, argonMemory, argonThreads, argonKeyLength)
+
 	return base32.StdEncoding.EncodeToString(hash)
 }

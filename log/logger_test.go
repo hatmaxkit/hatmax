@@ -75,10 +75,12 @@ func TestNewTestLogger(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := NewTestLogger(tt.level)
+
 			slogLogger, ok := logger.(*slogLogger)
 			if !ok {
 				t.Fatal("NewTestLogger did not return *slogLogger")
 			}
+
 			if slogLogger.logLevel != tt.wantLevel {
 				t.Errorf("logLevel = %v, want %v", slogLogger.logLevel, tt.wantLevel)
 			}
@@ -182,6 +184,7 @@ func TestWith(t *testing.T) {
 	if !strings.Contains(output, "message") {
 		t.Errorf("expected message in output, got: %q", output)
 	}
+
 	if !strings.Contains(output, "key") || !strings.Contains(output, "value") {
 		t.Errorf("expected context fields in output, got: %q", output)
 	}
@@ -235,6 +238,7 @@ func newTestLogger(buf *bytes.Buffer, level LogLevel) *slogLogger {
 	handler := slog.NewTextHandler(buf, &slog.HandlerOptions{
 		Level: toSlogLevel(level),
 	})
+
 	return &slogLogger{
 		logger:   slog.New(handler),
 		logLevel: level,

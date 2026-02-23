@@ -39,15 +39,18 @@ func (d *Database) Start(ctx context.Context) error {
 		return fmt.Errorf("cannot open database: %w", err)
 	}
 
-	if err := db.PingContext(ctx); err != nil {
+	err = db.PingContext(ctx)
+	if err != nil {
 		db.Close()
+
 		return fmt.Errorf("cannot ping database: %w", err)
 	}
 
 	d.DB = db
 	d.log.Info("Database connection established")
 
-	if err := d.ensureSchema(ctx); err != nil {
+	err = d.ensureSchema(ctx)
+	if err != nil {
 		return fmt.Errorf("cannot ensure schema: %w", err)
 	}
 
@@ -59,8 +62,10 @@ func (d *Database) Start(ctx context.Context) error {
 func (d *Database) Stop(ctx context.Context) error {
 	if d.DB != nil {
 		d.log.Info("Closing database connection")
+
 		return d.DB.Close()
 	}
+
 	return nil
 }
 
@@ -75,10 +80,13 @@ func (d *Database) ensureSchema(ctx context.Context) error {
 	}
 
 	query := fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", d.schema)
-	if _, err := d.DB.ExecContext(ctx, query); err != nil {
+
+	_, err := d.DB.ExecContext(ctx, query)
+	if err != nil {
 		return fmt.Errorf("cannot create schema %s: %w", d.schema, err)
 	}
 
 	d.log.Infof("Schema %s ensured", d.schema)
+
 	return nil
 }

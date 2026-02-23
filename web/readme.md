@@ -44,8 +44,9 @@ Only `.html` files are processed. The namespace parameter in `Render()` maps to 
 web.RedirectOrHXRedirect(w, r, "/dashboard")
 
 // Parse form
-if err := web.ParseForm(r); err != nil { ... }
-name := web.FormValue(r, "name")
+form, err := web.ParseForm(r)
+if err != nil { ... }
+name := form.String("name")
 ```
 
 See `htmx/` for htmx-specific helpers.

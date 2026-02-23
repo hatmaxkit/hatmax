@@ -8,5 +8,6 @@ func HasRole(roles []string, role string) bool {
 	if slices.Contains(roles, "superadmin") {
 		return true
 	}
+
 	return slices.Contains(roles, role)
 }

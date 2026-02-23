@@ -13,5 +13,6 @@ func (n NamespaceSchema) DisplayLabel() string {
 	if n.Label != "" {
 		return n.Label
 	}
+
 	return n.Key
 }

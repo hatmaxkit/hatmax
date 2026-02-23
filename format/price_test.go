@@ -79,14 +79,18 @@ func TestPriceRange(t *testing.T) {
 
 func TestRegisterCurrency(t *testing.T) {
 	RegisterCurrency("CLP", "$", SymbolBefore)
+
 	got := Price(1000, "CLP")
+
 	want := "$1,000"
 	if got != want {
 		t.Errorf("Price after RegisterCurrency = %q, want %q", got, want)
 	}
 
 	RegisterCurrency("JPY", "¥", SymbolBefore)
+
 	got = Price(10000, "JPY")
+
 	want = "¥10,000"
 	if got != want {
 		t.Errorf("Price for JPY = %q, want %q", got, want)

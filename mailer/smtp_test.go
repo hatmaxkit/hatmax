@@ -12,10 +12,12 @@ func TestNewSMTPMailer(t *testing.T) {
 		Username: "user",
 		Password: "pass",
 	}
+
 	m := NewSMTPMailer(cfg)
 	if m == nil {
 		t.Fatal("expected non-nil mailer")
 	}
+
 	if m.cfg.Host != cfg.Host {
 		t.Errorf("expected host %q, got %q", cfg.Host, m.cfg.Host)
 	}

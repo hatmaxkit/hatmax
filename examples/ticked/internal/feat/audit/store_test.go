@@ -38,10 +38,14 @@ func setupTestStore(t *testing.T) (*PostgresStore, func()) {
 	}
 
 	dbProvider := &fakeDBProvider{db: db}
+
 	store := NewPostgresStore(dbProvider)
-	if err := store.Start(context.Background()); err != nil {
+
+	err = store.Start(context.Background())
+	if err != nil {
 		t.Fatalf("cannot start store: %v", err)
 	}
+
 	return store, cleanup
 }
 
@@ -78,18 +82,23 @@ func TestPostgresStoreSave(t *testing.T) {
 	if records[0].ID != record.ID {
 		t.Errorf("expected ID %s, got %s", record.ID, records[0].ID)
 	}
+
 	if records[0].EventType != record.EventType {
 		t.Errorf("expected EventType %s, got %s", record.EventType, records[0].EventType)
 	}
+
 	if records[0].ItemID != record.ItemID {
 		t.Errorf("expected ItemID %s, got %s", record.ItemID, records[0].ItemID)
 	}
+
 	if records[0].UserID != record.UserID {
 		t.Errorf("expected UserID %s, got %s", record.UserID, records[0].UserID)
 	}
+
 	if records[0].Source != record.Source {
 		t.Errorf("expected Source %s, got %s", record.Source, records[0].Source)
 	}
+
 	if records[0].Payload["title"] != "Buy milk" {
 		t.Errorf("expected payload title 'Buy milk', got %s", records[0].Payload["title"])
 	}
@@ -112,7 +121,9 @@ func TestPostgresStoreList(t *testing.T) {
 			Source:    "hatmax",
 			CreatedAt: time.Now().Add(time.Duration(i) * time.Second),
 		}
-		if err := store.Save(ctx, record); err != nil {
+
+		err := store.Save(ctx, record)
+		if err != nil {
 			t.Fatalf("Save failed: %v", err)
 		}
 	}
@@ -138,6 +149,7 @@ func TestPostgresStoreListEmpty(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
+
 	records, err := store.List(ctx, 10)
 	if err != nil {
 		t.Fatalf("List failed: %v", err)

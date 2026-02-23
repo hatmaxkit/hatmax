@@ -57,6 +57,7 @@ func (m *Migrator) Start(ctx context.Context) error {
 	if m.db == nil {
 		return fmt.Errorf("database connection not available")
 	}
+
 	return m.run(ctx)
 }
 
@@ -69,7 +70,8 @@ func (m *Migrator) Stop(ctx context.Context) error {
 // Creates migrations table if it doesn't exist.
 // Returns error if any migration fails (transactional per migration).
 func (m *Migrator) run(ctx context.Context) error {
-	if err := m.ensureMigrationsTable(ctx); err != nil {
+	err := m.ensureMigrationsTable(ctx)
+	if err != nil {
 		return fmt.Errorf("cannot create migrations table: %w", err)
 	}
 
@@ -87,15 +89,18 @@ func (m *Migrator) run(ctx context.Context) error {
 
 	if len(pending) == 0 {
 		m.log.Info("No pending migrations")
+
 		return nil
 	}
 
 	m.log.Infof("Running %d pending migration(s)", len(pending))
 
 	for _, migration := range pending {
-		if err := m.runMigration(ctx, migration); err != nil {
+		err = m.runMigration(ctx, migration)
+		if err != nil {
 			return fmt.Errorf("migration %s-%s failed: %w", migration.Datetime, migration.Name, err)
 		}
+
 		m.log.Infof("Applied migration: %s-%s", migration.Datetime, migration.Name)
 	}
 
@@ -112,11 +117,13 @@ func (m *Migrator) ensureMigrationsTable(ctx context.Context) error {
 	);
 	`
 	_, err := m.db.ExecContext(ctx, query)
+
 	return err
 }
 
 func (m *Migrator) loadFileMigrations() ([]Migration, error) {
 	var migrations []Migration
+
 	migrationPath := m.path
 	if migrationPath == "" {
 		migrationPath = fmt.Sprintf("assets/migration/%s", m.engine)
@@ -126,8 +133,10 @@ func (m *Migrator) loadFileMigrations() ([]Migration, error) {
 		if err != nil {
 			return err
 		}
+
 		if !d.IsDir() && strings.HasSuffix(d.Name(), ".sql") {
 			filename := filepath.Base(path)
+
 			parts := strings.SplitN(filename, "-", 2)
 			if len(parts) < 2 {
 				return fmt.Errorf("invalid migration filename: %s", filename)
@@ -139,7 +148,9 @@ func (m *Migrator) loadFileMigrations() ([]Migration, error) {
 			}
 
 			sections := strings.Split(string(content), "-- +migrate ")
+
 			var upSection, downSection string
+
 			for _, section := range sections {
 				if strings.HasPrefix(section, "Up") {
 					upSection = strings.TrimPrefix(section, "Up\n")
@@ -155,6 +166,7 @@ func (m *Migrator) loadFileMigrations() ([]Migration, error) {
 				Down:     downSection,
 			})
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -176,13 +188,18 @@ func (m *Migrator) loadDBMigrations() ([]Migration, error) {
 	defer rows.Close()
 
 	var migrations []Migration
+
 	for rows.Next() {
 		var migration Migration
-		if err := rows.Scan(&migration.Datetime, &migration.Name); err != nil {
+
+		err := rows.Scan(&migration.Datetime, &migration.Name)
+		if err != nil {
 			return nil, err
 		}
+
 		migrations = append(migrations, migration)
 	}
+
 	return migrations, nil
 }
 
@@ -193,11 +210,13 @@ func (m *Migrator) findPendingMigrations(fileMigrations, dbMigrations []Migratio
 	}
 
 	var pendingMigrations []Migration
+
 	for _, fileMigration := range fileMigrations {
 		if _, exists := dbMigrationsMap[fileMigration.Datetime+fileMigration.Name]; !exists {
 			pendingMigrations = append(pendingMigrations, fileMigration)
 		}
 	}
+
 	return pendingMigrations
 }
 
@@ -212,13 +231,15 @@ func (m *Migrator) runMigration(ctx context.Context, migration Migration) error 
 	}
 	defer tx.Rollback()
 
-	if _, err := tx.ExecContext(ctx, migration.Up); err != nil {
+	_, err = tx.ExecContext(ctx, migration.Up)
+	if err != nil {
 		return err
 	}
 
-	if _, err := tx.ExecContext(ctx,
+	_, err = tx.ExecContext(ctx,
 		"INSERT INTO migrations (id, datetime, name, created_at) VALUES (gen_random_uuid(), $1, $2, CURRENT_TIMESTAMP)",
-		migration.Datetime, migration.Name); err != nil {
+		migration.Datetime, migration.Name)
+	if err != nil {
 		return err
 	}
 

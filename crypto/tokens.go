@@ -44,6 +44,7 @@ func GenerateToken(claims TokenClaims, privateKey ed25519.PrivateKey) (string, e
 		if err != nil {
 			return "", err
 		}
+
 		token.SetString("ctx", string(ctxBytes))
 	}
 
@@ -55,6 +56,7 @@ func GenerateToken(claims TokenClaims, privateKey ed25519.PrivateKey) (string, e
 	if err != nil {
 		return "", err
 	}
+
 	signed := token.V4Sign(secretKey, nil)
 
 	return signed, nil
@@ -78,6 +80,7 @@ func VerifyToken(tokenString string, publicKey ed25519.PublicKey) (TokenClaims, 
 		if errors.Is(err, paseto.RuleError{}) {
 			return TokenClaims{}, ErrTokenExpired
 		}
+
 		return TokenClaims{}, ErrInvalidToken
 	}
 
@@ -106,7 +109,9 @@ func VerifyToken(tokenString string, publicKey ed25519.PublicKey) (TokenClaims, 
 	ctxStr, err := token.GetString("ctx")
 	if err == nil && ctxStr != "" {
 		var ctx map[string]string
-		if err := json.Unmarshal([]byte(ctxStr), &ctx); err == nil {
+
+		unmarshalErr := json.Unmarshal([]byte(ctxStr), &ctx)
+		if unmarshalErr == nil {
 			claims.Context = ctx
 		}
 	}

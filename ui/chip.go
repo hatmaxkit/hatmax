@@ -36,12 +36,14 @@ func NewChip(text string) *Chip {
 // Emoji sets the chip emoji.
 func (c *Chip) Emoji(e Emoji) *Chip {
 	c.emoji = e
+
 	return c
 }
 
 // Variant sets the chip variant.
 func (c *Chip) Variant(v Variant) *Chip {
 	c.variant = v
+
 	return c
 }
 
@@ -83,12 +85,14 @@ func (c *Chip) Muted() *Chip {
 // Class adds custom CSS classes.
 func (c *Chip) Class(class string) *Chip {
 	c.class = class
+
 	return c
 }
 
 // Render renders the chip to HTML.
 func (c *Chip) Render() template.HTML {
 	var classes []string
+
 	classes = append(classes, "chip")
 
 	if c.variant != "" {
@@ -103,6 +107,7 @@ func (c *Chip) Render() template.HTML {
 	if c.emoji != "" {
 		fmt.Fprintf(&content, `<span class="chip__emoji">%s</span>`, c.emoji)
 	}
+
 	fmt.Fprintf(&content, `<span class="chip__text">%s</span>`, template.HTMLEscapeString(c.text))
 
 	return template.HTML(fmt.Sprintf(`<span class="%s">%s</span>`,
@@ -127,12 +132,14 @@ func NewLabel(text string) *Label {
 // Emoji sets the label emoji.
 func (l *Label) Emoji(e Emoji) *Label {
 	l.emoji = e
+
 	return l
 }
 
 // Variant sets the label variant.
 func (l *Label) Variant(v Variant) *Label {
 	l.variant = v
+
 	return l
 }
 
@@ -174,12 +181,14 @@ func (l *Label) Muted() *Label {
 // Class adds custom CSS classes.
 func (l *Label) Class(class string) *Label {
 	l.class = class
+
 	return l
 }
 
 // Render renders the label to HTML.
 func (l *Label) Render() template.HTML {
 	var classes []string
+
 	classes = append(classes, "label")
 
 	if l.variant != "" {
@@ -194,6 +203,7 @@ func (l *Label) Render() template.HTML {
 	if l.emoji != "" {
 		fmt.Fprintf(&content, `<span class="label__emoji">%s</span>`, l.emoji)
 	}
+
 	fmt.Fprintf(&content, `<span class="label__text">%s</span>`, template.HTMLEscapeString(l.text))
 
 	return template.HTML(fmt.Sprintf(`<span class="%s">%s</span>`,

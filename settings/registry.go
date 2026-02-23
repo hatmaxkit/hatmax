@@ -28,6 +28,7 @@ func (r *Registry) Get(key string) (Schema, bool) {
 	r.mu.RLock()
 	s, ok := r.schemas[key]
 	r.mu.RUnlock()
+
 	return s, ok
 }
 
@@ -40,6 +41,7 @@ func (r *Registry) All() []Schema {
 	for _, s := range r.schemas {
 		out = append(out, s)
 	}
+
 	return out
 }
 
@@ -49,10 +51,12 @@ func (r *Registry) ByPrefix(prefix string) []Schema {
 	defer r.mu.RUnlock()
 
 	var out []Schema
+
 	for _, s := range r.schemas {
 		if strings.HasPrefix(s.Key, prefix) {
 			out = append(out, s)
 		}
 	}
+
 	return out
 }

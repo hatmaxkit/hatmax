@@ -33,42 +33,49 @@ func NewSettingsForm(schemas []settings.Schema) *SettingsForm {
 // Values sets current values for the form.
 func (f *SettingsForm) Values(vals map[string]string) *SettingsForm {
 	f.values = vals
+
 	return f
 }
 
 // Errors sets validation errors.
 func (f *SettingsForm) Errors(errs map[string]string) *SettingsForm {
 	f.errors = errs
+
 	return f
 }
 
 // Action sets the form submission URL.
 func (f *SettingsForm) Action(url string) *SettingsForm {
 	f.action = url
+
 	return f
 }
 
 // Method sets the form method.
 func (f *SettingsForm) Method(method string) *SettingsForm {
 	f.method = method
+
 	return f
 }
 
 // Class adds custom CSS classes.
 func (f *SettingsForm) Class(class string) *SettingsForm {
 	f.class = class
+
 	return f
 }
 
 // SubmitButton sets the submit button text.
 func (f *SettingsForm) SubmitButton(text string) *SettingsForm {
 	f.submitBtn = text
+
 	return f
 }
 
 // Render renders the settings form to HTML.
 func (f *SettingsForm) Render() template.HTML {
 	var classes []string
+
 	classes = append(classes, "settings-form")
 	if f.class != "" {
 		classes = append(classes, f.class)
@@ -83,6 +90,7 @@ func (f *SettingsForm) Render() template.HTML {
 	if f.action != "" {
 		fmt.Fprintf(&html, ` action="%s"`, template.HTMLEscapeString(f.action))
 	}
+
 	html.WriteString(`>`)
 
 	for _, schema := range f.schemas {
@@ -102,6 +110,7 @@ func (f *SettingsForm) renderField(html *strings.Builder, schema settings.Schema
 	if value == "" {
 		value = schema.Default
 	}
+
 	err := f.errors[schema.Key]
 
 	fieldClass := "field"
@@ -112,10 +121,12 @@ func (f *SettingsForm) renderField(html *strings.Builder, schema settings.Schema
 	fmt.Fprintf(html, `<div class="%s">`, fieldClass)
 
 	label := schema.DisplayLabel()
+
 	requiredMark := ""
 	if schema.Required {
 		requiredMark = `<span class="field__required">*</span>`
 	}
+
 	fmt.Fprintf(html, `<label class="field__label" for="%s">%s%s</label>`,
 		template.HTMLEscapeString(schema.Key),
 		template.HTMLEscapeString(label),
@@ -146,6 +157,7 @@ func (f *SettingsForm) renderInput(html *strings.Builder, schema settings.Schema
 	if schema.Type == settings.Int {
 		inputType = "number"
 	}
+
 	if schema.Secret {
 		inputType = "password"
 	}
@@ -164,6 +176,7 @@ func (f *SettingsForm) renderInput(html *strings.Builder, schema settings.Schema
 		if schema.Min != nil {
 			fmt.Fprintf(html, ` min="%d"`, *schema.Min)
 		}
+
 		if schema.Max != nil {
 			fmt.Fprintf(html, ` max="%d"`, *schema.Max)
 		}

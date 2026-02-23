@@ -19,7 +19,8 @@ func NewNoopMailer(log log.Logger) *NoopMailer {
 
 // Send logs the message instead of sending it.
 func (m *NoopMailer) Send(ctx context.Context, msg *Message) error {
-	if err := msg.Validate(); err != nil {
+	err := msg.Validate()
+	if err != nil {
 		return err
 	}
 

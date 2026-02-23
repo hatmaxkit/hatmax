@@ -46,7 +46,9 @@ func (a Action) WithParam(key, value string) Action {
 	if a.params == nil {
 		a.params = make(map[string]string)
 	}
+
 	a.params[key] = value
+
 	return a
 }
 
@@ -55,9 +57,11 @@ func (a Action) WithParams(params map[string]string) Action {
 	if a.params == nil {
 		a.params = make(map[string]string)
 	}
+
 	for k, v := range params {
 		a.params[k] = v
 	}
+
 	return a
 }
 
@@ -66,7 +70,9 @@ func (a Action) WithHeader(key, value string) Action {
 	if a.headers == nil {
 		a.headers = make(map[string]string)
 	}
+
 	a.headers[key] = value
+
 	return a
 }
 
@@ -75,9 +81,11 @@ func (a Action) WithHeaders(headers map[string]string) Action {
 	if a.headers == nil {
 		a.headers = make(map[string]string)
 	}
+
 	for k, v := range headers {
 		a.headers[k] = v
 	}
+
 	return a
 }
 
@@ -86,9 +94,11 @@ func (a Action) WithVals(vals map[string]any) Action {
 	if a.vals == nil {
 		a.vals = make(map[string]any)
 	}
+
 	for k, v := range vals {
 		a.vals[k] = v
 	}
+
 	return a
 }
 
@@ -97,7 +107,9 @@ func (a Action) WithVal(key string, value any) Action {
 	if a.vals == nil {
 		a.vals = make(map[string]any)
 	}
+
 	a.vals[key] = value
+
 	return a
 }
 
@@ -122,7 +134,9 @@ func (a Action) URL() string {
 	for k, v := range a.params {
 		q.Set(k, v)
 	}
+
 	u.RawQuery = q.Encode()
+
 	return u.String()
 }
 
@@ -136,10 +150,12 @@ func (a Action) Vals() string {
 	if len(a.vals) == 0 {
 		return ""
 	}
+
 	b, err := json.Marshal(a.vals)
 	if err != nil {
 		return "{}"
 	}
+
 	return string(b)
 }
 
@@ -151,6 +167,7 @@ func (a Action) Attr() string {
 // String returns a string representation of the action.
 func (a Action) String() string {
 	var parts []string
+
 	parts = append(parts, fmt.Sprintf("%s=%s", a.Attr(), a.URL()))
 
 	if v := a.Vals(); v != "" {

@@ -44,10 +44,14 @@ func setupTestStore(t *testing.T) (*PostgresStore, func()) {
 	}
 
 	dbProvider := &fakeDBProvider{db: db}
+
 	store := NewPostgresStore(dbProvider)
-	if err := store.Start(context.Background()); err != nil {
+
+	err = store.Start(context.Background())
+	if err != nil {
 		t.Fatalf("cannot start store: %v", err)
 	}
+
 	return store, cleanup
 }
 
@@ -79,6 +83,7 @@ func TestPostgresStoreSaveAndFind(t *testing.T) {
 	if found.ListID != list.ListID {
 		t.Errorf("expected ListID %s, got %s", list.ListID, found.ListID)
 	}
+
 	if found.UserID != list.UserID {
 		t.Errorf("expected UserID %s, got %s", list.UserID, found.UserID)
 	}
@@ -144,6 +149,7 @@ func TestPostgresStoreUpdateItems(t *testing.T) {
 	if found.Items[0].Text != "Updated" {
 		t.Errorf("expected text 'Updated', got %s", found.Items[0].Text)
 	}
+
 	if !found.Items[0].Completed {
 		t.Error("expected item to be completed")
 	}
@@ -183,6 +189,7 @@ func TestPostgresStoreFindNotFound(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
+
 	_, err := store.FindByUserID(ctx, "nonexistent")
 	if err != ErrNotFound {
 		t.Errorf("expected ErrNotFound, got %v", err)

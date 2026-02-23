@@ -21,11 +21,13 @@ func (m *mockStore) FindByUserID(ctx context.Context, userID string) (*TodoList,
 	if list, ok := m.lists[userID]; ok {
 		return list, nil
 	}
+
 	return nil, ErrNotFound
 }
 
 func (m *mockStore) Save(ctx context.Context, list *TodoList) error {
 	m.lists[list.UserID] = list
+
 	return nil
 }
 
@@ -33,9 +35,11 @@ func (m *mockStore) Delete(ctx context.Context, listID string) error {
 	for userID, list := range m.lists {
 		if list.ListID == listID {
 			delete(m.lists, userID)
+
 			return nil
 		}
 	}
+
 	return nil
 }
 
@@ -47,6 +51,7 @@ func TestServiceAddItemPublishesEvent(t *testing.T) {
 	svc := NewService(store, broker, logger)
 
 	ctx := context.Background()
+
 	_, err := svc.AddItem(ctx, "user-1", "Buy milk")
 	if err != nil {
 		t.Fatalf("AddItem failed: %v", err)
@@ -65,9 +70,11 @@ func TestServiceAddItemPublishesEvent(t *testing.T) {
 	if payload["event_type"] != "todo.item.added" {
 		t.Errorf("expected event_type 'todo.item.added', got %s", payload["event_type"])
 	}
+
 	if payload["title"] != "Buy milk" {
 		t.Errorf("expected title 'Buy milk', got %s", payload["title"])
 	}
+
 	if published[0].Metadata["user_id"] != "user-1" {
 		t.Errorf("expected user_id 'user-1', got %s", published[0].Metadata["user_id"])
 	}
@@ -161,6 +168,7 @@ func TestServiceWorksWithNilPublisher(t *testing.T) {
 	svc := NewService(store, nil, logger)
 
 	ctx := context.Background()
+
 	_, err := svc.AddItem(ctx, "user-1", "Test item")
 	if err != nil {
 		t.Fatalf("AddItem should work with nil publisher: %v", err)
@@ -174,6 +182,7 @@ func TestServiceGetOrCreateListCreatesNew(t *testing.T) {
 	svc := NewService(store, nil, logger)
 
 	ctx := context.Background()
+
 	list, err := svc.GetOrCreateList(ctx, "new-user")
 	if err != nil {
 		t.Fatalf("GetOrCreateList failed: %v", err)
@@ -182,6 +191,7 @@ func TestServiceGetOrCreateListCreatesNew(t *testing.T) {
 	if list.UserID != "new-user" {
 		t.Errorf("expected UserID 'new-user', got %s", list.UserID)
 	}
+
 	if list.ListID == "" {
 		t.Error("ListID should not be empty")
 	}
@@ -273,6 +283,7 @@ func TestServiceToggleItemUserNotFound(t *testing.T) {
 	svc := NewService(store, nil, logger)
 
 	ctx := context.Background()
+
 	_, err := svc.ToggleItem(ctx, "nonexistent-user", "item-1")
 	if err != ErrNotFound {
 		t.Errorf("expected ErrNotFound, got %v", err)
@@ -286,6 +297,7 @@ func TestServiceRemoveItemUserNotFound(t *testing.T) {
 	svc := NewService(store, nil, logger)
 
 	ctx := context.Background()
+
 	err := svc.RemoveItem(ctx, "nonexistent-user", "item-1")
 	if err != ErrNotFound {
 		t.Errorf("expected ErrNotFound, got %v", err)
@@ -299,6 +311,7 @@ func TestServiceUpdateItemUserNotFound(t *testing.T) {
 	svc := NewService(store, nil, logger)
 
 	ctx := context.Background()
+
 	_, err := svc.UpdateItem(ctx, "nonexistent-user", "item-1", "text")
 	if err != ErrNotFound {
 		t.Errorf("expected ErrNotFound, got %v", err)

@@ -147,6 +147,7 @@ func TestChipHTMLEscaping(t *testing.T) {
 	if strings.Contains(html, "<script>") {
 		t.Error("Render() did not escape HTML")
 	}
+
 	if !strings.Contains(html, "&lt;script&gt;") {
 		t.Error("Render() did not properly escape HTML entities")
 	}
@@ -159,6 +160,7 @@ func TestLabelHTMLEscaping(t *testing.T) {
 	if strings.Contains(html, "<script>") {
 		t.Error("Render() did not escape HTML")
 	}
+
 	if !strings.Contains(html, "&lt;script&gt;") {
 		t.Error("Render() did not properly escape HTML entities")
 	}

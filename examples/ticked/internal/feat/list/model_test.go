@@ -11,15 +11,19 @@ func TestNewTodoList(t *testing.T) {
 	if list.ListID == "" {
 		t.Error("ListID should not be empty")
 	}
+
 	if list.UserID != "user-123" {
 		t.Errorf("expected UserID 'user-123', got %s", list.UserID)
 	}
+
 	if len(list.Items) != 0 {
 		t.Errorf("expected empty items, got %d", len(list.Items))
 	}
+
 	if list.CreatedAt.IsZero() {
 		t.Error("CreatedAt should not be zero")
 	}
+
 	if list.UpdatedAt.IsZero() {
 		t.Error("UpdatedAt should not be zero")
 	}
@@ -36,12 +40,15 @@ func TestTodoListAddItem(t *testing.T) {
 	if item.ItemID == "" {
 		t.Error("ItemID should not be empty")
 	}
+
 	if item.Text != "Buy milk" {
 		t.Errorf("expected text 'Buy milk', got %s", item.Text)
 	}
+
 	if item.Completed {
 		t.Error("new item should not be completed")
 	}
+
 	if len(list.Items) != 1 {
 		t.Errorf("expected 1 item, got %d", len(list.Items))
 	}
@@ -60,6 +67,7 @@ func TestTodoListAddItemTooLong(t *testing.T) {
 	list := NewTodoList("user-1")
 
 	longText := strings.Repeat("a", 501)
+
 	_, err := list.AddItem(longText)
 	if err != ErrTextTooLong {
 		t.Errorf("expected ErrTextTooLong, got %v", err)
@@ -79,6 +87,7 @@ func TestTodoListAddItemPrependsToList(t *testing.T) {
 	if list.Items[0].ItemID != item2.ItemID {
 		t.Error("second item should be at index 0")
 	}
+
 	if list.Items[1].ItemID != item1.ItemID {
 		t.Error("first item should be at index 1")
 	}
@@ -123,6 +132,7 @@ func TestTodoListUpdateItemTooLong(t *testing.T) {
 	item, _ := list.AddItem("Test")
 
 	longText := strings.Repeat("a", 501)
+
 	err := list.UpdateItem(item.ItemID, longText)
 	if err != ErrTextTooLong {
 		t.Errorf("expected ErrTextTooLong, got %v", err)
@@ -138,9 +148,11 @@ func TestTodoListToggleItem(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ToggleItem failed: %v", err)
 	}
+
 	if !toggled.Completed {
 		t.Error("item should be completed after toggle")
 	}
+
 	if toggled.CompletedAt == nil {
 		t.Error("CompletedAt should be set when completed")
 	}
@@ -150,9 +162,11 @@ func TestTodoListToggleItem(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ToggleItem failed: %v", err)
 	}
+
 	if toggled.Completed {
 		t.Error("item should be uncompleted after second toggle")
 	}
+
 	if toggled.CompletedAt != nil {
 		t.Error("CompletedAt should be nil when uncompleted")
 	}
@@ -200,6 +214,7 @@ func TestTodoListGetItem(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetItem failed: %v", err)
 	}
+
 	if got.ItemID != item.ItemID {
 		t.Errorf("expected ItemID %s, got %s", item.ItemID, got.ItemID)
 	}

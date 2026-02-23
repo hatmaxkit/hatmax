@@ -22,14 +22,14 @@ const (
 
 // HTMX Request Headers
 const (
-	HeaderRequest         = "HX-Request"
-	HeaderBoosted         = "HX-Boosted"
-	HeaderCurrentURL      = "HX-Current-URL"
-	HeaderHistoryRestore  = "HX-History-Restore-Request"
-	HeaderPrompt          = "HX-Prompt"
-	HeaderRequestTarget   = "HX-Target"
-	HeaderTriggerName     = "HX-Trigger-Name"
-	HeaderRequestTrigger  = "HX-Trigger"
+	HeaderRequest        = "HX-Request"
+	HeaderBoosted        = "HX-Boosted"
+	HeaderCurrentURL     = "HX-Current-URL"
+	HeaderHistoryRestore = "HX-History-Restore-Request"
+	HeaderPrompt         = "HX-Prompt"
+	HeaderRequestTarget  = "HX-Target"
+	HeaderTriggerName    = "HX-Trigger-Name"
+	HeaderRequestTrigger = "HX-Trigger"
 )
 
 // IsHTMXRequest returns true if the request was made by HTMX.
@@ -140,11 +140,14 @@ func TriggerEventAfterSwap(w http.ResponseWriter, event string) {
 // TriggerEventWithData triggers a client-side event with JSON data.
 func TriggerEventWithData(w http.ResponseWriter, event string, data any) {
 	eventData := map[string]any{event: data}
+
 	b, err := json.Marshal(eventData)
 	if err != nil {
 		w.Header().Set(HeaderTrigger, event)
+
 		return
 	}
+
 	w.Header().Set(HeaderTrigger, string(b))
 }
 
@@ -154,6 +157,7 @@ func TriggerEvents(w http.ResponseWriter, events map[string]any) {
 	if err != nil {
 		return
 	}
+
 	w.Header().Set(HeaderTrigger, string(b))
 }
 
@@ -176,14 +180,17 @@ func Location(w http.ResponseWriter, config LocationConfig) {
 		len(config.Headers) == 0 && config.Select == "" && config.Source == "" &&
 		config.Event == "" && config.Handler == "" {
 		w.Header().Set(HeaderLocation, config.Path)
+
 		return
 	}
 
 	b, err := json.Marshal(config)
 	if err != nil {
 		w.Header().Set(HeaderLocation, config.Path)
+
 		return
 	}
+
 	w.Header().Set(HeaderLocation, string(b))
 }
 
@@ -191,8 +198,10 @@ func Location(w http.ResponseWriter, config LocationConfig) {
 func LocationSimple(w http.ResponseWriter, path, target string) {
 	if target == "" {
 		w.Header().Set(HeaderLocation, path)
+
 		return
 	}
+
 	Location(w, LocationConfig{Path: path, Target: target})
 }
 

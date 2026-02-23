@@ -25,21 +25,25 @@ func (t *Tracker) EnsureTable(ctx context.Context) error {
 		)
 	`
 	_, err := t.db.ExecContext(ctx, query)
+
 	return err
 }
 
 // IsApplied checks if a seed has already been applied.
 func (t *Tracker) IsApplied(ctx context.Context, name string) (bool, error) {
 	var count int
+
 	err := t.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM _seeds WHERE id = $1", name).Scan(&count)
 	if err != nil {
 		return false, err
 	}
+
 	return count > 0, nil
 }
 
 // MarkApplied records that a seed has been applied.
 func (t *Tracker) MarkApplied(ctx context.Context, name string) error {
 	_, err := t.db.ExecContext(ctx, "INSERT INTO _seeds (id) VALUES ($1)", name)
+
 	return err
 }

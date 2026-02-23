@@ -21,8 +21,10 @@ func TestParseBool(t *testing.T) {
 			got, err := ParseBool(tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseBool(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
+
 				return
 			}
+
 			if got != tt.want {
 				t.Errorf("ParseBool(%q) = %v, want %v", tt.input, got, tt.want)
 			}
@@ -49,8 +51,10 @@ func TestParseInt(t *testing.T) {
 			got, err := ParseInt(tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseInt(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
+
 				return
 			}
+
 			if got != tt.want {
 				t.Errorf("ParseInt(%q) = %v, want %v", tt.input, got, tt.want)
 			}

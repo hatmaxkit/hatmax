@@ -101,9 +101,11 @@ func TestMigratorLoadFileMigrations(t *testing.T) {
 		if m.Datetime == "" {
 			t.Error("expected migration to have datetime")
 		}
+
 		if m.Name == "" {
 			t.Error("expected migration to have name")
 		}
+
 		if m.Up == "" {
 			t.Error("expected migration to have Up section")
 		}

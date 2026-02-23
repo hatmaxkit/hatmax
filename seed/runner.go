@@ -49,7 +49,8 @@ func (r *Runner) Start(ctx context.Context) error {
 		r.tracker = NewTracker(r.dbProvider.GetDB())
 	}
 
-	if err := r.tracker.EnsureTable(ctx); err != nil {
+	err := r.tracker.EnsureTable(ctx)
+	if err != nil {
 		return fmt.Errorf("ensure seeds table: %w", err)
 	}
 
@@ -63,15 +64,19 @@ func (r *Runner) Start(ctx context.Context) error {
 
 		if applied {
 			r.log.Debugf("Seed %s already applied, skipping", name)
+
 			continue
 		}
 
 		r.log.Infof("Applying seed: %s", name)
-		if err := seeder.Seed(ctx); err != nil {
+
+		err = seeder.Seed(ctx)
+		if err != nil {
 			return fmt.Errorf("seed %s: %w", name, err)
 		}
 
-		if err := r.tracker.MarkApplied(ctx, name); err != nil {
+		err = r.tracker.MarkApplied(ctx, name)
+		if err != nil {
 			return fmt.Errorf("mark seed %s applied: %w", name, err)
 		}
 

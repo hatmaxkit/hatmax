@@ -132,6 +132,7 @@ func TestMailerSendRecordsCall(t *testing.T) {
 	if len(m.SendCalls) != 1 {
 		t.Errorf("expected 1 call, got %d", len(m.SendCalls))
 	}
+
 	if m.SendCalls[0].Message != msg {
 		t.Error("recorded message does not match")
 	}
@@ -224,6 +225,7 @@ func TestMailerPrintMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
+
 			m := NewMailer()
 			m.Output = &buf
 
@@ -249,6 +251,7 @@ func TestMailerReset(t *testing.T) {
 	}
 
 	m.Send(context.Background(), msg)
+
 	if len(m.SendCalls) != 1 {
 		t.Fatal("expected 1 call before reset")
 	}
@@ -258,6 +261,7 @@ func TestMailerReset(t *testing.T) {
 	if len(m.SendCalls) != 0 {
 		t.Error("expected 0 calls after reset")
 	}
+
 	if len(m.Messages) != 0 {
 		t.Error("expected 0 messages after reset")
 	}
@@ -280,6 +284,7 @@ func TestMailerGetSendCalls(t *testing.T) {
 	}
 
 	calls = append(calls, MailerSendCall{})
+
 	if len(m.GetSendCalls()) != 1 {
 		t.Error("GetSendCalls should return a copy")
 	}
@@ -302,6 +307,7 @@ func TestMailerGetMessages(t *testing.T) {
 	}
 
 	messages = append(messages, &mailer.Message{})
+
 	if len(m.GetMessages()) != 1 {
 		t.Error("GetMessages should return a copy")
 	}
@@ -321,11 +327,13 @@ func TestMailerSendCount(t *testing.T) {
 	}
 
 	m.Send(context.Background(), msg)
+
 	if m.SendCount() != 1 {
 		t.Error("expected 1 count after send")
 	}
 
 	m.Send(context.Background(), msg)
+
 	if m.SendCount() != 2 {
 		t.Error("expected 2 count after second send")
 	}
@@ -402,6 +410,7 @@ func TestMailerHasMessageWithSubject(t *testing.T) {
 	if !m.HasMessageWithSubject("Welcome Email") {
 		t.Error("expected to find message with subject")
 	}
+
 	if m.HasMessageWithSubject("Unknown") {
 		t.Error("should not find message with unknown subject")
 	}
@@ -444,6 +453,7 @@ func TestMailerHasMessageContaining(t *testing.T) {
 
 func TestMailerSetOutput(t *testing.T) {
 	m := NewMailer()
+
 	var buf bytes.Buffer
 
 	m.SetOutput(&buf)
@@ -455,6 +465,7 @@ func TestMailerSetOutput(t *testing.T) {
 
 func TestMailerWithOutput(t *testing.T) {
 	var buf bytes.Buffer
+
 	m := NewMailer().WithOutput(&buf)
 
 	if m.Output != &buf {

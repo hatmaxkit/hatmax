@@ -27,7 +27,8 @@ func NewSMTPMailer(cfg SMTPConfig) *SMTPMailer {
 
 // Send sends an email via SMTP.
 func (m *SMTPMailer) Send(ctx context.Context, msg *Message) error {
-	if err := msg.Validate(); err != nil {
+	err := msg.Validate()
+	if err != nil {
 		return err
 	}
 
@@ -78,17 +79,20 @@ func (m *SMTPMailer) sendTLS(addr string, auth smtp.Auth, from string, to []stri
 	defer client.Close()
 
 	if auth != nil {
-		if err = client.Auth(auth); err != nil {
+		err = client.Auth(auth)
+		if err != nil {
 			return fmt.Errorf("smtp auth: %w", err)
 		}
 	}
 
-	if err = client.Mail(from); err != nil {
+	err = client.Mail(from)
+	if err != nil {
 		return fmt.Errorf("smtp mail: %w", err)
 	}
 
 	for _, rcpt := range to {
-		if err = client.Rcpt(rcpt); err != nil {
+		err = client.Rcpt(rcpt)
+		if err != nil {
 			return fmt.Errorf("smtp rcpt %s: %w", rcpt, err)
 		}
 	}
@@ -116,12 +120,15 @@ func (m *SMTPMailer) buildRawMessage(msg *Message) ([]byte, error) {
 
 	m.writeHeader(&buf, "From", msg.From.String())
 	m.writeHeader(&buf, "To", m.formatAddresses(msg.To))
+
 	if len(msg.CC) > 0 {
 		m.writeHeader(&buf, "Cc", m.formatAddresses(msg.CC))
 	}
+
 	if msg.ReplyTo != nil {
 		m.writeHeader(&buf, "Reply-To", msg.ReplyTo.String())
 	}
+
 	m.writeHeader(&buf, "Subject", m.encodeSubject(msg.Subject))
 	m.writeHeader(&buf, "MIME-Version", "1.0")
 
@@ -139,6 +146,7 @@ func (m *SMTPMailer) buildRawMessage(msg *Message) ([]byte, error) {
 	} else if msg.HTML != "" {
 		return m.buildHTMLOnly(&buf, msg)
 	}
+
 	return m.buildTextOnly(&buf, msg)
 }
 
@@ -174,10 +182,12 @@ func (m *SMTPMailer) buildMultipartAlternative(buf *bytes.Buffer, msg *Message) 
 	textHeader := textproto.MIMEHeader{}
 	textHeader.Set("Content-Type", "text/plain; charset=utf-8")
 	textHeader.Set("Content-Transfer-Encoding", "quoted-printable")
+
 	textPart, err := writer.CreatePart(textHeader)
 	if err != nil {
 		return nil, err
 	}
+
 	qp := quotedprintable.NewWriter(textPart)
 	qp.Write([]byte(msg.Text))
 	qp.Close()
@@ -185,15 +195,18 @@ func (m *SMTPMailer) buildMultipartAlternative(buf *bytes.Buffer, msg *Message) 
 	htmlHeader := textproto.MIMEHeader{}
 	htmlHeader.Set("Content-Type", "text/html; charset=utf-8")
 	htmlHeader.Set("Content-Transfer-Encoding", "quoted-printable")
+
 	htmlPart, err := writer.CreatePart(htmlHeader)
 	if err != nil {
 		return nil, err
 	}
+
 	qp = quotedprintable.NewWriter(htmlPart)
 	qp.Write([]byte(msg.HTML))
 	qp.Close()
 
 	writer.Close()
+
 	return buf.Bytes(), nil
 }
 
@@ -206,19 +219,23 @@ func (m *SMTPMailer) buildWithAttachments(buf *bytes.Buffer, msg *Message) ([]by
 		bodyHeader := textproto.MIMEHeader{}
 		altWriter := multipart.NewWriter(io.Discard)
 		bodyHeader.Set("Content-Type", fmt.Sprintf("multipart/alternative; boundary=%s", altWriter.Boundary()))
+
 		bodyPart, err := writer.CreatePart(bodyHeader)
 		if err != nil {
 			return nil, err
 		}
+
 		altWriter = multipart.NewWriter(bodyPart)
 
 		textHeader := textproto.MIMEHeader{}
 		textHeader.Set("Content-Type", "text/plain; charset=utf-8")
 		textHeader.Set("Content-Transfer-Encoding", "quoted-printable")
+
 		textPart, err := altWriter.CreatePart(textHeader)
 		if err != nil {
 			return nil, err
 		}
+
 		qp := quotedprintable.NewWriter(textPart)
 		qp.Write([]byte(msg.Text))
 		qp.Close()
@@ -226,10 +243,12 @@ func (m *SMTPMailer) buildWithAttachments(buf *bytes.Buffer, msg *Message) ([]by
 		htmlHeader := textproto.MIMEHeader{}
 		htmlHeader.Set("Content-Type", "text/html; charset=utf-8")
 		htmlHeader.Set("Content-Transfer-Encoding", "quoted-printable")
+
 		htmlPart, err := altWriter.CreatePart(htmlHeader)
 		if err != nil {
 			return nil, err
 		}
+
 		qp = quotedprintable.NewWriter(htmlPart)
 		qp.Write([]byte(msg.HTML))
 		qp.Close()
@@ -239,10 +258,12 @@ func (m *SMTPMailer) buildWithAttachments(buf *bytes.Buffer, msg *Message) ([]by
 		bodyHeader := textproto.MIMEHeader{}
 		bodyHeader.Set("Content-Type", "text/html; charset=utf-8")
 		bodyHeader.Set("Content-Transfer-Encoding", "quoted-printable")
+
 		bodyPart, err := writer.CreatePart(bodyHeader)
 		if err != nil {
 			return nil, err
 		}
+
 		qp := quotedprintable.NewWriter(bodyPart)
 		qp.Write([]byte(msg.HTML))
 		qp.Close()
@@ -250,10 +271,12 @@ func (m *SMTPMailer) buildWithAttachments(buf *bytes.Buffer, msg *Message) ([]by
 		bodyHeader := textproto.MIMEHeader{}
 		bodyHeader.Set("Content-Type", "text/plain; charset=utf-8")
 		bodyHeader.Set("Content-Transfer-Encoding", "quoted-printable")
+
 		bodyPart, err := writer.CreatePart(bodyHeader)
 		if err != nil {
 			return nil, err
 		}
+
 		qp := quotedprintable.NewWriter(bodyPart)
 		qp.Write([]byte(msg.Text))
 		qp.Close()
@@ -261,10 +284,12 @@ func (m *SMTPMailer) buildWithAttachments(buf *bytes.Buffer, msg *Message) ([]by
 
 	for _, att := range msg.Attachments {
 		attHeader := textproto.MIMEHeader{}
+
 		contentType := att.ContentType
 		if contentType == "" {
 			contentType = "application/octet-stream"
 		}
+
 		attHeader.Set("Content-Type", contentType)
 		attHeader.Set("Content-Transfer-Encoding", "base64")
 		attHeader.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`,
@@ -281,6 +306,7 @@ func (m *SMTPMailer) buildWithAttachments(buf *bytes.Buffer, msg *Message) ([]by
 	}
 
 	writer.Close()
+
 	return buf.Bytes(), nil
 }
 
@@ -296,6 +322,7 @@ func (m *SMTPMailer) formatAddresses(addrs []Address) string {
 	for i, addr := range addrs {
 		parts[i] = addr.String()
 	}
+
 	return strings.Join(parts, ", ")
 }
 

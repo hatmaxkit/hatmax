@@ -44,6 +44,7 @@ func (s Schema) Validate(raw string) error {
 	if s.Required && raw == "" {
 		return fmt.Errorf("setting %q is required", s.Key)
 	}
+
 	if raw == "" {
 		return nil
 	}
@@ -54,7 +55,8 @@ func (s Schema) Validate(raw string) error {
 
 	switch s.Type {
 	case Bool:
-		if _, err := strconv.ParseBool(raw); err != nil {
+		_, err := strconv.ParseBool(raw)
+		if err != nil {
 			return fmt.Errorf("setting %q: expected bool", s.Key)
 		}
 	case Int:
@@ -62,9 +64,11 @@ func (s Schema) Validate(raw string) error {
 		if err != nil {
 			return fmt.Errorf("setting %q: expected int", s.Key)
 		}
+
 		if s.Min != nil && v < *s.Min {
 			return fmt.Errorf("setting %q: min is %d", s.Key, *s.Min)
 		}
+
 		if s.Max != nil && v > *s.Max {
 			return fmt.Errorf("setting %q: max is %d", s.Key, *s.Max)
 		}
@@ -74,6 +78,7 @@ func (s Schema) Validate(raw string) error {
 				return nil
 			}
 		}
+
 		return fmt.Errorf("setting %q: must be one of %v", s.Key, s.Options)
 	}
 
@@ -85,5 +90,6 @@ func (s Schema) DisplayLabel() string {
 	if s.Label != "" {
 		return s.Label
 	}
+
 	return s.Key
 }

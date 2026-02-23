@@ -9,10 +9,12 @@ import (
 
 func TestNewNoopMailer(t *testing.T) {
 	logger := log.NewNoopLogger()
+
 	m := NewNoopMailer(logger)
 	if m == nil {
 		t.Fatal("expected non-nil mailer")
 	}
+
 	if m.log == nil {
 		t.Error("expected non-nil logger")
 	}
@@ -129,6 +131,7 @@ func TestNoopMailerSend(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &NoopMailer{log: tt.logger}
+
 			err := m.Send(context.Background(), tt.msg)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NoopMailer.Send() error = %v, wantErr %v", err, tt.wantErr)

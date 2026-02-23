@@ -22,6 +22,7 @@ func (s *Service) GetString(ctx context.Context, key string) (string, error) {
 	if err != nil || raw == "" {
 		return s.defaultFor(key), nil
 	}
+
 	return raw, nil
 }
 
@@ -31,6 +32,7 @@ func (s *Service) GetInt(ctx context.Context, key string) (int, error) {
 	if err != nil || raw == "" {
 		return s.defaultInt(key)
 	}
+
 	return strconv.Atoi(raw)
 }
 
@@ -40,16 +42,19 @@ func (s *Service) GetBool(ctx context.Context, key string) (bool, error) {
 	if err != nil || raw == "" {
 		return s.defaultBool(key)
 	}
+
 	return strconv.ParseBool(raw)
 }
 
 // Set validates and persists a setting value.
 func (s *Service) Set(ctx context.Context, key, value string) error {
 	if schema, ok := s.registry.Get(key); ok {
-		if err := schema.Validate(value); err != nil {
+		err := schema.Validate(value)
+		if err != nil {
 			return err
 		}
 	}
+
 	return s.store.Set(ctx, key, value)
 }
 
@@ -67,6 +72,7 @@ func (s *Service) defaultFor(key string) string {
 	if schema, ok := s.registry.Get(key); ok {
 		return schema.Default
 	}
+
 	return ""
 }
 
@@ -75,6 +81,7 @@ func (s *Service) defaultInt(key string) (int, error) {
 	if def == "" {
 		return 0, nil
 	}
+
 	return strconv.Atoi(def)
 }
 
@@ -83,5 +90,6 @@ func (s *Service) defaultBool(key string) (bool, error) {
 	if def == "" {
 		return false, nil
 	}
+
 	return strconv.ParseBool(def)
 }

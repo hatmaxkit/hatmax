@@ -60,6 +60,7 @@ func TestMergeFuncMaps(t *testing.T) {
 	if merged["a"] == nil {
 		t.Error("MergeFuncMaps() missing 'a'")
 	}
+
 	if merged["b"] == nil {
 		t.Error("MergeFuncMaps() missing 'b'")
 	}

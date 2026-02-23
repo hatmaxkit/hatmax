@@ -17,12 +17,14 @@ func RequireAuth(svc *Service) func(http.Handler) http.Handler {
 			cookie, err := r.Cookie(SessionCookieName)
 			if err != nil {
 				http.Redirect(w, r, "/signin", http.StatusSeeOther)
+
 				return
 			}
 
 			user, err := svc.ValidateSession(r.Context(), cookie.Value)
 			if err != nil {
 				http.Redirect(w, r, "/signin", http.StatusSeeOther)
+
 				return
 			}
 
@@ -41,12 +43,14 @@ func OptionalAuth(svc *Service) func(http.Handler) http.Handler {
 			cookie, err := r.Cookie(SessionCookieName)
 			if err != nil {
 				next.ServeHTTP(w, r)
+
 				return
 			}
 
 			user, err := svc.ValidateSession(r.Context(), cookie.Value)
 			if err != nil {
 				next.ServeHTTP(w, r)
+
 				return
 			}
 
@@ -99,17 +103,20 @@ func RequireTOTP(cfg TOTPEnforcement) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if cfg.Enabled == nil || !cfg.Enabled() {
 				next.ServeHTTP(w, r)
+
 				return
 			}
 
 			user, ok := GetUser(r.Context())
 			if !ok {
 				next.ServeHTTP(w, r)
+
 				return
 			}
 
 			if user.TOTPEnabled {
 				next.ServeHTTP(w, r)
+
 				return
 			}
 
@@ -120,6 +127,7 @@ func RequireTOTP(cfg TOTPEnforcement) func(http.Handler) http.Handler {
 
 			if user.InTOTPGracePeriod(graceDays) {
 				next.ServeHTTP(w, r)
+
 				return
 			}
 

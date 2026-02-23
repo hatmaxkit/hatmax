@@ -32,12 +32,15 @@ func TestRequestID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var capturedID string
-			var capturedContext context.Context
+			var (
+				capturedID      string
+				capturedContext context.Context
+			)
 
 			handler := RequestID(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				capturedID = GetRequestID(r.Context())
 				capturedContext = r.Context()
+
 				w.WriteHeader(http.StatusOK)
 			}))
 
@@ -55,6 +58,7 @@ func TestRequestID(t *testing.T) {
 				if capturedID == "" {
 					t.Error("RequestID() did not generate ID")
 				}
+
 				if len(capturedID) != 36 {
 					t.Errorf("RequestID() generated ID length = %d, want 36 (UUID format)", len(capturedID))
 				}
@@ -116,6 +120,7 @@ func TestGetRequestID(t *testing.T) {
 						t.Errorf("GetRequestID() panicked with nil context: %v", r)
 					}
 				}()
+
 				got = GetRequestID(tt.ctx)
 			}
 

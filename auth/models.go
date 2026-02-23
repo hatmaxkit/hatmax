@@ -23,6 +23,7 @@ func (u *User) HasRole(role string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -33,6 +34,7 @@ func (u *User) HasAnyRole(roles ...string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -46,7 +48,9 @@ func (u *User) InTOTPGracePeriod(days int) bool {
 	if days <= 0 {
 		return false
 	}
+
 	gracePeriodEnd := u.CreatedAt.AddDate(0, 0, days)
+
 	return time.Now().Before(gracePeriodEnd)
 }
 

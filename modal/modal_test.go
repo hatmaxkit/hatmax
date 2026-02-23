@@ -8,15 +8,19 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.ID != "test-modal" {
 		t.Errorf("ID = %q, want %q", cfg.ID, "test-modal")
 	}
+
 	if cfg.Title != "Test Title" {
 		t.Errorf("Title = %q, want %q", cfg.Title, "Test Title")
 	}
+
 	if cfg.Size != SizeMedium {
 		t.Errorf("Size = %q, want %q", cfg.Size, SizeMedium)
 	}
+
 	if !cfg.CloseOnEsc {
 		t.Error("CloseOnEsc should be true by default")
 	}
+
 	if !cfg.CloseOnClick {
 		t.Error("CloseOnClick should be true by default")
 	}

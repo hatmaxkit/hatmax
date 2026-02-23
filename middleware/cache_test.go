@@ -49,6 +49,7 @@ func TestStaticCacheCallsNext(t *testing.T) {
 	called := false
 	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
+
 		w.WriteHeader(http.StatusOK)
 	})
 

@@ -174,6 +174,7 @@ func TestButtonHTMLEscaping(t *testing.T) {
 	if strings.Contains(html, "<script>") {
 		t.Error("Render() did not escape text")
 	}
+
 	if strings.Contains(html, `id="<id>"`) {
 		t.Error("Render() did not escape id")
 	}
@@ -181,12 +182,14 @@ func TestButtonHTMLEscaping(t *testing.T) {
 
 func TestButtonSwapInnerAndDelete(t *testing.T) {
 	inner := NewButton("Test").HX().Post("/test").SwapInner().Done()
+
 	html := string(inner.Render())
 	if !strings.Contains(html, `hx-swap="innerHTML"`) {
 		t.Errorf("SwapInner() missing innerHTML in %q", html)
 	}
 
 	del := NewButton("Test").HX().Delete("/test").SwapDelete().Done()
+
 	html = string(del.Render())
 	if !strings.Contains(html, `hx-swap="delete"`) {
 		t.Errorf("SwapDelete() missing delete in %q", html)

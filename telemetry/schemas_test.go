@@ -86,6 +86,7 @@ func TestRegisterSchemas(t *testing.T) {
 	if _, ok := registry.Get(KeyMode); !ok {
 		t.Error("KeyMode not registered")
 	}
+
 	if _, ok := registry.Get(KeyInstanceID); !ok {
 		t.Error("KeyInstanceID not registered")
 	}
@@ -99,9 +100,11 @@ func TestSchemasCount(t *testing.T) {
 
 func TestModeSchemaOptions(t *testing.T) {
 	var modeSchema settings.Schema
+
 	for _, s := range Schemas {
 		if s.Key == KeyMode {
 			modeSchema = s
+
 			break
 		}
 	}

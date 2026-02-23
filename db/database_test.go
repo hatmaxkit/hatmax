@@ -23,6 +23,7 @@ var testAssetsFS embed.FS
 
 func setupTestDBWithConfig(t *testing.T) (*config.Config, func()) {
 	t.Helper()
+
 	ctx := context.Background()
 
 	if dbHost := os.Getenv("DB_HOST"); dbHost != "" {
@@ -78,6 +79,7 @@ func setupCIDatabaseWithConfig(t *testing.T, ctx context.Context) (*config.Confi
 		db, err := sql.Open("pgx", connStr)
 		if err != nil {
 			t.Logf("cannot open database for cleanup: %v", err)
+
 			return
 		}
 		defer db.Close()
@@ -128,8 +130,9 @@ func setupTestContainerWithConfig(t *testing.T, ctx context.Context) (*config.Co
 	}
 
 	cleanup := func() {
-		if err := pgContainer.Terminate(context.Background()); err != nil {
-			t.Logf("cannot terminate container: %v", err)
+		terminateErr := pgContainer.Terminate(context.Background())
+		if terminateErr != nil {
+			t.Logf("cannot terminate container: %v", terminateErr)
 		}
 	}
 
@@ -140,16 +143,20 @@ func getEnvOrDefault(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
 	}
+
 	return defaultValue
 }
 
 func randomString(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+
 	b := make([]byte, length)
+
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := range b {
 		b[i] = charset[rng.Intn(len(charset))]
 	}
+
 	return string(b)
 }
 
@@ -198,7 +205,8 @@ func TestStopWithoutStart(t *testing.T) {
 	db := New(testAssetsFS, "postgres", cfg, logger)
 	ctx := context.Background()
 
-	if err := db.Stop(ctx); err != nil {
+	err := db.Stop(ctx)
+	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 }
@@ -230,13 +238,16 @@ func TestStartAndStopIntegration(t *testing.T) {
 	db := New(testAssetsFS, "postgres", cfg, logger)
 	ctx := context.Background()
 
-	if err := db.Start(ctx); err != nil {
+	err := db.Start(ctx)
+	if err != nil {
 		t.Fatalf("Start() error = %v", err)
 	}
 
 	migrator := NewMigrator(db, testAssetsFS, "postgres", logger)
 	migrator.SetPath("testdata/migration/postgres")
-	if err := migrator.Start(ctx); err != nil {
+
+	err = migrator.Start(ctx)
+	if err != nil {
 		t.Fatalf("Migrator.Start() error = %v", err)
 	}
 
@@ -244,11 +255,13 @@ func TestStartAndStopIntegration(t *testing.T) {
 		t.Error("expected GetDB to return non-nil after Start")
 	}
 
-	if err := db.DB.PingContext(ctx); err != nil {
+	err = db.DB.PingContext(ctx)
+	if err != nil {
 		t.Errorf("cannot ping database after Start: %v", err)
 	}
 
-	if err := db.Stop(ctx); err != nil {
+	err = db.Stop(ctx)
+	if err != nil {
 		t.Errorf("Stop() error = %v", err)
 	}
 }
@@ -267,22 +280,25 @@ func TestStartWithSchemaCreation(t *testing.T) {
 	db := New(testAssetsFS, "postgres", cfg, logger)
 	ctx := context.Background()
 
-	if err := db.Start(ctx); err != nil {
+	err := db.Start(ctx)
+	if err != nil {
 		t.Fatalf("Start() error = %v", err)
 	}
 	defer db.Stop(ctx)
 
 	migrator := NewMigrator(db, testAssetsFS, "postgres", logger)
 	migrator.SetPath("testdata/migration/postgres")
-	if err := migrator.Start(ctx); err != nil {
+
+	err = migrator.Start(ctx)
+	if err != nil {
 		t.Fatalf("Migrator.Start() error = %v", err)
 	}
 
 	var schemaExists bool
-	err := db.DB.QueryRowContext(ctx,
+
+	err = db.DB.QueryRowContext(ctx,
 		"SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = $1)",
 		cfg.Database.Schema).Scan(&schemaExists)
-
 	if err != nil {
 		t.Errorf("cannot check schema existence: %v", err)
 	}

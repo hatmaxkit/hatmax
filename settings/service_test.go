@@ -19,6 +19,7 @@ func (m *memStore) Get(ctx context.Context, key string) (string, error) {
 	if m.err != nil {
 		return "", m.err
 	}
+
 	return m.data[key], nil
 }
 
@@ -26,7 +27,9 @@ func (m *memStore) Set(ctx context.Context, key, value string) error {
 	if m.err != nil {
 		return m.err
 	}
+
 	m.data[key] = value
+
 	return nil
 }
 
@@ -34,10 +37,12 @@ func (m *memStore) All(ctx context.Context) ([]Value, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
+
 	var out []Value
 	for k, v := range m.data {
 		out = append(out, Value{Key: k, Raw: v})
 	}
+
 	return out, nil
 }
 
@@ -45,7 +50,9 @@ func (m *memStore) Delete(ctx context.Context, key string) error {
 	if m.err != nil {
 		return m.err
 	}
+
 	delete(m.data, key)
+
 	return nil
 }
 
@@ -62,6 +69,7 @@ func TestServiceGetString(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if got != "Default Site" {
 			t.Errorf("got %q, want %q", got, "Default Site")
 		}
@@ -69,10 +77,12 @@ func TestServiceGetString(t *testing.T) {
 
 	t.Run("returns stored value", func(t *testing.T) {
 		store.data["site.name"] = "Custom Site"
+
 		got, err := svc.GetString(ctx, "site.name")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if got != "Custom Site" {
 			t.Errorf("got %q, want %q", got, "Custom Site")
 		}
@@ -83,6 +93,7 @@ func TestServiceGetString(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if got != "" {
 			t.Errorf("got %q, want empty string", got)
 		}
@@ -102,6 +113,7 @@ func TestServiceGetInt(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if got != 50 {
 			t.Errorf("got %d, want %d", got, 50)
 		}
@@ -109,10 +121,12 @@ func TestServiceGetInt(t *testing.T) {
 
 	t.Run("returns stored value", func(t *testing.T) {
 		store.data["site.limit"] = "100"
+
 		got, err := svc.GetInt(ctx, "site.limit")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if got != 100 {
 			t.Errorf("got %d, want %d", got, 100)
 		}
@@ -123,6 +137,7 @@ func TestServiceGetInt(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if got != 0 {
 			t.Errorf("got %d, want 0", got)
 		}
@@ -130,6 +145,7 @@ func TestServiceGetInt(t *testing.T) {
 
 	t.Run("returns error for invalid stored value", func(t *testing.T) {
 		store.data["bad.int"] = "notanint"
+
 		_, err := svc.GetInt(ctx, "bad.int")
 		if err == nil {
 			t.Error("expected error for invalid int")
@@ -150,6 +166,7 @@ func TestServiceGetBool(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if !got {
 			t.Error("got false, want true")
 		}
@@ -157,10 +174,12 @@ func TestServiceGetBool(t *testing.T) {
 
 	t.Run("returns stored value", func(t *testing.T) {
 		store.data["feature.enabled"] = "false"
+
 		got, err := svc.GetBool(ctx, "feature.enabled")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if got {
 			t.Error("got true, want false")
 		}
@@ -171,6 +190,7 @@ func TestServiceGetBool(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if got {
 			t.Error("got true, want false")
 		}
@@ -178,6 +198,7 @@ func TestServiceGetBool(t *testing.T) {
 
 	t.Run("returns error for invalid stored value", func(t *testing.T) {
 		store.data["bad.bool"] = "notabool"
+
 		_, err := svc.GetBool(ctx, "bad.bool")
 		if err == nil {
 			t.Error("expected error for invalid bool")
@@ -198,6 +219,7 @@ func TestServiceSet(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if store.data["site.limit"] != "50" {
 			t.Errorf("got %q, want %q", store.data["site.limit"], "50")
 		}
@@ -215,6 +237,7 @@ func TestServiceSet(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if store.data["custom.key"] != "anyvalue" {
 			t.Errorf("got %q, want %q", store.data["custom.key"], "anyvalue")
 		}
@@ -250,6 +273,7 @@ func TestServiceAll(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	if len(all) != 2 {
 		t.Errorf("got %d values, want 2", len(all))
 	}
@@ -270,6 +294,7 @@ func TestServiceStoreError(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		if got != "fallback" {
 			t.Errorf("got %q, want %q", got, "fallback")
 		}

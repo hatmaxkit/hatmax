@@ -28,6 +28,7 @@ func (f *FieldValidator) Required() *FieldValidator {
 			Message: "is required",
 		})
 	}
+
 	return f
 }
 
@@ -41,6 +42,7 @@ func (f *FieldValidator) MinLength(min int) *FieldValidator {
 			Params:  map[string]any{"min": min},
 		})
 	}
+
 	return f
 }
 
@@ -54,30 +56,37 @@ func (f *FieldValidator) MaxLength(max int) *FieldValidator {
 			Params:  map[string]any{"max": max},
 		})
 	}
+
 	return f
 }
 
 // Email validates email format.
 func (f *FieldValidator) Email() *FieldValidator {
-	if err := ValidateEmailField(f.field, f.value); !err.IsEmpty() {
+	err := ValidateEmailField(f.field, f.value)
+	if !err.IsEmpty() {
 		f.errors = append(f.errors, err)
 	}
+
 	return f
 }
 
 // Phone validates phone format.
 func (f *FieldValidator) Phone() *FieldValidator {
-	if err := ValidatePhoneField(f.field, f.value); !err.IsEmpty() {
+	err := ValidatePhoneField(f.field, f.value)
+	if !err.IsEmpty() {
 		f.errors = append(f.errors, err)
 	}
+
 	return f
 }
 
 // NoHTML validates no HTML tags present.
 func (f *FieldValidator) NoHTML() *FieldValidator {
-	if err := NoHTML(f.field, f.value); !err.IsEmpty() {
+	err := NoHTML(f.field, f.value)
+	if !err.IsEmpty() {
 		f.errors = append(f.errors, err)
 	}
+
 	return f
 }
 
@@ -86,17 +95,20 @@ func (f *FieldValidator) OneOf(allowed []string) *FieldValidator {
 	if f.value == "" {
 		return f
 	}
+
 	for _, a := range allowed {
 		if f.value == a {
 			return f
 		}
 	}
+
 	f.errors = append(f.errors, ValidationError{
 		Field:   f.field,
 		Rule:    "OneOf",
 		Message: fmt.Sprintf("must be one of: %s", strings.Join(allowed, ", ")),
 		Params:  map[string]any{"allowed": allowed},
 	})
+
 	return f
 }
 
@@ -108,6 +120,7 @@ func (f *FieldValidator) OneOfWithLabels(values, labels []string) *FieldValidato
 	if f.value == "" {
 		return f
 	}
+
 	for _, v := range values {
 		if f.value == v {
 			return f
@@ -118,12 +131,14 @@ func (f *FieldValidator) OneOfWithLabels(values, labels []string) *FieldValidato
 	if len(labels) == 0 || len(labels) != len(values) {
 		display = values
 	}
+
 	f.errors = append(f.errors, ValidationError{
 		Field:   f.field,
 		Rule:    "OneOf",
 		Message: fmt.Sprintf("must be one of: %s", strings.Join(display, ", ")),
 		Params:  map[string]any{"allowed": values, "labels": labels},
 	})
+
 	return f
 }
 
@@ -132,6 +147,7 @@ func (f *FieldValidator) Alphanumeric() *FieldValidator {
 	if f.value == "" {
 		return f
 	}
+
 	for _, r := range f.value {
 		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9')) {
 			f.errors = append(f.errors, ValidationError{
@@ -139,9 +155,11 @@ func (f *FieldValidator) Alphanumeric() *FieldValidator {
 				Rule:    "Alphanumeric",
 				Message: "must contain only letters and numbers",
 			})
+
 			break
 		}
 	}
+
 	return f
 }
 
@@ -173,6 +191,7 @@ func (f *UUIDFieldValidator) Required() *UUIDFieldValidator {
 			Message: "is required",
 		})
 	}
+
 	return f
 }
 
@@ -205,6 +224,7 @@ func (f *IntFieldValidator) Min(min int) *IntFieldValidator {
 			Params:  map[string]any{"min": min},
 		})
 	}
+
 	return f
 }
 
@@ -218,6 +238,7 @@ func (f *IntFieldValidator) Max(max int) *IntFieldValidator {
 			Params:  map[string]any{"max": max},
 		})
 	}
+
 	return f
 }
 
@@ -231,6 +252,7 @@ func (f *IntFieldValidator) InRange(min, max int) *IntFieldValidator {
 			Params:  map[string]any{"min": min, "max": max},
 		})
 	}
+
 	return f
 }
 
@@ -243,6 +265,7 @@ func (f *IntFieldValidator) Positive() *IntFieldValidator {
 			Message: "must be greater than zero",
 		})
 	}
+
 	return f
 }
 
@@ -255,6 +278,7 @@ func (f *IntFieldValidator) NonNegative() *IntFieldValidator {
 			Message: "must be zero or greater",
 		})
 	}
+
 	return f
 }
 
@@ -287,6 +311,7 @@ func (f *FloatFieldValidator) Min(min float64) *FloatFieldValidator {
 			Params:  map[string]any{"min": min},
 		})
 	}
+
 	return f
 }
 
@@ -300,6 +325,7 @@ func (f *FloatFieldValidator) Max(max float64) *FloatFieldValidator {
 			Params:  map[string]any{"max": max},
 		})
 	}
+
 	return f
 }
 
@@ -312,6 +338,7 @@ func (f *FloatFieldValidator) Positive() *FloatFieldValidator {
 			Message: "must be greater than zero",
 		})
 	}
+
 	return f
 }
 
@@ -324,6 +351,7 @@ func (f *FloatFieldValidator) NonNegative() *FloatFieldValidator {
 			Message: "must be zero or greater",
 		})
 	}
+
 	return f
 }
 
@@ -342,10 +370,12 @@ type FieldErrors interface {
 // ValidateAll collects errors from multiple field validators.
 func ValidateAll(validators ...FieldErrors) ValidationErrors {
 	var errs ValidationErrors
+
 	for _, v := range validators {
 		if v != nil {
 			errs.Merge(v.Errors())
 		}
 	}
+
 	return errs
 }

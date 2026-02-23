@@ -24,3 +24,11 @@ type SMTPConfig struct {
 	StartTLS           bool
 	InsecureSkipVerify bool
 }
+
+// MailgunConfig holds Mailgun-specific configuration.
+type MailgunConfig struct {
+	Config
+	APIKey  string
+	Domain  string
+	BaseURL string
+}

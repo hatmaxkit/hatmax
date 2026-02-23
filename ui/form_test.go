@@ -79,6 +79,7 @@ func TestFormRenderComplete(t *testing.T) {
 	if !strings.Contains(html, "<form") {
 		t.Error("Render() missing opening tag")
 	}
+
 	if !strings.Contains(html, "</form>") {
 		t.Error("Render() missing closing tag")
 	}
@@ -126,12 +127,14 @@ func TestFormHX(t *testing.T) {
 
 func TestFormHXSwapInnerAndOuter(t *testing.T) {
 	inner := NewForm().HX().Post("/test").SwapInner().Done()
+
 	html := string(inner.Open())
 	if !strings.Contains(html, `hx-swap="innerHTML"`) {
 		t.Errorf("SwapInner() missing innerHTML")
 	}
 
 	outer := NewForm().HX().Post("/test").SwapOuter().Done()
+
 	html = string(outer.Open())
 	if !strings.Contains(html, `hx-swap="outerHTML"`) {
 		t.Errorf("SwapOuter() missing outerHTML")
@@ -239,6 +242,7 @@ func TestDeleteButtonHX(t *testing.T) {
 
 func TestDeleteButtonHXSwapOuter(t *testing.T) {
 	btn := NewDeleteButton("Delete", "").HX().Delete("/test").SwapOuter().Done()
+
 	html := string(btn.Render())
 	if !strings.Contains(html, `hx-swap="outerHTML"`) {
 		t.Errorf("SwapOuter() missing outerHTML")
@@ -268,6 +272,7 @@ func TestDeleteButtonHTMLEscaping(t *testing.T) {
 	if strings.Contains(html, "<script>") {
 		t.Error("Render() did not escape text")
 	}
+
 	if strings.Contains(html, "<token>") {
 		t.Error("Render() did not escape token")
 	}

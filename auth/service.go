@@ -65,6 +65,7 @@ func (s *Service) Signup(ctx context.Context, email, password string) (*User, er
 	if err == nil {
 		return nil, ErrEmailTaken
 	}
+
 	if err != nil && err != sql.ErrNoRows {
 		return nil, fmt.Errorf("cannot check email: %w", err)
 	}
@@ -77,6 +78,7 @@ func (s *Service) Signup(ctx context.Context, email, password string) (*User, er
 
 	// Create user
 	now := model.Now()
+
 	user, err := s.queries.CreateUser(ctx, model.NewID(), email, passwordHash, now, now)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create user: %w", err)
@@ -93,6 +95,7 @@ func (s *Service) Signin(ctx context.Context, email, password string) (*Session,
 	if err == sql.ErrNoRows {
 		return nil, ErrUserNotFound
 	}
+
 	if err != nil {
 		return nil, fmt.Errorf("cannot get user: %w", err)
 	}
@@ -114,6 +117,7 @@ func (s *Service) Signin(ctx context.Context, email, password string) (*Session,
 
 	// Create session
 	now := model.Now()
+
 	session, err := s.queries.CreateSession(
 		ctx,
 		model.NewID(),
@@ -137,11 +141,13 @@ func (s *Service) Signout(ctx context.Context, sessionToken string) error {
 	if err == sql.ErrNoRows {
 		return ErrSessionNotFound
 	}
+
 	if err != nil {
 		return fmt.Errorf("cannot get session: %w", err)
 	}
 
-	if err := s.queries.DeleteSession(ctx, session.ID); err != nil {
+	err = s.queries.DeleteSession(ctx, session.ID)
+	if err != nil {
 		return fmt.Errorf("cannot delete session: %w", err)
 	}
 
@@ -156,6 +162,7 @@ func (s *Service) ValidateSession(ctx context.Context, token string) (*User, err
 	if err == sql.ErrNoRows {
 		return nil, ErrSessionNotFound
 	}
+
 	if err != nil {
 		return nil, fmt.Errorf("cannot get session: %w", err)
 	}
@@ -168,6 +175,7 @@ func (s *Service) ValidateSession(ctx context.Context, token string) (*User, err
 	if err == sql.ErrNoRows {
 		return nil, ErrUserNotFound
 	}
+
 	if err != nil {
 		return nil, fmt.Errorf("cannot get user: %w", err)
 	}
@@ -185,16 +193,20 @@ func (s *Service) GetUserByID(ctx context.Context, userID string) (*User, error)
 	if err == sql.ErrNoRows {
 		return nil, ErrUserNotFound
 	}
+
 	if err != nil {
 		return nil, fmt.Errorf("cannot get user: %w", err)
 	}
+
 	return user, nil
 }
 
 // CleanupExpiredSessions removes expired sessions from the database.
 func (s *Service) CleanupExpiredSessions(ctx context.Context) error {
-	if err := s.queries.DeleteExpiredSessions(ctx); err != nil {
+	err := s.queries.DeleteExpiredSessions(ctx)
+	if err != nil {
 		return fmt.Errorf("cannot cleanup expired sessions: %w", err)
 	}
+
 	return nil
 }

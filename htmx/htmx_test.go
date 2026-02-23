@@ -45,6 +45,7 @@ func TestTrigger(t *testing.T) {
 
 func TestTriggers(t *testing.T) {
 	combined := Triggers(OnClick(), OnKeyup().Delay(500*time.Millisecond))
+
 	expected := "click, keyup delay:500ms"
 	if combined != expected {
 		t.Errorf("got %q, want %q", combined, expected)
@@ -86,9 +87,11 @@ func TestAction(t *testing.T) {
 			if got := tt.action.Method(); got != tt.method {
 				t.Errorf("Method() = %q, want %q", got, tt.method)
 			}
+
 			if got := tt.action.URL(); got != tt.url {
 				t.Errorf("URL() = %q, want %q", got, tt.url)
 			}
+
 			if tt.vals != "" {
 				if got := tt.action.Vals(); got != tt.vals {
 					t.Errorf("Vals() = %q, want %q", got, tt.vals)
@@ -190,9 +193,11 @@ func TestAttrs(t *testing.T) {
 		if m["hx-get"] != "/items" {
 			t.Errorf("hx-get = %q, want %q", m["hx-get"], "/items")
 		}
+
 		if m["hx-target"] != "#list" {
 			t.Errorf("hx-target = %q, want %q", m["hx-target"], "#list")
 		}
+
 		if m["hx-swap"] != "outerHTML" {
 			t.Errorf("hx-swap = %q, want %q", m["hx-swap"], "outerHTML")
 		}
@@ -205,6 +210,7 @@ func TestAttrs(t *testing.T) {
 		if m["hx-post"] != "/toggle" {
 			t.Errorf("hx-post = %q, want %q", m["hx-post"], "/toggle")
 		}
+
 		if m["hx-trigger"] != "click once" {
 			t.Errorf("hx-trigger = %q, want %q", m["hx-trigger"], "click once")
 		}
@@ -403,6 +409,7 @@ func TestOOBWrapper(t *testing.T) {
 		if open != `<div id="counter" hx-swap-oob="true">` {
 			t.Errorf("Open() = %q", open)
 		}
+
 		if close != "</div>" {
 			t.Errorf("Close() = %q", close)
 		}

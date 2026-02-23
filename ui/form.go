@@ -32,12 +32,14 @@ func NewForm() *Form {
 // Action sets the form action URL.
 func (f *Form) Action(action string) *Form {
 	f.action = action
+
 	return f
 }
 
 // Method sets the form method.
 func (f *Form) Method(method string) *Form {
 	f.method = method
+
 	return f
 }
 
@@ -54,30 +56,35 @@ func (f *Form) Post() *Form {
 // CSRFToken sets the CSRF token to include in the form.
 func (f *Form) CSRFToken(token string) *Form {
 	f.csrfToken = token
+
 	return f
 }
 
 // CSRFField sets the name of the CSRF token field.
 func (f *Form) CSRFField(name string) *Form {
 	f.csrfField = name
+
 	return f
 }
 
 // Class adds custom CSS classes.
 func (f *Form) Class(class string) *Form {
 	f.class = class
+
 	return f
 }
 
 // ID sets the form ID.
 func (f *Form) ID(id string) *Form {
 	f.id = id
+
 	return f
 }
 
 // Enctype sets the form enctype.
 func (f *Form) Enctype(enctype string) *Form {
 	f.enctype = enctype
+
 	return f
 }
 
@@ -89,12 +96,14 @@ func (f *Form) Multipart() *Form {
 // NoValidate disables browser validation.
 func (f *Form) NoValidate() *Form {
 	f.novalidate = true
+
 	return f
 }
 
 // WithAttrs sets HTMX attributes for the form.
 func (f *Form) WithAttrs(attrs *htmx.Attrs) *Form {
 	f.attrs = attrs
+
 	return f
 }
 
@@ -164,54 +173,63 @@ type FormHX struct {
 // Post sets a POST action.
 func (fh *FormHX) Post(url string) *FormHX {
 	fh.attrs.Post(url)
+
 	return fh
 }
 
 // Put sets a PUT action.
 func (fh *FormHX) Put(url string) *FormHX {
 	fh.attrs.Put(url)
+
 	return fh
 }
 
 // Delete sets a DELETE action.
 func (fh *FormHX) Delete(url string) *FormHX {
 	fh.attrs.Delete(url)
+
 	return fh
 }
 
 // TargetID sets a target by ID.
 func (fh *FormHX) TargetID(id string) *FormHX {
 	fh.attrs.TargetID(id)
+
 	return fh
 }
 
 // SwapOuter sets outer HTML swap.
 func (fh *FormHX) SwapOuter() *FormHX {
 	fh.attrs.SwapOuter()
+
 	return fh
 }
 
 // SwapInner sets inner HTML swap.
 func (fh *FormHX) SwapInner() *FormHX {
 	fh.attrs.SwapInner()
+
 	return fh
 }
 
 // SwapDelete sets delete swap (removes element).
 func (fh *FormHX) SwapDelete() *FormHX {
 	fh.attrs.SwapDelete()
+
 	return fh
 }
 
 // Confirm sets a confirmation message.
 func (fh *FormHX) Confirm(message string) *FormHX {
 	fh.attrs.Confirm(message)
+
 	return fh
 }
 
 // Done finalizes and returns the form.
 func (fh *FormHX) Done() *Form {
 	fh.form.attrs = fh.attrs
+
 	return fh.form
 }
 
@@ -241,36 +259,42 @@ func NewDeleteButton(text, action string) *DeleteButton {
 // CSRFToken sets the CSRF token.
 func (d *DeleteButton) CSRFToken(token string) *DeleteButton {
 	d.csrfToken = token
+
 	return d
 }
 
 // CSRFField sets the name of the CSRF token field.
 func (d *DeleteButton) CSRFField(name string) *DeleteButton {
 	d.csrfField = name
+
 	return d
 }
 
 // Confirm sets a confirmation message.
 func (d *DeleteButton) Confirm(message string) *DeleteButton {
 	d.confirm = message
+
 	return d
 }
 
 // Class adds custom CSS classes.
 func (d *DeleteButton) Class(class string) *DeleteButton {
 	d.class = class
+
 	return d
 }
 
 // Variant sets the button variant.
 func (d *DeleteButton) Variant(v Variant) *DeleteButton {
 	d.variant = v
+
 	return d
 }
 
 // Emoji sets the button emoji.
 func (d *DeleteButton) Emoji(e Emoji) *DeleteButton {
 	d.emoji = e
+
 	return d
 }
 
@@ -302,10 +326,12 @@ func (d *DeleteButton) Render() template.HTML {
 	}
 
 	var btnClasses []string
+
 	btnClasses = append(btnClasses, "btn")
 	if d.variant != "" {
 		btnClasses = append(btnClasses, fmt.Sprintf("btn--%s", d.variant))
 	}
+
 	if d.class != "" {
 		btnClasses = append(btnClasses, d.class)
 	}
@@ -316,9 +342,11 @@ func (d *DeleteButton) Render() template.HTML {
 	}
 
 	fmt.Fprintf(&html, `<button %s>`, btnAttrs)
+
 	if d.emoji != "" {
 		fmt.Fprintf(&html, `<span class="btn__emoji">%s</span>`, d.emoji)
 	}
+
 	fmt.Fprintf(&html, `<span class="btn__text">%s</span>`, template.HTMLEscapeString(d.text))
 	html.WriteString(`</button>`)
 	html.WriteString(`</form>`)
@@ -335,36 +363,42 @@ type DeleteButtonHX struct {
 // Delete sets a DELETE action via HTMX.
 func (dh *DeleteButtonHX) Delete(url string) *DeleteButtonHX {
 	dh.attrs.Delete(url)
+
 	return dh
 }
 
 // TargetID sets a target by ID.
 func (dh *DeleteButtonHX) TargetID(id string) *DeleteButtonHX {
 	dh.attrs.TargetID(id)
+
 	return dh
 }
 
 // SwapDelete sets delete swap (removes element).
 func (dh *DeleteButtonHX) SwapDelete() *DeleteButtonHX {
 	dh.attrs.SwapDelete()
+
 	return dh
 }
 
 // SwapOuter sets outer HTML swap.
 func (dh *DeleteButtonHX) SwapOuter() *DeleteButtonHX {
 	dh.attrs.SwapOuter()
+
 	return dh
 }
 
 // Confirm sets a confirmation message.
 func (dh *DeleteButtonHX) Confirm(message string) *DeleteButtonHX {
 	dh.attrs.Confirm(message)
+
 	return dh
 }
 
 // Done finalizes and returns the delete button.
 func (dh *DeleteButtonHX) Done() *DeleteButton {
 	dh.btn.attrs = dh.attrs
+
 	return dh.btn
 }
 

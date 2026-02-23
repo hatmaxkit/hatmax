@@ -17,10 +17,10 @@ import (
 	authfeat "github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/auth"
 	listfeat "github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/list"
 	tickedweb "github.com/hatmaxkit/hatmax/examples/ticked/internal/web"
-	"github.com/hatmaxkit/hatmax/ui"
 	"github.com/hatmaxkit/hatmax/log"
 	"github.com/hatmaxkit/hatmax/middleware"
 	"github.com/hatmaxkit/hatmax/pubsub/postgres"
+	"github.com/hatmaxkit/hatmax/ui"
 	"github.com/hatmaxkit/hatmax/web"
 )
 
@@ -78,7 +78,8 @@ func main() {
 
 	starts, stops, registrars := app.Setup(ctx, router, deps...)
 
-	if err := app.Start(ctx, logger, starts, stops, registrars, router); err != nil {
+	err = app.Start(ctx, logger, starts, stops, registrars, router)
+	if err != nil {
 		logger.Errorf("Cannot start %s(%s): %v", name, version, err)
 		os.Exit(1)
 	}
@@ -87,7 +88,9 @@ func main() {
 
 	go func() {
 		logger.Infof("Server listening on %s", cfg.Server.Port)
-		if err := app.Serve(router, cfg.Server.Port); err != nil {
+
+		err = app.Serve(router, cfg.Server.Port)
+		if err != nil {
 			logger.Errorf("Server error: %v", err)
 		}
 	}()
@@ -100,7 +103,8 @@ func main() {
 	cancel()
 
 	for i := len(stops) - 1; i >= 0; i-- {
-		if err := stops[i](context.Background()); err != nil {
+		err = stops[i](context.Background())
+		if err != nil {
 			logger.Errorf("Error stopping component: %v", err)
 		}
 	}

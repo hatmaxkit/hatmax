@@ -20,11 +20,13 @@ func RequireRole(role string) func(http.Handler) http.Handler {
 			user, ok := auth.GetUser(r.Context())
 			if !ok {
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+
 				return
 			}
 
 			if !user.HasRole(role) {
 				http.Error(w, "Forbidden", http.StatusForbidden)
+
 				return
 			}
 
@@ -42,6 +44,7 @@ func RequireRoles(svc SessionValidator, roles ...string) func(http.Handler) http
 			cookie, err := r.Cookie(auth.SessionCookieName)
 			if err != nil {
 				http.Redirect(w, r, "/signin", http.StatusSeeOther)
+
 				return
 			}
 
@@ -49,11 +52,13 @@ func RequireRoles(svc SessionValidator, roles ...string) func(http.Handler) http
 			if err != nil {
 				auth.ClearSessionCookie(w)
 				http.Redirect(w, r, "/signin", http.StatusSeeOther)
+
 				return
 			}
 
 			if !user.HasAnyRole(roles...) {
 				http.Error(w, "Forbidden", http.StatusForbidden)
+
 				return
 			}
 
@@ -71,11 +76,13 @@ func RequireAnyRole(roles ...string) func(http.Handler) http.Handler {
 			user, ok := auth.GetUser(r.Context())
 			if !ok {
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+
 				return
 			}
 
 			if !user.HasAnyRole(roles...) {
 				http.Error(w, "Forbidden", http.StatusForbidden)
+
 				return
 			}
 

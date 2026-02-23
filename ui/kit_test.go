@@ -19,6 +19,7 @@ func TestNew(t *testing.T) {
 	if k.cfg != cfg {
 		t.Error("New() cfg not set")
 	}
+
 	if k.log != logger {
 		t.Error("New() log not set")
 	}
@@ -60,9 +61,11 @@ func TestKitAccessors(t *testing.T) {
 	if k.Config() != cfg {
 		t.Error("Config() returned wrong value")
 	}
+
 	if k.Logger() != logger {
 		t.Error("Logger() returned wrong value")
 	}
+
 	if k.Settings() != settingsSvc {
 		t.Error("Settings() returned wrong value")
 	}
@@ -95,4 +98,3 @@ func TestCSRFTokenWithoutFunc(t *testing.T) {
 		t.Errorf("CSRFToken() without func = %q, want empty", token)
 	}
 }
-

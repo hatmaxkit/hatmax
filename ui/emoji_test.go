@@ -60,6 +60,7 @@ func TestEmojiPresets(t *testing.T) {
 		if e == "" {
 			t.Errorf("Emoji preset is empty")
 		}
+
 		if e.String() == "" {
 			t.Errorf("Emoji.String() returned empty for %v", e)
 		}

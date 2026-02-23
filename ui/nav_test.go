@@ -17,8 +17,8 @@ func TestNavGridRender(t *testing.T) {
 			contains: []string{`class="nav-grid"`, `href="/"`, `Home`, string(EmojiHome)},
 		},
 		{
-			name: "nav grid with badge",
-			nav:  NewNavGrid().AddItemWithBadge(EmojiMail, "Messages", "/messages", "5"),
+			name:     "nav grid with badge",
+			nav:      NewNavGrid().AddItemWithBadge(EmojiMail, "Messages", "/messages", "5"),
 			contains: []string{`nav-grid__badge`, `5`},
 		},
 		{
@@ -57,6 +57,7 @@ func TestNavGridItems(t *testing.T) {
 	if !strings.Contains(html, "Home") {
 		t.Error("Render() missing Home")
 	}
+
 	if !strings.Contains(html, "Settings") {
 		t.Error("Render() missing Settings")
 	}
@@ -109,9 +110,11 @@ func TestNavItems(t *testing.T) {
 	if !strings.Contains(html, "Home") {
 		t.Error("Render() missing Home")
 	}
+
 	if !strings.Contains(html, "About") {
 		t.Error("Render() missing About")
 	}
+
 	if !strings.Contains(html, string(EmojiInfo)) {
 		t.Error("Render() missing emoji")
 	}

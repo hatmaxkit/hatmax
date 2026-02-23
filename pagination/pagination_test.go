@@ -70,6 +70,7 @@ func TestNewParams(t *testing.T) {
 			if params.Page != tt.expectedPage {
 				t.Errorf("Page = %d, want %d", params.Page, tt.expectedPage)
 			}
+
 			if params.PageSize != tt.expectedPageSize {
 				t.Errorf("PageSize = %d, want %d", params.PageSize, tt.expectedPageSize)
 			}
@@ -203,18 +204,23 @@ func TestNewResult(t *testing.T) {
 			if result.TotalPages != tt.expectedTotalPages {
 				t.Errorf("TotalPages = %d, want %d", result.TotalPages, tt.expectedTotalPages)
 			}
+
 			if result.HasMore != tt.expectedHasMore {
 				t.Errorf("HasMore = %v, want %v", result.HasMore, tt.expectedHasMore)
 			}
+
 			if result.TotalCount != tt.totalCount {
 				t.Errorf("TotalCount = %d, want %d", result.TotalCount, tt.totalCount)
 			}
+
 			if result.Page != tt.page {
 				t.Errorf("Page = %d, want %d", result.Page, tt.page)
 			}
+
 			if result.PageSize != tt.pageSize {
 				t.Errorf("PageSize = %d, want %d", result.PageSize, tt.pageSize)
 			}
+
 			if len(result.Items) != len(tt.items) {
 				t.Errorf("len(Items) = %d, want %d", len(result.Items), len(tt.items))
 			}

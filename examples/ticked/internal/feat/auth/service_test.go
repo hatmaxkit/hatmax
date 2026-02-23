@@ -50,6 +50,7 @@ func (f *fakeCounter) CountUsers(ctx context.Context) (int64, error) {
 
 func (f *fakeCounter) UpdateUserRoles(ctx context.Context, id string, roles []string, updatedAt time.Time) error {
 	f.updatedRoles = roles
+
 	return f.updateErr
 }
 

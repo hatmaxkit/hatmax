@@ -13,7 +13,8 @@ import (
 func TestWithPing(t *testing.T) {
 	r := chi.NewRouter()
 
-	if err := ApplyRouterOptions(r, WithPing()); err != nil {
+	err := ApplyRouterOptions(r, WithPing())
+	if err != nil {
 		t.Fatalf("ApplyRouterOptions() error = %v", err)
 	}
 
@@ -39,7 +40,8 @@ func TestWithDebugRoutes(t *testing.T) {
 	r.Get("/test", func(w http.ResponseWriter, r *http.Request) {})
 	r.Post("/users", func(w http.ResponseWriter, r *http.Request) {})
 
-	if err := ApplyRouterOptions(r, WithDebugRoutes()); err != nil {
+	err := ApplyRouterOptions(r, WithDebugRoutes())
+	if err != nil {
 		t.Fatalf("ApplyRouterOptions() error = %v", err)
 	}
 
@@ -105,7 +107,8 @@ func TestMultipleOptionsIntegration(t *testing.T) {
 	r := chi.NewRouter()
 
 	// Apply both options
-	if err := ApplyRouterOptions(r, WithPing(), WithDebugRoutes()); err != nil {
+	err := ApplyRouterOptions(r, WithPing(), WithDebugRoutes())
+	if err != nil {
 		t.Fatalf("ApplyRouterOptions() error = %v", err)
 	}
 

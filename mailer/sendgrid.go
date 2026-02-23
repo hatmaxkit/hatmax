@@ -31,7 +31,8 @@ func NewSendGridMailer(cfg SendGridConfig) *SendGridMailer {
 
 // Send sends an email via SendGrid.
 func (m *SendGridMailer) Send(ctx context.Context, msg *Message) error {
-	if err := msg.Validate(); err != nil {
+	err := msg.Validate()
+	if err != nil {
 		return err
 	}
 
@@ -45,6 +46,7 @@ func (m *SendGridMailer) Send(ctx context.Context, msg *Message) error {
 	if len(msg.To) == 0 {
 		return fmt.Errorf("at least one recipient required")
 	}
+
 	sgTo := mail.NewEmail(msg.To[0].Name, msg.To[0].Email)
 
 	sgMsg := mail.NewSingleEmail(sgFrom, msg.Subject, sgTo, msg.Text, msg.HTML)
@@ -73,9 +75,11 @@ func (m *SendGridMailer) Send(ctx context.Context, msg *Message) error {
 		sgAtt := mail.NewAttachment()
 		sgAtt.SetContent(base64.StdEncoding.EncodeToString(att.Data))
 		sgAtt.SetFilename(att.Filename)
+
 		if att.ContentType != "" {
 			sgAtt.SetType(att.ContentType)
 		}
+
 		sgAtt.SetDisposition("attachment")
 		sgMsg.AddAttachment(sgAtt)
 	}

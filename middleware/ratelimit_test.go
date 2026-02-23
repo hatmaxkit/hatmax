@@ -12,9 +12,11 @@ func TestNewRateLimiter(t *testing.T) {
 	if rl == nil {
 		t.Fatal("expected non-nil rate limiter")
 	}
+
 	if rl.limit != 10 {
 		t.Errorf("expected limit 10, got %d", rl.limit)
 	}
+
 	if rl.window != time.Minute {
 		t.Errorf("expected window 1m, got %v", rl.window)
 	}
@@ -81,9 +83,11 @@ func TestRateLimiterAllowDifferentIPs(t *testing.T) {
 	if !rl.Allow("192.168.1.1") {
 		t.Error("first request from IP1 should be allowed")
 	}
+
 	if !rl.Allow("192.168.1.1") {
 		t.Error("second request from IP1 should be allowed")
 	}
+
 	if rl.Allow("192.168.1.1") {
 		t.Error("third request from IP1 should be denied")
 	}
@@ -91,6 +95,7 @@ func TestRateLimiterAllowDifferentIPs(t *testing.T) {
 	if !rl.Allow("192.168.1.2") {
 		t.Error("first request from IP2 should be allowed")
 	}
+
 	if !rl.Allow("192.168.1.2") {
 		t.Error("second request from IP2 should be allowed")
 	}
@@ -219,6 +224,7 @@ func TestGetClientIP(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
+
 			req.RemoteAddr = tt.remoteAddr
 			for k, v := range tt.headers {
 				req.Header.Set(k, v)

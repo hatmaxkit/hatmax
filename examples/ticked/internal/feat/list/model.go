@@ -34,6 +34,7 @@ type TodoItem struct {
 // NewTodoList creates a new empty todo list for a user.
 func NewTodoList(userID string) *TodoList {
 	now := model.Now()
+
 	return &TodoList{
 		ListID:    model.NewID(),
 		UserID:    userID,
@@ -48,6 +49,7 @@ func (l *TodoList) AddItem(text string) (*TodoItem, error) {
 	if text == "" {
 		return nil, ErrTextEmpty
 	}
+
 	if len(text) > 500 {
 		return nil, ErrTextTooLong
 	}
@@ -70,6 +72,7 @@ func (l *TodoList) UpdateItem(itemID, text string) error {
 	if text == "" {
 		return ErrTextEmpty
 	}
+
 	if len(text) > 500 {
 		return ErrTextTooLong
 	}
@@ -78,6 +81,7 @@ func (l *TodoList) UpdateItem(itemID, text string) error {
 		if l.Items[i].ItemID == itemID {
 			l.Items[i].Text = text
 			l.UpdatedAt = model.Now()
+
 			return nil
 		}
 	}
@@ -96,7 +100,9 @@ func (l *TodoList) ToggleItem(itemID string) (*TodoItem, error) {
 			} else {
 				l.Items[i].CompletedAt = nil
 			}
+
 			l.UpdatedAt = model.Now()
+
 			return &l.Items[i], nil
 		}
 	}
@@ -110,6 +116,7 @@ func (l *TodoList) RemoveItem(itemID string) error {
 		if l.Items[i].ItemID == itemID {
 			l.Items = append(l.Items[:i], l.Items[i+1:]...)
 			l.UpdatedAt = model.Now()
+
 			return nil
 		}
 	}
@@ -124,5 +131,6 @@ func (l *TodoList) GetItem(itemID string) (*TodoItem, error) {
 			return &l.Items[i], nil
 		}
 	}
+
 	return nil, ErrItemNotFound
 }

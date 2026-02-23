@@ -12,6 +12,7 @@ func TelemetryCounter(counter RequestCounter) func(http.Handler) http.Handler {
 			if counter != nil {
 				counter.IncrementRequests()
 			}
+
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -26,9 +27,11 @@ func TelemetryRecovery(recorder CrashRecorder) func(http.Handler) http.Handler {
 					if recorder != nil {
 						recorder.RecordPanic(fmt.Sprintf("%v", rec), r.URL.Path, r.Method)
 					}
+
 					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				}
 			}()
+
 			next.ServeHTTP(w, r)
 		})
 	}

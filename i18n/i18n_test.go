@@ -10,6 +10,7 @@ var testFS embed.FS
 
 func TestTranslatorLoadFromFS(t *testing.T) {
 	tr := New()
+
 	err := tr.LoadFromFS(testFS, "testdata")
 	if err != nil {
 		t.Fatalf("LoadFromFS failed: %v", err)
@@ -18,6 +19,7 @@ func TestTranslatorLoadFromFS(t *testing.T) {
 	if !tr.HasLocale("en") {
 		t.Error("expected locale 'en' to be loaded")
 	}
+
 	if !tr.HasLocale("es") {
 		t.Error("expected locale 'es' to be loaded")
 	}
@@ -25,7 +27,9 @@ func TestTranslatorLoadFromFS(t *testing.T) {
 
 func TestTranslatorGet(t *testing.T) {
 	tr := New()
-	if err := tr.LoadFromFS(testFS, "testdata"); err != nil {
+
+	err := tr.LoadFromFS(testFS, "testdata")
+	if err != nil {
 		t.Fatalf("LoadFromFS failed: %v", err)
 	}
 
@@ -85,7 +89,9 @@ func TestTranslatorGet(t *testing.T) {
 
 func TestTranslatorAvailableLocales(t *testing.T) {
 	tr := New()
-	if err := tr.LoadFromFS(testFS, "testdata"); err != nil {
+
+	err := tr.LoadFromFS(testFS, "testdata")
+	if err != nil {
 		t.Fatalf("LoadFromFS failed: %v", err)
 	}
 
@@ -102,6 +108,7 @@ func TestTranslatorAvailableLocales(t *testing.T) {
 	if !found["en"] {
 		t.Error("expected 'en' in available locales")
 	}
+
 	if !found["es"] {
 		t.Error("expected 'es' in available locales")
 	}
@@ -109,11 +116,14 @@ func TestTranslatorAvailableLocales(t *testing.T) {
 
 func TestTranslatorSetDefaultLocale(t *testing.T) {
 	tr := New()
-	if err := tr.LoadFromFS(testFS, "testdata"); err != nil {
+
+	err := tr.LoadFromFS(testFS, "testdata")
+	if err != nil {
 		t.Fatalf("LoadFromFS failed: %v", err)
 	}
 
 	tr.SetDefaultLocale("es")
+
 	if tr.DefaultLocaleValue() != "es" {
 		t.Errorf("expected default locale 'es', got %q", tr.DefaultLocaleValue())
 	}
@@ -126,11 +136,14 @@ func TestTranslatorSetDefaultLocale(t *testing.T) {
 
 func TestTranslatorTranslateFunc(t *testing.T) {
 	tr := New()
-	if err := tr.LoadFromFS(testFS, "testdata"); err != nil {
+
+	err := tr.LoadFromFS(testFS, "testdata")
+	if err != nil {
 		t.Fatalf("LoadFromFS failed: %v", err)
 	}
 
 	fn := tr.TranslateFunc("es")
+
 	result := fn("common.search")
 	if result != "Buscar" {
 		t.Errorf("TranslateFunc(es)(common.search) = %q, want 'Buscar'", result)

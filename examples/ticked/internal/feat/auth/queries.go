@@ -47,7 +47,9 @@ func (q *Queries) Start(ctx context.Context) error {
 	if db == nil {
 		return fmt.Errorf("database connection not available")
 	}
+
 	q.q = dal.New(db)
+
 	return nil
 }
 
@@ -75,6 +77,7 @@ func (q *Queries) CreateUser(ctx context.Context, id, email, passwordHash string
 	if err != nil {
 		return nil, err
 	}
+
 	return toAuthUser(user), nil
 }
 
@@ -84,6 +87,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (*auth.User,
 	if err != nil {
 		return nil, err
 	}
+
 	return toAuthUser(user), nil
 }
 
@@ -93,6 +97,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (*auth.User, error
 	if err != nil {
 		return nil, err
 	}
+
 	return toAuthUser(user), nil
 }
 
@@ -108,6 +113,7 @@ func (q *Queries) CreateSession(ctx context.Context, id, userID, token string, e
 	if err != nil {
 		return nil, err
 	}
+
 	return toAuthSession(session), nil
 }
 
@@ -117,6 +123,7 @@ func (q *Queries) GetSessionByToken(ctx context.Context, token string) (*auth.Se
 	if err != nil {
 		return nil, err
 	}
+
 	return toAuthSession(session), nil
 }
 
@@ -136,10 +143,12 @@ func (q *Queries) ListUsers(ctx context.Context) ([]*auth.User, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	result := make([]*auth.User, len(users))
 	for i, u := range users {
 		result[i] = toAuthUser(u)
 	}
+
 	return result, nil
 }
 

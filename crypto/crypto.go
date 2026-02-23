@@ -48,7 +48,9 @@ func EncryptEmail(plaintext string, key []byte) (ciphertext, iv, tag string, err
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+
+	err = fillRandom(nonce)
+	if err != nil {
 		return "", "", "", err
 	}
 
@@ -119,6 +121,7 @@ func ComputeLookupHash(email string, signingKey []byte) string {
 
 	h := hmac.New(sha256.New, signingKey)
 	h.Write([]byte(email))
+
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
@@ -145,9 +148,12 @@ func VerifyPassword(password string, hash, salt []byte) bool {
 
 func GenerateSalt() ([]byte, error) {
 	salt := make([]byte, saltLength)
-	if _, err := io.ReadFull(rand.Reader, salt); err != nil {
+
+	err := fillRandom(salt)
+	if err != nil {
 		return nil, err
 	}
+
 	return salt, nil
 }
 
@@ -157,9 +163,17 @@ func GenerateSecureToken(length int) (string, error) {
 	}
 
 	bytes := make([]byte, length)
-	if _, err := io.ReadFull(rand.Reader, bytes); err != nil {
+
+	err := fillRandom(bytes)
+	if err != nil {
 		return "", err
 	}
 
 	return base64.URLEncoding.EncodeToString(bytes), nil
+}
+
+func fillRandom(dst []byte) error {
+	_, err := io.ReadFull(rand.Reader, dst)
+
+	return err
 }

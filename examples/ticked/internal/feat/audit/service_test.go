@@ -16,6 +16,7 @@ type mockStore struct {
 
 func (m *mockStore) Save(ctx context.Context, record *Record) error {
 	m.saved = append(m.saved, *record)
+
 	return nil
 }
 
@@ -23,6 +24,7 @@ func (m *mockStore) List(ctx context.Context, limit int) ([]Record, error) {
 	if limit > len(m.saved) {
 		limit = len(m.saved)
 	}
+
 	return m.saved[:limit], nil
 }
 
@@ -34,7 +36,9 @@ func TestServiceStart(t *testing.T) {
 	svc := NewService(broker, store, logger)
 
 	ctx := context.Background()
-	if err := svc.Start(ctx); err != nil {
+
+	err := svc.Start(ctx)
+	if err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
 }
@@ -47,7 +51,9 @@ func TestServiceHandleEvent(t *testing.T) {
 	svc := NewService(broker, store, logger)
 
 	ctx := context.Background()
-	if err := svc.Start(ctx); err != nil {
+
+	err := svc.Start(ctx)
+	if err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
 
@@ -60,7 +66,8 @@ func TestServiceHandleEvent(t *testing.T) {
 		WithMetadata("user_id", "user-456").
 		WithMetadata("source", "hatmax")
 
-	if err := broker.Publish(ctx, Topic, env); err != nil {
+	err = broker.Publish(ctx, Topic, env)
+	if err != nil {
 		t.Fatalf("Publish failed: %v", err)
 	}
 
@@ -76,15 +83,19 @@ func TestServiceHandleEvent(t *testing.T) {
 	if record.ID != env.ID {
 		t.Errorf("expected ID %s, got %s", env.ID, record.ID)
 	}
+
 	if record.EventType != "todo.item.added" {
 		t.Errorf("expected EventType 'todo.item.added', got %s", record.EventType)
 	}
+
 	if record.ItemID != "item-123" {
 		t.Errorf("expected ItemID 'item-123', got %s", record.ItemID)
 	}
+
 	if record.UserID != "user-456" {
 		t.Errorf("expected UserID 'user-456', got %s", record.UserID)
 	}
+
 	if record.Source != "hatmax" {
 		t.Errorf("expected Source 'hatmax', got %s", record.Source)
 	}
@@ -98,7 +109,9 @@ func TestServiceHandleMultipleEvents(t *testing.T) {
 	svc := NewService(broker, store, logger)
 
 	ctx := context.Background()
-	if err := svc.Start(ctx); err != nil {
+
+	err := svc.Start(ctx)
+	if err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
 
@@ -112,7 +125,8 @@ func TestServiceHandleMultipleEvents(t *testing.T) {
 			WithMetadata("user_id", "user-1").
 			WithMetadata("source", "hatmax")
 
-		if err := broker.Publish(ctx, Topic, env); err != nil {
+		err = broker.Publish(ctx, Topic, env)
+		if err != nil {
 			t.Fatalf("Publish failed: %v", err)
 		}
 	}
@@ -132,7 +146,9 @@ func TestServiceHandleEventInvalidPayload(t *testing.T) {
 	svc := NewService(broker, store, logger)
 
 	ctx := context.Background()
-	if err := svc.Start(ctx); err != nil {
+
+	err := svc.Start(ctx)
+	if err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
 
@@ -141,7 +157,8 @@ func TestServiceHandleEventInvalidPayload(t *testing.T) {
 							WithMetadata("user_id", "user-1").
 							WithMetadata("source", "hatmax")
 
-	if err := broker.Publish(ctx, Topic, env); err != nil {
+	err = broker.Publish(ctx, Topic, env)
+	if err != nil {
 		t.Fatalf("Publish failed: %v", err)
 	}
 
@@ -172,7 +189,9 @@ func TestServiceHandleEventStoreError(t *testing.T) {
 	svc := NewService(broker, store, logger)
 
 	ctx := context.Background()
-	if err := svc.Start(ctx); err != nil {
+
+	err := svc.Start(ctx)
+	if err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
 
@@ -183,7 +202,8 @@ func TestServiceHandleEventStoreError(t *testing.T) {
 		WithMetadata("user_id", "user-1").
 		WithMetadata("source", "hatmax")
 
-	if err := broker.Publish(ctx, Topic, env); err != nil {
+	err = broker.Publish(ctx, Topic, env)
+	if err != nil {
 		t.Fatalf("Publish failed: %v", err)
 	}
 
@@ -208,6 +228,7 @@ func TestServiceStartFailure(t *testing.T) {
 	svc := NewService(broker, store, logger)
 
 	ctx := context.Background()
+
 	err := svc.Start(ctx)
 	if err == nil {
 		t.Error("expected Start to fail")

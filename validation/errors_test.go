@@ -300,6 +300,7 @@ func TestValidationErrorsForField(t *testing.T) {
 
 			if len(got) != len(tt.want) {
 				t.Errorf("ValidationErrors.ForField() len = %d, want %d", len(got), len(tt.want))
+
 				return
 			}
 
@@ -363,6 +364,7 @@ func TestValidationErrorsFields(t *testing.T) {
 
 			if len(got) != len(tt.want) {
 				t.Errorf("ValidationErrors.Fields() len = %d, want %d", len(got), len(tt.want))
+
 				return
 			}
 
@@ -403,6 +405,7 @@ func TestValidatorFuncValidate(t *testing.T) {
 				var errors ValidationErrors
 				errors.Add("email", "is required")
 				errors.Add("password", "is too short")
+
 				return errors
 			},
 			wantCount: 2,

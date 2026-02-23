@@ -28,12 +28,14 @@ func NewAlert(message string) *Alert {
 // Title sets the alert title.
 func (a *Alert) Title(title string) *Alert {
 	a.title = title
+
 	return a
 }
 
 // Variant sets the alert variant.
 func (a *Alert) Variant(v Variant) *Alert {
 	a.variant = v
+
 	return a
 }
 
@@ -65,30 +67,35 @@ func (a *Alert) Error() *Alert {
 // Dismissible makes the alert dismissible.
 func (a *Alert) Dismissible() *Alert {
 	a.dismissible = true
+
 	return a
 }
 
 // Icon sets the alert icon.
 func (a *Alert) Icon(icon string) *Alert {
 	a.icon = icon
+
 	return a
 }
 
 // Class adds custom CSS classes.
 func (a *Alert) Class(class string) *Alert {
 	a.class = class
+
 	return a
 }
 
 // ID sets the alert ID.
 func (a *Alert) ID(id string) *Alert {
 	a.id = id
+
 	return a
 }
 
 // Render renders the alert to HTML.
 func (a *Alert) Render() template.HTML {
 	var classes []string
+
 	classes = append(classes, "alert")
 
 	if a.variant != "" {
@@ -104,6 +111,7 @@ func (a *Alert) Render() template.HTML {
 	}
 
 	var attrs []string
+
 	attrs = append(attrs, fmt.Sprintf(`class="%s"`, strings.Join(classes, " ")))
 	attrs = append(attrs, `role="alert"`)
 
@@ -156,6 +164,7 @@ func NewFlash(message string) *Flash {
 // Variant sets the flash variant.
 func (f *Flash) Variant(v Variant) *Flash {
 	f.variant = v
+
 	return f
 }
 
@@ -187,30 +196,35 @@ func (f *Flash) Error() *Flash {
 // AutoDismiss sets auto-dismiss timeout in seconds.
 func (f *Flash) AutoDismiss(seconds int) *Flash {
 	f.autoDismiss = seconds
+
 	return f
 }
 
 // Icon sets the flash icon.
 func (f *Flash) Icon(icon string) *Flash {
 	f.icon = icon
+
 	return f
 }
 
 // ID sets the flash ID.
 func (f *Flash) ID(id string) *Flash {
 	f.id = id
+
 	return f
 }
 
 // Class adds custom CSS classes.
 func (f *Flash) Class(class string) *Flash {
 	f.class = class
+
 	return f
 }
 
 // Render renders the flash message.
 func (f *Flash) Render() template.HTML {
 	var classes []string
+
 	classes = append(classes, "flash")
 
 	if f.variant != "" {
@@ -222,6 +236,7 @@ func (f *Flash) Render() template.HTML {
 	}
 
 	var attrs []string
+
 	attrs = append(attrs, fmt.Sprintf(`class="%s"`, strings.Join(classes, " ")))
 	attrs = append(attrs, `role="alert"`)
 
@@ -277,12 +292,14 @@ func NewToast(message string) *Toast {
 // Title sets the toast title.
 func (t *Toast) Title(title string) *Toast {
 	t.title = title
+
 	return t
 }
 
 // Variant sets the toast variant.
 func (t *Toast) Variant(v Variant) *Toast {
 	t.variant = v
+
 	return t
 }
 
@@ -314,42 +331,49 @@ func (t *Toast) Error() *Toast {
 // Position sets the toast position.
 func (t *Toast) Position(position string) *Toast {
 	t.position = position
+
 	return t
 }
 
 // Duration sets the auto-dismiss duration in milliseconds.
 func (t *Toast) Duration(ms int) *Toast {
 	t.duration = ms
+
 	return t
 }
 
 // Persistent makes the toast stay until dismissed.
 func (t *Toast) Persistent() *Toast {
 	t.duration = 0
+
 	return t
 }
 
 // Icon sets the toast icon.
 func (t *Toast) Icon(icon string) *Toast {
 	t.icon = icon
+
 	return t
 }
 
 // ID sets the toast ID.
 func (t *Toast) ID(id string) *Toast {
 	t.id = id
+
 	return t
 }
 
 // Class adds custom CSS classes.
 func (t *Toast) Class(class string) *Toast {
 	t.class = class
+
 	return t
 }
 
 // Render renders the toast notification.
 func (t *Toast) Render() template.HTML {
 	var classes []string
+
 	classes = append(classes, "toast")
 
 	if t.variant != "" {
@@ -365,6 +389,7 @@ func (t *Toast) Render() template.HTML {
 	}
 
 	var attrs []string
+
 	attrs = append(attrs, fmt.Sprintf(`class="%s"`, strings.Join(classes, " ")))
 	attrs = append(attrs, `role="alert"`)
 

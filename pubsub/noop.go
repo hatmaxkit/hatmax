@@ -23,7 +23,9 @@ func NewNoopBroker() *NoopBroker {
 func (b *NoopBroker) Publish(ctx context.Context, topic string, env Envelope) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
 	b.published = append(b.published, env)
+
 	return nil
 }
 
@@ -41,8 +43,10 @@ func (b *NoopBroker) Close() error {
 func (b *NoopBroker) Published() []Envelope {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
 	result := make([]Envelope, len(b.published))
 	copy(result, b.published)
+
 	return result
 }
 
@@ -50,6 +54,7 @@ func (b *NoopBroker) Published() []Envelope {
 func (b *NoopBroker) Reset() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
 	b.published = make([]Envelope, 0)
 }
 
@@ -74,11 +79,13 @@ func (b *MemoryBroker) Publish(ctx context.Context, topic string, env Envelope) 
 	b.mu.RUnlock()
 
 	for _, handler := range handlers {
-		if err := handler(ctx, env); err != nil {
+		err := handler(ctx, env)
+		if err != nil {
 			// Continue delivery to other handlers even if one fails
 			continue
 		}
 	}
+
 	return nil
 }
 
@@ -86,7 +93,9 @@ func (b *MemoryBroker) Publish(ctx context.Context, topic string, env Envelope) 
 func (b *MemoryBroker) Subscribe(ctx context.Context, topic string, handler Handler, opts SubscribeOptions) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
 	b.subscribers[topic] = append(b.subscribers[topic], handler)
+
 	return nil
 }
 
@@ -94,6 +103,8 @@ func (b *MemoryBroker) Subscribe(ctx context.Context, topic string, handler Hand
 func (b *MemoryBroker) Close() error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
 	b.subscribers = make(map[string][]Handler)
+
 	return nil
 }

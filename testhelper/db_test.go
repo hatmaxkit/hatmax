@@ -95,11 +95,13 @@ func TestRandomString(t *testing.T) {
 
 func TestRandomStringUniqueness(t *testing.T) {
 	seen := make(map[string]bool)
+
 	for i := 0; i < 100; i++ {
 		s := randomString(8)
 		if seen[s] {
 			t.Errorf("randomString() produced duplicate: %s", s)
 		}
+
 		seen[s] = true
 	}
 }

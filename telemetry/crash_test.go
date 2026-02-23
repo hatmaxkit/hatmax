@@ -24,24 +24,31 @@ func TestCrashCollectorRecordSingle(t *testing.T) {
 	if crash.Type != "panic" {
 		t.Errorf("Type = %q, want %q", crash.Type, "panic")
 	}
+
 	if crash.Message != "test error" {
 		t.Errorf("Message = %q, want %q", crash.Message, "test error")
 	}
+
 	if crash.Endpoint != "/api/users" {
 		t.Errorf("Endpoint = %q, want %q", crash.Endpoint, "/api/users")
 	}
+
 	if crash.Method != "GET" {
 		t.Errorf("Method = %q, want %q", crash.Method, "GET")
 	}
+
 	if crash.Count != 1 {
 		t.Errorf("Count = %d, want 1", crash.Count)
 	}
+
 	if crash.FirstSeen == "" {
 		t.Error("FirstSeen should not be empty")
 	}
+
 	if crash.LastSeen == "" {
 		t.Error("LastSeen should not be empty")
 	}
+
 	if len(crash.Stack) == 0 {
 		t.Error("Stack should not be empty")
 	}
@@ -63,6 +70,7 @@ func TestCrashCollectorDeduplication(t *testing.T) {
 	if crash.Count != 3 {
 		t.Errorf("Count = %d, want 3", crash.Count)
 	}
+
 	if crash.Endpoint != "/api/users" {
 		t.Errorf("Endpoint = %q, want %q", crash.Endpoint, "/api/users")
 	}
@@ -135,6 +143,7 @@ func TestCrashCollectorStackCapture(t *testing.T) {
 	if len(crashes[0].Stack) == 0 {
 		t.Error("Stack should contain frames")
 	}
+
 	if len(crashes[0].Stack) > 10 {
 		t.Errorf("Stack has %d frames, want <= 10", len(crashes[0].Stack))
 	}
@@ -143,8 +152,10 @@ func TestCrashCollectorStackCapture(t *testing.T) {
 func TestCrashCollectorConcurrent(t *testing.T) {
 	c := NewCrashCollector()
 
-	const goroutines = 50
-	const panicsPerGoroutine = 20
+	const (
+		goroutines         = 50
+		panicsPerGoroutine = 20
+	)
 
 	var wg sync.WaitGroup
 	wg.Add(goroutines)
@@ -152,6 +163,7 @@ func TestCrashCollectorConcurrent(t *testing.T) {
 	for range goroutines {
 		go func() {
 			defer wg.Done()
+
 			for range panicsPerGoroutine {
 				c.RecordPanic("concurrent error", "/test", "GET")
 			}

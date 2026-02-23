@@ -139,13 +139,15 @@ func ValidateEmailField(field, value string) ValidationError {
 		return ValidationError{}
 	}
 
-	if err := ValidateEmail(value); err != nil {
+	err := ValidateEmail(value)
+	if err != nil {
 		return ValidationError{
 			Field:   field,
 			Rule:    "Email",
 			Message: "must be a valid email address",
 		}
 	}
+
 	return ValidationError{}
 }
 
@@ -179,6 +181,7 @@ func ValidatePhoneField(field, value string) ValidationError {
 			Message: "must be a valid phone number",
 		}
 	}
+
 	return ValidationError{}
 }
 
@@ -196,5 +199,6 @@ func NoHTML(field, value string) ValidationError {
 			Message: "must not contain HTML tags",
 		}
 	}
+
 	return ValidationError{}
 }

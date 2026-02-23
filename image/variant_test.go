@@ -38,6 +38,7 @@ func TestDefaultVariantSpecs(t *testing.T) {
 		if specs[tt.idx].Type != tt.wantType {
 			t.Errorf("specs[%d].Type = %q, want %q", tt.idx, specs[tt.idx].Type, tt.wantType)
 		}
+
 		if specs[tt.idx].MaxWidth != tt.wantWidth {
 			t.Errorf("specs[%d].MaxWidth = %d, want %d", tt.idx, specs[tt.idx].MaxWidth, tt.wantWidth)
 		}

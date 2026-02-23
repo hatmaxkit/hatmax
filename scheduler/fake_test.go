@@ -16,11 +16,13 @@ func TestFakeClock(t *testing.T) {
 
 	newTime := time.Date(2026, 3, 1, 12, 0, 0, 0, time.UTC)
 	c.Set(newTime)
+
 	if !c.Now().Equal(newTime) {
 		t.Errorf("after Set(), Now() = %v, want %v", c.Now(), newTime)
 	}
 
 	c.Advance(time.Hour)
+
 	expected := newTime.Add(time.Hour)
 	if !c.Now().Equal(expected) {
 		t.Errorf("after Advance(), Now() = %v, want %v", c.Now(), expected)
@@ -36,6 +38,7 @@ func TestFakeStore_AddJob(t *testing.T) {
 	if len(s.Jobs) != 1 {
 		t.Errorf("expected 1 job, got %d", len(s.Jobs))
 	}
+
 	if s.Jobs[0].ID != "test-1" {
 		t.Errorf("expected job ID test-1, got %s", s.Jobs[0].ID)
 	}
@@ -50,6 +53,7 @@ func TestFakeStore_ListDue(t *testing.T) {
 	s.AddJob(Job{ID: "future", ScheduledFor: now.Add(time.Hour)})
 
 	ctx := context.Background()
+
 	due, err := s.ListDue(ctx, now, 10)
 	if err != nil {
 		t.Fatalf("ListDue() error = %v", err)
@@ -87,17 +91,20 @@ func TestFakeStore_RunLifecycle(t *testing.T) {
 	if run == nil {
 		t.Fatal("expected run to exist")
 	}
+
 	if run.Status != "pending" {
 		t.Errorf("expected pending status, got %s", run.Status)
 	}
 
 	s.MarkRunning(ctx, "run-1", now)
+
 	run = s.GetRun("run-1")
 	if run.Status != "running" {
 		t.Errorf("expected running status, got %s", run.Status)
 	}
 
 	s.MarkSuccess(ctx, "run-1", now, []byte(`{"ok":true}`))
+
 	run = s.GetRun("run-1")
 	if run.Status != "success" {
 		t.Errorf("expected success status, got %s", run.Status)
@@ -116,6 +123,7 @@ func TestFakeStore_MarkFailed(t *testing.T) {
 	if run.Status != "failed" {
 		t.Errorf("expected failed status, got %s", run.Status)
 	}
+
 	if run.Error != "something went wrong" {
 		t.Errorf("expected error message, got %s", run.Error)
 	}
@@ -177,23 +185,33 @@ func TestNoopStore(t *testing.T) {
 	if err != nil {
 		t.Errorf("ListDue() error = %v", err)
 	}
+
 	if jobs != nil {
 		t.Errorf("expected nil jobs from noop")
 	}
 
-	if err := s.CreateRun(ctx, "j", "r", now); err != nil {
+	err = s.CreateRun(ctx, "j", "r", now)
+	if err != nil {
 		t.Errorf("CreateRun() error = %v", err)
 	}
-	if err := s.MarkRunning(ctx, "r", now); err != nil {
+
+	err = s.MarkRunning(ctx, "r", now)
+	if err != nil {
 		t.Errorf("MarkRunning() error = %v", err)
 	}
-	if err := s.MarkSuccess(ctx, "r", now, nil); err != nil {
+
+	err = s.MarkSuccess(ctx, "r", now, nil)
+	if err != nil {
 		t.Errorf("MarkSuccess() error = %v", err)
 	}
-	if err := s.MarkFailed(ctx, "r", now, "err"); err != nil {
+
+	err = s.MarkFailed(ctx, "r", now, "err")
+	if err != nil {
 		t.Errorf("MarkFailed() error = %v", err)
 	}
-	if err := s.UpdateNextRun(ctx, "j", now, now); err != nil {
+
+	err = s.UpdateNextRun(ctx, "j", now, now)
+	if err != nil {
 		t.Errorf("UpdateNextRun() error = %v", err)
 	}
 }

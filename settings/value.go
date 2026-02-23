@@ -7,6 +7,7 @@ func ParseBool(value string) (bool, error) {
 	if value == "" {
 		return false, nil
 	}
+
 	return strconv.ParseBool(value)
 }
 
@@ -15,6 +16,7 @@ func ParseInt(value string) (int, error) {
 	if value == "" {
 		return 0, nil
 	}
+
 	return strconv.Atoi(value)
 }
 

@@ -7,7 +7,11 @@ Image storage and processing with variants.
 ```go
 // Create store (local or S3)
 store := local.NewStore("/var/uploads", "https://cdn.example.com")
-store := s3.NewStore(s3Client, bucket, "https://cdn.example.com")
+store, err := s3.NewStore(ctx, s3.Options{
+    Bucket:  "my-bucket",
+    Region:  "us-east-1",
+    BaseURL: "https://cdn.example.com",
+})
 
 // Store image
 err := store.Put(ctx, "images/photo.jpg", reader)

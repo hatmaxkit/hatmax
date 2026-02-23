@@ -51,6 +51,7 @@ func Normalize(text string, maxLength int) string {
 		if lastHyphen := strings.LastIndex(text, "-"); lastHyphen > 0 {
 			text = text[:lastHyphen]
 		}
+
 		text = strings.Trim(text, "-")
 	}
 
@@ -60,5 +61,6 @@ func Normalize(text string, maxLength int) string {
 func transliterate(s string) string {
 	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
 	result, _, _ := transform.String(t, s)
+
 	return result
 }

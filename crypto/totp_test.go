@@ -40,13 +40,17 @@ func TestGenerateTOTPKey(t *testing.T) {
 			key, err := GenerateTOTPKey(tt.issuer, tt.account)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateTOTPKey() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !tt.wantErr {
 				if key == nil {
 					t.Error("expected non-nil key")
+
 					return
 				}
+
 				if key.Secret() == "" {
 					t.Error("expected non-empty secret")
 				}
@@ -164,8 +168,10 @@ func TestGenerateQRCodePNG(t *testing.T) {
 	}
 
 	tests := []struct {
-		name    string
-		key     interface{ Image(int, int) (interface{ Bounds() interface{} }, error) }
+		name string
+		key  interface {
+			Image(int, int) (interface{ Bounds() interface{} }, error)
+		}
 		size    int
 		wantErr bool
 	}{
@@ -186,12 +192,15 @@ func TestGenerateQRCodePNG(t *testing.T) {
 			got, err := GenerateQRCodePNG(key, tt.size)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateQRCodePNG() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !tt.wantErr {
 				if len(got) == 0 {
 					t.Error("expected non-empty PNG data")
 				}
+
 				if !strings.HasPrefix(string(got[:8]), "\x89PNG") {
 					t.Error("expected PNG header")
 				}
@@ -238,19 +247,24 @@ func TestGenerateBackupCodes(t *testing.T) {
 			plain, hashed, err := GenerateBackupCodes(tt.count)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateBackupCodes() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !tt.wantErr {
 				if len(plain) != tt.wantCount {
 					t.Errorf("expected %d plain codes, got %d", tt.wantCount, len(plain))
 				}
+
 				if len(hashed) != tt.wantCount {
 					t.Errorf("expected %d hashed codes, got %d", tt.wantCount, len(hashed))
 				}
+
 				for i, code := range plain {
 					if len(code) != backupCodeLength {
 						t.Errorf("code %d: expected length %d, got %d", i, backupCodeLength, len(code))
 					}
+
 					if code != strings.ToUpper(code) {
 						t.Errorf("code %d: expected uppercase, got %s", i, code)
 					}
@@ -271,6 +285,7 @@ func TestGenerateBackupCodesUniqueness(t *testing.T) {
 		if seen[code] {
 			t.Errorf("duplicate code found: %s", code)
 		}
+
 		seen[code] = true
 	}
 }
@@ -345,6 +360,7 @@ func TestVerifyBackupCode(t *testing.T) {
 			if valid != tt.wantValid {
 				t.Errorf("VerifyBackupCode() valid = %v, want %v", valid, tt.wantValid)
 			}
+
 			if index != tt.wantIndex {
 				t.Errorf("VerifyBackupCode() index = %v, want %v", index, tt.wantIndex)
 			}

@@ -68,6 +68,12 @@ Implement `SettingsProvider` to override at runtime:
 sched.SetSettings(settingsService)
 ```
 
+Or wire from root config + settings in one constructor:
+
+```go
+sched := scheduler.NewWithConfig(store, settingsService, appCfg, logger)
+```
+
 Settings keys:
 - `scheduler.enabled` - Override Enabled
 - `scheduler.interval_seconds` - Override Interval

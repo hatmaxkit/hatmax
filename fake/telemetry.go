@@ -9,11 +9,11 @@ type CounterCall struct{}
 type Counter struct {
 	mu sync.Mutex
 
-	IncrementFunc   func()
-	incrementCalls  []CounterCall
-	GetAndResetFunc func() int64
+	IncrementFunc    func()
+	incrementCalls   []CounterCall
+	GetAndResetFunc  func() int64
 	getAndResetCalls int
-	simulatedCount  int64
+	simulatedCount   int64
 }
 
 // NewCounter creates a new fake Counter.
@@ -47,6 +47,7 @@ func (c *Counter) GetAndResetRequests() int64 {
 
 	count := c.simulatedCount
 	c.simulatedCount = 0
+
 	return count
 }
 
@@ -64,6 +65,7 @@ func (c *Counter) Reset() {
 func (c *Counter) IncrementCount() int {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
 	return len(c.incrementCalls)
 }
 
@@ -71,6 +73,7 @@ func (c *Counter) IncrementCount() int {
 func (c *Counter) GetAndResetCount() int {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
 	return c.getAndResetCalls
 }
 
@@ -78,7 +81,9 @@ func (c *Counter) GetAndResetCount() int {
 func (c *Counter) WithCount(n int64) *Counter {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
 	c.simulatedCount = n
+
 	return c
 }
 
@@ -122,6 +127,7 @@ func (c *CrashCollector) RecordPanic(message, endpoint, method string) {
 func (c *CrashCollector) Reset() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
 	c.calls = nil
 }
 
@@ -129,6 +135,7 @@ func (c *CrashCollector) Reset() {
 func (c *CrashCollector) RecordCount() int {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
 	return len(c.calls)
 }
 
@@ -140,7 +147,9 @@ func (c *CrashCollector) LastRecord() *CrashCall {
 	if len(c.calls) == 0 {
 		return nil
 	}
+
 	call := c.calls[len(c.calls)-1]
+
 	return &call
 }
 
@@ -154,6 +163,7 @@ func (c *CrashCollector) HasRecordFor(endpoint string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -164,5 +174,6 @@ func (c *CrashCollector) GetCalls() []CrashCall {
 
 	result := make([]CrashCall, len(c.calls))
 	copy(result, c.calls)
+
 	return result
 }

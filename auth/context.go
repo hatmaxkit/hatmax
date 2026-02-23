@@ -16,9 +16,11 @@ func GetUserID(ctx context.Context) (string, bool) {
 	if ctx == nil {
 		return "", false
 	}
+
 	if id, ok := ctx.Value(userIDKey).(string); ok {
 		return id, true
 	}
+
 	return "", false
 }
 
@@ -28,9 +30,11 @@ func GetUser(ctx context.Context) (*User, bool) {
 	if ctx == nil {
 		return nil, false
 	}
+
 	if user, ok := ctx.Value(userKey).(*User); ok {
 		return user, true
 	}
+
 	return nil, false
 }
 
@@ -40,9 +44,11 @@ func GetSession(ctx context.Context) (*Session, bool) {
 	if ctx == nil {
 		return nil, false
 	}
+
 	if session, ok := ctx.Value(sessionKey).(*Session); ok {
 		return session, true
 	}
+
 	return nil, false
 }
 

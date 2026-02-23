@@ -1,6 +1,8 @@
 # Variables
 LIB_NAME = hatmax
 MODULE_NAME = github.com/hatmaxkit/hatmax
+LINT_CACHE_DIR = $(CURDIR)/.tmp/lint
+LINT_GOCACHE = $(LINT_CACHE_DIR)/gocache
 
 # Default target
 all: test
@@ -22,21 +24,46 @@ help:
 	@echo "  test-coverage-summary - Display coverage table by package"
 	@echo ""
 	@echo "Quality Checks:"
-	@echo "  lint                  - Run golangci-lint"
+	@echo "  lint                  - Alias of lint-check"
+	@echo "  lint-check            - Check formatting + lint rules"
+	@echo "  lint-strict           - Run strict lint checks"
+	@echo "  lint-fix              - Apply format + auto-fixable lint rules"
 	@echo "  format                - Format code"
 	@echo "  vet                   - Run go vet"
-	@echo "  check                 - Run all quality checks (fmt, vet, test, test-coverage-check, lint)"
+	@echo "  check                 - Run all quality checks (fmt, vet, test, test-coverage-check, lint-strict)"
 	@echo "  ci                    - Run CI pipeline (strict, 100% coverage)"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  clean                 - Clean coverage files and test cache"
 	@echo "  tidy                  - Run go mod tidy"
 	@echo "  download              - Download dependencies"
+	@echo "  install-hooks         - Configure git to use .githooks/"
 
-# Run linter
-lint:
-	@echo "Running linter and fixing issues..."
-	@golangci-lint run --fix
+# Lint alias (soft/default)
+lint: lint-check
+
+lint-strict:
+	@mkdir -p $(LINT_GOCACHE)
+	@echo "Checking gofmt on tracked Go files..."
+	@UNFORMATTED=$$(gofmt -l $$(git ls-files '*.go')); \
+	if [ -n "$$UNFORMATTED" ]; then \
+		echo "❌ Unformatted files:"; \
+		echo "$$UNFORMATTED"; \
+		exit 1; \
+	fi
+	@echo "Running lint rules (nlreturn, noinlineerr, wsl_v5)..."
+	@GOCACHE=$(LINT_GOCACHE) golangci-lint run --default=none --enable=nlreturn --enable=noinlineerr --enable=wsl_v5
+
+lint-check: lint-strict
+
+lint-fix:
+	@mkdir -p $(LINT_GOCACHE)
+	@echo "Applying gofmt to tracked Go files..."
+	@gofmt -w $$(git ls-files '*.go')
+	@echo "Applying auto-fixable lint rules (nlreturn, wsl_v5)..."
+	@GOCACHE=$(LINT_GOCACHE) golangci-lint run --fix --default=none --enable=nlreturn --enable=wsl_v5
+	@echo "Reporting non-auto-fixable lint (noinlineerr)..."
+	@GOCACHE=$(LINT_GOCACHE) golangci-lint run --default=none --enable=noinlineerr --issues-exit-code=0
 
 # Format code
 format:
@@ -127,11 +154,11 @@ vet:
 	@go vet ./...
 
 # Run all quality checks
-check: format vet test test-coverage-check lint
+check: format vet test test-coverage-check lint-strict
 	@echo "✅ All quality checks passed!"
 
 # CI pipeline - strict checks including 100% coverage
-ci: format vet test test-coverage-100 lint
+ci: format vet test test-coverage-100 lint-strict
 	@echo "🚀 CI pipeline passed!"
 
 # Clean coverage files and test cache
@@ -151,5 +178,10 @@ download:
 	@echo "Downloading dependencies..."
 	@go mod download
 
+install-hooks:
+	@git config core.hooksPath .githooks
+	@chmod +x .githooks/pre-commit
+	@echo "✅ Git hooks installed (core.hooksPath=.githooks)"
+
 # Phony targets
-.PHONY: all test test-v test-short test-coverage test-coverage-profile test-coverage-html test-coverage-func test-coverage-check test-coverage-100 test-coverage-summary vet check ci lint format help clean tidy download
+.PHONY: all test test-v test-short test-coverage test-coverage-profile test-coverage-html test-coverage-func test-coverage-check test-coverage-100 test-coverage-summary vet check ci lint lint-check lint-strict lint-fix format help clean tidy download install-hooks

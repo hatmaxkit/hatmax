@@ -13,10 +13,10 @@ import (
 	"github.com/hatmaxkit/hatmax/auth"
 	"github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/audit"
 	"github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/list"
+	"github.com/hatmaxkit/hatmax/htmx"
 	"github.com/hatmaxkit/hatmax/log"
 	"github.com/hatmaxkit/hatmax/middleware"
 	"github.com/hatmaxkit/hatmax/web"
-	"github.com/hatmaxkit/hatmax/htmx"
 )
 
 // authService defines the auth operations needed by the handler.
@@ -119,6 +119,7 @@ func (h *Handler) requireAuth(next http.Handler) http.Handler {
 		cookie, err := r.Cookie(auth.SessionCookieName)
 		if err != nil {
 			http.Redirect(w, r, "/signin", http.StatusSeeOther)
+
 			return
 		}
 
@@ -126,6 +127,7 @@ func (h *Handler) requireAuth(next http.Handler) http.Handler {
 		if err != nil {
 			auth.ClearSessionCookie(w)
 			http.Redirect(w, r, "/signin", http.StatusSeeOther)
+
 			return
 		}
 
@@ -156,6 +158,7 @@ func (h *Handler) handleSignin(w http.ResponseWriter, r *http.Request) {
 	form, err := web.ParseForm(r)
 	if err != nil {
 		h.renderSigninError(w, "Invalid form data")
+
 		return
 	}
 
@@ -164,6 +167,7 @@ func (h *Handler) handleSignin(w http.ResponseWriter, r *http.Request) {
 
 	if email == "" || password == "" {
 		h.renderSigninError(w, "Email and password are required")
+
 		return
 	}
 
@@ -171,6 +175,7 @@ func (h *Handler) handleSignin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.Errorf("signin failed for %s: %v", email, err)
 		h.renderSigninError(w, "Invalid email or password")
+
 		return
 	}
 
@@ -192,6 +197,7 @@ func (h *Handler) handleSignup(w http.ResponseWriter, r *http.Request) {
 	form, err := web.ParseForm(r)
 	if err != nil {
 		h.renderSignupError(w, "Invalid form data")
+
 		return
 	}
 
@@ -201,11 +207,13 @@ func (h *Handler) handleSignup(w http.ResponseWriter, r *http.Request) {
 
 	if email == "" || password == "" {
 		h.renderSignupError(w, "Email and password are required")
+
 		return
 	}
 
 	if password != confirmPassword {
 		h.renderSignupError(w, "Passwords do not match")
+
 		return
 	}
 
@@ -213,12 +221,14 @@ func (h *Handler) handleSignup(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.Errorf("signup failed for %s: %v", email, err)
 		h.renderSignupError(w, err.Error())
+
 		return
 	}
 
 	session, err := h.authSvc.Signin(r.Context(), email, password)
 	if err != nil {
 		http.Redirect(w, r, "/signin", http.StatusSeeOther)
+
 		return
 	}
 
@@ -263,6 +273,7 @@ func (h *Handler) handleListItems(w http.ResponseWriter, r *http.Request) {
 	user, ok := auth.GetUser(r.Context())
 	if !ok {
 		http.Redirect(w, r, "/signin", http.StatusSeeOther)
+
 		return
 	}
 
@@ -270,6 +281,7 @@ func (h *Handler) handleListItems(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.Errorf("get list failed: %v", err)
 		http.Error(w, "Failed to load list", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -285,18 +297,21 @@ func (h *Handler) handleAddItem(w http.ResponseWriter, r *http.Request) {
 	user, ok := auth.GetUser(r.Context())
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+
 		return
 	}
 
 	form, err := web.ParseForm(r)
 	if err != nil {
 		http.Error(w, "Invalid form", http.StatusBadRequest)
+
 		return
 	}
 
 	text := form.String("text")
 	if text == "" {
 		http.Error(w, "Text is required", http.StatusBadRequest)
+
 		return
 	}
 
@@ -304,6 +319,7 @@ func (h *Handler) handleAddItem(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.Errorf("add item failed: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
+
 		return
 	}
 
@@ -314,18 +330,21 @@ func (h *Handler) handleToggleItem(w http.ResponseWriter, r *http.Request) {
 	user, ok := auth.GetUser(r.Context())
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+
 		return
 	}
 
 	form, err := web.ParseForm(r)
 	if err != nil {
 		http.Error(w, "Invalid form", http.StatusBadRequest)
+
 		return
 	}
 
 	itemID := form.String("id")
 	if itemID == "" {
 		http.Error(w, "Item ID required", http.StatusBadRequest)
+
 		return
 	}
 
@@ -333,6 +352,7 @@ func (h *Handler) handleToggleItem(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.Errorf("toggle item failed: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
+
 		return
 	}
 
@@ -343,18 +363,21 @@ func (h *Handler) handleDeleteItem(w http.ResponseWriter, r *http.Request) {
 	user, ok := auth.GetUser(r.Context())
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+
 		return
 	}
 
 	form, err := web.ParseForm(r)
 	if err != nil {
 		http.Error(w, "Invalid form", http.StatusBadRequest)
+
 		return
 	}
 
 	itemID := form.String("id")
 	if itemID == "" {
 		http.Error(w, "Item ID required", http.StatusBadRequest)
+
 		return
 	}
 
@@ -362,8 +385,10 @@ func (h *Handler) handleDeleteItem(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.Errorf("error deleting item: %v", err)
 		http.Error(w, "Cannot delete", http.StatusInternalServerError)
+
 		return
 	}
+
 	htmx.RespondDelete(w)
 }
 
@@ -375,6 +400,7 @@ func (h *Handler) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	count, err := h.authQ.CountUsers(r.Context())
 	if err != nil {
 		h.log.Errorf("count users failed: %v", err)
+
 		count = 0
 	}
 
@@ -393,6 +419,7 @@ func (h *Handler) handleListUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.Errorf("list users failed: %v", err)
 		http.Error(w, "Failed to load users", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -406,9 +433,11 @@ func (h *Handler) handleListUsers(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	currentUser, _ := auth.GetUser(r.Context())
+
 	userID := r.URL.Query().Get("id")
 	if userID == "" {
 		http.Error(w, "Missing id parameter", http.StatusBadRequest)
+
 		return
 	}
 
@@ -416,6 +445,7 @@ func (h *Handler) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.Errorf("get user %s failed: %v", userID, err)
 		http.Error(w, "User not found", http.StatusNotFound)
+
 		return
 	}
 
@@ -432,17 +462,21 @@ func (h *Handler) handleUpdateRoles(w http.ResponseWriter, r *http.Request) {
 	form, err := web.ParseForm(r)
 	if err != nil {
 		http.Error(w, "Invalid form", http.StatusBadRequest)
+
 		return
 	}
 
 	userID := form.String("id")
 	if userID == "" {
 		http.Error(w, "Missing id parameter", http.StatusBadRequest)
+
 		return
 	}
 
 	rolesStr := form.String("roles")
+
 	var roles []string
+
 	if rolesStr != "" {
 		for _, role := range strings.Split(rolesStr, ",") {
 			role = strings.TrimSpace(role)
@@ -452,9 +486,11 @@ func (h *Handler) handleUpdateRoles(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := h.authQ.UpdateUserRoles(r.Context(), userID, roles, time.Now()); err != nil {
+	err = h.authQ.UpdateUserRoles(r.Context(), userID, roles, time.Now())
+	if err != nil {
 		h.log.Errorf("update roles for %s failed: %v", userID, err)
 		http.Error(w, "Failed to update roles", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -470,30 +506,37 @@ func (h *Handler) handleToggleUser(w http.ResponseWriter, r *http.Request) {
 	form, err := web.ParseForm(r)
 	if err != nil {
 		http.Error(w, "Invalid form", http.StatusBadRequest)
+
 		return
 	}
 
 	userID := form.String("id")
 	if userID == "" {
 		http.Error(w, "Missing id parameter", http.StatusBadRequest)
+
 		return
 	}
 
 	if userID == currentUser.ID {
 		http.Error(w, "Cannot deactivate yourself", http.StatusBadRequest)
+
 		return
 	}
 
 	user, err := h.authQ.GetUserByID(r.Context(), userID)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
+
 		return
 	}
 
 	newActive := !user.Active
-	if err := h.authQ.UpdateUserActive(r.Context(), userID, newActive, time.Now()); err != nil {
+
+	err = h.authQ.UpdateUserActive(r.Context(), userID, newActive, time.Now())
+	if err != nil {
 		h.log.Errorf("toggle active for %s failed: %v", userID, err)
 		http.Error(w, "Failed to update user", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -510,6 +553,7 @@ func (h *Handler) handleListEvents(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.Errorf("list events failed: %v", err)
 		http.Error(w, "Failed to load events", http.StatusInternalServerError)
+
 		return
 	}
 

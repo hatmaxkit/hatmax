@@ -41,6 +41,7 @@ func (m *mockQueries) CreateUser(ctx context.Context, id, email, passwordHash st
 		UpdatedAt:    updatedAt,
 	}
 	m.users[id] = user
+
 	return user, nil
 }
 
@@ -50,6 +51,7 @@ func (m *mockQueries) GetUserByEmail(ctx context.Context, email string) (*User, 
 			return u, nil
 		}
 	}
+
 	return nil, sql.ErrNoRows
 }
 
@@ -58,6 +60,7 @@ func (m *mockQueries) GetUserByID(ctx context.Context, id string) (*User, error)
 	if !ok {
 		return nil, sql.ErrNoRows
 	}
+
 	return user, nil
 }
 
@@ -70,6 +73,7 @@ func (m *mockQueries) CreateSession(ctx context.Context, id, userID, token strin
 		CreatedAt: createdAt,
 	}
 	m.sessions[token] = session
+
 	return session, nil
 }
 
@@ -78,6 +82,7 @@ func (m *mockQueries) GetSessionByToken(ctx context.Context, token string) (*Ses
 	if !ok {
 		return nil, sql.ErrNoRows
 	}
+
 	return session, nil
 }
 
@@ -85,9 +90,11 @@ func (m *mockQueries) DeleteSession(ctx context.Context, sessionID string) error
 	for token, s := range m.sessions {
 		if s.ID == sessionID {
 			delete(m.sessions, token)
+
 			return nil
 		}
 	}
+
 	return sql.ErrNoRows
 }
 
@@ -98,6 +105,7 @@ func (m *mockQueries) DeleteExpiredSessions(ctx context.Context) error {
 			delete(m.sessions, token)
 		}
 	}
+
 	return nil
 }
 
@@ -154,21 +162,26 @@ func TestSignup(t *testing.T) {
 			if tt.wantErr != nil {
 				if err == nil {
 					t.Errorf("Signup() error = nil, wantErr %v", tt.wantErr)
+
 					return
 				}
+
 				if !errors.Is(err, tt.wantErr) && err.Error() != tt.wantErr.Error() {
 					t.Errorf("Signup() error = %v, wantErr %v", err, tt.wantErr)
 				}
+
 				return
 			}
 
 			if err != nil {
 				t.Errorf("Signup() unexpected error = %v", err)
+
 				return
 			}
 
 			if user == nil {
 				t.Error("Signup() returned nil user")
+
 				return
 			}
 
@@ -225,21 +238,26 @@ func TestSignin(t *testing.T) {
 			if tt.wantErr != nil {
 				if err == nil {
 					t.Errorf("Signin() error = nil, wantErr %v", tt.wantErr)
+
 					return
 				}
+
 				if !errors.Is(err, tt.wantErr) && err.Error() != tt.wantErr.Error() {
 					t.Errorf("Signin() error = %v, wantErr %v", err, tt.wantErr)
 				}
+
 				return
 			}
 
 			if err != nil {
 				t.Errorf("Signin() unexpected error = %v", err)
+
 				return
 			}
 
 			if session == nil {
 				t.Error("Signin() returned nil session")
+
 				return
 			}
 
@@ -305,11 +323,14 @@ func TestSignout(t *testing.T) {
 			if tt.wantErr != nil {
 				if err == nil {
 					t.Errorf("Signout() error = nil, wantErr %v", tt.wantErr)
+
 					return
 				}
+
 				if !errors.Is(err, tt.wantErr) && err.Error() != tt.wantErr.Error() {
 					t.Errorf("Signout() error = %v, wantErr %v", err, tt.wantErr)
 				}
+
 				return
 			}
 
@@ -379,16 +400,20 @@ func TestValidateSession(t *testing.T) {
 			if tt.err != nil {
 				if err == nil {
 					t.Errorf("ValidateSession() error = nil, wantErr %v", tt.err)
+
 					return
 				}
+
 				if !errors.Is(err, tt.err) && err.Error() != tt.err.Error() {
 					t.Errorf("ValidateSession() error = %v, wantErr %v", err, tt.err)
 				}
+
 				return
 			}
 
 			if err != nil {
 				t.Errorf("ValidateSession() unexpected error = %v", err)
+
 				return
 			}
 
@@ -455,16 +480,20 @@ func TestGetUserByID(t *testing.T) {
 			if tt.wantErr != nil {
 				if err == nil {
 					t.Errorf("GetUserByID() error = nil, wantErr %v", tt.wantErr)
+
 					return
 				}
+
 				if !errors.Is(err, tt.wantErr) && err.Error() != tt.wantErr.Error() {
 					t.Errorf("GetUserByID() error = %v, wantErr %v", err, tt.wantErr)
 				}
+
 				return
 			}
 
 			if err != nil {
 				t.Errorf("GetUserByID() unexpected error = %v", err)
+
 				return
 			}
 

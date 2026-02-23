@@ -7,7 +7,7 @@ Publish/subscribe messaging with fan-out semantics.
 ```go
 // Create broker (Postgres or Noop)
 broker := postgres.NewBroker(db, cfg, log)
-broker := pubsub.NewNoop()
+broker := pubsub.NewNoopBroker()
 
 // Publish
 env := pubsub.Envelope{

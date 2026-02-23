@@ -27,12 +27,14 @@ func NewAssets(embeds embed.FS) *Assets {
 // WithOverlay sets a filesystem overlay for asset customization.
 func (a *Assets) WithOverlay(overlay fs.FS) *Assets {
 	a.overlay = overlay
+
 	return a
 }
 
 // WithPrefix sets the URL prefix.
 func (a *Assets) WithPrefix(prefix string) *Assets {
 	a.prefix = prefix
+
 	return a
 }
 
@@ -46,6 +48,7 @@ func (a *Assets) URL(assetPath string) string {
 	if !strings.HasPrefix(assetPath, "/") {
 		assetPath = "/" + assetPath
 	}
+
 	return a.prefix + assetPath
 }
 
@@ -54,7 +57,8 @@ func (a *Assets) Open(name string) (fs.File, error) {
 	name = strings.TrimPrefix(name, "/")
 
 	if a.overlay != nil {
-		if f, err := a.overlay.Open(name); err == nil {
+		f, err := a.overlay.Open(name)
+		if err == nil {
 			return f, nil
 		}
 	}
@@ -79,12 +83,14 @@ func (a *Assets) Handler() http.Handler {
 		name := strings.TrimPrefix(r.URL.Path, "/")
 		if name == "" {
 			http.NotFound(w, r)
+
 			return
 		}
 
 		f, err := a.Open(name)
 		if err != nil {
 			http.NotFound(w, r)
+
 			return
 		}
 		defer f.Close()
@@ -92,17 +98,20 @@ func (a *Assets) Handler() http.Handler {
 		stat, err := f.Stat()
 		if err != nil {
 			http.NotFound(w, r)
+
 			return
 		}
 
 		if stat.IsDir() {
 			http.NotFound(w, r)
+
 			return
 		}
 
 		content, err := io.ReadAll(f)
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 			return
 		}
 
@@ -150,5 +159,6 @@ func (k *Kit) Assets() *Assets {
 	if k.overlay != nil {
 		assets.WithOverlay(k.overlay)
 	}
+
 	return assets
 }

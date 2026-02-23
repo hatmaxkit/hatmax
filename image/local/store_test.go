@@ -14,6 +14,7 @@ func TestNewStore(t *testing.T) {
 	if store.basePath != "/tmp/images" {
 		t.Errorf("basePath = %q, want %q", store.basePath, "/tmp/images")
 	}
+
 	if store.baseURL != "/uploads" {
 		t.Errorf("baseURL = %q, want %q", store.baseURL, "/uploads")
 	}
@@ -56,7 +57,9 @@ func TestStore_PutGetDelete(t *testing.T) {
 
 	// Verify file exists
 	fullPath := filepath.Join(tmpDir, path)
-	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+
+	_, err = os.Stat(fullPath)
+	if os.IsNotExist(err) {
 		t.Error("file was not created")
 	}
 
@@ -68,6 +71,7 @@ func TestStore_PutGetDelete(t *testing.T) {
 	defer reader.Close()
 
 	var buf bytes.Buffer
+
 	_, err = buf.ReadFrom(reader)
 	if err != nil {
 		t.Fatalf("failed to read: %v", err)
@@ -84,7 +88,8 @@ func TestStore_PutGetDelete(t *testing.T) {
 	}
 
 	// Verify file is deleted
-	if _, err := os.Stat(fullPath); !os.IsNotExist(err) {
+	_, err = os.Stat(fullPath)
+	if !os.IsNotExist(err) {
 		t.Error("file was not deleted")
 	}
 }

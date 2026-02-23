@@ -26,6 +26,7 @@ import (
 // Locally, it spins up a testcontainer for complete isolation.
 func SetupTestDB(t *testing.T) (*sql.DB, string, func()) {
 	t.Helper()
+
 	ctx := context.Background()
 
 	if dbHost := os.Getenv("DB_HOST"); dbHost != "" {
@@ -58,7 +59,8 @@ func setupCIDatabase(t *testing.T, ctx context.Context) (*sql.DB, string, func()
 		t.Fatalf("cannot open database: %v", err)
 	}
 
-	if err := setupDB.PingContext(ctx); err != nil {
+	err = setupDB.PingContext(ctx)
+	if err != nil {
 		setupDB.Close()
 		t.Fatalf("cannot ping database: %v", err)
 	}
@@ -68,6 +70,7 @@ func setupCIDatabase(t *testing.T, ctx context.Context) (*sql.DB, string, func()
 		setupDB.Close()
 		t.Fatalf("cannot create schema %s: %v", schema, err)
 	}
+
 	setupDB.Close()
 
 	// Connection string WITH search_path so ALL connections use the correct schema
@@ -81,7 +84,8 @@ func setupCIDatabase(t *testing.T, ctx context.Context) (*sql.DB, string, func()
 		t.Fatalf("cannot open database with search_path: %v", err)
 	}
 
-	if err := db.PingContext(ctx); err != nil {
+	err = db.PingContext(ctx)
+	if err != nil {
 		db.Close()
 		t.Fatalf("cannot ping database: %v", err)
 	}
@@ -94,6 +98,7 @@ func setupCIDatabase(t *testing.T, ctx context.Context) (*sql.DB, string, func()
 			return
 		}
 		defer cleanupDB.Close()
+
 		_, _ = cleanupDB.ExecContext(context.Background(),
 			fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", schema))
 	}
@@ -127,7 +132,8 @@ func setupTestContainer(t *testing.T, ctx context.Context) (*sql.DB, string, fun
 		t.Fatalf("cannot open database: %v", err)
 	}
 
-	if err := db.PingContext(ctx); err != nil {
+	err = db.PingContext(ctx)
+	if err != nil {
 		db.Close()
 		t.Fatalf("cannot ping database: %v", err)
 	}
@@ -136,7 +142,9 @@ func setupTestContainer(t *testing.T, ctx context.Context) (*sql.DB, string, fun
 
 	cleanup := func() {
 		db.Close()
-		if err := pgContainer.Terminate(context.Background()); err != nil {
+
+		err := pgContainer.Terminate(context.Background())
+		if err != nil {
 			t.Logf("cannot terminate container: %v", err)
 		}
 	}
@@ -147,6 +155,7 @@ func setupTestContainer(t *testing.T, ctx context.Context) (*sql.DB, string, fun
 // SetupTestDBWithConfig returns a config.Config for testing.
 func SetupTestDBWithConfig(t *testing.T) (*config.Config, func()) {
 	t.Helper()
+
 	ctx := context.Background()
 
 	if dbHost := os.Getenv("DB_HOST"); dbHost != "" {
@@ -202,6 +211,7 @@ func setupCIDatabaseWithConfig(t *testing.T, ctx context.Context) (*config.Confi
 		db, err := sql.Open("pgx", connStr)
 		if err != nil {
 			t.Logf("cannot open database for cleanup: %v", err)
+
 			return
 		}
 		defer db.Close()
@@ -252,8 +262,9 @@ func setupTestContainerWithConfig(t *testing.T, ctx context.Context) (*config.Co
 	}
 
 	cleanup := func() {
-		if err := pgContainer.Terminate(context.Background()); err != nil {
-			t.Logf("cannot terminate container: %v", err)
+		terminateErr := pgContainer.Terminate(context.Background())
+		if terminateErr != nil {
+			t.Logf("cannot terminate container: %v", terminateErr)
 		}
 	}
 
@@ -269,15 +280,19 @@ func getEnvOrDefault(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
 	}
+
 	return defaultValue
 }
 
 func randomString(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+
 	b := make([]byte, length)
+
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := range b {
 		b[i] = charset[rng.Intn(len(charset))]
 	}
+
 	return string(b)
 }

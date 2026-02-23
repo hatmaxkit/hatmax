@@ -41,6 +41,7 @@ func NewAttrs() *Attrs {
 // Action sets the HTTP action (GET, POST, etc.).
 func (a *Attrs) Action(action Action) *Attrs {
 	a.action = &action
+
 	return a
 }
 
@@ -48,6 +49,7 @@ func (a *Attrs) Action(action Action) *Attrs {
 func (a *Attrs) Get(url string) *Attrs {
 	action := Get(url)
 	a.action = &action
+
 	return a
 }
 
@@ -55,6 +57,7 @@ func (a *Attrs) Get(url string) *Attrs {
 func (a *Attrs) Post(url string) *Attrs {
 	action := Post(url)
 	a.action = &action
+
 	return a
 }
 
@@ -62,6 +65,7 @@ func (a *Attrs) Post(url string) *Attrs {
 func (a *Attrs) Put(url string) *Attrs {
 	action := Put(url)
 	a.action = &action
+
 	return a
 }
 
@@ -69,6 +73,7 @@ func (a *Attrs) Put(url string) *Attrs {
 func (a *Attrs) Patch(url string) *Attrs {
 	action := Patch(url)
 	a.action = &action
+
 	return a
 }
 
@@ -76,18 +81,21 @@ func (a *Attrs) Patch(url string) *Attrs {
 func (a *Attrs) Delete(url string) *Attrs {
 	action := Delete(url)
 	a.action = &action
+
 	return a
 }
 
 // Trigger sets the trigger configuration.
 func (a *Attrs) Trigger(trigger Trigger) *Attrs {
 	a.trigger = &trigger
+
 	return a
 }
 
 // Target sets the target selector.
 func (a *Attrs) Target(target Target) *Attrs {
 	a.target = &target
+
 	return a
 }
 
@@ -95,6 +103,7 @@ func (a *Attrs) Target(target Target) *Attrs {
 func (a *Attrs) TargetID(id string) *Attrs {
 	t := TargetID(id)
 	a.target = &t
+
 	return a
 }
 
@@ -102,12 +111,14 @@ func (a *Attrs) TargetID(id string) *Attrs {
 func (a *Attrs) TargetThis() *Attrs {
 	t := TargetSelf()
 	a.target = &t
+
 	return a
 }
 
 // Swap sets the swap strategy.
 func (a *Attrs) Swap(swap Swap) *Attrs {
 	a.swap = &swap
+
 	return a
 }
 
@@ -115,6 +126,7 @@ func (a *Attrs) Swap(swap Swap) *Attrs {
 func (a *Attrs) SwapOuter() *Attrs {
 	s := SwapOuter()
 	a.swap = &s
+
 	return a
 }
 
@@ -122,6 +134,7 @@ func (a *Attrs) SwapOuter() *Attrs {
 func (a *Attrs) SwapInner() *Attrs {
 	s := SwapInner()
 	a.swap = &s
+
 	return a
 }
 
@@ -129,42 +142,49 @@ func (a *Attrs) SwapInner() *Attrs {
 func (a *Attrs) SwapDelete() *Attrs {
 	s := SwapDelete()
 	a.swap = &s
+
 	return a
 }
 
 // Confirm sets a confirmation message.
 func (a *Attrs) Confirm(message string) *Attrs {
 	a.confirm = message
+
 	return a
 }
 
 // Disable sets the disable selector while request is in flight.
 func (a *Attrs) Disable(selector string) *Attrs {
 	a.disable = selector
+
 	return a
 }
 
 // DisableSelf disables the element itself while request is in flight.
 func (a *Attrs) DisableSelf() *Attrs {
 	a.disable = "this"
+
 	return a
 }
 
 // Indicator sets the indicator element.
 func (a *Attrs) Indicator(selector string) *Attrs {
 	a.indicator = selector
+
 	return a
 }
 
 // Sync sets the sync strategy.
 func (a *Attrs) Sync(strategy string) *Attrs {
 	a.sync = strategy
+
 	return a
 }
 
 // Validate enables form validation.
 func (a *Attrs) Validate() *Attrs {
 	a.validate = true
+
 	return a
 }
 
@@ -172,6 +192,7 @@ func (a *Attrs) Validate() *Attrs {
 func (a *Attrs) Boost() *Attrs {
 	b := true
 	a.boost = &b
+
 	return a
 }
 
@@ -179,54 +200,63 @@ func (a *Attrs) Boost() *Attrs {
 func (a *Attrs) NoBoost() *Attrs {
 	b := false
 	a.boost = &b
+
 	return a
 }
 
 // PushURL enables pushing a URL to history.
 func (a *Attrs) PushURL(url string) *Attrs {
 	a.pushURL = url
+
 	return a
 }
 
 // ReplaceURL enables replacing the URL in history.
 func (a *Attrs) ReplaceURL(url string) *Attrs {
 	a.replaceURL = url
+
 	return a
 }
 
 // Select sets the selector for partial content.
 func (a *Attrs) Select(selector string) *Attrs {
 	a.select_ = selector
+
 	return a
 }
 
 // SelectOOB sets the selector for out-of-band swaps.
 func (a *Attrs) SelectOOB(selector string) *Attrs {
 	a.selectOOB = selector
+
 	return a
 }
 
 // Ext sets HTMX extensions.
 func (a *Attrs) Ext(extensions string) *Attrs {
 	a.ext = extensions
+
 	return a
 }
 
 // Encoding sets the form encoding type.
 func (a *Attrs) Encoding(encoding string) *Attrs {
 	a.encoding = encoding
+
 	return a
 }
 
 // Preserve marks the element as preserved during swap.
 func (a *Attrs) Preserve() *Attrs {
 	a.preserve = true
+
 	return a
 }
 
 // History sets history behavior.
 func (a *Attrs) History(value string) *Attrs {
 	a.history = value
+
 	return a
 }
 
@@ -236,7 +266,9 @@ func (a *Attrs) WithVal(key string, value any) *Attrs {
 		action := Action{}
 		a.action = &action
 	}
+
 	*a.action = a.action.WithVal(key, value)
+
 	return a
 }
 
@@ -246,7 +278,9 @@ func (a *Attrs) WithVals(vals map[string]any) *Attrs {
 		action := Action{}
 		a.action = &action
 	}
+
 	*a.action = a.action.WithVals(vals)
+
 	return a
 }
 
@@ -255,7 +289,9 @@ func (a *Attrs) Set(key, value string) *Attrs {
 	if a.extra == nil {
 		a.extra = make(map[string]string)
 	}
+
 	a.extra[key] = value
+
 	return a
 }
 
@@ -268,6 +304,7 @@ func (a *Attrs) Map() map[string]string {
 		if v := a.action.Vals(); v != "" {
 			m["hx-vals"] = v
 		}
+
 		if len(a.action.Headers()) > 0 {
 			h, _ := json.Marshal(a.action.Headers())
 			m["hx-headers"] = string(h)
@@ -371,9 +408,11 @@ func (a *Attrs) String() string {
 	for k := range m {
 		keys = append(keys, k)
 	}
+
 	sort.Strings(keys)
 
 	var parts []string
+
 	for _, k := range keys {
 		v := m[k]
 		parts = append(parts, fmt.Sprintf(`%s="%s"`, k, template.HTMLEscapeString(v)))

@@ -53,14 +53,14 @@ func TestAlert(t *testing.T) {
 			wantTitle: "Header",
 		},
 		{
-			name:      "with icon",
-			alert:     NewAlert("Info").Icon("ℹ️"),
-			wantText:  "ℹ️",
+			name:     "with icon",
+			alert:    NewAlert("Info").Icon("ℹ️"),
+			wantText: "ℹ️",
 		},
 		{
-			name:      "with id",
-			alert:     NewAlert("Test").ID("alert-1"),
-			wantText:  `id="alert-1"`,
+			name:     "with id",
+			alert:    NewAlert("Test").ID("alert-1"),
+			wantText: `id="alert-1"`,
 		},
 		{
 			name:      "with class",
@@ -145,14 +145,14 @@ func TestFlash(t *testing.T) {
 			wantTrigger: true,
 		},
 		{
-			name:      "with icon",
-			flash:     NewFlash("Info").Icon("✓"),
-			wantText:  "✓",
+			name:     "with icon",
+			flash:    NewFlash("Info").Icon("✓"),
+			wantText: "✓",
 		},
 		{
-			name:      "with id",
-			flash:     NewFlash("Test").ID("flash-1"),
-			wantText:  `id="flash-1"`,
+			name:     "with id",
+			flash:    NewFlash("Test").ID("flash-1"),
+			wantText: `id="flash-1"`,
 		},
 		{
 			name:      "warning variant",

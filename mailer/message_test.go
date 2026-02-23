@@ -6,24 +6,24 @@ import (
 
 func TestAddressString(t *testing.T) {
 	tests := []struct {
-		name  string
-		addr  Address
-		want  string
+		name string
+		addr Address
+		want string
 	}{
 		{
-			name:  "email only",
-			addr:  Address{Email: "test@example.com"},
-			want:  "test@example.com",
+			name: "email only",
+			addr: Address{Email: "test@example.com"},
+			want: "test@example.com",
 		},
 		{
-			name:  "email with name",
-			addr:  Address{Email: "test@example.com", Name: "Test User"},
-			want:  `"Test User" <test@example.com>`,
+			name: "email with name",
+			addr: Address{Email: "test@example.com", Name: "Test User"},
+			want: `"Test User" <test@example.com>`,
 		},
 		{
-			name:  "empty address",
-			addr:  Address{},
-			want:  "",
+			name: "empty address",
+			addr: Address{},
+			want: "",
 		},
 	}
 
@@ -134,8 +134,10 @@ func TestMessageValidate(t *testing.T) {
 			err := tt.msg.Validate()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Message.Validate() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if tt.wantErr && err != nil && tt.errMsg != "" {
 				if err.Error() != tt.errMsg {
 					t.Errorf("Message.Validate() error = %q, want %q", err.Error(), tt.errMsg)

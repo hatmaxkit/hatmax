@@ -29,36 +29,42 @@ func NewNavGrid() *NavGrid {
 // Items sets the navigation items.
 func (n *NavGrid) Items(items ...NavItem) *NavGrid {
 	n.items = items
+
 	return n
 }
 
 // AddItem adds a navigation item.
 func (n *NavGrid) AddItem(emoji Emoji, label, href string) *NavGrid {
 	n.items = append(n.items, NavItem{Emoji: emoji, Label: label, Href: href})
+
 	return n
 }
 
 // AddItemWithBadge adds a navigation item with a badge.
 func (n *NavGrid) AddItemWithBadge(emoji Emoji, label, href, badge string) *NavGrid {
 	n.items = append(n.items, NavItem{Emoji: emoji, Label: label, Href: href, Badge: badge})
+
 	return n
 }
 
 // Cols sets the number of columns.
 func (n *NavGrid) Cols(cols int) *NavGrid {
 	n.cols = cols
+
 	return n
 }
 
 // Class adds custom CSS classes.
 func (n *NavGrid) Class(class string) *NavGrid {
 	n.class = class
+
 	return n
 }
 
 // Render renders the navigation grid to HTML.
 func (n *NavGrid) Render() template.HTML {
 	var classes []string
+
 	classes = append(classes, "nav-grid")
 	if n.class != "" {
 		classes = append(classes, n.class)
@@ -90,8 +96,8 @@ func (n *NavGrid) Render() template.HTML {
 
 // Nav represents a navigation menu.
 type Nav struct {
-	items   []NavLink
-	class   string
+	items    []NavLink
+	class    string
 	vertical bool
 }
 
@@ -111,34 +117,40 @@ func NewNav() *Nav {
 // Items sets the navigation links.
 func (n *Nav) Items(items ...NavLink) *Nav {
 	n.items = items
+
 	return n
 }
 
 // AddLink adds a navigation link.
 func (n *Nav) AddLink(label, href string, active bool) *Nav {
 	n.items = append(n.items, NavLink{Label: label, Href: href, Active: active})
+
 	return n
 }
 
 // Vertical makes the navigation vertical.
 func (n *Nav) Vertical() *Nav {
 	n.vertical = true
+
 	return n
 }
 
 // Class adds custom CSS classes.
 func (n *Nav) Class(class string) *Nav {
 	n.class = class
+
 	return n
 }
 
 // Render renders the navigation menu to HTML.
 func (n *Nav) Render() template.HTML {
 	var classes []string
+
 	classes = append(classes, "nav")
 	if n.vertical {
 		classes = append(classes, "nav--vertical")
 	}
+
 	if n.class != "" {
 		classes = append(classes, n.class)
 	}

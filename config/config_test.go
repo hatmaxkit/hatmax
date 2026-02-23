@@ -40,6 +40,26 @@ func TestNew(t *testing.T) {
 	if cfg.Auth.BCryptCost != 12 {
 		t.Errorf("Auth.BCryptCost = %d, want 12", cfg.Auth.BCryptCost)
 	}
+
+	if cfg.Scheduler.Interval != "1m" {
+		t.Errorf("Scheduler.Interval = %s, want 1m", cfg.Scheduler.Interval)
+	}
+
+	if cfg.Scheduler.BatchSize != 20 {
+		t.Errorf("Scheduler.BatchSize = %d, want 20", cfg.Scheduler.BatchSize)
+	}
+
+	if cfg.Mailer.Mode != "disabled" {
+		t.Errorf("Mailer.Mode = %s, want disabled", cfg.Mailer.Mode)
+	}
+
+	if cfg.Mailer.Provider != "smtp" {
+		t.Errorf("Mailer.Provider = %s, want smtp", cfg.Mailer.Provider)
+	}
+
+	if cfg.Mailer.DefaultFrom.Email != "noreply@localhost" {
+		t.Errorf("Mailer.DefaultFrom.Email = %s, want noreply@localhost", cfg.Mailer.DefaultFrom.Email)
+	}
 }
 
 func TestValidate(t *testing.T) {
@@ -53,6 +73,72 @@ func TestValidate(t *testing.T) {
 			name:    "valid config",
 			cfg:     New(),
 			wantErr: false,
+		},
+		{
+			name: "invalid scheduler batch size",
+			cfg: &Config{
+				Server: ServerConfig{Port: ":8080"},
+				Database: DatabaseConfig{
+					Host:     "localhost",
+					User:     "dev",
+					Database: "dev",
+				},
+				Auth: AuthConfig{
+					PasswordMinLen: 8,
+					BCryptCost:     12,
+				},
+				Scheduler: SchedulerConfig{
+					BatchSize:     0,
+					Workers:       1,
+					RetryAttempts: 1,
+				},
+			},
+			wantErr: true,
+			errMsg:  "scheduler.batch_size must be at least 1",
+		},
+		{
+			name: "invalid scheduler workers",
+			cfg: &Config{
+				Server: ServerConfig{Port: ":8080"},
+				Database: DatabaseConfig{
+					Host:     "localhost",
+					User:     "dev",
+					Database: "dev",
+				},
+				Auth: AuthConfig{
+					PasswordMinLen: 8,
+					BCryptCost:     12,
+				},
+				Scheduler: SchedulerConfig{
+					BatchSize:     1,
+					Workers:       0,
+					RetryAttempts: 1,
+				},
+			},
+			wantErr: true,
+			errMsg:  "scheduler.workers must be at least 1",
+		},
+		{
+			name: "invalid scheduler retry attempts",
+			cfg: &Config{
+				Server: ServerConfig{Port: ":8080"},
+				Database: DatabaseConfig{
+					Host:     "localhost",
+					User:     "dev",
+					Database: "dev",
+				},
+				Auth: AuthConfig{
+					PasswordMinLen: 8,
+					BCryptCost:     12,
+				},
+				Scheduler: SchedulerConfig{
+					BatchSize:     1,
+					Workers:       1,
+					RetryAttempts: 0,
+				},
+			},
+			wantErr: true,
+			errMsg:  "scheduler.retry_attempts must be at least 1",
 		},
 		{
 			name: "empty server port",
@@ -181,6 +267,7 @@ func TestValidate(t *testing.T) {
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 
@@ -274,10 +361,13 @@ auth:
 	}
 	defer os.Remove(tmpfile.Name())
 
-	if _, err := tmpfile.Write([]byte(yamlContent)); err != nil {
+	_, err = tmpfile.Write([]byte(yamlContent))
+	if err != nil {
 		t.Fatal(err)
 	}
-	if err := tmpfile.Close(); err != nil {
+
+	err = tmpfile.Close()
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -346,9 +436,50 @@ func TestPollIntervalDuration(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := PubSubConfig{PollInterval: tt.interval}
+
 			got := cfg.PollIntervalDuration()
 			if got != tt.want {
 				t.Errorf("PollIntervalDuration() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSchedulerDurations(t *testing.T) {
+	tests := []struct {
+		name         string
+		cfg          SchedulerConfig
+		wantInterval time.Duration
+		wantBackoff  time.Duration
+	}{
+		{
+			name: "valid durations",
+			cfg: SchedulerConfig{
+				Interval:     "30s",
+				RetryBackoff: "2m",
+			},
+			wantInterval: 30 * time.Second,
+			wantBackoff:  2 * time.Minute,
+		},
+		{
+			name: "invalid durations fallback",
+			cfg: SchedulerConfig{
+				Interval:     "bad",
+				RetryBackoff: "bad",
+			},
+			wantInterval: time.Minute,
+			wantBackoff:  time.Minute,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.cfg.IntervalDuration(); got != tt.wantInterval {
+				t.Errorf("IntervalDuration() = %v, want %v", got, tt.wantInterval)
+			}
+
+			if got := tt.cfg.RetryBackoffDuration(); got != tt.wantBackoff {
+				t.Errorf("RetryBackoffDuration() = %v, want %v", got, tt.wantBackoff)
 			}
 		})
 	}

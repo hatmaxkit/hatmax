@@ -28,8 +28,10 @@ type SESMailer struct {
 
 // NewSESMailer creates a new AWS SES mailer.
 func NewSESMailer(ctx context.Context, cfg SESConfig) (*SESMailer, error) {
-	var awsCfg aws.Config
-	var err error
+	var (
+		awsCfg aws.Config
+		err    error
+	)
 
 	if cfg.AccessKeyID != "" && cfg.SecretAccessKey != "" {
 		awsCfg, err = config.LoadDefaultConfig(ctx,
@@ -58,7 +60,8 @@ func NewSESMailer(ctx context.Context, cfg SESConfig) (*SESMailer, error) {
 
 // Send sends an email via AWS SES.
 func (m *SESMailer) Send(ctx context.Context, msg *Message) error {
-	if err := msg.Validate(); err != nil {
+	err := msg.Validate()
+	if err != nil {
 		return err
 	}
 
@@ -89,6 +92,7 @@ func (m *SESMailer) sendSimpleEmail(ctx context.Context, msg *Message, from Addr
 		for i, addr := range msg.CC {
 			ccAddrs[i] = addr.Email
 		}
+
 		dest.CcAddresses = ccAddrs
 	}
 
@@ -97,6 +101,7 @@ func (m *SESMailer) sendSimpleEmail(ctx context.Context, msg *Message, from Addr
 		for i, addr := range msg.BCC {
 			bccAddrs[i] = addr.Email
 		}
+
 		dest.BccAddresses = bccAddrs
 	}
 
@@ -148,6 +153,7 @@ func (m *SESMailer) sendSimpleEmail(ctx context.Context, msg *Message, from Addr
 
 func (m *SESMailer) sendRawEmail(ctx context.Context, msg *Message, from Address) error {
 	smtpMailer := &SMTPMailer{}
+
 	rawMsg, err := smtpMailer.buildRawMessage(msg)
 	if err != nil {
 		return fmt.Errorf("build raw message: %w", err)

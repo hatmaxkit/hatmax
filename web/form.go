@@ -12,9 +12,11 @@ type FormValues struct {
 }
 
 func ParseForm(r *http.Request) (*FormValues, error) {
-	if err := r.ParseForm(); err != nil {
+	err := r.ParseForm()
+	if err != nil {
 		return nil, err
 	}
+
 	return &FormValues{r: r}, nil
 }
 
@@ -27,11 +29,13 @@ func (f *FormValues) StringOr(name, def string) string {
 	if v == "" {
 		return def
 	}
+
 	return v
 }
 
 func (f *FormValues) Bool(name string) bool {
 	v := f.r.FormValue(name)
+
 	return v == "true" || v == "on"
 }
 

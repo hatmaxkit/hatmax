@@ -33,6 +33,7 @@ func NewLink(text, href string) *Link {
 // Target sets the link target attribute.
 func (l *Link) Target(target string) *Link {
 	l.target = target
+
 	return l
 }
 
@@ -40,6 +41,7 @@ func (l *Link) Target(target string) *Link {
 func (l *Link) Blank() *Link {
 	l.target = "_blank"
 	l.rel = "noopener noreferrer"
+
 	return l
 }
 
@@ -48,48 +50,56 @@ func (l *Link) External() *Link {
 	if l.rel == "" {
 		l.rel = "noopener noreferrer"
 	}
+
 	return l
 }
 
 // Rel sets the rel attribute.
 func (l *Link) Rel(rel string) *Link {
 	l.rel = rel
+
 	return l
 }
 
 // Class adds custom CSS classes.
 func (l *Link) Class(class string) *Link {
 	l.class = class
+
 	return l
 }
 
 // ID sets the link ID.
 func (l *Link) ID(id string) *Link {
 	l.id = id
+
 	return l
 }
 
 // Title sets the title attribute.
 func (l *Link) Title(title string) *Link {
 	l.title = title
+
 	return l
 }
 
 // Download sets the download attribute.
 func (l *Link) Download(filename string) *Link {
 	l.download = filename
+
 	return l
 }
 
 // Boost enables hx-boost for the link.
 func (l *Link) Boost() *Link {
 	l.boosted = true
+
 	return l
 }
 
 // WithAttrs sets HTMX attributes for the link.
 func (l *Link) WithAttrs(attrs *htmx.Attrs) *Link {
 	l.attrs = attrs
+
 	return l
 }
 
@@ -148,48 +158,56 @@ type LinkHX struct {
 // Get sets a GET action.
 func (lh *LinkHX) Get(url string) *LinkHX {
 	lh.attrs.Get(url)
+
 	return lh
 }
 
 // Post sets a POST action.
 func (lh *LinkHX) Post(url string) *LinkHX {
 	lh.attrs.Post(url)
+
 	return lh
 }
 
 // TargetID sets a target by ID.
 func (lh *LinkHX) TargetID(id string) *LinkHX {
 	lh.attrs.TargetID(id)
+
 	return lh
 }
 
 // SwapOuter sets outer HTML swap.
 func (lh *LinkHX) SwapOuter() *LinkHX {
 	lh.attrs.SwapOuter()
+
 	return lh
 }
 
 // SwapInner sets inner HTML swap.
 func (lh *LinkHX) SwapInner() *LinkHX {
 	lh.attrs.SwapInner()
+
 	return lh
 }
 
 // PushURL enables pushing the URL to history.
 func (lh *LinkHX) PushURL(url string) *LinkHX {
 	lh.attrs.PushURL(url)
+
 	return lh
 }
 
 // Select sets the selector for partial content.
 func (lh *LinkHX) Select(selector string) *LinkHX {
 	lh.attrs.Select(selector)
+
 	return lh
 }
 
 // Done finalizes and returns the link.
 func (lh *LinkHX) Done() *Link {
 	lh.link.attrs = lh.attrs
+
 	return lh.link
 }
 

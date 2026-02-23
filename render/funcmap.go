@@ -26,10 +26,12 @@ func FuncMap() template.FuncMap {
 			if end < start {
 				return nil
 			}
+
 			result := make([]int, end-start+1)
 			for i := range result {
 				result[i] = start + i
 			}
+
 			return result
 		},
 	}
@@ -44,11 +46,13 @@ func FuncMapWithHTMX() template.FuncMap {
 // Later maps override earlier ones for duplicate keys.
 func MergeFuncMaps(maps ...template.FuncMap) template.FuncMap {
 	result := make(template.FuncMap)
+
 	for _, m := range maps {
 		for k, v := range m {
 			result[k] = v
 		}
 	}
+
 	return result
 }
 
@@ -59,6 +63,7 @@ func I18nFuncMap(translator *i18n.Translator) template.FuncMap {
 			if translator == nil {
 				return key
 			}
+
 			return translator.Get(locale, key)
 		},
 	}

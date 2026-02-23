@@ -47,6 +47,7 @@ func (s *PostgresStore) Start(ctx context.Context) error {
 	if s.db == nil {
 		return fmt.Errorf("database connection not available")
 	}
+
 	return nil
 }
 
@@ -66,7 +67,6 @@ func (s *PostgresStore) Save(ctx context.Context, record *Record) error {
 		INSERT INTO audit_log (id, event_type, item_id, user_id, payload, source, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 	`, record.ID, record.EventType, record.ItemID, record.UserID, payloadJSON, record.Source, record.CreatedAt)
-
 	if err != nil {
 		return fmt.Errorf("cannot insert audit record: %w", err)
 	}
@@ -88,10 +88,13 @@ func (s *PostgresStore) List(ctx context.Context, limit int) ([]Record, error) {
 	defer rows.Close()
 
 	var records []Record
+
 	for rows.Next() {
-		var r Record
-		var itemID sql.NullString
-		var payloadJSON []byte
+		var (
+			r           Record
+			itemID      sql.NullString
+			payloadJSON []byte
+		)
 
 		err := rows.Scan(&r.ID, &r.EventType, &itemID, &r.UserID, &payloadJSON, &r.Source, &r.CreatedAt)
 		if err != nil {
@@ -103,7 +106,8 @@ func (s *PostgresStore) List(ctx context.Context, limit int) ([]Record, error) {
 		}
 
 		if len(payloadJSON) > 0 {
-			if err := json.Unmarshal(payloadJSON, &r.Payload); err != nil {
+			err := json.Unmarshal(payloadJSON, &r.Payload)
+			if err != nil {
 				return nil, fmt.Errorf("cannot unmarshal payload: %w", err)
 			}
 		}
@@ -111,7 +115,8 @@ func (s *PostgresStore) List(ctx context.Context, limit int) ([]Record, error) {
 		records = append(records, r)
 	}
 
-	if err := rows.Err(); err != nil {
+	err = rows.Err()
+	if err != nil {
 		return nil, fmt.Errorf("rows error: %w", err)
 	}
 

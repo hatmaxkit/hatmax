@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hatmaxkit/hatmax/config"
 )
 
 type Runner struct {
@@ -22,8 +23,22 @@ type Runner struct {
 	wg   sync.WaitGroup
 }
 
-func New(store JobStore, cfg Config, log Logger) *Runner {
-	return &Runner{
+type Option func(*Runner)
+
+func WithClock(c Clock) Option {
+	return func(r *Runner) {
+		r.clock = c
+	}
+}
+
+func WithSettings(settings SettingsProvider) Option {
+	return func(r *Runner) {
+		r.settings = settings
+	}
+}
+
+func New(store JobStore, cfg Config, log Logger, opts ...Option) *Runner {
+	r := &Runner{
 		store:    store,
 		handlers: make(map[string]Handler),
 		clock:    realClock{},
@@ -31,6 +46,17 @@ func New(store JobStore, cfg Config, log Logger) *Runner {
 		log:      log,
 		stop:     make(chan struct{}),
 	}
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
+}
+
+func NewWithConfig(store JobStore, settings SettingsProvider, cfg *config.Config, log Logger, opts ...Option) *Runner {
+	opts = append(opts, WithSettings(settings))
+
+	return New(store, ConfigFromRoot(cfg), log, opts...)
 }
 
 func (r *Runner) SetClock(c Clock) {
@@ -44,18 +70,23 @@ func (r *Runner) SetSettings(s SettingsProvider) {
 func (r *Runner) Register(taskType string, handler Handler) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
 	r.handlers[taskType] = handler
 }
 
 func (r *Runner) Start(ctx context.Context) error {
 	if !r.cfg.Enabled {
 		r.log.Info("scheduler: disabled")
+
 		return nil
 	}
 
 	r.wg.Add(1)
+
 	go r.run(ctx)
+
 	r.log.Info("scheduler: started")
+
 	return nil
 }
 
@@ -63,6 +94,7 @@ func (r *Runner) Stop(ctx context.Context) error {
 	close(r.stop)
 	r.wg.Wait()
 	r.log.Info("scheduler: stopped")
+
 	return nil
 }
 
@@ -95,7 +127,8 @@ func (r *Runner) tick(ctx context.Context) {
 		return
 	}
 
-	if err := r.Tick(ctx); err != nil {
+	err := r.Tick(ctx)
+	if err != nil {
 		r.log.Errorf("scheduler: %v", err)
 	}
 }
@@ -104,12 +137,15 @@ func (r *Runner) isPaused(ctx context.Context) bool {
 	if r.settings == nil {
 		return false
 	}
+
 	paused, _ := r.settings.GetBool(ctx, SettingPaused)
+
 	return paused
 }
 
 func (r *Runner) Tick(ctx context.Context) error {
 	now := r.clock.Now()
+
 	jobs, err := r.store.ListDue(ctx, now, r.cfg.BatchSize)
 	if err != nil {
 		return err
@@ -125,20 +161,26 @@ func (r *Runner) Tick(ctx context.Context) error {
 		for _, job := range jobs {
 			r.process(ctx, job)
 		}
+
 		return nil
 	}
 
 	sem := make(chan struct{}, r.cfg.Workers)
+
 	var wg sync.WaitGroup
 	for _, job := range jobs {
 		wg.Add(1)
+
 		sem <- struct{}{}
+
 		go func(j Job) {
 			defer wg.Done()
 			defer func() { <-sem }()
+
 			r.process(ctx, j)
 		}(job)
 	}
+
 	wg.Wait()
 
 	return nil
@@ -148,13 +190,17 @@ func (r *Runner) process(ctx context.Context, job Job) {
 	runID := uuid.New().String()
 	now := r.clock.Now()
 
-	if err := r.store.CreateRun(ctx, job.ID, runID, job.ScheduledFor); err != nil {
+	err := r.store.CreateRun(ctx, job.ID, runID, job.ScheduledFor)
+	if err != nil {
 		r.log.Errorf("scheduler: cannot create run for job %s: %v", job.ID, err)
+
 		return
 	}
 
-	if err := r.store.MarkRunning(ctx, runID, now); err != nil {
+	err = r.store.MarkRunning(ctx, runID, now)
+	if err != nil {
 		r.log.Errorf("scheduler: cannot mark running %s: %v", runID, err)
+
 		return
 	}
 
@@ -165,6 +211,7 @@ func (r *Runner) process(ctx context.Context, job Job) {
 	if !ok {
 		r.store.MarkFailed(ctx, runID, r.clock.Now(), "unknown task type: "+job.TaskType)
 		r.log.Errorf("scheduler: unknown task type: %s", job.TaskType)
+
 		return
 	}
 
@@ -173,6 +220,7 @@ func (r *Runner) process(ctx context.Context, job Job) {
 	if result.Failed() {
 		r.store.MarkFailed(ctx, runID, r.clock.Now(), result.Err.Error())
 		r.log.Errorf("scheduler: job %s failed: %v", job.ID, result.Err)
+
 		return
 	}
 
@@ -180,6 +228,7 @@ func (r *Runner) process(ctx context.Context, job Job) {
 	if output == nil {
 		output = map[string]any{}
 	}
+
 	outputBytes, _ := json.Marshal(output)
 	r.store.MarkSuccess(ctx, runID, r.clock.Now(), outputBytes)
 }

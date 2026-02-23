@@ -41,6 +41,7 @@ func (s *Service) Start(ctx context.Context) error {
 	}
 
 	s.log.Infof("Subscribed to %s", Topic)
+
 	return nil
 }
 
@@ -49,10 +50,12 @@ func (s *Service) handleEvent(ctx context.Context, env pubsub.Envelope) error {
 	rawPayload, ok := env.Payload.(map[string]interface{})
 	if !ok {
 		s.log.Errorf("invalid payload type: %T", env.Payload)
+
 		return fmt.Errorf("invalid payload type: %T", env.Payload)
 	}
 
 	payload := make(map[string]string)
+
 	for k, v := range rawPayload {
 		if str, ok := v.(string); ok {
 			payload[k] = str
@@ -69,11 +72,14 @@ func (s *Service) handleEvent(ctx context.Context, env pubsub.Envelope) error {
 		CreatedAt: env.Timestamp,
 	}
 
-	if err := s.store.Save(ctx, record); err != nil {
+	err := s.store.Save(ctx, record)
+	if err != nil {
 		s.log.Errorf("cannot save audit record: %v", err)
+
 		return err
 	}
 
 	s.log.Debugf("Persisted audit event %s: %s", env.ID, record.EventType)
+
 	return nil
 }

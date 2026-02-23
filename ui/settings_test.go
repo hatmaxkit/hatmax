@@ -19,12 +19,15 @@ func TestSettingsFormRender(t *testing.T) {
 	if !strings.Contains(html, `class="settings-form"`) {
 		t.Error("Render() missing form class")
 	}
+
 	if !strings.Contains(html, `action="/settings"`) {
 		t.Error("Render() missing action")
 	}
+
 	if !strings.Contains(html, `App Name`) {
 		t.Error("Render() missing label")
 	}
+
 	if !strings.Contains(html, `Update`) {
 		t.Error("Render() missing submit button text")
 	}
@@ -67,6 +70,7 @@ func TestSettingsFormWithErrors(t *testing.T) {
 	if !strings.Contains(html, `field--error`) {
 		t.Error("Render() missing error class")
 	}
+
 	if !strings.Contains(html, `Invalid email`) {
 		t.Error("Render() missing error message")
 	}
@@ -84,9 +88,11 @@ func TestSettingsFormIntField(t *testing.T) {
 	if !strings.Contains(html, `type="number"`) {
 		t.Error("Render() missing number type")
 	}
+
 	if !strings.Contains(html, `min="1"`) {
 		t.Error("Render() missing min")
 	}
+
 	if !strings.Contains(html, `max="100"`) {
 		t.Error("Render() missing max")
 	}
@@ -103,6 +109,7 @@ func TestSettingsFormBoolField(t *testing.T) {
 	if !strings.Contains(html, `type="checkbox"`) {
 		t.Error("Render() missing checkbox type")
 	}
+
 	if !strings.Contains(html, `checked`) {
 		t.Error("Render() missing checked attribute")
 	}
@@ -119,12 +126,15 @@ func TestSettingsFormEnumField(t *testing.T) {
 	if !strings.Contains(html, `<select`) {
 		t.Error("Render() missing select")
 	}
+
 	if !strings.Contains(html, `value="light"`) {
 		t.Error("Render() missing light option")
 	}
+
 	if !strings.Contains(html, `value="dark" selected`) {
 		t.Error("Render() missing selected dark option")
 	}
+
 	if !strings.Contains(html, `>Light</option>`) {
 		t.Error("Render() missing Light label")
 	}
@@ -154,6 +164,7 @@ func TestSettingsFormRequired(t *testing.T) {
 	if !strings.Contains(html, `required`) {
 		t.Error("Render() missing required attribute")
 	}
+
 	if !strings.Contains(html, `field__required`) {
 		t.Error("Render() missing required marker")
 	}
@@ -183,6 +194,7 @@ func TestSettingsFormDescription(t *testing.T) {
 	if !strings.Contains(html, `Timeout in seconds`) {
 		t.Error("Render() missing description")
 	}
+
 	if !strings.Contains(html, `field__hint`) {
 		t.Error("Render() missing hint class")
 	}
