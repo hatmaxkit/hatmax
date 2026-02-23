@@ -28,13 +28,13 @@ if err := mailer.Send(ctx, msg); err != nil { ... }
 
 ```go
 // Static only (from config.Config.Mailer)
-m := mailer.NewFromConfig(cfg, log)
+m := mailer.New(cfg, log)
 
-// Dynamic override (settings before cfg)
-m := mailer.NewWithConfig(settingsSvc, cfg, log)
+// Dynamic override (settings take precedence over cfg)
+m := mailer.NewWithSettings(settingsSvc, cfg, log)
 ```
 
-`NewWithConfig` resolves provider/mode with dynamic settings overrides on top of static config.
+`NewWithSettings` resolves provider/mode with dynamic settings overrides on top of static config.
 
 ## API
 

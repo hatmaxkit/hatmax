@@ -97,13 +97,13 @@ func RegisterSchemas(r *settings.Registry) {
 	}
 }
 
-// NewFromConfig resolves mailer from static configuration.
-func NewFromConfig(cfg *config.Config, log log.Logger) Mailer {
-	return NewWithConfig(nil, cfg, log)
+// New resolves mailer from static configuration.
+func New(cfg *config.Config, log log.Logger) Mailer {
+	return NewWithSettings(nil, cfg, log)
 }
 
-// NewWithConfig resolves mailer from static config and dynamic settings overrides.
-func NewWithConfig(settings SettingsProvider, cfg *config.Config, log log.Logger) Mailer {
+// NewWithSettings resolves mailer from static config and dynamic settings overrides.
+func NewWithSettings(settings SettingsProvider, cfg *config.Config, log log.Logger) Mailer {
 	resolved := resolveFromConfig(cfg)
 	resolved = applySettings(context.Background(), settings, resolved)
 

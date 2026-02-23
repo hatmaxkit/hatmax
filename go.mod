@@ -1,6 +1,6 @@
 module github.com/hatmaxkit/hatmax
 
-go 1.25.5
+go 1.24.0
 
 require (
 	aidanwoods.dev/go-paseto v1.6.0
@@ -26,6 +26,7 @@ require (
 	golang.org/x/crypto v0.46.0
 	golang.org/x/image v0.35.0
 	golang.org/x/text v0.33.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -107,5 +108,4 @@ require (
 	golang.org/x/sys v0.39.0 // indirect
 	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

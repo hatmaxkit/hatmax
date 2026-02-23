@@ -38,7 +38,7 @@ func (f *fakeSettings) GetBool(ctx context.Context, key string) (bool, error) {
 	return f.bools[key], nil
 }
 
-func TestNewFromConfigSMTP(t *testing.T) {
+func TestNewSMTP(t *testing.T) {
 	cfg := config.New()
 	cfg.Mailer.Enabled = true
 	cfg.Mailer.Mode = ModeActive
@@ -49,11 +49,11 @@ func TestNewFromConfigSMTP(t *testing.T) {
 	cfg.Mailer.SMTP.Username = "u"
 	cfg.Mailer.SMTP.Password = "p"
 
-	m := NewFromConfig(cfg, nil)
+	m := New(cfg, nil)
 
 	smtp, ok := m.(*SMTPMailer)
 	if !ok {
-		t.Fatalf("NewFromConfig() type = %T, want *SMTPMailer", m)
+		t.Fatalf("New() type = %T, want *SMTPMailer", m)
 	}
 
 	if smtp.cfg.Host != "smtp.example.com" {
@@ -69,7 +69,7 @@ func TestNewFromConfigSMTP(t *testing.T) {
 	}
 }
 
-func TestNewWithConfigSettingsOverride(t *testing.T) {
+func TestNewWithSettingsOverride(t *testing.T) {
 	cfg := config.New()
 	cfg.Mailer.Enabled = true
 	cfg.Mailer.Mode = ModeActive
@@ -87,11 +87,11 @@ func TestNewWithConfigSettingsOverride(t *testing.T) {
 		},
 	}
 
-	m := NewWithConfig(settings, cfg, nil)
+	m := NewWithSettings(settings, cfg, nil)
 
 	sendgrid, ok := m.(*SendGridMailer)
 	if !ok {
-		t.Fatalf("NewWithConfig() type = %T, want *SendGridMailer", m)
+		t.Fatalf("NewWithSettings() type = %T, want *SendGridMailer", m)
 	}
 
 	if sendgrid.cfg.APIKey != "sg-key" {
@@ -103,7 +103,7 @@ func TestNewWithConfigSettingsOverride(t *testing.T) {
 	}
 }
 
-func TestNewWithConfigModeDisabled(t *testing.T) {
+func TestNewWithSettingsModeDisabled(t *testing.T) {
 	cfg := config.New()
 	cfg.Mailer.Enabled = true
 	cfg.Mailer.Mode = ModeActive
@@ -119,25 +119,25 @@ func TestNewWithConfigModeDisabled(t *testing.T) {
 		},
 	}
 
-	m := NewWithConfig(settings, cfg, nil)
+	m := NewWithSettings(settings, cfg, nil)
 	if _, ok := m.(*NoopMailer); !ok {
-		t.Fatalf("NewWithConfig() type = %T, want *NoopMailer", m)
+		t.Fatalf("NewWithSettings() type = %T, want *NoopMailer", m)
 	}
 }
 
-func TestNewWithConfigUnknownProvider(t *testing.T) {
+func TestNewUnknownProvider(t *testing.T) {
 	cfg := config.New()
 	cfg.Mailer.Enabled = true
 	cfg.Mailer.Mode = ModeActive
 	cfg.Mailer.Provider = "unknown"
 
-	m := NewFromConfig(cfg, nil)
+	m := New(cfg, nil)
 	if _, ok := m.(*NoopMailer); !ok {
-		t.Fatalf("NewFromConfig() type = %T, want *NoopMailer", m)
+		t.Fatalf("New() type = %T, want *NoopMailer", m)
 	}
 }
 
-func TestNewFromConfigMailgun(t *testing.T) {
+func TestNewMailgun(t *testing.T) {
 	cfg := config.New()
 	cfg.Mailer.Enabled = true
 	cfg.Mailer.Mode = ModeActive
@@ -146,11 +146,11 @@ func TestNewFromConfigMailgun(t *testing.T) {
 	cfg.Mailer.Mailgun.APIKey = "mg-key"
 	cfg.Mailer.Mailgun.Domain = "mg.example.com"
 
-	m := NewFromConfig(cfg, nil)
+	m := New(cfg, nil)
 
 	mg, ok := m.(*MailgunMailer)
 	if !ok {
-		t.Fatalf("NewFromConfig() type = %T, want *MailgunMailer", m)
+		t.Fatalf("New() type = %T, want *MailgunMailer", m)
 	}
 
 	if mg.cfg.APIKey != "mg-key" {

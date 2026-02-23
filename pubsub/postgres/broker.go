@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hatmaxkit/hatmax/config"
 	"github.com/hatmaxkit/hatmax/log"
 	"github.com/hatmaxkit/hatmax/pubsub"
 )
@@ -66,8 +67,15 @@ type Broker struct {
 	closed        bool
 }
 
-// NewBroker creates a new PostgreSQL-backed pubsub broker.
-// The dbProvider should provide access to an open PostgreSQL connection.
+// New creates a new PostgreSQL-backed pubsub broker using application config.
+func New(dbProvider DBProvider, cfg *config.Config, log log.Logger) *Broker {
+	return NewBroker(dbProvider, Config{
+		PollInterval: cfg.PubSub.PollIntervalDuration(),
+		BatchSize:    cfg.PubSub.BatchSize,
+	}, log)
+}
+
+// NewBroker creates a new PostgreSQL-backed pubsub broker with explicit config.
 func NewBroker(dbProvider DBProvider, cfg Config, log log.Logger) *Broker {
 	cfg = cfg.WithDefaults()
 

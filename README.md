@@ -6,161 +6,115 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/hatmaxkit/hatmax.svg)](https://pkg.go.dev/github.com/hatmaxkit/hatmax)
 [![CI](https://github.com/hatmaxkit/hatmax/actions/workflows/ci.yml/badge.svg)](https://github.com/hatmaxkit/hatmax/actions)
-[![codecov](https://codecov.io/gh/hatmaxkit/hatmax/branch/main/graph/badge.svg)](https://codecov.io/gh/hatmaxkit/hatmax)
+[![codecov](https://codecov.io/gh/hatmaxkit/hatmax/branch/main/graph/badge.svg?token=VDYCRMI31Q)](https://codecov.io/gh/hatmaxkit/hatmax)
 
-**A lightweight Go library for building single-binary web applications.**
+**A composable Go toolkit for building web applications with consistent wiring, clear configuration boundaries, and predictable package integration.**
 
-## What is HatMax?
+## Overview
 
-HatMax is a focused library for building web applications that compile to a single executable and use Postgres as their primary database. It provides authentication primitives, lifecycle management, and structured logging as core features, letting you focus on your domain logic instead of reinventing infrastructure.
+HatMax provides practical, composable packages for building web applications in Go.
 
-If you've built a few Go web apps and found yourself copying similar patterns (lifecycle management, auth flows, database setup, middleware chains), HatMax extracts those patterns into small, composable packages. It's designed for applications that benefit from simplicity: one binary, one database.
+It includes:
 
-## Core Principles
+- Consistent constructors and dependency wiring across packages.
+- Practical building blocks that work together out of the box.
+- Composable roles and interfaces instead of hidden global state.
+- Postgres-first primitives for auth, scheduling, pubsub, and app lifecycle.
 
-- **Single binary deployment** - Build applications that compile to one executable. Simple deployment, straightforward operations.
-- **Just use Postgres** - Leverage Postgres for relational data, JSONB, full-text search, pub/sub, and queues. Start simple, add specialized tools only when truly needed.
-- **PubSub** - Domain events with no external broker. Default implementation uses Postgres `LISTEN`/`NOTIFY`.
-- **HTML + htmx** - Server-side rendering with htmx for dynamic interactions. Build modern UX with straightforward patterns.
-- **Explicit over magic** - Every dependency visible in constructors, every middleware applied manually, every lifecycle hook opt-in.
-
-## What's Included
-
-- **Lifecycle management** - Component startup, shutdown, and route registration with automatic discovery
-- **Authentication** - User signup, signin, sessions, password hashing, and middleware for protected routes
-- **Structured logging** - Context-aware logging with multiple output formats
-- **Configuration** - Load from YAML, environment variables, and command-line flags
-- **Database** - Postgres connection pooling, migrations, transactions, and health checks
-- **HTTP middleware** - Request tracking, logging, panic recovery, and CORS
-- **Model utilities** - ID generation, timestamp helpers, and common patterns
-- **Templates** - HTML rendering with embedded assets and htmx support
-- **Type-safe queries** - Integration with sqlc for compile-time SQL validation
-- **Testing patterns** - Comprehensive test coverage with practical examples
-
-## Architecture
-
-HatMax applications follow a straightforward pattern:
-
-```
-HTTP Request
-    ↓
-Handler (chi.Router)
-    ↓
-Service Layer (business logic)
-    ↓
-sqlc Queries (type-safe SQL)
-    ↓
-Postgres
-```
-
-### Direct Data Access
-
-Services use `sqlc`-generated code directly. Write SQL queries, generate type-safe Go code, and call those methods from your service layer.
+## Quick Start
 
 ```go
-type UserService struct {
-    queries *sqlc.Queries
-    log     log.Logger
+package main
+
+import (
+	"context"
+	"embed"
+	"fmt"
+	"os"
+
+	"github.com/hatmaxkit/hatmax/app"
+	"github.com/hatmaxkit/hatmax/config"
+	"github.com/hatmaxkit/hatmax/db"
+	"github.com/hatmaxkit/hatmax/log"
+	"github.com/hatmaxkit/hatmax/mailer"
+	"github.com/hatmaxkit/hatmax/pubsub/postgres"
+)
+
+//go:embed assets/*
+var assetsFS embed.FS
+
+func main() {
+	cfg, err := config.Load("config.yml", "APP_", os.Args) // your env prefix
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cannot load config: %v\n", err)
+		os.Exit(1)
+	}
+
+	ctx := context.Background()
+	logger := log.NewLogger(cfg)
+	router := app.NewRouter(logger, app.WithPing(), app.WithDebugRoutes())
+
+	// Infrastructure
+	database := db.New(assetsFS, "postgres", cfg, logger)
+	events := postgres.New(database, cfg, logger)
+	mail := mailer.New(cfg, logger)
+
+	// Application layer
+	service := featname.NewService(database, events, mail, cfg, logger)
+	handler := featname.NewHandler(service, cfg, logger)
+
+	deps := []any{
+		database,
+		events,
+		mail,
+		service,
+		handler,
+	}
+
+	starts, stops, registrars := app.Setup(ctx, router, deps...)
+
+	err = app.Start(ctx, logger, starts, stops, registrars, router)
+	if err != nil {
+		logger.Errorf("cannot start app: %v", err)
+		os.Exit(1)
+	}
 }
-
-func (s *UserService) GetUser(ctx context.Context, id string) (*User, error) {
-    return s.queries.GetUserByID(ctx, id)
-}
 ```
 
-### Clear Dependencies
+## Package Map
 
-Constructor signatures reveal what each component needs to function.
+| Package               | Role                                                                   |
+| --------------------- | ---------------------------------------------------------------------- |
+| `app`                 | Lifecycle orchestration and component startup/shutdown                 |
+| `config`              | Static configuration loading and structure                             |
+| `settings`            | Dynamic runtime settings and attributes                                |
+| `db`                  | Postgres connection, migration helpers, DB wiring                      |
+| `auth`                | Authentication, sessions, auth middleware primitives                   |
+| `mailer`              | Pluggable mail delivery providers (SES, SendGrid, Mailgun, SMTP, Noop) |
+| `scheduler`           | Background job scheduling and execution                                |
+| `pubsub`              | Event publication/subscription (including Postgres implementation)     |
+| `web` / `htmx` / `ui` | HTTP, template rendering, htmx helpers, UI primitives                  |
 
-```go
-func NewUserHandler(
-    authSvc *AuthService,
-    userSvc *UserService,
-    tmpl *TemplateManager,
-    cfg *Config,
-    log log.Logger,
-) *UserHandler
-```
+## Interfaces
 
-### Lifecycle Discovery
+Small interfaces make components swappable:
 
-Components implement interfaces to declare their capabilities. The `Setup` function discovers these capabilities, and `Start` orchestrates initialization with rollback on failure.
+| Component | Interface | Implementations |
+|-----------|-----------|-----------------|
+| Mail | `Mailer` | SMTP, SES, SendGrid, Mailgun |
+| Events | `Publisher`, `Subscriber` | Postgres |
+| Jobs | `JobStore` | Postgres |
 
-```go
-type Startable interface { Start(context.Context) error }
-type Stoppable interface { Stop(context.Context) error }
-type RouteRegistrar interface { RegisterRoutes(chi.Router) }
+## Key Patterns
 
-// In main.go
-database := db.New(assetsFS, "postgres", cfg, logger)
-authService := auth.NewService(database, cfg, logger)
-userHandler := user.NewHandler(authService, assetsFS, cfg, logger)
+- **Transactional startup**: If component N fails to start, components 0→N-1 stop in reverse order automatically.
+- **Two config layers**: Static config at startup, dynamic settings with schema validation at runtime. Use what you need.
+- **Just Use Postgres**: PubSub, scheduler, and sessions run on Postgres. Add Redis or RabbitMQ if you need them, but you probably don't.
 
-deps := []any{database, authService, userHandler}
-starts, stops, registrars := app.Setup(ctx, router, deps...)
-app.Start(ctx, logger, starts, stops, registrars, router)
-```
+## Docs
 
-## Persistence
-
-HatMax follows the "Just Use Postgres" philosophy, leveraging its capabilities to handle most application needs:
-
-- **Relational data** - Standard tables and foreign keys
-- **Semi-structured data** - JSONB columns with indexing
-- **Full-text search** - `tsvector` and `pg_trgm`
-- **Pub/sub** - `LISTEN`/`NOTIFY` for real-time updates
-- **Queues** - Advisory locks + queue tables for background jobs
-- **Geospatial** - PostGIS extension for location data
-- **Time-series** - TimescaleDB extension for metrics
-
-Queries are written in SQL and type-checked with `sqlc`. This keeps the data layer explicit and maintainable. As your application grows, you can integrate specialized tools where they provide clear value.
-
-## Scope
-
-HatMax is focused on single-binary applications with straightforward patterns:
-
-- **Database** - Postgres-first approach with sqlc for type-safe queries
-- **Architecture** - Monolithic applications that deploy as one executable
-- **Presentation** - HTML templates with htmx for interactive experiences
-- **Data layer** - Direct SQL queries, explicit service coordination
-- **Authorization** - Core auth primitives as building blocks
-- **Interface** - Standard HTTP handlers and middleware
-
-## Documentation
-
-- [Features](docs/features.md) - Package overview
-- [Gallery](docs/gallery.md) - Visual examples
-
-## Development
-
-### Running Tests
-
-```bash
-# Run all tests
-make test
-
-# Run tests with coverage by package
-make test-coverage
-
-# Display coverage table by package
-make test-coverage-summary
-
-# Generate HTML coverage report
-make test-coverage-html
-
-# Run all quality checks (format, vet, test, coverage, lint)
-make check
-```
-
-## Status
-
-HatMax is under active development. The library API is stabilizing but may change before v1.0.
-
-**Current focus:**
-- Core library packages (app, log, config, db, auth, middleware, model)
-- Authentication primitives (signup, signin, sessions, middleware)
-- Comprehensive test coverage and examples
-- Example application demonstrating all features
+- [Features](docs/features.md)
+- [Gallery](docs/gallery.md)
 
 ## License
 

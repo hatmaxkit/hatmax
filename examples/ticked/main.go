@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/hatmaxkit/hatmax/app"
 	"github.com/hatmaxkit/hatmax/auth"
 	"github.com/hatmaxkit/hatmax/config"
@@ -44,9 +43,8 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	router := chi.NewRouter()
+	router := app.NewRouter(logger, app.WithPing(), app.WithDebugRoutes())
 	router.Use(middleware.DefaultStack()...)
-	app.ApplyRouterOptions(router, app.WithPing(), app.WithDebugRoutes())
 
 	database := db.New(assetsFS, "postgres", cfg, logger)
 	migrator := db.NewMigrator(database, assetsFS, "postgres", logger)
