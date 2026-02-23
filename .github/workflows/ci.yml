@@ -102,9 +102,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.out
-          flags: unittests
-          name: codecov-hatmax
-          verbose: true
 
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
