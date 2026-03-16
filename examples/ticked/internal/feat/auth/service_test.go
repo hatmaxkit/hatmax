@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hatmaxkit/hatmax/auth"
-	"github.com/hatmaxkit/hatmax/log"
+	"hatmax.adrianpk.com/auth"
+	"hatmax.adrianpk.com/log"
 )
 
 // fakeBaseAuth is a fake for baseAuthService.

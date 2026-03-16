@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hatmaxkit/hatmax/log"
+	"hatmax.adrianpk.com/log"
 )
 
 type TemplateManager struct {

@@ -6,9 +6,9 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/hatmaxkit/hatmax/config"
-	"github.com/hatmaxkit/hatmax/log"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"hatmax.adrianpk.com/config"
+	"hatmax.adrianpk.com/log"
 )
 
 // Database wraps a sql.DB connection with lifecycle management.

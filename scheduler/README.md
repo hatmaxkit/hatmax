@@ -20,8 +20,8 @@ import (
     "log"
     "time"
 
-    "github.com/hatmaxkit/hatmax/scheduler"
-    "github.com/hatmaxkit/hatmax/scheduler/postgres"
+    "hatmax.adrianpk.com/hatmax/scheduler"
+    "hatmax.adrianpk.com/hatmax/scheduler/postgres"
 )
 
 func main() {
@@ -121,7 +121,7 @@ clock.Advance(time.Hour)
 ## Postgres Backend
 
 ```go
-import "github.com/hatmaxkit/hatmax/scheduler/postgres"
+import "hatmax.adrianpk.com/hatmax/scheduler/postgres"
 
 store := postgres.NewStore(db)
 

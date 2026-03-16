@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hatmaxkit/hatmax/auth"
-	"github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/audit"
-	"github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/list"
-	"github.com/hatmaxkit/hatmax/htmx"
-	"github.com/hatmaxkit/hatmax/log"
-	"github.com/hatmaxkit/hatmax/middleware"
-	"github.com/hatmaxkit/hatmax/web"
+	"hatmax.adrianpk.com/auth"
+	"hatmax.adrianpk.com/examples/ticked/internal/feat/audit"
+	"hatmax.adrianpk.com/examples/ticked/internal/feat/list"
+	"hatmax.adrianpk.com/htmx"
+	"hatmax.adrianpk.com/log"
+	"hatmax.adrianpk.com/middleware"
+	"hatmax.adrianpk.com/web"
 )
 
 // authService defines the auth operations needed by the handler.

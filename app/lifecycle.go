@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hatmaxkit/hatmax/log"
+	"hatmax.adrianpk.com/log"
 )
 
 // Startable represents a component that can be started.

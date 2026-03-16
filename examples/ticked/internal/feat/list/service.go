@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/audit"
-	"github.com/hatmaxkit/hatmax/log"
-	"github.com/hatmaxkit/hatmax/pubsub"
+	"hatmax.adrianpk.com/examples/ticked/internal/feat/audit"
+	"hatmax.adrianpk.com/log"
+	"hatmax.adrianpk.com/pubsub"
 )
 
 // Service provides todo list business logic.

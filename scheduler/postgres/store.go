@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/hatmaxkit/hatmax/scheduler"
+	"hatmax.adrianpk.com/scheduler"
 )
 
 type Store struct {

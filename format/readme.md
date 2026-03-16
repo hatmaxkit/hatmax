@@ -5,7 +5,7 @@ Formatting utilities for prices and numbers. Pure functions without HTML output.
 ## Usage
 
 ```go
-import "github.com/hatmaxkit/hatmax/format"
+import "hatmax.adrianpk.com/hatmax/format"
 
 // Numbers
 format.Number(1234567)    // "1,234,567"

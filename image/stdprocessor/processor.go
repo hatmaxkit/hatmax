@@ -12,7 +12,7 @@ import (
 
 	"golang.org/x/image/draw"
 
-	"github.com/hatmaxkit/hatmax/image"
+	"hatmax.adrianpk.com/image"
 )
 
 // Processor implements image.Processor using Go's standard library and x/image.

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hatmaxkit/hatmax/log"
+	"hatmax.adrianpk.com/log"
 )
 
 //go:embed testdata/assets/templates/test/page.html testdata/assets/templates/test/item.html

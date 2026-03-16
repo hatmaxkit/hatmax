@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/hatmaxkit/hatmax/log"
+	"hatmax.adrianpk.com/log"
 )
 
 // NoopMailer is a mailer that logs messages instead of sending them.

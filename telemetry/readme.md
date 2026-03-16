@@ -6,9 +6,9 @@ Request counting and crash collection for telemetry reporting.
 
 ```go
 import (
-    "github.com/hatmaxkit/hatmax/telemetry"
-    "github.com/hatmaxkit/hatmax/middleware"
-    "github.com/hatmaxkit/hatmax/settings"
+    "hatmax.adrianpk.com/hatmax/telemetry"
+    "hatmax.adrianpk.com/hatmax/middleware"
+    "hatmax.adrianpk.com/hatmax/settings"
 )
 
 // Create collectors

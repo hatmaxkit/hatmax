@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/hatmaxkit/hatmax/auth"
+	"hatmax.adrianpk.com/auth"
 )
 
 // SessionValidator validates session tokens and returns users.

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/hatmaxkit/hatmax/model"
+	"hatmax.adrianpk.com/model"
 )
 
 var (

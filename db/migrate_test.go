@@ -5,7 +5,7 @@ import (
 	"embed"
 	"testing"
 
-	"github.com/hatmaxkit/hatmax/log"
+	"hatmax.adrianpk.com/log"
 )
 
 //go:embed testdata

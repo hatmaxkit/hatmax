@@ -13,12 +13,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hatmaxkit/hatmax/config"
-	"github.com/hatmaxkit/hatmax/log"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"hatmax.adrianpk.com/config"
+	"hatmax.adrianpk.com/log"
 )
 
 // SetupTestDB creates an isolated test database environment.

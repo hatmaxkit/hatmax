@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"strings"
 
-	"github.com/hatmaxkit/hatmax/htmx"
+	"hatmax.adrianpk.com/htmx"
 )
 
 // Form represents a form component with CSRF support.

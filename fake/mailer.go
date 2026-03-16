@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/hatmaxkit/hatmax/mailer"
+	"hatmax.adrianpk.com/mailer"
 )
 
 // MailerSendCall represents a recorded call to Send.

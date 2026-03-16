@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hatmaxkit/hatmax/config"
-	"github.com/hatmaxkit/hatmax/log"
-	"github.com/hatmaxkit/hatmax/pubsub"
+	"hatmax.adrianpk.com/config"
+	"hatmax.adrianpk.com/log"
+	"hatmax.adrianpk.com/pubsub"
 )
 
 // Config holds PostgreSQL pubsub configuration.

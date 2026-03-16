@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hatmaxkit/hatmax/config"
-	"github.com/hatmaxkit/hatmax/settings"
+	"hatmax.adrianpk.com/config"
+	"hatmax.adrianpk.com/settings"
 )
 
 type fakeSettings struct {

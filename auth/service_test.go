@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hatmaxkit/hatmax/config"
-	"github.com/hatmaxkit/hatmax/log"
+	"hatmax.adrianpk.com/config"
+	"hatmax.adrianpk.com/log"
 )
 
 // mockQueries implements the Queries interface for testing.

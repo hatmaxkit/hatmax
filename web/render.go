@@ -4,8 +4,8 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/hatmaxkit/hatmax/htmx"
-	"github.com/hatmaxkit/hatmax/log"
+	"hatmax.adrianpk.com/htmx"
+	"hatmax.adrianpk.com/log"
 )
 
 func RenderTemplate(w http.ResponseWriter, tmpl *template.Template, name string, data interface{}, log log.Logger) {

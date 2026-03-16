@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hatmaxkit/hatmax/testhelper"
+	"hatmax.adrianpk.com/testhelper"
 )
 
 type fakeDBProvider struct {

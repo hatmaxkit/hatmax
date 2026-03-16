@@ -5,9 +5,9 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/hatmaxkit/hatmax/config"
-	"github.com/hatmaxkit/hatmax/log"
-	"github.com/hatmaxkit/hatmax/settings"
+	"hatmax.adrianpk.com/config"
+	"hatmax.adrianpk.com/log"
+	"hatmax.adrianpk.com/settings"
 )
 
 func TestNew(t *testing.T) {

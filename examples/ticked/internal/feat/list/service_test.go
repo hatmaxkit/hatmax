@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hatmaxkit/hatmax/log"
-	"github.com/hatmaxkit/hatmax/pubsub"
+	"hatmax.adrianpk.com/log"
+	"hatmax.adrianpk.com/pubsub"
 )
 
 // mockStore implements Store for testing.

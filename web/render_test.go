@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hatmaxkit/hatmax/log"
+	"hatmax.adrianpk.com/log"
 )
 
 func TestRenderTemplate(t *testing.T) {

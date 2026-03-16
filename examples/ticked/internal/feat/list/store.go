@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hatmaxkit/hatmax/examples/ticked/internal/dal"
+	"hatmax.adrianpk.com/examples/ticked/internal/dal"
 )
 
 var ErrNotFound = errors.New("todo list not found")

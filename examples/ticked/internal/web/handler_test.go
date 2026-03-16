@@ -11,12 +11,12 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hatmaxkit/hatmax/auth"
-	"github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/audit"
-	"github.com/hatmaxkit/hatmax/examples/ticked/internal/feat/list"
-	"github.com/hatmaxkit/hatmax/log"
-	"github.com/hatmaxkit/hatmax/ui"
-	"github.com/hatmaxkit/hatmax/web"
+	"hatmax.adrianpk.com/auth"
+	"hatmax.adrianpk.com/examples/ticked/internal/feat/audit"
+	"hatmax.adrianpk.com/examples/ticked/internal/feat/list"
+	"hatmax.adrianpk.com/log"
+	"hatmax.adrianpk.com/ui"
+	"hatmax.adrianpk.com/web"
 )
 
 //go:embed testdata/assets

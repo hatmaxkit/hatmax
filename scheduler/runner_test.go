@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hatmaxkit/hatmax/config"
+	"hatmax.adrianpk.com/config"
 )
 
 var errTest = errors.New("test error")

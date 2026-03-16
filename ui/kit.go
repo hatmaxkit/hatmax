@@ -5,9 +5,9 @@ import (
 	"embed"
 	"io/fs"
 
-	"github.com/hatmaxkit/hatmax/config"
-	"github.com/hatmaxkit/hatmax/log"
-	"github.com/hatmaxkit/hatmax/settings"
+	"hatmax.adrianpk.com/config"
+	"hatmax.adrianpk.com/log"
+	"hatmax.adrianpk.com/settings"
 )
 
 // CSRFFunc extracts a CSRF token from context.

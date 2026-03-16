@@ -3,7 +3,7 @@ package telemetry
 import (
 	"testing"
 
-	"github.com/hatmaxkit/hatmax/settings"
+	"hatmax.adrianpk.com/settings"
 )
 
 func TestSchemasKeyConstants(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/hatmaxkit/hatmax/mailer"
+	"hatmax.adrianpk.com/mailer"
 )
 
 func TestNewMailer(t *testing.T) {

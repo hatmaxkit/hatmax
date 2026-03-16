@@ -1,6 +1,6 @@
 package telemetry
 
-import "github.com/hatmaxkit/hatmax/settings"
+import "hatmax.adrianpk.com/settings"
 
 const (
 	KeyMode       = "telemetry.mode"

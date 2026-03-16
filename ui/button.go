@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"strings"
 
-	"github.com/hatmaxkit/hatmax/htmx"
+	"hatmax.adrianpk.com/htmx"
 )
 
 // ButtonSize defines button size variants.

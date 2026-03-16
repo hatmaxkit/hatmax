@@ -4,9 +4,9 @@
   <img src="docs/img/hero.png" width="800">
 </p>
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/hatmaxkit/hatmax.svg)](https://pkg.go.dev/github.com/hatmaxkit/hatmax)
-[![CI](https://github.com/hatmaxkit/hatmax/actions/workflows/ci.yml/badge.svg)](https://github.com/hatmaxkit/hatmax/actions)
-[![codecov](https://codecov.io/gh/hatmaxkit/hatmax/graph/badge.svg?token=VDYCRMI31Q)](https://codecov.io/gh/hatmaxkit/hatmax)
+[![Go Reference](https://pkg.go.dev/badge/hatmax.adrianpk.com.svg)](https://pkg.go.dev/hatmax.adrianpk.com)
+[![CI](https://img.shields.io/endpoint?url=https://codeberg.org/hatmax/hatmax/raw/branch/main/.badges/ci.json)](https://codeberg.org/hatmax/hatmax)
+[![coverage](https://img.shields.io/endpoint?url=https://codeberg.org/hatmax/hatmax/raw/branch/main/.badges/coverage.json)](https://codeberg.org/hatmax/hatmax)
 
 **A composable Go toolkit for building web applications with consistent wiring, clear configuration boundaries, and predictable package integration.**
 
@@ -32,12 +32,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hatmaxkit/hatmax/app"
-	"github.com/hatmaxkit/hatmax/config"
-	"github.com/hatmaxkit/hatmax/db"
-	"github.com/hatmaxkit/hatmax/log"
-	"github.com/hatmaxkit/hatmax/mailer"
-	"github.com/hatmaxkit/hatmax/pubsub/postgres"
+	"hatmax.adrianpk.com/app"
+	"hatmax.adrianpk.com/config"
+	"hatmax.adrianpk.com/db"
+	"hatmax.adrianpk.com/log"
+	"hatmax.adrianpk.com/mailer"
+	"hatmax.adrianpk.com/pubsub/postgres"
 )
 
 //go:embed assets/*

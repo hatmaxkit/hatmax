@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hatmaxkit/hatmax/htmx"
+	"hatmax.adrianpk.com/htmx"
 )
 
 func TestLink(t *testing.T) {

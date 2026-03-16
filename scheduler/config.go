@@ -3,7 +3,7 @@ package scheduler
 import (
 	"time"
 
-	"github.com/hatmaxkit/hatmax/config"
+	"hatmax.adrianpk.com/config"
 )
 
 type Config struct {

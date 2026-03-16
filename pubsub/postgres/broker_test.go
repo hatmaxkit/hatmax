@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hatmaxkit/hatmax/pubsub"
-	"github.com/hatmaxkit/hatmax/testhelper"
+	"hatmax.adrianpk.com/pubsub"
+	"hatmax.adrianpk.com/testhelper"
 )
 
 // testDBProvider wraps *sql.DB to implement DBProvider for tests.

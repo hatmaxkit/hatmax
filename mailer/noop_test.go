@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hatmaxkit/hatmax/log"
+	"hatmax.adrianpk.com/log"
 )
 
 func TestNewNoopMailer(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/hatmaxkit/hatmax/config"
+	"hatmax.adrianpk.com/config"
 )
 
 // LogLevel represents the severity level for logging.

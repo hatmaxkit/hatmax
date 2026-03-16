@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/hatmaxkit/hatmax/auth"
+	"hatmax.adrianpk.com/auth"
 )
 
 func TestRequireRole(t *testing.T) {

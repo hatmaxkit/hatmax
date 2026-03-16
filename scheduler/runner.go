@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hatmaxkit/hatmax/config"
+	"hatmax.adrianpk.com/config"
 )
 
 type Runner struct {

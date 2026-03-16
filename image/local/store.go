@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hatmaxkit/hatmax/image"
+	"hatmax.adrianpk.com/image"
 )
 
 // Store implements image.Store using local filesystem.

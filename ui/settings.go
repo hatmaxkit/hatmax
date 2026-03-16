@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"strings"
 
-	"github.com/hatmaxkit/hatmax/settings"
+	"hatmax.adrianpk.com/settings"
 )
 
 // SettingsForm generates a form from setting schemas.

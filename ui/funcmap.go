@@ -3,9 +3,9 @@ package ui
 import (
 	"html/template"
 
-	"github.com/hatmaxkit/hatmax/format"
-	"github.com/hatmaxkit/hatmax/htmx"
-	"github.com/hatmaxkit/hatmax/render"
+	"hatmax.adrianpk.com/format"
+	"hatmax.adrianpk.com/htmx"
+	"hatmax.adrianpk.com/render"
 )
 
 // FuncMap returns a template.FuncMap with all kit functions.

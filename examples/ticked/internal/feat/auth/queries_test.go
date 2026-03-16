@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hatmaxkit/hatmax/auth"
-	"github.com/hatmaxkit/hatmax/examples/ticked/internal/dal"
+	"hatmax.adrianpk.com/auth"
+	"hatmax.adrianpk.com/examples/ticked/internal/dal"
 )
 
 // fakeQuerier implements the querier interface for testing.

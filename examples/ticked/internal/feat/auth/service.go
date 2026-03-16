@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/hatmaxkit/hatmax/auth"
-	"github.com/hatmaxkit/hatmax/log"
+	"hatmax.adrianpk.com/auth"
+	"hatmax.adrianpk.com/log"
 )
 
 // baseAuthService defines the operations needed from hatmax auth.Service.

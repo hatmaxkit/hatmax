@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"strings"
 
-	"github.com/hatmaxkit/hatmax/htmx"
+	"hatmax.adrianpk.com/htmx"
 )
 
 // Link represents an interactive link component with optional HTMX support.

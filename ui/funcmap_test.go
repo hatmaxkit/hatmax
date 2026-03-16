@@ -3,8 +3,8 @@ package ui
 import (
 	"testing"
 
-	"github.com/hatmaxkit/hatmax/config"
-	"github.com/hatmaxkit/hatmax/log"
+	"hatmax.adrianpk.com/config"
+	"hatmax.adrianpk.com/log"
 )
 
 func TestUIFuncMap(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"html/template"
 	"strings"
 
-	"github.com/hatmaxkit/hatmax/htmx"
-	"github.com/hatmaxkit/hatmax/i18n"
+	"hatmax.adrianpk.com/htmx"
+	"hatmax.adrianpk.com/i18n"
 )
 
 // FuncMap returns a template.FuncMap with base render functions.
