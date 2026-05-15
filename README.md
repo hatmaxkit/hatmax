@@ -125,6 +125,8 @@ Public mirrors are available at:
 - [https://codeberg.org/hatmax/hatmax](https://codeberg.org/hatmax/hatmax)
 - [https://github.com/hatmaxkit/hatmax](https://github.com/hatmaxkit/hatmax)
 
+During the Forge migration, the `hatmax.adrianpk.com` vanity import page is served from Codeberg Pages and points to the official Forge repo.
+
 ## License
 
 MIT

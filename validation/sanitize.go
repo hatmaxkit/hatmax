@@ -48,6 +48,7 @@ func SanitizeStringSlice(values []string) []string {
 
 	out := make([]string, 0, len(values))
 	seen := make(map[string]struct{}, len(values))
+
 	for _, raw := range values {
 		value := NormalizeText(raw)
 		if value == "" {
