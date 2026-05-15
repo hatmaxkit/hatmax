@@ -68,29 +68,17 @@ jobs:
           DB_USER: postgres
           DB_PASSWORD: postgres
           DB_NAME: postgres
-        run: |
-          go test -v -race -coverprofile=coverage.out $(go list ./... | grep -v -e '/tmp/' -e '/build/')
+        run: make test-coverage-profile
 
       - name: Check coverage percentage
         run: |
           COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "Coverage: $COVERAGE%"
-          echo "Note: Current threshold is 60%. Target is 85%+ as crypto and db packages get full integration tests."
-          if (( $(echo "$COVERAGE < 60.0" | bc -l) )); then
-            echo "❌ Coverage $COVERAGE% is below 60% threshold"
+          if awk -v coverage="$COVERAGE" 'BEGIN { exit !(coverage < 80) }'; then
+            echo "Coverage $COVERAGE% is below 80% threshold"
             exit 1
-          else
-            echo "✅ Coverage $COVERAGE% meets the 60% threshold"
           fi
-
-      - name: Generate coverage report
-        run: go tool cover -html=coverage.out -o coverage.html
-
-      - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage.html
+          echo "Coverage $COVERAGE% meets the 80% threshold"
 
   build:
     runs-on: ubuntu-latest
