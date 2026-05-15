@@ -116,9 +116,14 @@ Small interfaces make components swappable:
 - [Features](docs/features.md)
 - [Gallery](docs/gallery.md)
 
-## Mirror
+## Repos
 
-A public mirror is available at [https://codeberg.org/hatmax/hatmax](https://codeberg.org/hatmax/hatmax).
+The official repo is available at [https://forge.adrianpk.com/hatmax/hatmax](https://forge.adrianpk.com/hatmax/hatmax).
+
+Public mirrors are available at:
+
+- [https://codeberg.org/hatmax/hatmax](https://codeberg.org/hatmax/hatmax)
+- [https://github.com/hatmaxkit/hatmax](https://github.com/hatmaxkit/hatmax)
 
 ## License
 
