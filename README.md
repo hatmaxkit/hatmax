@@ -116,6 +116,10 @@ Small interfaces make components swappable:
 - [Features](docs/features.md)
 - [Gallery](docs/gallery.md)
 
+## Mirror
+
+A public mirror is available at [https://codeberg.org/hatmax/hatmax](https://codeberg.org/hatmax/hatmax).
+
 ## License
 
 MIT
