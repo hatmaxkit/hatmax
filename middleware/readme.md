@@ -29,7 +29,17 @@ r.Use(middleware.RequireRole(model.RoleAdmin))
 
 // Rate limiting
 r.Use(middleware.RateLimit(100, time.Minute))
+
+// Same-origin protection for state-changing browser requests
+r.Use(middleware.RequireSameOrigin)
 ```
+
+## Same-origin request protection
+
+`RequireSameOrigin` allows safe HTTP methods without source headers. Other
+methods require an `Origin` or `Referer` whose scheme and host match the
+request. `Sec-Fetch-Site: cross-site` is always rejected. HTTPS is resolved
+from direct TLS or the first `X-Forwarded-Proto` value.
 
 ## Locale
 
@@ -41,4 +51,5 @@ locale := middleware.GetLocale(r.Context())
 middleware.SetLocaleCookie(w, "es")
 ```
 
-See: `locale.go`, `cache.go`, `requestid.go`, `roles.go`, `ratelimit.go`, `stack.go`.
+See: `csrf.go`, `locale.go`, `cache.go`, `requestid.go`, `roles.go`,
+`ratelimit.go`, `stack.go`.
