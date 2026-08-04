@@ -10,6 +10,12 @@ err := validation.ValidateEmail(email)
 err := validation.ValidatePassword(password)
 err := validation.ValidateUsername(username)
 
+errs := validation.ValidateAll(
+    validation.Field("email", email).Required().Email(),
+    validation.Field("password", password).Required().Password(),
+    validation.Field("password_confirm", confirmation).Required().Equal(password),
+)
+
 // Field validators (return ValidationError for forms)
 ve := validation.ValidateEmailField("email", value)
 ve := validation.ValidatePhoneField("phone", value)

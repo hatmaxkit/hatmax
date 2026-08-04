@@ -70,6 +70,41 @@ func (f *FieldValidator) Email() *FieldValidator {
 	return f
 }
 
+// Password validates password strength.
+func (f *FieldValidator) Password() *FieldValidator {
+	if f.value == "" {
+		return f
+	}
+
+	err := ValidatePassword(f.value)
+	if err != nil {
+		f.errors = append(f.errors, ValidationError{
+			Field:   f.field,
+			Rule:    "Password",
+			Message: err.Error(),
+		})
+	}
+
+	return f
+}
+
+// Equal validates that the field matches an expected value.
+func (f *FieldValidator) Equal(expected string) *FieldValidator {
+	if f.value == "" {
+		return f
+	}
+
+	if f.value != expected {
+		f.errors = append(f.errors, ValidationError{
+			Field:   f.field,
+			Rule:    "Equal",
+			Message: "must match",
+		})
+	}
+
+	return f
+}
+
 // Phone validates phone format.
 func (f *FieldValidator) Phone() *FieldValidator {
 	err := ValidatePhoneField(f.field, f.value)

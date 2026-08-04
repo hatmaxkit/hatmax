@@ -110,6 +110,57 @@ func TestFieldValidator(t *testing.T) {
 		}
 	})
 
+	t.Run("Password", func(t *testing.T) {
+		tests := []struct {
+			name      string
+			value     string
+			wantError bool
+		}{
+			{"strong password", "Strong1!", false},
+			{"weak password", "weak", true},
+			{"empty skipped", "", false},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				errs := Field("password", tt.value).Password().Errors()
+				if tt.wantError && !errs.HasErrors() {
+					t.Error("expected error but got none")
+				}
+
+				if !tt.wantError && errs.HasErrors() {
+					t.Errorf("unexpected error: %v", errs)
+				}
+			})
+		}
+	})
+
+	t.Run("Equal", func(t *testing.T) {
+		tests := []struct {
+			name      string
+			value     string
+			expected  string
+			wantError bool
+		}{
+			{"matching values", "same", "same", false},
+			{"different values", "different", "same", true},
+			{"empty skipped", "", "same", false},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				errs := Field("confirmation", tt.value).Equal(tt.expected).Errors()
+				if tt.wantError && !errs.HasErrors() {
+					t.Error("expected error but got none")
+				}
+
+				if !tt.wantError && errs.HasErrors() {
+					t.Errorf("unexpected error: %v", errs)
+				}
+			})
+		}
+	})
+
 	t.Run("Phone", func(t *testing.T) {
 		tests := []struct {
 			name      string
