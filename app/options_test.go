@@ -10,6 +10,29 @@ import (
 	"hatmax.adrianpk.com/log"
 )
 
+func TestWithMiddlewareBeforeRoutes(t *testing.T) {
+	logger := log.NewTestLogger("error")
+	marker := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+			response.Header().Set("X-Middleware", "applied")
+			next.ServeHTTP(response, request)
+		})
+	}
+	router := NewRouter(logger, WithMiddleware(marker), WithPing())
+	request := httptest.NewRequest(http.MethodGet, "/ping", nil)
+	response := httptest.NewRecorder()
+
+	router.ServeHTTP(response, request)
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("GET /ping status = %d, want %d", response.Code, http.StatusOK)
+	}
+
+	if response.Header().Get("X-Middleware") != "applied" {
+		t.Fatal("GET /ping did not pass through configured middleware")
+	}
+}
+
 func TestWithPing(t *testing.T) {
 	r := chi.NewRouter()
 

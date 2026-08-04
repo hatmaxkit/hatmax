@@ -26,6 +26,15 @@ func NewRouter(log log.Logger, opts ...RouterOption) chi.Router {
 	return r
 }
 
+// WithMiddleware installs middleware before subsequent route options.
+func WithMiddleware(middlewares ...func(http.Handler) http.Handler) RouterOption {
+	return func(r chi.Router) error {
+		r.Use(middlewares...)
+
+		return nil
+	}
+}
+
 // WithDebugRoutes enables GET /debug/routes endpoint that lists all registered routes.
 func WithDebugRoutes() RouterOption {
 	return func(r chi.Router) error {
