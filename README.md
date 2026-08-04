@@ -37,6 +37,7 @@ import (
 	"hatmax.adrianpk.com/db"
 	"hatmax.adrianpk.com/log"
 	"hatmax.adrianpk.com/mailer"
+	"hatmax.adrianpk.com/middleware"
 	"hatmax.adrianpk.com/pubsub/postgres"
 )
 
@@ -50,12 +51,22 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = cfg.Validate(); err != nil {
+		fmt.Fprintf(os.Stderr, "cannot validate config: %v\n", err)
+		os.Exit(1)
+	}
+
 	ctx := context.Background()
 	logger := log.NewLogger(cfg)
-	router := app.NewRouter(logger, app.WithPing(), app.WithDebugRoutes())
+	router := app.NewRouter(
+		logger,
+		app.WithMiddleware(middleware.DefaultStack()...),
+		app.WithPing(),
+		app.WithDebugRoutes(),
+	)
 
 	// Infrastructure
-	database := db.New(assetsFS, "postgres", cfg, logger)
+	database := db.New(assetsFS, db.Postgres, cfg, logger)
 	events := postgres.New(database, cfg, logger)
 	mail := mailer.New(cfg, logger)
 

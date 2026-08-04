@@ -38,16 +38,26 @@ func main() {
 		os.Exit(1)
 	}
 
+	err = cfg.Validate()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Cannot validate config: %v\n", err)
+		os.Exit(1)
+	}
+
 	logger := log.NewLogger(cfg)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	router := app.NewRouter(logger, app.WithPing(), app.WithDebugRoutes())
-	router.Use(middleware.DefaultStack()...)
+	router := app.NewRouter(
+		logger,
+		app.WithMiddleware(middleware.DefaultStack()...),
+		app.WithPing(),
+		app.WithDebugRoutes(),
+	)
 
-	database := db.New(assetsFS, "postgres", cfg, logger)
-	migrator := db.NewMigrator(database, assetsFS, "postgres", logger)
+	database := db.New(assetsFS, db.Postgres, cfg, logger)
+	migrator := db.NewMigrator(database, assetsFS, db.Postgres, logger)
 	tmplMgr := web.NewTemplateManager(assetsFS, logger, web.WithFuncMap(ui.FuncMap()))
 	broker := postgres.NewBroker(database, postgres.DefaultConfig(), logger)
 
@@ -87,9 +97,9 @@ func main() {
 	go func() {
 		logger.Infof("Server listening on %s", cfg.Server.Port)
 
-		err = app.Serve(router, cfg.Server.Port)
-		if err != nil {
-			logger.Errorf("Server error: %v", err)
+		serveErr := app.Serve(router, cfg.Server.Port)
+		if serveErr != nil {
+			logger.Errorf("Server error: %v", serveErr)
 		}
 	}()
 
@@ -100,12 +110,10 @@ func main() {
 	logger.Infof("Shutting down %s(%s)...", name, version)
 	cancel()
 
-	for i := len(stops) - 1; i >= 0; i-- {
-		err = stops[i](context.Background())
-		if err != nil {
-			logger.Errorf("Error stopping component: %v", err)
+	for index := len(stops) - 1; index >= 0; index-- {
+		stopErr := stops[index](context.Background())
+		if stopErr != nil {
+			logger.Errorf("Error stopping component: %v", stopErr)
 		}
 	}
-
-	fmt.Println("Goodbye!")
 }
