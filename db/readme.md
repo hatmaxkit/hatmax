@@ -8,7 +8,7 @@ PostgreSQL connection with lifecycle management.
 //go:embed assets
 var assetsFS embed.FS
 
-database := db.New(assetsFS, "postgres", cfg, log)
+database := db.New(assetsFS, db.Postgres, cfg, log)
 
 // Implements app.Startable/Stoppable
 if err := database.Start(ctx); err != nil {
