@@ -353,6 +353,8 @@ auth:
   session_ttl: "12h"
   password_min_len: 10
   bcrypt_cost: 14
+  email_encryption_key: encryption-key
+  email_lookup_key: lookup-key
 `
 
 	tmpfile, err := os.CreateTemp("", "config-*.yaml")
@@ -402,6 +404,14 @@ auth:
 
 	if cfg.Auth.BCryptCost != 14 {
 		t.Errorf("Auth.BCryptCost = %d, want 14", cfg.Auth.BCryptCost)
+	}
+
+	if cfg.Auth.EmailEncryptionKey != "encryption-key" {
+		t.Errorf("Auth.EmailEncryptionKey = %q, want encryption-key", cfg.Auth.EmailEncryptionKey)
+	}
+
+	if cfg.Auth.EmailLookupKey != "lookup-key" {
+		t.Errorf("Auth.EmailLookupKey = %q, want lookup-key", cfg.Auth.EmailLookupKey)
 	}
 }
 

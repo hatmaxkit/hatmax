@@ -49,9 +49,11 @@ type DatabaseConfig struct {
 
 // AuthConfig holds authentication and session configuration.
 type AuthConfig struct {
-	SessionTTL     string `koanf:"session_ttl"`
-	PasswordMinLen int    `koanf:"password_min_len"`
-	BCryptCost     int    `koanf:"bcrypt_cost"`
+	SessionTTL         string `koanf:"session_ttl"`
+	PasswordMinLen     int    `koanf:"password_min_len"`
+	BCryptCost         int    `koanf:"bcrypt_cost"`
+	EmailEncryptionKey string `koanf:"email_encryption_key"`
+	EmailLookupKey     string `koanf:"email_lookup_key"`
 }
 
 // PubSubConfig holds pub/sub configuration.
@@ -241,6 +243,8 @@ func Load(path, envPrefix string, args []string) (*Config, error) {
 	fs.String("auth.session_ttl", "24h", "Session TTL")
 	fs.Int("auth.password_min_len", 8, "Minimum password length")
 	fs.Int("auth.bcrypt_cost", 12, "BCrypt cost factor")
+	fs.String("auth.email_encryption_key", "", "Email encryption key")
+	fs.String("auth.email_lookup_key", "", "Email lookup key")
 	fs.Bool("pubsub.enabled", false, "Enable pub/sub")
 	fs.String("pubsub.poll_interval", "100ms", "Pub/sub poll interval")
 	fs.Int("pubsub.batch_size", 100, "Pub/sub batch size")
