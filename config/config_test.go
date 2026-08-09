@@ -355,6 +355,9 @@ auth:
   bcrypt_cost: 14
   email_encryption_key: encryption-key
   email_lookup_key: lookup-key
+contact:
+  pii_encryption_key: contact-encryption-key
+  email_lookup_key: contact-lookup-key
 `
 
 	tmpfile, err := os.CreateTemp("", "config-*.yaml")
@@ -412,6 +415,14 @@ auth:
 
 	if cfg.Auth.EmailLookupKey != "lookup-key" {
 		t.Errorf("Auth.EmailLookupKey = %q, want lookup-key", cfg.Auth.EmailLookupKey)
+	}
+
+	if cfg.Contact.PIIEncryptionKey != "contact-encryption-key" {
+		t.Errorf("Contact.PIIEncryptionKey = %q, want contact-encryption-key", cfg.Contact.PIIEncryptionKey)
+	}
+
+	if cfg.Contact.EmailLookupKey != "contact-lookup-key" {
+		t.Errorf("Contact.EmailLookupKey = %q, want contact-lookup-key", cfg.Contact.EmailLookupKey)
 	}
 }
 

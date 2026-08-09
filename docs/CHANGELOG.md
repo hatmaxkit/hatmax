@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - General authenticated string encryption with associated-data support and
   deterministic lookup hashes.
+- Contact protection configuration keys.
 
 ## [0.1.0] - 2026-02-17
 

@@ -20,6 +20,7 @@ type Config struct {
 	Server    ServerConfig    `koanf:"server"`
 	Database  DatabaseConfig  `koanf:"database"`
 	Auth      AuthConfig      `koanf:"auth"`
+	Contact   ContactConfig   `koanf:"contact"`
 	PubSub    PubSubConfig    `koanf:"pubsub"`
 	Scheduler SchedulerConfig `koanf:"scheduler"`
 	Mailer    MailerConfig    `koanf:"mailer"`
@@ -54,6 +55,12 @@ type AuthConfig struct {
 	BCryptCost         int    `koanf:"bcrypt_cost"`
 	EmailEncryptionKey string `koanf:"email_encryption_key"`
 	EmailLookupKey     string `koanf:"email_lookup_key"`
+}
+
+// ContactConfig holds contact data-protection configuration.
+type ContactConfig struct {
+	PIIEncryptionKey string `koanf:"pii_encryption_key"`
+	EmailLookupKey   string `koanf:"email_lookup_key"`
 }
 
 // PubSubConfig holds pub/sub configuration.
@@ -245,6 +252,8 @@ func Load(path, envPrefix string, args []string) (*Config, error) {
 	fs.Int("auth.bcrypt_cost", 12, "BCrypt cost factor")
 	fs.String("auth.email_encryption_key", "", "Email encryption key")
 	fs.String("auth.email_lookup_key", "", "Email lookup key")
+	fs.String("contact.pii_encryption_key", "", "Contact PII encryption key")
+	fs.String("contact.email_lookup_key", "", "Contact email lookup key")
 	fs.Bool("pubsub.enabled", false, "Enable pub/sub")
 	fs.String("pubsub.poll_interval", "100ms", "Pub/sub poll interval")
 	fs.Int("pubsub.batch_size", 100, "Pub/sub batch size")
