@@ -141,7 +141,7 @@ func DeriveLookupHash(value string, key []byte) (string, error) {
 
 // EncryptEmail encrypts plaintext with AES-256-GCM.
 //
-// Deprecated: use EncryptString.
+// New code should use EncryptString.
 func EncryptEmail(plaintext string, key []byte) (ciphertext, iv, tag string, err error) {
 	value, err := EncryptString(plaintext, key, nil)
 	if err != nil {
@@ -153,7 +153,7 @@ func EncryptEmail(plaintext string, key []byte) (ciphertext, iv, tag string, err
 
 // DecryptEmail authenticates and decrypts encrypted email data.
 //
-// Deprecated: use DecryptString.
+// New code should use DecryptString.
 func DecryptEmail(ciphertextB64, ivB64, tagB64 string, key []byte) (string, error) {
 	plaintext, err := DecryptString(EncryptedString{
 		Ciphertext: ciphertextB64,
@@ -169,7 +169,7 @@ func DecryptEmail(ciphertextB64, ivB64, tagB64 string, key []byte) (string, erro
 
 // ComputeLookupHash derives a deterministic lookup hash for value.
 //
-// Deprecated: use DeriveLookupHash, which reports an invalid key explicitly.
+// New code should use DeriveLookupHash, which reports an invalid key explicitly.
 func ComputeLookupHash(value string, signingKey []byte) string {
 	hash, err := DeriveLookupHash(value, signingKey)
 	if err != nil {
