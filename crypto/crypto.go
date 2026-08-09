@@ -28,64 +28,77 @@ var (
 	ErrInvalidKey        = errors.New("invalid encryption key length")
 	ErrInvalidCiphertext = errors.New("invalid ciphertext")
 	ErrInvalidIV         = errors.New("invalid initialization vector")
+	ErrInvalidNonce      = errors.New("invalid nonce")
 	ErrInvalidTag        = errors.New("invalid authentication tag")
 	ErrDecryptionFailed  = errors.New("decryption failed")
 )
 
-func EncryptEmail(plaintext string, key []byte) (ciphertext, iv, tag string, err error) {
+// EncryptedString is an authenticated encrypted string representation suitable
+// for separate ciphertext, nonce, and tag persistence columns.
+type EncryptedString struct {
+	Ciphertext string
+	Nonce      string
+	Tag        string
+}
+
+// EncryptString encrypts plaintext with AES-256-GCM and authenticates
+// associatedData without encrypting it. The same associatedData must be passed
+// to DecryptString.
+func EncryptString(plaintext string, key, associatedData []byte) (EncryptedString, error) {
 	if len(key) != aesKeyLength {
-		return "", "", "", ErrInvalidKey
+		return EncryptedString{}, ErrInvalidKey
 	}
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return "", "", "", err
+		return EncryptedString{}, err
 	}
 
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return "", "", "", err
+		return EncryptedString{}, err
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
 
 	err = fillRandom(nonce)
 	if err != nil {
-		return "", "", "", err
+		return EncryptedString{}, err
 	}
 
-	sealed := gcm.Seal(nil, nonce, []byte(plaintext), nil)
+	sealed := gcm.Seal(nil, nonce, []byte(plaintext), associatedData)
 
 	tagSize := gcm.Overhead()
 	if len(sealed) < tagSize {
-		return "", "", "", ErrInvalidCiphertext
+		return EncryptedString{}, ErrInvalidCiphertext
 	}
 
-	ciphertextBytes := sealed[:len(sealed)-tagSize]
-	tagBytes := sealed[len(sealed)-tagSize:]
-
-	return base64.StdEncoding.EncodeToString(ciphertextBytes),
-		base64.StdEncoding.EncodeToString(nonce),
-		base64.StdEncoding.EncodeToString(tagBytes),
-		nil
+	return EncryptedString{
+		Ciphertext: base64.StdEncoding.EncodeToString(sealed[:len(sealed)-tagSize]),
+		Nonce:      base64.StdEncoding.EncodeToString(nonce),
+		Tag:        base64.StdEncoding.EncodeToString(sealed[len(sealed)-tagSize:]),
+	}, nil
 }
 
-func DecryptEmail(ciphertextB64, ivB64, tagB64 string, key []byte) (string, error) {
+// DecryptString authenticates associatedData and decrypts value with
+// AES-256-GCM. associatedData must be identical to the value passed to
+// EncryptString.
+func DecryptString(value EncryptedString, key, associatedData []byte) (string, error) {
 	if len(key) != aesKeyLength {
 		return "", ErrInvalidKey
 	}
 
-	ciphertext, err := base64.StdEncoding.DecodeString(ciphertextB64)
+	ciphertext, err := base64.StdEncoding.DecodeString(value.Ciphertext)
 	if err != nil {
 		return "", ErrInvalidCiphertext
 	}
 
-	iv, err := base64.StdEncoding.DecodeString(ivB64)
+	nonce, err := base64.StdEncoding.DecodeString(value.Nonce)
 	if err != nil {
-		return "", ErrInvalidIV
+		return "", ErrInvalidNonce
 	}
 
-	tag, err := base64.StdEncoding.DecodeString(tagB64)
+	tag, err := base64.StdEncoding.DecodeString(value.Tag)
 	if err != nil {
 		return "", ErrInvalidTag
 	}
@@ -100,13 +113,11 @@ func DecryptEmail(ciphertextB64, ivB64, tagB64 string, key []byte) (string, erro
 		return "", err
 	}
 
-	if len(iv) != gcm.NonceSize() {
-		return "", ErrInvalidIV
+	if len(nonce) != gcm.NonceSize() {
+		return "", ErrInvalidNonce
 	}
 
-	sealed := append(ciphertext, tag...)
-
-	plaintext, err := gcm.Open(nil, iv, sealed, nil)
+	plaintext, err := gcm.Open(nil, nonce, append(ciphertext, tag...), associatedData)
 	if err != nil {
 		return "", ErrDecryptionFailed
 	}
@@ -114,15 +125,58 @@ func DecryptEmail(ciphertextB64, ivB64, tagB64 string, key []byte) (string, erro
 	return string(plaintext), nil
 }
 
-func ComputeLookupHash(email string, signingKey []byte) string {
-	if len(signingKey) != hmacKeyLength {
+// DeriveLookupHash derives a deterministic HMAC-SHA-256 lookup hash for the
+// exact bytes in value. Callers own any required normalization before deriving
+// and storing a lookup hash.
+func DeriveLookupHash(value string, key []byte) (string, error) {
+	if len(key) != hmacKeyLength {
+		return "", ErrInvalidKey
+	}
+
+	h := hmac.New(sha256.New, key)
+	_, _ = h.Write([]byte(value))
+
+	return base64.StdEncoding.EncodeToString(h.Sum(nil)), nil
+}
+
+// EncryptEmail encrypts plaintext with AES-256-GCM.
+//
+// Deprecated: use EncryptString.
+func EncryptEmail(plaintext string, key []byte) (ciphertext, iv, tag string, err error) {
+	value, err := EncryptString(plaintext, key, nil)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	return value.Ciphertext, value.Nonce, value.Tag, nil
+}
+
+// DecryptEmail authenticates and decrypts encrypted email data.
+//
+// Deprecated: use DecryptString.
+func DecryptEmail(ciphertextB64, ivB64, tagB64 string, key []byte) (string, error) {
+	plaintext, err := DecryptString(EncryptedString{
+		Ciphertext: ciphertextB64,
+		Nonce:      ivB64,
+		Tag:        tagB64,
+	}, key, nil)
+	if errors.Is(err, ErrInvalidNonce) {
+		return "", ErrInvalidIV
+	}
+
+	return plaintext, err
+}
+
+// ComputeLookupHash derives a deterministic lookup hash for value.
+//
+// Deprecated: use DeriveLookupHash, which reports an invalid key explicitly.
+func ComputeLookupHash(value string, signingKey []byte) string {
+	hash, err := DeriveLookupHash(value, signingKey)
+	if err != nil {
 		return ""
 	}
 
-	h := hmac.New(sha256.New, signingKey)
-	h.Write([]byte(email))
-
-	return base64.StdEncoding.EncodeToString(h.Sum(nil))
+	return hash
 }
 
 func HashPassword(password string, salt []byte) []byte {

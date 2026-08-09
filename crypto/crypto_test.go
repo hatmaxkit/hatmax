@@ -224,6 +224,125 @@ func TestEncryptDecryptRoundtrip(t *testing.T) {
 	}
 }
 
+func TestEncryptString(t *testing.T) {
+	key := make([]byte, aesKeyLength)
+	plaintext := "private office note"
+
+	associatedData := []byte("contact:contact-123:notes")
+
+	value, err := EncryptString(plaintext, key, associatedData)
+	if err != nil {
+		t.Fatalf("EncryptString() error = %v", err)
+	}
+
+	if value.Ciphertext == "" || value.Nonce == "" || value.Tag == "" {
+		t.Fatal("EncryptString() returned an incomplete encrypted value")
+	}
+
+	got, err := DecryptString(value, key, associatedData)
+	if err != nil {
+		t.Fatalf("DecryptString() error = %v", err)
+	}
+
+	if got != plaintext {
+		t.Errorf("DecryptString() = %q, want %q", got, plaintext)
+	}
+}
+
+func TestDecryptString(t *testing.T) {
+	key := make([]byte, aesKeyLength)
+	associatedData := []byte("contact:contact-123:notes")
+
+	value, err := EncryptString("private office note", key, associatedData)
+	if err != nil {
+		t.Fatalf("EncryptString() error = %v", err)
+	}
+
+	tests := []struct {
+		name    string
+		value   EncryptedString
+		key     []byte
+		wantErr error
+	}{
+		{
+			name: "invalid ciphertext",
+			value: EncryptedString{
+				Ciphertext: "not-valid-base64!!!",
+				Nonce:      value.Nonce,
+				Tag:        value.Tag,
+			},
+			key:     key,
+			wantErr: ErrInvalidCiphertext,
+		},
+		{
+			name: "invalid nonce",
+			value: EncryptedString{
+				Ciphertext: value.Ciphertext,
+				Nonce:      "not-valid-base64!!!",
+				Tag:        value.Tag,
+			},
+			key:     key,
+			wantErr: ErrInvalidNonce,
+		},
+		{
+			name: "tampered tag",
+			value: EncryptedString{
+				Ciphertext: value.Ciphertext,
+				Nonce:      value.Nonce,
+				Tag:        "dGFtcGVyZWQ=",
+			},
+			key:     key,
+			wantErr: ErrDecryptionFailed,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := DecryptString(tt.value, tt.key, associatedData)
+			if err != tt.wantErr {
+				t.Errorf("DecryptString() error = %v, want %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestDeriveLookupHash(t *testing.T) {
+	key := make([]byte, hmacKeyLength)
+
+	first, err := DeriveLookupHash("contact@example.com", key)
+	if err != nil {
+		t.Fatalf("DeriveLookupHash() error = %v", err)
+	}
+
+	second, err := DeriveLookupHash("contact@example.com", key)
+	if err != nil {
+		t.Fatalf("DeriveLookupHash() error = %v", err)
+	}
+
+	if first != second {
+		t.Errorf("DeriveLookupHash() = %q, want deterministic output", second)
+	}
+
+	_, err = DeriveLookupHash("contact@example.com", nil)
+	if err != ErrInvalidKey {
+		t.Errorf("DeriveLookupHash() error = %v, want %v", err, ErrInvalidKey)
+	}
+}
+
+func TestDecryptStringRejectsDifferentAssociatedData(t *testing.T) {
+	key := make([]byte, aesKeyLength)
+
+	value, err := EncryptString("private office note", key, []byte("contact:contact-123:notes"))
+	if err != nil {
+		t.Fatalf("EncryptString() error = %v", err)
+	}
+
+	_, err = DecryptString(value, key, []byte("contact:contact-123:phone"))
+	if err != ErrDecryptionFailed {
+		t.Errorf("DecryptString() error = %v, want %v", err, ErrDecryptionFailed)
+	}
+}
+
 func TestComputeLookupHash(t *testing.T) {
 	validKey := make([]byte, hmacKeyLength)
 	for i := range validKey {
