@@ -47,6 +47,15 @@ web.RedirectOrHXRedirect(w, r, "/dashboard")
 form, err := web.ParseForm(r)
 if err != nil { ... }
 name := form.String("name")
+
+// Present structured validation errors without exposing internal errors
+formErrors := web.FormErrorsFrom(err, "Review the highlighted fields.")
+formErrors.Add("email", "A contact with this email already exists.")
+message := formErrors.First("email")
 ```
+
+`FormErrors.General` contains the form-level summary. `FormErrors.Fields`
+maps stable form field names to one or more user-facing messages. Applications
+remain responsible for explicitly mapping business errors to safe messages.
 
 See `htmx/` for htmx-specific helpers.
