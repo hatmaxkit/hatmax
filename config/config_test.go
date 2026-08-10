@@ -358,6 +358,8 @@ auth:
 contact:
   pii_encryption_key: contact-encryption-key
   email_lookup_key: contact-lookup-key
+property:
+  notes_protection_key: property-notes-key
 `
 
 	tmpfile, err := os.CreateTemp("", "config-*.yaml")
@@ -423,6 +425,10 @@ contact:
 
 	if cfg.Contact.EmailLookupKey != "contact-lookup-key" {
 		t.Errorf("Contact.EmailLookupKey = %q, want contact-lookup-key", cfg.Contact.EmailLookupKey)
+	}
+
+	if cfg.Property.NotesProtectionKey != "property-notes-key" {
+		t.Errorf("Property.NotesProtectionKey = %q, want property-notes-key", cfg.Property.NotesProtectionKey)
 	}
 }
 

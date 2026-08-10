@@ -21,6 +21,7 @@ type Config struct {
 	Database  DatabaseConfig  `koanf:"database"`
 	Auth      AuthConfig      `koanf:"auth"`
 	Contact   ContactConfig   `koanf:"contact"`
+	Property  PropertyConfig  `koanf:"property"`
 	PubSub    PubSubConfig    `koanf:"pubsub"`
 	Scheduler SchedulerConfig `koanf:"scheduler"`
 	Mailer    MailerConfig    `koanf:"mailer"`
@@ -61,6 +62,11 @@ type AuthConfig struct {
 type ContactConfig struct {
 	PIIEncryptionKey string `koanf:"pii_encryption_key"`
 	EmailLookupKey   string `koanf:"email_lookup_key"`
+}
+
+// PropertyConfig holds managed-property data-protection configuration.
+type PropertyConfig struct {
+	NotesProtectionKey string `koanf:"notes_protection_key"`
 }
 
 // PubSubConfig holds pub/sub configuration.
@@ -254,6 +260,7 @@ func Load(path, envPrefix string, args []string) (*Config, error) {
 	fs.String("auth.email_lookup_key", "", "Email lookup key")
 	fs.String("contact.pii_encryption_key", "", "Contact PII encryption key")
 	fs.String("contact.email_lookup_key", "", "Contact email lookup key")
+	fs.String("property.notes_protection_key", "", "Property notes protection key")
 	fs.Bool("pubsub.enabled", false, "Enable pub/sub")
 	fs.String("pubsub.poll_interval", "100ms", "Pub/sub poll interval")
 	fs.Int("pubsub.batch_size", 100, "Pub/sub batch size")
