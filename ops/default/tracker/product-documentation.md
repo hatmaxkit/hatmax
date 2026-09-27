@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 16
-Active tasks: T16.1, T16.2, T16.3
-Execution gate: Slice 15 merged; Slice 16 in progress
+Active tasks: none
+Execution gate: Slice 16 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -140,9 +140,9 @@ Execution gate: Slice 15 merged; Slice 16 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T16.1 | pending | `docs(guide): add the settings chapter` | pending | `git diff --check` |
-| T16.2 | pending | `docs(guide): add the wiring appendix` | pending | `git diff --check` |
-| T16.3 | pending | `docs(guide): close the User Guide` | pending | `git diff --check` |
+| T16.1 | complete | `docs(guide): add the settings chapter` | `db00228` | `git diff --check` passed |
+| T16.2 | complete | `docs(guide): add the wiring appendix` | `b8206d7` | `git diff --check` passed |
+| T16.3 | complete | `docs(guide): close the User Guide` | `9e0990e` | `git diff --check` passed |
 
 ## Completion Gates
 
@@ -168,4 +168,6 @@ Execution gate: Slice 15 merged; Slice 16 in progress
 ## Current Gate
 
 Slice 15 is merged through pull request #18. Its report status is `delivered`.
-Slice 16 is active on `docs/slice-16-settings-chapter`.
+Slice 16 tasks are complete on `docs/slice-16-settings-chapter`. The report is
+`ops/default/report/slices/product-documentation/slice-16-settings-chapter.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
