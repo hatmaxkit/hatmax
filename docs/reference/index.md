@@ -20,3 +20,8 @@ reference follows the exported code.
 - [HTMX](htmx/index.md)
 - [Middleware](middleware/index.md)
 - [Rendering](rendering/index.md)
+- [UI](ui/index.md)
+- [Modal](modal/index.md)
+- [Format](format/index.md)
+- [Pagination](pagination/index.md)
+- [Internationalization](i18n/index.md)
