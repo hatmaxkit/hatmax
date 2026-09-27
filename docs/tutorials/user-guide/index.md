@@ -10,7 +10,7 @@ moving on.
 2. [Add Postgres](postgres.md)
 3. [Serve a Page](pages.md)
 4. [Accept a Form](forms.md)
-5. Sign In
+5. [Sign In](sign-in.md)
 6. Save a Record
 7. Work Outside the Request
 8. Change Settings at Runtime
