@@ -7,7 +7,7 @@ moving on.
 ## Learning Path
 
 1. [Getting Started](getting-started.md)
-2. Add Postgres
+2. [Add Postgres](postgres.md)
 3. Serve a Page
 4. Accept a Form
 5. Sign In
