@@ -11,7 +11,7 @@ moving on.
 3. [Serve a Page](pages.md)
 4. [Accept a Form](forms.md)
 5. [Sign In](sign-in.md)
-6. Save a Record
+6. [Save a Record](records.md)
 7. Work Outside the Request
 8. Change Settings at Runtime
 
