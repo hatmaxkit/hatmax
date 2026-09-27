@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 3
-Active tasks: T3.1, T3.2
-Execution gate: Slice 2 merged; Slice 3 in progress
+Active tasks: none
+Execution gate: Slice 3 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -49,8 +49,8 @@ Execution gate: Slice 2 merged; Slice 3 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T3.1 | pending | `docs(reference): document the HTTP and HTMX surface` | pending | `git diff --check` |
-| T3.2 | pending | `docs(reference): list the web reference subjects` | pending | `git diff --check` |
+| T3.1 | complete | `docs(reference): document the HTTP and HTMX surface` | `a006317` | `git diff --check` passed |
+| T3.2 | complete | `docs(reference): list the web reference subjects` | `50565b4` | `git diff --check` passed |
 
 ## Slice 4 Tasks
 
@@ -155,4 +155,6 @@ Execution gate: Slice 2 merged; Slice 3 in progress
 ## Current Gate
 
 Slice 2 is merged through pull request #5. Its report status is `delivered`.
-Slice 3 is active on `docs/slice-3-web-reference`.
+Slice 3 tasks are complete on `docs/slice-3-web-reference`. The report is
+`ops/default/report/slices/product-documentation/slice-3-web-reference.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
