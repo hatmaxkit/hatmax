@@ -19,7 +19,7 @@ Execution gate: Slice 6 tasks complete, pull request pending
 | Slice 3 | web reference | delivered | `docs/slice-3-web-reference` | `docs(slice-3): document the HTTP and HTMX surface` | #6 | `ops/default/report/slices/product-documentation/slice-3-web-reference.md` |
 | Slice 4 | UI reference | delivered | `docs/slice-4-ui-reference` | `docs(slice-4): document the UI kit` | #7 | `ops/default/report/slices/product-documentation/slice-4-ui-reference.md` |
 | Slice 5 | auth reference | delivered | `docs/slice-5-auth-reference` | `docs(slice-5): document authentication and crypto` | #8 | `ops/default/report/slices/product-documentation/slice-5-auth-reference.md` |
-| Slice 6 | data reference | active | `docs/slice-6-data-reference` | `docs(slice-6): document persistence and validation` | pending | `ops/default/report/slices/product-documentation/slice-6-data-reference.md` |
+| Slice 6 | data reference | active | `docs/slice-6-data-reference` | `docs(slice-6): document persistence and validation` | #9 | `ops/default/report/slices/product-documentation/slice-6-data-reference.md` |
 | Slice 7 | media reference | pending | `docs/slice-7-media-reference` | `docs(slice-7): document image storage and processing` | pending | `ops/default/report/slices/product-documentation/slice-7-media-reference.md` |
 | Slice 8 | infrastructure reference | pending | `docs/slice-8-infrastructure-reference` | `docs(slice-8): document infrastructure contracts` | pending | `ops/default/report/slices/product-documentation/slice-8-infrastructure-reference.md` |
 | Slice 9 | getting started | pending | `docs/slice-9-getting-started` | `docs(slice-9): add the getting started chapter` | pending | `ops/default/report/slices/product-documentation/slice-9-getting-started.md` |
@@ -160,4 +160,4 @@ Execution gate: Slice 6 tasks complete, pull request pending
 Slice 5 is merged through pull request #8. Its report status is `delivered`.
 Slice 6 tasks are complete on `docs/slice-6-data-reference`. The report is
 `ops/default/report/slices/product-documentation/slice-6-data-reference.md`
-and its status is `reviewing`. The pull request against `dev` is not open yet.
+and its status is `reviewing`. Pull request #9 is open against `dev`.
