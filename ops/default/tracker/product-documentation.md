@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 14
-Active tasks: T14.1, T14.2
-Execution gate: Slice 13 merged; Slice 14 in progress
+Active tasks: none
+Execution gate: Slice 14 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -126,8 +126,8 @@ Execution gate: Slice 13 merged; Slice 14 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T14.1 | pending | `docs(guide): add the record chapter` | pending | `git diff --check` |
-| T14.2 | pending | `docs(guide): list the record chapter` | pending | `git diff --check` |
+| T14.1 | complete | `docs(guide): add the record chapter` | `ce1580a` | `git diff --check` passed |
+| T14.2 | complete | `docs(guide): list the record chapter` | `a3e5e6f` | `git diff --check` passed |
 
 ## Slice 15 Tasks
 
@@ -166,4 +166,6 @@ Execution gate: Slice 13 merged; Slice 14 in progress
 ## Current Gate
 
 Slice 13 is merged through pull request #16. Its report status is `delivered`.
-Slice 14 is active on `docs/slice-14-record-chapter`.
+Slice 14 tasks are complete on `docs/slice-14-record-chapter`. The report is
+`ops/default/report/slices/product-documentation/slice-14-record-chapter.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
