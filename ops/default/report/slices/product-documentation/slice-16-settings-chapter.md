@@ -5,7 +5,7 @@ Delivery set: product-documentation
 Plan: `ops/default/plan/product-documentation.md`
 Tracker: `ops/default/tracker/product-documentation.md`
 Branch: `docs/slice-16-settings-chapter`
-PR: pending
+PR: `#19`
 
 ## Purpose
 
