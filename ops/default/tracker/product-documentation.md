@@ -28,7 +28,7 @@ Execution gate: Slice 15 tasks complete, pull request pending
 | Slice 12 | form chapter | delivered | `docs/slice-12-form-chapter` | `docs(slice-12): add the form chapter` | #15 | `ops/default/report/slices/product-documentation/slice-12-form-chapter.md` |
 | Slice 13 | sign-in chapter | delivered | `docs/slice-13-sign-in-chapter` | `docs(slice-13): add the sign-in chapter` | #16 | `ops/default/report/slices/product-documentation/slice-13-sign-in-chapter.md` |
 | Slice 14 | record chapter | delivered | `docs/slice-14-record-chapter` | `docs(slice-14): add the record chapter` | #17 | `ops/default/report/slices/product-documentation/slice-14-record-chapter.md` |
-| Slice 15 | background-work chapter | active | `docs/slice-15-background-work-chapter` | `docs(slice-15): add the background-work chapter` | pending | `ops/default/report/slices/product-documentation/slice-15-background-work-chapter.md` |
+| Slice 15 | background-work chapter | active | `docs/slice-15-background-work-chapter` | `docs(slice-15): add the background-work chapter` | #18 | `ops/default/report/slices/product-documentation/slice-15-background-work-chapter.md` |
 | Slice 16 | settings chapter | pending | `docs/slice-16-settings-chapter` | `docs(slice-16): finish the User Guide` | pending | `ops/default/report/slices/product-documentation/slice-16-settings-chapter.md` |
 
 ## Slice 1 Tasks
@@ -169,4 +169,4 @@ Execution gate: Slice 15 tasks complete, pull request pending
 Slice 14 is merged through pull request #17. Its report status is `delivered`.
 Slice 15 tasks are complete on `docs/slice-15-background-work-chapter`. The report is
 `ops/default/report/slices/product-documentation/slice-15-background-work-chapter.md`
-and its status is `reviewing`. The pull request against `dev` is not open yet.
+and its status is `reviewing`. Pull request #18 is open against `dev`.
