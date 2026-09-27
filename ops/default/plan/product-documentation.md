@@ -11,8 +11,8 @@ Spec: none
 Tracker: `ops/default/tracker/product-documentation.md`
 Base branch: `dev`
 Planning base: `6d91be1`
-Active slice: Slice 13, sign-in chapter
-Execution gate: Slice 13 pull request #16 is open against `dev`
+Active slice: Slice 14, record chapter
+Execution gate: Slice 13 merged through pull request #16; Slice 14 in progress
 
 ## Objective
 
@@ -667,7 +667,8 @@ git diff --check
 - [x] Slice 10 is delivered through its recorded branch, report, pull request, review, and merge.
 - [x] Slice 11 is delivered through its recorded branch, report, pull request, review, and merge.
 - [x] Slice 12 is delivered through its recorded branch, report, pull request, review, and merge.
-- [ ] Slices 13 through 16 are each delivered through the recorded branch, report, pull request, review, and merge.
+- [x] Slice 13 is delivered through its recorded branch, report, pull request, review, and merge.
+- [ ] Slices 14 through 16 are each delivered through the recorded branch, report, pull request, review, and merge.
 - [ ] The docs-only delivery-set gate passes on the integrated `dev` commit.
 
 ## Out of Scope
