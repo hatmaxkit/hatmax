@@ -1,20 +1,85 @@
-# Engineering Playbooks Index
+# Hatmax Validation and Publication
 
-This file indexes focused playbooks under `.agents/playbooks/`.
+Hatmax has no `staging` branch and no nightly workflow. These steps replace
+the global nightly `main` integration for this repository.
 
-## Core Playbooks
+## Focused development
 
-- `.agents/playbooks/version-control-workflow.md`
-- `.agents/playbooks/slice-delivery.md`
-- `.agents/playbooks/ticket-workflow.md`
-- `.agents/playbooks/planned-delivery-workflow.md`
-- `.agents/playbooks/release-alignment.md`
-- `.agents/playbooks/specification-workflow.md`
-- `.agents/playbooks/quiz.md`
-- `.agents/playbooks/dump.md`
+1. Run only the smallest relevant check while implementing.
+2. Use `make test` for behavior covered by the test suite.
+3. Use `make vet` when a change needs `go vet`.
+4. Use `make lint-strict` for formatting and lint. It checks `gofmt` on
+   tracked Go files, then runs `golangci-lint` with `nlreturn`,
+   `noinlineerr`, and `wsl_v5`. The lint cache is `.tmp/lint/gocache`.
+5. Leave `make ci` for badge publication. That target rewrites
+   `.badges/ci.json` and `.badges/coverage.json`.
+6. `.githooks/pre-commit` formats staged Go files and lints their directories
+   after `make install-hooks` points Git at `.githooks/`.
 
-## Usage
+## Local aggregate gate
 
-- Use the smallest playbook set that matches the active task.
-- If playbooks overlap, prefer the more specific playbook.
-- Keep playbook content operational and workspace-specific.
+1. Run `make check` before a release-alignment pull request that changes
+   runtime behavior.
+2. `make check` runs `format`, `vet`, `test`, `test-coverage-check`, and
+   `lint-strict`.
+3. `test-coverage-check` fails when total coverage is below 80%.
+
+## CI
+
+1. `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests
+   targeting `main`.
+2. The lint job runs `make lint-strict`.
+3. The test job runs `make test-coverage-profile` against Postgres 16 and
+   fails when coverage is below 80%.
+4. CI does not rewrite `.badges/`.
+
+## Badges
+
+1. `README.md` publishes `.badges/ci.json` and `.badges/coverage.json`.
+2. Refresh the coverage badge with `make update-badge`.
+3. Refresh both badges with `make ci`. That target runs `format`, `vet`,
+   `test`, `test-coverage-100`, and `lint-strict`, writes the CI badge, and
+   then runs `update-badge`.
+4. `make test-coverage-100` fails when coverage is below 70%.
+5. Commit refreshed badge files when a release-alignment candidate has made
+   them stale.
+
+## Release alignment
+
+1. Open a pull request for every `dev` to `main` alignment. The pull request
+   is required for docs-only changes as well.
+2. Run the local aggregate gate unless the docs-only exception below applies.
+3. Use the title `chore(release): align dev with main`.
+4. Use this pull-request body:
+
+```md
+## Summary
+
+- align `main` with the latest merged state from `dev`
+- include all previously reviewed and merged work
+
+## Validation
+
+- make check (pass)
+```
+
+5. Merge `dev` into `main` only through that pull request, using rebase and
+   fast-forward.
+6. Completing work on `dev` does not authorize the alignment. The maintainer
+   controls the merge.
+
+## Docs-only alignment
+
+When the `dev` to `main` diff contains only Markdown repository documentation:
+
+1. Skip runtime tests.
+2. Validate the diff and whitespace.
+3. Use this validation section instead:
+
+```md
+## Validation
+
+- docs-only diff verified
+- whitespace validation (pass)
+- local aggregate gate skipped by the docs-only exception
+```
