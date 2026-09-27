@@ -12,7 +12,7 @@ Tracker: `ops/default/tracker/product-documentation.md`
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 10, postgres chapter
-Execution gate: Slice 10 tasks complete, pull request pending
+Execution gate: Slice 10 pull request #13 is open against `dev`
 
 ## Objective
 

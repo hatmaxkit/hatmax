@@ -23,7 +23,7 @@ Execution gate: Slice 10 tasks complete, pull request pending
 | Slice 7 | media reference | delivered | `docs/slice-7-media-reference` | `docs(slice-7): document image storage and processing` | #10 | `ops/default/report/slices/product-documentation/slice-7-media-reference.md` |
 | Slice 8 | infrastructure reference | delivered | `docs/slice-8-infrastructure-reference` | `docs(slice-8): document infrastructure contracts` | #11 | `ops/default/report/slices/product-documentation/slice-8-infrastructure-reference.md` |
 | Slice 9 | getting started | delivered | `docs/slice-9-getting-started` | `docs(slice-9): add the getting started chapter` | #12 | `ops/default/report/slices/product-documentation/slice-9-getting-started.md` |
-| Slice 10 | postgres chapter | active | `docs/slice-10-postgres-chapter` | `docs(slice-10): add the Postgres chapter` | pending | `ops/default/report/slices/product-documentation/slice-10-postgres-chapter.md` |
+| Slice 10 | postgres chapter | active | `docs/slice-10-postgres-chapter` | `docs(slice-10): add the Postgres chapter` | #13 | `ops/default/report/slices/product-documentation/slice-10-postgres-chapter.md` |
 | Slice 11 | page chapter | pending | `docs/slice-11-page-chapter` | `docs(slice-11): add the page chapter` | pending | `ops/default/report/slices/product-documentation/slice-11-page-chapter.md` |
 | Slice 12 | form chapter | pending | `docs/slice-12-form-chapter` | `docs(slice-12): add the form chapter` | pending | `ops/default/report/slices/product-documentation/slice-12-form-chapter.md` |
 | Slice 13 | sign-in chapter | pending | `docs/slice-13-sign-in-chapter` | `docs(slice-13): add the sign-in chapter` | pending | `ops/default/report/slices/product-documentation/slice-13-sign-in-chapter.md` |
@@ -164,4 +164,4 @@ Execution gate: Slice 10 tasks complete, pull request pending
 Slice 9 is merged through pull request #12. Its report status is `delivered`.
 Slice 10 tasks are complete on `docs/slice-10-postgres-chapter`. The report is
 `ops/default/report/slices/product-documentation/slice-10-postgres-chapter.md`
-and its status is `reviewing`. The pull request against `dev` is not open yet.
+and its status is `reviewing`. Pull request #13 is open against `dev`.
