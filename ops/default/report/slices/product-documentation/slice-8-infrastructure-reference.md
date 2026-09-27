@@ -5,7 +5,7 @@ Delivery set: product-documentation
 Plan: `ops/default/plan/product-documentation.md`
 Tracker: `ops/default/tracker/product-documentation.md`
 Branch: `docs/slice-8-infrastructure-reference`
-PR: pending
+PR: `#11`
 
 ## Purpose
 

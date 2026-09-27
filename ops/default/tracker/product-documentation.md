@@ -21,7 +21,7 @@ Execution gate: Slice 8 tasks complete, pull request pending
 | Slice 5 | auth reference | delivered | `docs/slice-5-auth-reference` | `docs(slice-5): document authentication and crypto` | #8 | `ops/default/report/slices/product-documentation/slice-5-auth-reference.md` |
 | Slice 6 | data reference | delivered | `docs/slice-6-data-reference` | `docs(slice-6): document persistence and validation` | #9 | `ops/default/report/slices/product-documentation/slice-6-data-reference.md` |
 | Slice 7 | media reference | delivered | `docs/slice-7-media-reference` | `docs(slice-7): document image storage and processing` | #10 | `ops/default/report/slices/product-documentation/slice-7-media-reference.md` |
-| Slice 8 | infrastructure reference | active | `docs/slice-8-infrastructure-reference` | `docs(slice-8): document infrastructure contracts` | pending | `ops/default/report/slices/product-documentation/slice-8-infrastructure-reference.md` |
+| Slice 8 | infrastructure reference | active | `docs/slice-8-infrastructure-reference` | `docs(slice-8): document infrastructure contracts` | #11 | `ops/default/report/slices/product-documentation/slice-8-infrastructure-reference.md` |
 | Slice 9 | getting started | pending | `docs/slice-9-getting-started` | `docs(slice-9): add the getting started chapter` | pending | `ops/default/report/slices/product-documentation/slice-9-getting-started.md` |
 | Slice 10 | postgres chapter | pending | `docs/slice-10-postgres-chapter` | `docs(slice-10): add the Postgres chapter` | pending | `ops/default/report/slices/product-documentation/slice-10-postgres-chapter.md` |
 | Slice 11 | page chapter | pending | `docs/slice-11-page-chapter` | `docs(slice-11): add the page chapter` | pending | `ops/default/report/slices/product-documentation/slice-11-page-chapter.md` |
@@ -162,4 +162,4 @@ Execution gate: Slice 8 tasks complete, pull request pending
 Slice 7 is merged through pull request #10. Its report status is `delivered`.
 Slice 8 tasks are complete on `docs/slice-8-infrastructure-reference`. The report is
 `ops/default/report/slices/product-documentation/slice-8-infrastructure-reference.md`
-and its status is `reviewing`. The pull request against `dev` is not open yet.
+and its status is `reviewing`. Pull request #11 is open against `dev`.
