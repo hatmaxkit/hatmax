@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 1
-Active tasks: T1.1, T1.2
-Execution gate: Slice 1 in progress
+Active tasks: none
+Execution gate: Slice 1 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -35,8 +35,8 @@ Execution gate: Slice 1 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T1.1 | pending | `docs(guide): add the documentation map` | pending | `git diff --check` |
-| T1.2 | pending | `docs(readme): link the documentation map` | pending | `git diff --check` |
+| T1.1 | complete | `docs(guide): add the documentation map` | `571ac94` | `git diff --check` passed |
+| T1.2 | complete | `docs(readme): link the documentation map` | `f8af031` | `git diff --check` passed |
 
 ## Slice 2 Tasks
 
@@ -152,5 +152,6 @@ Execution gate: Slice 1 in progress
 
 ## Current Gate
 
-The plan and tracker are approved for commit on `dev`. Slice 1 is the active
-slice. Its branch is `docs/slice-1-documentation-map`. No pull request exists.
+Slice 1 tasks are complete on `docs/slice-1-documentation-map`. The report is
+`ops/default/report/slices/product-documentation/slice-1-documentation-map.md`
+and its status is `reviewing`. No pull request exists.
