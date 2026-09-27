@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 7
-Active tasks: T7.1, T7.2
-Execution gate: Slice 6 merged; Slice 7 in progress
+Active tasks: none
+Execution gate: Slice 7 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -77,8 +77,8 @@ Execution gate: Slice 6 merged; Slice 7 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T7.1 | pending | `docs(reference): document image storage and processing` | pending | `git diff --check` |
-| T7.2 | pending | `docs(reference): list the media reference subject` | pending | `git diff --check` |
+| T7.1 | complete | `docs(reference): document image storage and processing` | `4d94b1f` | `git diff --check` passed |
+| T7.2 | complete | `docs(reference): list the media reference subject` | `19d4378` | `git diff --check` passed |
 
 ## Slice 8 Tasks
 
@@ -159,4 +159,6 @@ Execution gate: Slice 6 merged; Slice 7 in progress
 ## Current Gate
 
 Slice 6 is merged through pull request #9. Its report status is `delivered`.
-Slice 7 is active on `docs/slice-7-media-reference`.
+Slice 7 tasks are complete on `docs/slice-7-media-reference`. The report is
+`ops/default/report/slices/product-documentation/slice-7-media-reference.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
