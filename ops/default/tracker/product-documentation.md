@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 8
-Active tasks: T8.1, T8.2
-Execution gate: Slice 7 merged; Slice 8 in progress
+Active tasks: none
+Execution gate: Slice 8 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -84,8 +84,8 @@ Execution gate: Slice 7 merged; Slice 8 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T8.1 | pending | `docs(reference): document infrastructure contracts` | pending | `git diff --check` |
-| T8.2 | pending | `docs(reference): close the reference index` | pending | `git diff --check` |
+| T8.1 | complete | `docs(reference): document infrastructure contracts` | `8c7dfac` | `git diff --check` passed |
+| T8.2 | complete | `docs(reference): close the reference index` | `680893c` | `git diff --check` passed |
 
 ## Slice 9 Tasks
 
@@ -160,4 +160,6 @@ Execution gate: Slice 7 merged; Slice 8 in progress
 ## Current Gate
 
 Slice 7 is merged through pull request #10. Its report status is `delivered`.
-Slice 8 is active on `docs/slice-8-infrastructure-reference`.
+Slice 8 tasks are complete on `docs/slice-8-infrastructure-reference`. The report is
+`ops/default/report/slices/product-documentation/slice-8-infrastructure-reference.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
