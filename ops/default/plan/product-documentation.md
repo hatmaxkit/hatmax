@@ -12,7 +12,7 @@ Tracker: `ops/default/tracker/product-documentation.md`
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 13, sign-in chapter
-Execution gate: Slice 12 merged through pull request #15; Slice 13 in progress
+Execution gate: Slice 13 tasks complete, pull request pending
 
 ## Objective
 

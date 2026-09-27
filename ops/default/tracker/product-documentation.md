@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 13
-Active tasks: T13.1, T13.2
-Execution gate: Slice 12 merged; Slice 13 in progress
+Active tasks: none
+Execution gate: Slice 13 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -119,8 +119,8 @@ Execution gate: Slice 12 merged; Slice 13 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T13.1 | pending | `docs(guide): add the sign-in chapter` | pending | `git diff --check` |
-| T13.2 | pending | `docs(guide): list the sign-in chapter` | pending | `git diff --check` |
+| T13.1 | complete | `docs(guide): add the sign-in chapter` | `21525a6` | `git diff --check` passed |
+| T13.2 | complete | `docs(guide): list the sign-in chapter` | `5edff86` | `git diff --check` passed |
 
 ## Slice 14 Tasks
 
@@ -165,4 +165,6 @@ Execution gate: Slice 12 merged; Slice 13 in progress
 ## Current Gate
 
 Slice 12 is merged through pull request #15. Its report status is `delivered`.
-Slice 13 is active on `docs/slice-13-sign-in-chapter`.
+Slice 13 tasks are complete on `docs/slice-13-sign-in-chapter`. The report is
+`ops/default/report/slices/product-documentation/slice-13-sign-in-chapter.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
