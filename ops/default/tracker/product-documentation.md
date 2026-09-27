@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 9
-Active tasks: T9.1, T9.2
-Execution gate: Slice 8 merged; Slice 9 in progress
+Active tasks: none
+Execution gate: Slice 9 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -91,8 +91,8 @@ Execution gate: Slice 8 merged; Slice 9 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T9.1 | pending | `docs(guide): add the getting started chapter` | pending | `git diff --check` |
-| T9.2 | pending | `docs(guide): list the getting started chapter` | pending | `git diff --check` |
+| T9.1 | complete | `docs(guide): add the getting started chapter` | `b27348d` | `git diff --check` passed |
+| T9.2 | complete | `docs(guide): list the getting started chapter` | `553a3bd` | `git diff --check` passed |
 
 ## Slice 10 Tasks
 
@@ -161,4 +161,6 @@ Execution gate: Slice 8 merged; Slice 9 in progress
 ## Current Gate
 
 Slice 8 is merged through pull request #11. Its report status is `delivered`.
-Slice 9 is active on `docs/slice-9-getting-started`.
+Slice 9 tasks are complete on `docs/slice-9-getting-started`. The report is
+`ops/default/report/slices/product-documentation/slice-9-getting-started.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
