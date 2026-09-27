@@ -6,9 +6,9 @@ Plan: `ops/default/plan/product-documentation.md`
 Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
-Active slice: Slice 8
-Active tasks: none
-Execution gate: Slice 8 tasks complete, pull request pending
+Active slice: Slice 9
+Active tasks: T9.1, T9.2
+Execution gate: Slice 8 merged; Slice 9 in progress
 
 ## Slice Status
 
@@ -21,8 +21,8 @@ Execution gate: Slice 8 tasks complete, pull request pending
 | Slice 5 | auth reference | delivered | `docs/slice-5-auth-reference` | `docs(slice-5): document authentication and crypto` | #8 | `ops/default/report/slices/product-documentation/slice-5-auth-reference.md` |
 | Slice 6 | data reference | delivered | `docs/slice-6-data-reference` | `docs(slice-6): document persistence and validation` | #9 | `ops/default/report/slices/product-documentation/slice-6-data-reference.md` |
 | Slice 7 | media reference | delivered | `docs/slice-7-media-reference` | `docs(slice-7): document image storage and processing` | #10 | `ops/default/report/slices/product-documentation/slice-7-media-reference.md` |
-| Slice 8 | infrastructure reference | active | `docs/slice-8-infrastructure-reference` | `docs(slice-8): document infrastructure contracts` | #11 | `ops/default/report/slices/product-documentation/slice-8-infrastructure-reference.md` |
-| Slice 9 | getting started | pending | `docs/slice-9-getting-started` | `docs(slice-9): add the getting started chapter` | pending | `ops/default/report/slices/product-documentation/slice-9-getting-started.md` |
+| Slice 8 | infrastructure reference | delivered | `docs/slice-8-infrastructure-reference` | `docs(slice-8): document infrastructure contracts` | #11 | `ops/default/report/slices/product-documentation/slice-8-infrastructure-reference.md` |
+| Slice 9 | getting started | active | `docs/slice-9-getting-started` | `docs(slice-9): add the getting started chapter` | pending | `ops/default/report/slices/product-documentation/slice-9-getting-started.md` |
 | Slice 10 | postgres chapter | pending | `docs/slice-10-postgres-chapter` | `docs(slice-10): add the Postgres chapter` | pending | `ops/default/report/slices/product-documentation/slice-10-postgres-chapter.md` |
 | Slice 11 | page chapter | pending | `docs/slice-11-page-chapter` | `docs(slice-11): add the page chapter` | pending | `ops/default/report/slices/product-documentation/slice-11-page-chapter.md` |
 | Slice 12 | form chapter | pending | `docs/slice-12-form-chapter` | `docs(slice-12): add the form chapter` | pending | `ops/default/report/slices/product-documentation/slice-12-form-chapter.md` |
@@ -154,12 +154,11 @@ Execution gate: Slice 8 tasks complete, pull request pending
 - [x] Slice 5 is delivered through its recorded branch, report, pull request, review, and merge.
 - [x] Slice 6 is delivered through its recorded branch, report, pull request, review, and merge.
 - [x] Slice 7 is delivered through its recorded branch, report, pull request, review, and merge.
-- [ ] Slices 8 through 16 are each delivered through the recorded branch, report, pull request, review, and merge.
+- [x] Slice 8 is delivered through its recorded branch, report, pull request, review, and merge.
+- [ ] Slices 9 through 16 are each delivered through the recorded branch, report, pull request, review, and merge.
 - [ ] The docs-only delivery-set gate passes on the integrated `dev` commit.
 
 ## Current Gate
 
-Slice 7 is merged through pull request #10. Its report status is `delivered`.
-Slice 8 tasks are complete on `docs/slice-8-infrastructure-reference`. The report is
-`ops/default/report/slices/product-documentation/slice-8-infrastructure-reference.md`
-and its status is `reviewing`. Pull request #11 is open against `dev`.
+Slice 8 is merged through pull request #11. Its report status is `delivered`.
+Slice 9 is active on `docs/slice-9-getting-started`.
