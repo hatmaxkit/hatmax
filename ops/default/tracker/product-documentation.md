@@ -20,7 +20,7 @@ Execution gate: Slice 7 tasks complete, pull request pending
 | Slice 4 | UI reference | delivered | `docs/slice-4-ui-reference` | `docs(slice-4): document the UI kit` | #7 | `ops/default/report/slices/product-documentation/slice-4-ui-reference.md` |
 | Slice 5 | auth reference | delivered | `docs/slice-5-auth-reference` | `docs(slice-5): document authentication and crypto` | #8 | `ops/default/report/slices/product-documentation/slice-5-auth-reference.md` |
 | Slice 6 | data reference | delivered | `docs/slice-6-data-reference` | `docs(slice-6): document persistence and validation` | #9 | `ops/default/report/slices/product-documentation/slice-6-data-reference.md` |
-| Slice 7 | media reference | active | `docs/slice-7-media-reference` | `docs(slice-7): document image storage and processing` | pending | `ops/default/report/slices/product-documentation/slice-7-media-reference.md` |
+| Slice 7 | media reference | active | `docs/slice-7-media-reference` | `docs(slice-7): document image storage and processing` | #10 | `ops/default/report/slices/product-documentation/slice-7-media-reference.md` |
 | Slice 8 | infrastructure reference | pending | `docs/slice-8-infrastructure-reference` | `docs(slice-8): document infrastructure contracts` | pending | `ops/default/report/slices/product-documentation/slice-8-infrastructure-reference.md` |
 | Slice 9 | getting started | pending | `docs/slice-9-getting-started` | `docs(slice-9): add the getting started chapter` | pending | `ops/default/report/slices/product-documentation/slice-9-getting-started.md` |
 | Slice 10 | postgres chapter | pending | `docs/slice-10-postgres-chapter` | `docs(slice-10): add the Postgres chapter` | pending | `ops/default/report/slices/product-documentation/slice-10-postgres-chapter.md` |
@@ -161,4 +161,4 @@ Execution gate: Slice 7 tasks complete, pull request pending
 Slice 6 is merged through pull request #9. Its report status is `delivered`.
 Slice 7 tasks are complete on `docs/slice-7-media-reference`. The report is
 `ops/default/report/slices/product-documentation/slice-7-media-reference.md`
-and its status is `reviewing`. The pull request against `dev` is not open yet.
+and its status is `reviewing`. Pull request #10 is open against `dev`.
