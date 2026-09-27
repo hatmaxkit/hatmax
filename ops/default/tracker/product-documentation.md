@@ -6,17 +6,17 @@ Plan: `ops/default/plan/product-documentation.md`
 Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
-Active slice: Slice 2
-Active tasks: none
-Execution gate: Slice 2 tasks complete, pull request pending
+Active slice: Slice 3
+Active tasks: T3.1, T3.2
+Execution gate: Slice 2 merged; Slice 3 in progress
 
 ## Slice Status
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | documentation map | delivered | `docs/product-documentation` | `docs(slice-1): add the documentation map` | #4 | `ops/default/report/slices/product-documentation/slice-1-documentation-map.md` |
-| Slice 2 | core reference | active | `docs/slice-2-core-reference` | `docs(slice-2): document lifecycle and configuration` | #5 | `ops/default/report/slices/product-documentation/slice-2-core-reference.md` |
-| Slice 3 | web reference | pending | `docs/slice-3-web-reference` | `docs(slice-3): document the HTTP and HTMX surface` | pending | `ops/default/report/slices/product-documentation/slice-3-web-reference.md` |
+| Slice 2 | core reference | delivered | `docs/slice-2-core-reference` | `docs(slice-2): document lifecycle and configuration` | #5 | `ops/default/report/slices/product-documentation/slice-2-core-reference.md` |
+| Slice 3 | web reference | active | `docs/slice-3-web-reference` | `docs(slice-3): document the HTTP and HTMX surface` | pending | `ops/default/report/slices/product-documentation/slice-3-web-reference.md` |
 | Slice 4 | UI reference | pending | `docs/slice-4-ui-reference` | `docs(slice-4): document the UI kit` | pending | `ops/default/report/slices/product-documentation/slice-4-ui-reference.md` |
 | Slice 5 | auth reference | pending | `docs/slice-5-auth-reference` | `docs(slice-5): document authentication and crypto` | pending | `ops/default/report/slices/product-documentation/slice-5-auth-reference.md` |
 | Slice 6 | data reference | pending | `docs/slice-6-data-reference` | `docs(slice-6): document persistence and validation` | pending | `ops/default/report/slices/product-documentation/slice-6-data-reference.md` |
@@ -148,12 +148,11 @@ Execution gate: Slice 2 tasks complete, pull request pending
 
 - [x] Plan and tracker are approved and committed on `dev`.
 - [x] Slice 1 is delivered through its recorded branch, report, pull request, review, and merge.
-- [ ] Slices 2 through 16 are each delivered through the recorded branch, report, pull request, review, and merge.
+- [x] Slice 2 is delivered through its recorded branch, report, pull request, review, and merge.
+- [ ] Slices 3 through 16 are each delivered through the recorded branch, report, pull request, review, and merge.
 - [ ] The docs-only delivery-set gate passes on the integrated `dev` commit.
 
 ## Current Gate
 
-Slice 1 is merged through pull request #4. Its report status is `delivered`.
-Slice 2 tasks are complete on `docs/slice-2-core-reference`. The report is
-`ops/default/report/slices/product-documentation/slice-2-core-reference.md`
-and its status is `reviewing`. Pull request #5 is open against `dev`.
+Slice 2 is merged through pull request #5. Its report status is `delivered`.
+Slice 3 is active on `docs/slice-3-web-reference`.
