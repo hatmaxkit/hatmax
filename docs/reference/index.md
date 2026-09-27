@@ -13,3 +13,6 @@ reference follows the exported code.
 ## Subjects
 
 - [Terminology](terminology/index.md)
+- [Application Lifecycle](application-lifecycle/index.md)
+- [Configuration](configuration/index.md)
+- [Logging](logging/index.md)
