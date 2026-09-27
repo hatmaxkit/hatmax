@@ -2,8 +2,8 @@
 
 Hatmax is a composable Go toolkit for building web applications. The User
 Guide is the path from a first running process to an application that stores
-data, signs in, and does work outside the request. The reference states the
-current package contracts.
+data, signs in, does work outside the request, and reads a runtime setting.
+The reference states the current package contracts.
 
 ## User Guide
 
