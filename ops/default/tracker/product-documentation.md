@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 4
-Active tasks: T4.1, T4.2
-Execution gate: Slice 3 merged; Slice 4 in progress
+Active tasks: none
+Execution gate: Slice 4 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -56,8 +56,8 @@ Execution gate: Slice 3 merged; Slice 4 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T4.1 | pending | `docs(reference): document the UI kit` | pending | `git diff --check` |
-| T4.2 | pending | `docs(reference): list the UI reference subjects` | pending | `git diff --check` |
+| T4.1 | complete | `docs(reference): document the UI kit` | `6943e61` | `git diff --check` passed |
+| T4.2 | complete | `docs(reference): list the UI reference subjects` | `9227634` | `git diff --check` passed |
 
 ## Slice 5 Tasks
 
@@ -156,4 +156,6 @@ Execution gate: Slice 3 merged; Slice 4 in progress
 ## Current Gate
 
 Slice 3 is merged through pull request #6. Its report status is `delivered`.
-Slice 4 is active on `docs/slice-4-ui-reference`.
+Slice 4 tasks are complete on `docs/slice-4-ui-reference`. The report is
+`ops/default/report/slices/product-documentation/slice-4-ui-reference.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
