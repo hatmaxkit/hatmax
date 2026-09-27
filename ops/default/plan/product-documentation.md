@@ -11,8 +11,8 @@ Spec: none
 Tracker: `ops/default/tracker/product-documentation.md`
 Base branch: `dev`
 Planning base: `6d91be1`
-Active slice: Slice 7, media reference
-Execution gate: Slice 7 pull request #10 is open against `dev`
+Active slice: Slice 8, infrastructure reference
+Execution gate: Slice 7 merged through pull request #10; Slice 8 in progress
 
 ## Objective
 
@@ -661,7 +661,8 @@ git diff --check
 - [x] Slice 4 is delivered through its recorded branch, report, pull request, review, and merge.
 - [x] Slice 5 is delivered through its recorded branch, report, pull request, review, and merge.
 - [x] Slice 6 is delivered through its recorded branch, report, pull request, review, and merge.
-- [ ] Slices 7 through 16 are each delivered through the recorded branch, report, pull request, review, and merge.
+- [x] Slice 7 is delivered through its recorded branch, report, pull request, review, and merge.
+- [ ] Slices 8 through 16 are each delivered through the recorded branch, report, pull request, review, and merge.
 - [ ] The docs-only delivery-set gate passes on the integrated `dev` commit.
 
 ## Out of Scope
