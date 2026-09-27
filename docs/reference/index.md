@@ -16,3 +16,7 @@ reference follows the exported code.
 - [Application Lifecycle](application-lifecycle/index.md)
 - [Configuration](configuration/index.md)
 - [Logging](logging/index.md)
+- [HTTP](http/index.md)
+- [HTMX](htmx/index.md)
+- [Middleware](middleware/index.md)
+- [Rendering](rendering/index.md)
