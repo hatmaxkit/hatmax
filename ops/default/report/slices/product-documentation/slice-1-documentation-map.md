@@ -5,7 +5,7 @@ Delivery set: product-documentation
 Plan: `ops/default/plan/product-documentation.md`
 Tracker: `ops/default/tracker/product-documentation.md`
 Branch: `docs/slice-1-documentation-map`
-PR: pending
+PR: `#2`
 
 ## Purpose
 
