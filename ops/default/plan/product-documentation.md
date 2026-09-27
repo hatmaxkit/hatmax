@@ -12,7 +12,7 @@ Tracker: `ops/default/tracker/product-documentation.md`
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 1, documentation map
-Execution gate: Slice 1 is on `docs/product-documentation`, apart from the agent-contract removal
+Execution gate: Slice 1 pull request #4 is open against `dev`
 
 ## Objective
 

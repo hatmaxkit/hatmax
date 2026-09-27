@@ -14,7 +14,7 @@ Execution gate: Slice 1 tasks complete, pull request pending
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | documentation map | active | `docs/product-documentation` | `docs(slice-1): add the documentation map` | pending | `ops/default/report/slices/product-documentation/slice-1-documentation-map.md` |
+| Slice 1 | documentation map | active | `docs/product-documentation` | `docs(slice-1): add the documentation map` | #4 | `ops/default/report/slices/product-documentation/slice-1-documentation-map.md` |
 | Slice 2 | core reference | pending | `docs/slice-2-core-reference` | `docs(slice-2): document lifecycle and configuration` | pending | `ops/default/report/slices/product-documentation/slice-2-core-reference.md` |
 | Slice 3 | web reference | pending | `docs/slice-3-web-reference` | `docs(slice-3): document the HTTP and HTMX surface` | pending | `ops/default/report/slices/product-documentation/slice-3-web-reference.md` |
 | Slice 4 | UI reference | pending | `docs/slice-4-ui-reference` | `docs(slice-4): document the UI kit` | pending | `ops/default/report/slices/product-documentation/slice-4-ui-reference.md` |
@@ -154,4 +154,4 @@ Execution gate: Slice 1 tasks complete, pull request pending
 
 Slice 1 tasks are complete on `docs/product-documentation`. The report is
 `ops/default/report/slices/product-documentation/slice-1-documentation-map.md`
-and its status is `reviewing`. The pull request against `dev` is not open yet.
+and its status is `reviewing`. Pull request #4 is open against `dev`.
