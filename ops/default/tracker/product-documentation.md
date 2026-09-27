@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 6
-Active tasks: T6.1, T6.2
-Execution gate: Slice 5 merged; Slice 6 in progress
+Active tasks: none
+Execution gate: Slice 6 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -70,8 +70,8 @@ Execution gate: Slice 5 merged; Slice 6 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T6.1 | pending | `docs(reference): document persistence and validation` | pending | `git diff --check` |
-| T6.2 | pending | `docs(reference): list the data reference subjects` | pending | `git diff --check` |
+| T6.1 | complete | `docs(reference): document persistence and validation` | `63d090c` | `git diff --check` passed |
+| T6.2 | complete | `docs(reference): list the data reference subjects` | `a76e94f` | `git diff --check` passed |
 
 ## Slice 7 Tasks
 
@@ -158,4 +158,6 @@ Execution gate: Slice 5 merged; Slice 6 in progress
 ## Current Gate
 
 Slice 5 is merged through pull request #8. Its report status is `delivered`.
-Slice 6 is active on `docs/slice-6-data-reference`.
+Slice 6 tasks are complete on `docs/slice-6-data-reference`. The report is
+`ops/default/report/slices/product-documentation/slice-6-data-reference.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
