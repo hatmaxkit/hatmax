@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 10
-Active tasks: T10.1, T10.2
-Execution gate: Slice 9 merged; Slice 10 in progress
+Active tasks: none
+Execution gate: Slice 10 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -98,8 +98,8 @@ Execution gate: Slice 9 merged; Slice 10 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T10.1 | pending | `docs(guide): add the Postgres chapter` | pending | `git diff --check` |
-| T10.2 | pending | `docs(guide): list the Postgres chapter` | pending | `git diff --check` |
+| T10.1 | complete | `docs(guide): add the Postgres chapter` | `6d34528` | `git diff --check` passed |
+| T10.2 | complete | `docs(guide): list the Postgres chapter` | `2d8d752` | `git diff --check` passed |
 
 ## Slice 11 Tasks
 
@@ -162,4 +162,6 @@ Execution gate: Slice 9 merged; Slice 10 in progress
 ## Current Gate
 
 Slice 9 is merged through pull request #12. Its report status is `delivered`.
-Slice 10 is active on `docs/slice-10-postgres-chapter`.
+Slice 10 tasks are complete on `docs/slice-10-postgres-chapter`. The report is
+`ops/default/report/slices/product-documentation/slice-10-postgres-chapter.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
