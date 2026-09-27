@@ -124,6 +124,8 @@ Small interfaces make components swappable:
 
 ## Docs
 
+- [User Guide](docs/tutorials/user-guide/index.md)
+- [Reference](docs/reference/index.md)
 - [Features](docs/features.md)
 - [Gallery](docs/gallery.md)
 
