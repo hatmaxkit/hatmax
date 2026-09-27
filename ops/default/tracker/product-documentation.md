@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 11
-Active tasks: T11.1, T11.2
-Execution gate: Slice 10 merged; Slice 11 in progress
+Active tasks: none
+Execution gate: Slice 11 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -105,8 +105,8 @@ Execution gate: Slice 10 merged; Slice 11 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T11.1 | pending | `docs(guide): add the page chapter` | pending | `git diff --check` |
-| T11.2 | pending | `docs(guide): list the page chapter` | pending | `git diff --check` |
+| T11.1 | complete | `docs(guide): add the page chapter` | `ffa1c01` | `git diff --check` passed |
+| T11.2 | complete | `docs(guide): list the page chapter` | `830428e` | `git diff --check` passed |
 
 ## Slice 12 Tasks
 
@@ -163,4 +163,6 @@ Execution gate: Slice 10 merged; Slice 11 in progress
 ## Current Gate
 
 Slice 10 is merged through pull request #13. Its report status is `delivered`.
-Slice 11 is active on `docs/slice-11-page-chapter`.
+Slice 11 tasks are complete on `docs/slice-11-page-chapter`. The report is
+`ops/default/report/slices/product-documentation/slice-11-page-chapter.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
