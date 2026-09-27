@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 15
-Active tasks: T15.1, T15.2
-Execution gate: Slice 14 merged; Slice 15 in progress
+Active tasks: none
+Execution gate: Slice 15 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -133,8 +133,8 @@ Execution gate: Slice 14 merged; Slice 15 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T15.1 | pending | `docs(guide): add the background-work chapter` | pending | `git diff --check` |
-| T15.2 | pending | `docs(guide): list the background-work chapter` | pending | `git diff --check` |
+| T15.1 | complete | `docs(guide): add the background-work chapter` | `ddd4bec` | `git diff --check` passed |
+| T15.2 | complete | `docs(guide): list the background-work chapter` | `e99be8d` | `git diff --check` passed |
 
 ## Slice 16 Tasks
 
@@ -167,4 +167,6 @@ Execution gate: Slice 14 merged; Slice 15 in progress
 ## Current Gate
 
 Slice 14 is merged through pull request #17. Its report status is `delivered`.
-Slice 15 is active on `docs/slice-15-background-work-chapter`.
+Slice 15 tasks are complete on `docs/slice-15-background-work-chapter`. The report is
+`ops/default/report/slices/product-documentation/slice-15-background-work-chapter.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
