@@ -12,7 +12,7 @@ Tracker: `ops/default/tracker/product-documentation.md`
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 3, web reference
-Execution gate: Slice 3 tasks complete, pull request pending
+Execution gate: Slice 3 pull request #6 is open against `dev`
 
 ## Objective
 
