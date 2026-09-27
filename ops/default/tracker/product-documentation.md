@@ -6,9 +6,9 @@ Plan: `ops/default/plan/product-documentation.md`
 Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
-Active slice: Slice 4
-Active tasks: none
-Execution gate: Slice 4 tasks complete, pull request pending
+Active slice: Slice 5
+Active tasks: T5.1, T5.2
+Execution gate: Slice 4 merged; Slice 5 in progress
 
 ## Slice Status
 
@@ -17,8 +17,8 @@ Execution gate: Slice 4 tasks complete, pull request pending
 | Slice 1 | documentation map | delivered | `docs/product-documentation` | `docs(slice-1): add the documentation map` | #4 | `ops/default/report/slices/product-documentation/slice-1-documentation-map.md` |
 | Slice 2 | core reference | delivered | `docs/slice-2-core-reference` | `docs(slice-2): document lifecycle and configuration` | #5 | `ops/default/report/slices/product-documentation/slice-2-core-reference.md` |
 | Slice 3 | web reference | delivered | `docs/slice-3-web-reference` | `docs(slice-3): document the HTTP and HTMX surface` | #6 | `ops/default/report/slices/product-documentation/slice-3-web-reference.md` |
-| Slice 4 | UI reference | active | `docs/slice-4-ui-reference` | `docs(slice-4): document the UI kit` | #7 | `ops/default/report/slices/product-documentation/slice-4-ui-reference.md` |
-| Slice 5 | auth reference | pending | `docs/slice-5-auth-reference` | `docs(slice-5): document authentication and crypto` | pending | `ops/default/report/slices/product-documentation/slice-5-auth-reference.md` |
+| Slice 4 | UI reference | delivered | `docs/slice-4-ui-reference` | `docs(slice-4): document the UI kit` | #7 | `ops/default/report/slices/product-documentation/slice-4-ui-reference.md` |
+| Slice 5 | auth reference | active | `docs/slice-5-auth-reference` | `docs(slice-5): document authentication and crypto` | pending | `ops/default/report/slices/product-documentation/slice-5-auth-reference.md` |
 | Slice 6 | data reference | pending | `docs/slice-6-data-reference` | `docs(slice-6): document persistence and validation` | pending | `ops/default/report/slices/product-documentation/slice-6-data-reference.md` |
 | Slice 7 | media reference | pending | `docs/slice-7-media-reference` | `docs(slice-7): document image storage and processing` | pending | `ops/default/report/slices/product-documentation/slice-7-media-reference.md` |
 | Slice 8 | infrastructure reference | pending | `docs/slice-8-infrastructure-reference` | `docs(slice-8): document infrastructure contracts` | pending | `ops/default/report/slices/product-documentation/slice-8-infrastructure-reference.md` |
@@ -150,12 +150,11 @@ Execution gate: Slice 4 tasks complete, pull request pending
 - [x] Slice 1 is delivered through its recorded branch, report, pull request, review, and merge.
 - [x] Slice 2 is delivered through its recorded branch, report, pull request, review, and merge.
 - [x] Slice 3 is delivered through its recorded branch, report, pull request, review, and merge.
-- [ ] Slices 4 through 16 are each delivered through the recorded branch, report, pull request, review, and merge.
+- [x] Slice 4 is delivered through its recorded branch, report, pull request, review, and merge.
+- [ ] Slices 5 through 16 are each delivered through the recorded branch, report, pull request, review, and merge.
 - [ ] The docs-only delivery-set gate passes on the integrated `dev` commit.
 
 ## Current Gate
 
-Slice 3 is merged through pull request #6. Its report status is `delivered`.
-Slice 4 tasks are complete on `docs/slice-4-ui-reference`. The report is
-`ops/default/report/slices/product-documentation/slice-4-ui-reference.md`
-and its status is `reviewing`. Pull request #7 is open against `dev`.
+Slice 4 is merged through pull request #7. Its report status is `delivered`.
+Slice 5 is active on `docs/slice-5-auth-reference`.
