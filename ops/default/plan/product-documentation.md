@@ -1,6 +1,6 @@
 # Product Documentation Delivery Plan
 
-Status: Approved
+Status: Delivered
 Delivery set: product-documentation
 Slice strategy: behavior-first
 Reason: each slice publishes one reference subject or one User Guide chapter
@@ -11,8 +11,8 @@ Spec: none
 Tracker: `ops/default/tracker/product-documentation.md`
 Base branch: `dev`
 Planning base: `6d91be1`
-Active slice: Slice 16, settings chapter
-Execution gate: Slice 16 pull request #19 is open against `dev`
+Active slice: none
+Execution gate: delivered on `dev` at `2111185`
 
 ## Objective
 
@@ -670,8 +670,8 @@ git diff --check
 - [x] Slice 13 is delivered through its recorded branch, report, pull request, review, and merge.
 - [x] Slice 14 is delivered through its recorded branch, report, pull request, review, and merge.
 - [x] Slice 15 is delivered through its recorded branch, report, pull request, review, and merge.
-- [ ] Slice 16 is delivered through its recorded branch, report, pull request, review, and merge.
-- [ ] The docs-only delivery-set gate passes on the integrated `dev` commit.
+- [x] Slice 16 is delivered through its recorded branch, report, pull request, review, and merge.
+- [x] The docs-only delivery-set gate passes on the integrated `dev` commit.
 
 ## Out of Scope
 

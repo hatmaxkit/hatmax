@@ -1,14 +1,14 @@
 # Product Documentation Tracker
 
-Status: Approved
+Status: Delivered
 Delivery set: product-documentation
 Plan: `ops/default/plan/product-documentation.md`
 Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
-Active slice: Slice 16
+Active slice: none
 Active tasks: none
-Execution gate: Slice 16 tasks complete, pull request pending
+Execution gate: delivered on `dev` at `2111185`
 
 ## Slice Status
 
@@ -29,7 +29,7 @@ Execution gate: Slice 16 tasks complete, pull request pending
 | Slice 13 | sign-in chapter | delivered | `docs/slice-13-sign-in-chapter` | `docs(slice-13): add the sign-in chapter` | #16 | `ops/default/report/slices/product-documentation/slice-13-sign-in-chapter.md` |
 | Slice 14 | record chapter | delivered | `docs/slice-14-record-chapter` | `docs(slice-14): add the record chapter` | #17 | `ops/default/report/slices/product-documentation/slice-14-record-chapter.md` |
 | Slice 15 | background-work chapter | delivered | `docs/slice-15-background-work-chapter` | `docs(slice-15): add the background-work chapter` | #18 | `ops/default/report/slices/product-documentation/slice-15-background-work-chapter.md` |
-| Slice 16 | settings chapter | active | `docs/slice-16-settings-chapter` | `docs(slice-16): finish the User Guide` | #19 | `ops/default/report/slices/product-documentation/slice-16-settings-chapter.md` |
+| Slice 16 | settings chapter | delivered | `docs/slice-16-settings-chapter` | `docs(slice-16): finish the User Guide` | #19 | `ops/default/report/slices/product-documentation/slice-16-settings-chapter.md` |
 
 ## Slice 1 Tasks
 
@@ -162,12 +162,12 @@ Execution gate: Slice 16 tasks complete, pull request pending
 - [x] Slice 13 is delivered through its recorded branch, report, pull request, review, and merge.
 - [x] Slice 14 is delivered through its recorded branch, report, pull request, review, and merge.
 - [x] Slice 15 is delivered through its recorded branch, report, pull request, review, and merge.
-- [ ] Slice 16 is delivered through its recorded branch, report, pull request, review, and merge.
-- [ ] The docs-only delivery-set gate passes on the integrated `dev` commit.
+- [x] Slice 16 is delivered through its recorded branch, report, pull request, review, and merge.
+- [x] The docs-only delivery-set gate passes on the integrated `dev` commit.
 
 ## Current Gate
 
-Slice 15 is merged through pull request #18. Its report status is `delivered`.
-Slice 16 tasks are complete on `docs/slice-16-settings-chapter`. The report is
-`ops/default/report/slices/product-documentation/slice-16-settings-chapter.md`
-and its status is `reviewing`. Pull request #19 is open against `dev`.
+Slice 16 is merged through pull request #19. Its report status is `delivered`.
+The product-documentation delivery set is delivered on `dev` at `2111185`.
+`git diff --check` passed for `docs/index.md`, `docs/tutorials`, and
+`docs/reference`.
