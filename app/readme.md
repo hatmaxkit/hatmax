@@ -21,7 +21,7 @@ starts, stops, registrars := app.Setup(ctx, router,
     &anotherService,
 )
 
-// Start executes in order, auto-rollback on failure
+// Start executes in order and uses the aligned stop slice on failure.
 if err := app.Start(ctx, log, starts, stops, registrars, router); err != nil {
     log.Fatal(err)
 }
@@ -47,3 +47,9 @@ type RouteRegistrar interface {
 ```
 
 Components implement the interfaces they need. Setup inspects and groups them.
+
+`Setup` collects start and stop functions into independent slices. If an
+application relies on startup rollback, every ordered startup component must
+also implement `Stoppable` so those slices stay positionally aligned. See the
+[Application Lifecycle Reference](../docs/reference/application-lifecycle/index.md)
+for the exact failure behavior.

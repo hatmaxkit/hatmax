@@ -9,7 +9,7 @@ HTTP, and stops them. The implementation note is
 | Interface | Method | When it runs |
 | --- | --- | --- |
 | `Startable` | `Start(context.Context) error` | During `Start`, in setup order |
-| `Stoppable` | `Stop(context.Context) error` | During rollback and during `Shutdown` |
+| `Stoppable` | `Stop(context.Context) error` | From the rollback stop slice and during `Shutdown` |
 | `RouteRegistrar` | `RegisterRoutes(chi.Router)` | After every start function succeeds |
 
 A component may implement any subset of these interfaces.
@@ -30,19 +30,23 @@ interface appears in only one list. `Setup` does not call `Start`, `Stop`, or
 ## Start
 
 `Start` calls the start functions in order. When a start function returns an
-error, `Start` logs `error starting component #<index>` and then calls
-`stops[j]` for each `j` from `index-1` down to `0`. Rollback uses
+error at index `i`, `Start` logs `error starting component #<index>` and then
+calls `stops[j]` for each `j` from `i-1` down to `0`. Rollback uses
 `context.Background()`. A stop error during rollback is logged and does not
 replace the original start error. `Start` then returns the start error.
 
 Routes are registered only after every start function returns nil.
 
-The stop list is indexed by the same number as the start list. Those numbers
-refer to the same component only when both lists received an entry for each
-preceding component. A component that is `Startable` and not `Stoppable`, or
-`Stoppable` and not `Startable`, shifts the later indexes. The package comment
-describes rollback as stopping the components that already started. The
-executed rollback is the index walk above.
+The stop list is indexed independently from the start list. The indexes refer
+to the same components only while every relevant component contributes to
+both lists in the same order. A component that is `Startable` but not
+`Stoppable`, or `Stoppable` but not `Startable`, shifts the later indexes.
+
+An application that relies on startup rollback must keep those slices aligned:
+each ordered startup component should implement both interfaces. `Start` does
+not validate alignment and can panic when a failure index requires a stop
+entry that does not exist. This constraint does not affect the reverse walk
+performed by normal `Shutdown`.
 
 ## Serve
 

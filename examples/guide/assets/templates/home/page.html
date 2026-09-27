@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hatmax Guide</title>
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+  <h1>Hatmax Guide</h1>
+
+  <form hx-post="/name" hx-target="#name-result" hx-swap="innerHTML">
+    <label>Name <input name="name"></label>
+    <button type="submit">Check name</button>
+  </form>
+  <p id="name-result">Waiting</p>
+
+  <form method="post" action="/greeting">
+    <label>Greeting <input name="greeting" value="{{.Greeting}}"></label>
+    <button type="submit">Change greeting</button>
+  </form>
+
+  {{if .DatabaseEnabled}}
+  <form method="post" action="/notes">
+    <label>Note <input name="title"></label>
+    <button type="submit">Save note</button>
+  </form>
+  <ul>
+    {{range .Notes}}<li>{{.Title}} <code>{{.Slug}}</code></li>{{end}}
+  </ul>
+  {{else}}
+  <p>Set <code>GUIDE_DATABASE_ENABLED=true</code> to enable stored notes and pubsub.</p>
+  {{end}}
+</body>
+</html>

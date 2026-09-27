@@ -4,10 +4,6 @@
 roles, rate limits, same-origin checks, and telemetry. The implementation
 note is [middleware/readme.md](../../../middleware/readme.md).
 
-The readme calls `RateLimit(100, time.Minute)`. The function accepts a
-`*RateLimiter`. Construct one with `NewRateLimiter(limit, window)` and pass
-it to `RateLimit`.
-
 ## Stacks
 
 `DefaultStack` returns `RequestID`, chi `RealIP`, chi `Logger`, and chi

@@ -20,13 +20,13 @@ import (
     "log"
     "time"
 
-    "hatmax.adrianpk.com/hatmax/scheduler"
-    "hatmax.adrianpk.com/hatmax/scheduler/postgres"
+    "hatmax.adrianpk.com/scheduler"
+    schedulerpostgres "hatmax.adrianpk.com/scheduler/postgres"
 )
 
 func main() {
     db := connectDB()
-    store := postgres.NewStore(db)
+    store := schedulerpostgres.NewStore(db)
 
     cfg := scheduler.Config{
         Enabled:   true,
@@ -121,12 +121,12 @@ clock.Advance(time.Hour)
 ## Postgres Backend
 
 ```go
-import "hatmax.adrianpk.com/hatmax/scheduler/postgres"
+import schedulerpostgres "hatmax.adrianpk.com/scheduler/postgres"
 
-store := postgres.NewStore(db)
+store := schedulerpostgres.NewStore(db)
 
 // Apply schema (or use migrations)
-db.Exec(postgres.Schema)
+db.Exec(schedulerpostgres.Schema)
 ```
 
 Tables:

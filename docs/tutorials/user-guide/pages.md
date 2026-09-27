@@ -1,145 +1,68 @@
 # Serve a Page
 
-Serve one HTML page and replace one element on that page with an HTMX
-response.
+This chapter follows one full page and one HTMX partial through the companion
+application. By the end, a form replaces one element without replacing the
+complete document.
 
-This chapter keeps the Postgres component from Add Postgres. It does not
-accept a form.
+## Before You Begin
 
-The contracts are in
-[HTTP](../../reference/http/index.md),
-[HTMX](../../reference/htmx/index.md), and
-[Rendering](../../reference/rendering/index.md).
-This page does not use a template function. The rendering reference is where
-those functions are defined.
+Complete [Add Postgres](postgres.md), then run the guide application with
+database features enabled.
 
-## Add the templates
+## Inspect the templates
 
-Add `assets/templates/home/page.html`:
+`examples/guide/assets/templates/home/page.html` is the complete page.
+`status.html` is the partial response. `web.NewTemplateManager` parses both
+files during startup from the embedded filesystem.
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Home</title>
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-</head>
-<body>
-  <div id="status"><p>Waiting</p></div>
-  <button type="button" hx-get="/status" hx-target="#status" hx-swap="innerHTML">
-    Update
-  </button>
-</body>
-</html>
-```
-
-Add `assets/templates/home/status.html`:
+The name form declares:
 
 ```html
-<p>Updated</p>
+<form hx-post="/name" hx-target="#name-result" hx-swap="innerHTML">
 ```
 
-`web.NewTemplateManager` parses every `.html` file when it starts. `Render`
-and `RenderPartial` execute
-`assets/templates/<namespace>/<template>.html`.
+The browser posts the form to `/name` and replaces only `#name-result` with the
+returned partial.
 
-## Register the page
+## Follow route registration
 
-Keep the database setup from Add Postgres. Add a page component and start
-the template manager before the routes are registered:
+`pages.RegisterRoutes` installs the handlers after all startup functions
+succeed. `pages.home` renders `home/page`; `pages.checkName` renders
+`home/status`.
 
-```go
-package main
-
-import (
-	"context"
-	"embed"
-	"fmt"
-	"net/http"
-	"os"
-
-	"github.com/go-chi/chi/v5"
-	"hatmax.adrianpk.com/app"
-	"hatmax.adrianpk.com/config"
-	"hatmax.adrianpk.com/db"
-	"hatmax.adrianpk.com/log"
-	"hatmax.adrianpk.com/web"
-)
-
-//go:embed assets
-var assetsFS embed.FS
-
-type pages struct {
-	templates *web.TemplateManager
-}
-
-func (p *pages) RegisterRoutes(r chi.Router) {
-	r.Get("/", p.home)
-	r.Get("/status", p.status)
-}
-
-func (p *pages) home(w http.ResponseWriter, r *http.Request) {
-	p.templates.Render(w, "home", "page", nil)
-}
-
-func (p *pages) status(w http.ResponseWriter, r *http.Request) {
-	p.templates.RenderPartial(w, "home", "status", nil)
-}
-
-func main() {
-	cfg, err := config.Load("config.yaml", "APP_", os.Args)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "cannot load config: %v\n", err)
-		os.Exit(1)
-	}
-
-	err = cfg.Validate()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "cannot validate config: %v\n", err)
-		os.Exit(1)
-	}
-
-	logger := log.NewLogger(cfg)
-	router := app.NewRouter(logger, app.WithPing())
-	database := db.New(assetsFS, db.Postgres, cfg, logger)
-	templates := web.NewTemplateManager(assetsFS, logger)
-	site := &pages{templates: templates}
-
-	ctx := context.Background()
-	starts, stops, registrars := app.Setup(ctx, router, database, templates, site)
-
-	err = app.Start(ctx, logger, starts, stops, registrars, router)
-	if err != nil {
-		logger.Errorf("cannot start: %v", err)
-		os.Exit(1)
-	}
-
-	logger.Info("listening")
-
-	err = app.Serve(router, cfg.Server.Port)
-	if err != nil {
-		logger.Errorf("server stopped: %v", err)
-		os.Exit(1)
-	}
-}
-```
-
-`app.Start` runs `database.Start`, then `templates.Start`, and only then
-`RegisterRoutes`. A template parse error stops the database that already
-started and the process exits before it listens.
+Change the initial text `Waiting` in `page.html` to `Enter a name`, restart the
+process, and reload the page. The new text comes from the embedded template.
+Restore `Waiting` before continuing.
 
 ## Check the result
 
-Run the process against the Postgres from Add Postgres.
+Open `http://localhost:8080/`, enter `Ada`, and choose **Check name**. The
+result changes to `Accepted Ada` without replacing the page.
+
+You can inspect the partial directly:
 
 ```sh
-curl -sS localhost:8080/ | grep -F 'hx-get="/status"'
-curl -sS localhost:8080/status
+curl -fsS \
+  -H 'Origin: http://localhost:8080' \
+  -H 'HX-Request: true' \
+  -d 'name=Ada' \
+  http://localhost:8080/name
 ```
 
-The first command finds the button. The second prints `<p>Updated</p>`.
+The response is `Accepted Ada`.
 
-Open `http://localhost:8080/` in a browser. The page shows `Waiting`. Choose
-Update. The element `#status` shows `Updated`. The process is still running.
-Stop it with Ctrl+C.
+## Recover from template problems
+
+A missing template is a startup error when the filesystem walk cannot read it,
+or a render-time `500` when a handler asks for an unknown template name. Match
+the namespace and filename used by the handler.
+
+See [HTTP](../../reference/http/index.md) and
+[HTMX](../../reference/htmx/index.md) for exact behavior.
+
+Continue with [Accept a Form](forms.md).
+
+---
+
+[Previous: Add Postgres](postgres.md) · [User Guide](index.md) ·
+[Next: Accept a Form](forms.md)

@@ -1,93 +1,66 @@
-# Getting Started
+# Run the First Process
 
-Load configuration, create a logger and a router, and reach `app.Start`.
-The process stays up, and `GET /ping` answers.
+This chapter starts the versioned companion application without Postgres. By
+the end, both the health endpoint and the HTML page respond.
 
-This chapter does not open Postgres, serve a page, or sign anyone in.
+## Before You Begin
 
-The contracts are in
-[Application Lifecycle](../../reference/application-lifecycle/index.md),
-[Configuration](../../reference/configuration/index.md), and
-[Logging](../../reference/logging/index.md).
+Complete the repository checkout described in the
+[User Guide](index.md#before-you-begin). Port `8080` must be available.
 
-## Create the process
+## Start the application
 
-In a module that depends on `hatmax.adrianpk.com`, add `config.yaml`:
-
-```yaml
-log:
-  level: info
-server:
-  port: ":8080"
+```sh
+cd examples/guide
+go run .
 ```
 
-`config.Load` requires that file. Fields you omit keep the defaults from
-`config.New`, including the database fields that `Validate` checks. This
-chapter does not connect to that database.
+The process loads `config.yaml`, validates it, creates a logger and router,
+starts the template manager, registers routes, and listens on `:8080`.
 
-Add `main.go`:
-
-```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"os"
-
-	"hatmax.adrianpk.com/app"
-	"hatmax.adrianpk.com/config"
-	"hatmax.adrianpk.com/log"
-)
-
-func main() {
-	cfg, err := config.Load("config.yaml", "APP_", os.Args)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "cannot load config: %v\n", err)
-		os.Exit(1)
-	}
-
-	err = cfg.Validate()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "cannot validate config: %v\n", err)
-		os.Exit(1)
-	}
-
-	logger := log.NewLogger(cfg)
-	router := app.NewRouter(logger, app.WithPing())
-
-	ctx := context.Background()
-	starts, stops, registrars := app.Setup(ctx, router)
-
-	err = app.Start(ctx, logger, starts, stops, registrars, router)
-	if err != nil {
-		logger.Errorf("cannot start: %v", err)
-		os.Exit(1)
-	}
-
-	logger.Info("listening")
-
-	err = app.Serve(router, cfg.Server.Port)
-	if err != nil {
-		logger.Errorf("server stopped: %v", err)
-		os.Exit(1)
-	}
-}
-```
-
-`app.Setup` receives no components, so `app.Start` only registers routes.
-`app.WithPing` registers `GET /ping`. `app.Serve` blocks until the process
-stops.
+`GUIDE_DATABASE_ENABLED` is unset, so the database, note store, broker, and
+subscriber are not assembled.
 
 ## Check the result
-
-Run the process from the directory that contains `config.yaml`.
 
 In another terminal:
 
 ```sh
-curl -sS localhost:8080/ping
+curl -fsS http://localhost:8080/ping
+curl -fsS http://localhost:8080/ | grep -F 'Hatmax Guide'
 ```
 
-The command prints `{"status":"ok"}`. The process is still running. Stop it
-with Ctrl+C.
+The first command prints `{"status":"ok"}`. The second finds the page title.
+Open `http://localhost:8080/` to see the form and the notice that database
+features are disabled.
+
+Stop the process with Ctrl+C.
+
+## Understand the assembly
+
+Open `examples/guide/main.go` and locate `components`. In this mode it contains
+the template manager and page registrar. `app.Setup` collects lifecycle and
+route capabilities. `app.Start` starts the template manager before it registers
+the page routes.
+
+For the exact contract, see
+[Application Lifecycle](../../reference/application-lifecycle/index.md).
+
+## Recover from startup problems
+
+- A missing `config.yaml` returns a load error. Run from `examples/guide`.
+- An occupied port returns a listen error. Stop the other process or change
+  `server.port`.
+- A template parse error stops startup before routes are registered. Restore
+  valid Go template syntax and run again.
+
+## Verify the result
+
+This chapter is complete when `/ping` and `/` both respond from the same
+process.
+
+Continue with [Add Postgres](postgres.md).
+
+---
+
+[User Guide](index.md) · [Next: Add Postgres](postgres.md)

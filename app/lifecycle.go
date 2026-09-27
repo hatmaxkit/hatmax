@@ -22,7 +22,7 @@ type Stoppable interface {
 }
 
 // RouteRegistrar represents a component that registers HTTP routes.
-// Components implementing this interface will have RegisterRoutes called during setup.
+// Components implementing this interface have RegisterRoutes called after startup.
 type RouteRegistrar interface {
 	RegisterRoutes(chi.Router)
 }
@@ -54,12 +54,10 @@ func Setup(ctx context.Context, r chi.Router, comps ...any) (
 	return
 }
 
-// Start executes startup functions in order with automatic rollback on failure.
-// If any start function fails, already-started components are stopped in reverse order.
-// After all components start successfully, routes are registered.
-//
-// This ensures transactional-like behavior: either all components start successfully
-// or none remain running.
+// Start executes startup functions in order and registers routes after startup.
+// If a start function fails at index i, Start calls stop functions i-1 through
+// zero. Setup collects start and stop functions independently, so callers that
+// rely on this rollback must keep those slices positionally aligned.
 func Start(ctx context.Context, log log.Logger, starts []func(context.Context) error, stops []func(context.Context) error, registrars []RouteRegistrar, router chi.Router) error {
 	for i, start := range starts {
 		err := start(ctx)

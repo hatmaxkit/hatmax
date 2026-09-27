@@ -6,9 +6,9 @@ Request counting and crash collection for telemetry reporting.
 
 ```go
 import (
-    "hatmax.adrianpk.com/hatmax/telemetry"
-    "hatmax.adrianpk.com/hatmax/middleware"
-    "hatmax.adrianpk.com/hatmax/settings"
+    "hatmax.adrianpk.com/middleware"
+    "hatmax.adrianpk.com/settings"
+    "hatmax.adrianpk.com/telemetry"
 )
 
 // Create collectors
@@ -51,7 +51,7 @@ type RequestCounter interface {
 
 ```go
 type CrashRecorder interface {
-    RecordPanic(panicValue any, endpoint, method string)
+    RecordPanic(message, endpoint, method string)
 }
 
 type CrashEvent struct {
@@ -67,7 +67,7 @@ type CrashEvent struct {
 ```
 
 - `NewCrashCollector() *CrashCollector` - creates a collector
-- `RecordPanic(value any, endpoint, method string)` - records with deduplication by message+endpoint
+- `RecordPanic(message, endpoint, method string)` - records with deduplication by message+endpoint
 - `GetAndResetCrashes() []CrashEvent` - returns all events and clears
 
 ### Settings

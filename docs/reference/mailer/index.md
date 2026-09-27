@@ -14,6 +14,35 @@ least one `To` address with an email, a subject, and text or HTML. It does
 not check `CC` or `BCC`. `IsMultipart` is true when both text and HTML are
 set. `AllRecipients` returns `To`, then `CC`, then `BCC`.
 
+`Attachment` has `Filename`, `ContentType`, and byte `Data`.
+
+## Interface and constructors
+
+`Mailer` has `Send(context.Context, *Message) error`.
+
+| Constructor | Configuration | Result |
+| --- | --- | --- |
+| `NewSMTPMailer` | `SMTPConfig` | `*SMTPMailer` |
+| `NewMailgunMailer` | `MailgunConfig` | `*MailgunMailer` |
+| `NewSendGridMailer` | `SendGridConfig` | `*SendGridMailer` |
+| `NewSESMailer` | context and `SESConfig` | `*SESMailer`, or an AWS configuration error |
+| `NewNoopMailer` | logger | `*NoopMailer` |
+
+Every provider validates the message before delivery. SMTP, Mailgun, SendGrid,
+and SES use their configured `DefaultFrom` when `Message.From.Email` is empty.
+`NoopMailer` does not apply a default sender.
+
+| Configuration | Fields |
+| --- | --- |
+| `Config` | `DefaultFrom`, `Provider` |
+| `SMTPConfig` | `Host`, `Port`, `Username`, `Password`, `TLS`, `StartTLS`, `InsecureSkipVerify` |
+| `MailgunConfig` | `APIKey`, `Domain`, `BaseURL` |
+| `SendGridConfig` | `APIKey` |
+| `SESConfig` | `Region`, `AccessKeyID`, `SecretAccessKey`, `ConfigurationSetName` |
+
+SMTP uses implicit TLS when `TLS` is true. `StartTLS` is accepted by the
+configuration type but is not used by the current SMTP send path.
+
 ## Runtime
 
 `New(cfg, log)` and `NewWithSettings(settings, cfg, log)` resolve a mailer.
@@ -31,3 +60,12 @@ from address, and returns nil.
 Active providers are `smtp`, `mailgun`, `sendgrid`, and `ses`.
 `RegisterSchemas` registers the `mailer.*` settings, including `mailer.mode`
 values `disabled`, `dry_run`, and `active`.
+
+`SettingsProvider` supplies `GetString`, `GetInt`, and `GetBool`. The runtime
+setting keys cover enablement, mode, provider, sender, SMTP, Mailgun, SendGrid,
+and SES fields. `Schemas` contains the definitions registered by
+`RegisterSchemas`.
+
+`dry_run` resolves to `NoopMailer`; it validates and logs metadata but does not
+contact a provider. An active provider may still return a delivery error from
+its network or remote API.

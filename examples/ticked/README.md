@@ -60,7 +60,7 @@ A todo list is the archetypical example for a reason: it's familiar, simple to u
 
 ## Prerequisites
 
-- Go 1.21+
+- Go 1.24+
 - PostgreSQL running locally
 - Make
 - sqlc (for regenerating queries)
@@ -116,25 +116,24 @@ Default configuration in `config.yaml`:
 
 ```yaml
 server:
-  port: "8080"
+  port: ":8080"
 
 database:
   host: localhost
   port: 5432
   user: dev
   password: dev
-  name: ticked
+  database: tickedhm
   sslmode: disable
 
 log:
   level: debug
-  format: text
 ```
 
 Override with environment variables (prefix `TICKED_`):
 
 ```bash
-TICKED_SERVER_PORT=9000 make run
+TICKED_SERVER_PORT=:9000 make run
 TICKED_DATABASE_HOST=db.example.com make run
 ```
 

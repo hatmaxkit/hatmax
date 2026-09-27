@@ -1,126 +1,61 @@
 # Add Postgres
 
-Add a Postgres component. When that component cannot reach the database, the
-process exits before it listens. When it can, the process stays up and
-`GET /ping` still answers.
+This chapter enables the database-backed note store and pubsub components. By
+the end, startup creates the required tables and the page can list notes.
 
-This chapter does not run migrations or serve a page.
+## Before You Begin
 
-The contracts are in
-[Database](../../reference/database/index.md) and
-[Application Lifecycle](../../reference/application-lifecycle/index.md).
+Complete [Run the First Process](getting-started.md). A Postgres server must
+accept the values in `examples/guide/config.yaml`.
 
-## Point the configuration at Postgres
-
-Keep the file from Getting Started and set the database fields to a server
-you can reach:
-
-```yaml
-log:
-  level: info
-server:
-  port: ":8080"
-database:
-  host: localhost
-  port: 5432
-  user: dev
-  password: dev
-  database: dev
-  sslmode: disable
-```
-
-`db.New` reads those fields through `cfg.Database.ConnectionString`. It does
-not open the connection.
-
-Add `assets/keep.txt` so the embedded filesystem has a file. The database
-component stores that filesystem and does not read it in this chapter.
-
-## Start the database component
-
-Replace `main.go` with:
-
-```go
-package main
-
-import (
-	"context"
-	"embed"
-	"fmt"
-	"os"
-
-	"hatmax.adrianpk.com/app"
-	"hatmax.adrianpk.com/config"
-	"hatmax.adrianpk.com/db"
-	"hatmax.adrianpk.com/log"
-)
-
-//go:embed assets
-var assetsFS embed.FS
-
-func main() {
-	cfg, err := config.Load("config.yaml", "APP_", os.Args)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "cannot load config: %v\n", err)
-		os.Exit(1)
-	}
-
-	err = cfg.Validate()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "cannot validate config: %v\n", err)
-		os.Exit(1)
-	}
-
-	logger := log.NewLogger(cfg)
-	router := app.NewRouter(logger, app.WithPing())
-	database := db.New(assetsFS, db.Postgres, cfg, logger)
-
-	ctx := context.Background()
-	starts, stops, registrars := app.Setup(ctx, router, database)
-
-	err = app.Start(ctx, logger, starts, stops, registrars, router)
-	if err != nil {
-		logger.Errorf("cannot start: %v", err)
-		os.Exit(1)
-	}
-
-	logger.Info("listening")
-
-	err = app.Serve(router, cfg.Server.Port)
-	if err != nil {
-		logger.Errorf("server stopped: %v", err)
-		os.Exit(1)
-	}
-}
-```
-
-`app.Setup` collects `database.Start` because `*db.Database` implements
-`Start`. `app.Start` calls it before `app.Serve`. A failed ping closes the
-connection and returns `cannot ping database`. This program has no earlier
-component to stop, so the process exits and nothing listens.
-
-## Check a failed start
-
-Set `database.port` to a port where Postgres is not listening, then run the
-process.
-
-The log contains `cannot ping database`. The process exits. This command
-fails because nothing is listening:
+Create the default database when necessary:
 
 ```sh
-curl -sS localhost:8080/ping
+createdb -h localhost -U dev dev
 ```
 
-## Check a successful start
+## Enable database components
 
-Set `database.port` back to the port of a Postgres you can reach, with the
-user, password, and database name that server accepts. Run the process again.
-
-The log contains `Database connection established`, then `listening`. In
-another terminal:
+From `examples/guide`:
 
 ```sh
-curl -sS localhost:8080/ping
+GUIDE_DATABASE_ENABLED=true go run .
 ```
 
-The command prints `{"status":"ok"}`. The process is still running. Stop it
-with Ctrl+C.
+The entrypoint assembles components in this order:
+
+1. `db.Database` opens and verifies the connection.
+2. `noteStore` creates `guide_notes`.
+3. The Postgres broker creates its schema.
+4. `eventListener` subscribes after the broker is ready.
+5. The template manager parses templates.
+6. The page registrar installs routes.
+
+Every startup component in this list also implements `Stoppable`, keeping the
+current lifecycle rollback slices aligned.
+
+## Check failure containment
+
+Stop the process, set `database.port` to an unused port, and run it again. The
+process reports `cannot ping database` and does not listen on port `8080`.
+Restore the port and start it again.
+
+## Verify the result
+
+```sh
+curl -fsS http://localhost:8080/ | grep -F '<form method="post" action="/notes">'
+psql -h localhost -U dev -d dev -c '\d guide_notes'
+```
+
+Both commands must succeed. Stop the process with Ctrl+C.
+
+For a focused integration procedure, see
+[Connect to Postgres](../../how-to/connect-postgres/index.md). For exact
+behavior, see [Database](../../reference/database/index.md).
+
+Continue with [Serve a Page](pages.md).
+
+---
+
+[Previous: Run the First Process](getting-started.md) · [User Guide](index.md) ·
+[Next: Serve a Page](pages.md)

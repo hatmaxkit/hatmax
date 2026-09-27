@@ -22,13 +22,11 @@ reader, err := store.Get(ctx, "images/photo.jpg")
 // Get URL
 url := store.URL("images/photo.jpg")
 
-// Process variants
+// Process one variant
 processor := stdprocessor.New()
-variants := []image.Variant{image.Large, image.Medium, image.Thumbnail}
-for _, v := range variants {
-    resized, _ := processor.Resize(original, v.Width, v.Height)
-    store.Put(ctx, v.Path(basePath), resized)
-}
+resized, err := processor.Resize(ctx, original, "image/jpeg", 800, 800)
+if err != nil { ... }
+err = store.Put(ctx, "images/photo-medium.jpg", resized.Data)
 ```
 
 ## API
@@ -43,3 +41,7 @@ type Store interface {
 ```
 
 Implementations: `local/`, `s3/`. Processor: `stdprocessor/`.
+
+`DefaultVariantSpecs` returns the standard large, medium, and thumbnail
+dimensions. The application chooses paths and persists `Image` and `Variant`
+metadata through its `Repository` implementation.

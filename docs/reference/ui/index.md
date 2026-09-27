@@ -91,6 +91,25 @@ and the token. `Render` is `Open` followed by `Close`. `HX` on a form, link,
 button, or delete button returns that component's HTMX builder. `Done` returns
 the component.
 
+### Common builder groups
+
+| Components | Builder concerns |
+| --- | --- |
+| Button | emoji, variant, size, disabled, loading, class, id, type, name, value, HTMX |
+| Link | target, external relation, class, id, title, download, boost, HTMX |
+| Form | action, method, CSRF token and field, class, id, encoding, validation, HTMX |
+| Alert, Flash, Toast | message, variant, classes, and component-specific dismissal behavior |
+| Page, PageHeader, Container | page title, breadcrumbs, actions, content, and layout classes |
+| NavGrid, Nav | items, links, active state, and layout |
+| Table | columns, rows, empty text, classes, and row rendering |
+
+`Renderable` requires `Render() template.HTML`. `CSRFFunc` is
+`func(context.Context) string`. `Option` configures a `Kit`; the exported
+options are `WithSettings`, `WithEmbeds`, `WithOverlay`, and `WithCSRFFunc`.
+
+`ButtonSize` values are `sm`, `md`, and `lg`. `StatusConfig` defines the label,
+variant, and icon stored by `RegisterStatus`.
+
 ## Template functions
 
 `FuncMap` and `Kit.FuncMap` start from `render.FuncMapWithHTMX` and add:

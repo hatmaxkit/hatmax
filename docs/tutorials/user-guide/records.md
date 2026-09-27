@@ -1,142 +1,68 @@
 # Save a Record
 
-Store one note that is still listed after the process starts again.
+This chapter adds a todo item in Ticked and verifies that the item survives a
+process restart.
 
-This chapter keeps Postgres from Add Postgres. The note page is not behind
-sign-in, so the restart check does not depend on the session cookie.
+## Before You Begin
 
-The contracts are in
-[Model](../../reference/model/index.md),
-[Slug](../../reference/slug/index.md),
-[Seed](../../reference/seed/index.md), and
-[Database](../../reference/database/index.md).
+Complete [Sign In](sign-in.md). Keep Ticked running and keep
+`/tmp/ticked-guide.cookies`.
 
-## Create the table
-
-Add a component that creates `guide_notes` in `Start`, after the database
-connection is open. Put it in `app.Setup` immediately after `database`.
-
-```go
-type notes struct {
-	database *db.Database
-}
-
-func (n *notes) Start(ctx context.Context) error {
-	_, err := n.database.GetDB().ExecContext(ctx, `
-		CREATE TABLE IF NOT EXISTS guide_notes (
-			id text PRIMARY KEY,
-			title text NOT NULL,
-			slug text NOT NULL,
-			created_at timestamptz NOT NULL,
-			updated_at timestamptz NOT NULL
-		)
-	`)
-
-	return err
-}
-
-func (n *notes) Stop(context.Context) error { return nil }
-```
-
-## Seed one note
-
-A seeder runs once. Later starts skip it because its name is in `_seeds`.
-`seed.NewRunner` needs the database provider, this seeder, and the logger.
-Pass the runner to `app.Setup` after `notes`, so the table exists before the
-insert.
-
-```go
-type welcomeNote struct {
-	database *db.Database
-}
-
-func (w *welcomeNote) Name() string { return "guide-welcome-note" }
-
-func (w *welcomeNote) Seed(ctx context.Context) error {
-	id := model.NewID()
-	parsed, err := model.ParseID(id)
-	if err != nil {
-		return err
-	}
-
-	now := model.Now()
-	_, err = w.database.GetDB().ExecContext(ctx, `
-		INSERT INTO guide_notes (id, title, slug, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5)
-	`, id, "Welcome", slug.Generate("Welcome", parsed), now, now)
-
-	return err
-}
-```
-
-`slug.Generate` appends the first 8 characters of the UUID. `Welcome` becomes
-`welcome-` plus those characters.
-
-## Save from the request
-
-Add `assets/templates/home/notes.html`:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><title>Notes</title></head>
-<body>
-  <form method="post" action="/notes">
-    <input name="title">
-    <button type="submit">Save</button>
-  </form>
-  <ul id="notes">
-    {{range .Notes}}<li>{{.Title}} <code>{{.Slug}}</code></li>{{end}}
-  </ul>
-</body>
-</html>
-```
-
-`GET /notes` lists every row. `POST /notes` inserts the submitted title with
-a new id, `model.Now` for both timestamps, and `slug.Generate` for the slug.
-Keep `middleware.RequireSameOrigin` on the router, so the POST needs
-`Origin: http://localhost:8080`.
-
-```go
-func (n *notes) Insert(ctx context.Context, title string) error {
-	id := model.NewID()
-	parsed, err := model.ParseID(id)
-	if err != nil {
-		return err
-	}
-
-	now := model.Now()
-	_, err = n.database.GetDB().ExecContext(ctx, `
-		INSERT INTO guide_notes (id, title, slug, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5)
-	`, id, title, slug.Generate(title, parsed), now, now)
-
-	return err
-}
-```
-
-## Check the result
-
-Run the process against the Postgres from Add Postgres.
+## Add an item
 
 ```sh
-curl -sS http://localhost:8080/notes
+curl -fsS -b /tmp/ticked-guide.cookies \
+  -d 'text=Review the Hatmax guide' \
+  http://localhost:8080/add-item | grep -F 'Review the Hatmax guide'
 ```
 
-The list contains `Welcome`.
+The handler parses the form, reads the authenticated user from the context,
+and calls the list service. The service gets or creates that user's list,
+updates it, and saves the aggregate through its Postgres store. The response
+is the rendered item partial.
 
-Save a note, stop the process, start it again, and list the notes:
+## Restart the process
+
+Stop `make run-fg` with Ctrl+C, then start it again:
 
 ```sh
-curl -sS -H 'Origin: http://localhost:8080' \
-  -d 'title=Hello' http://localhost:8080/notes
+make run-fg
 ```
 
-Stop the process with Ctrl+C and start it again.
+The session and todo data remain in Postgres. Request the list with the same
+cookie jar:
 
 ```sh
-curl -sS http://localhost:8080/notes
+curl -fsS -b /tmp/ticked-guide.cookies \
+  http://localhost:8080/list-items | grep -F 'Review the Hatmax guide'
 ```
 
-The list still contains `Welcome` and `Hello`. `Welcome` was not inserted a
-second time. Each title is followed by its slug.
+## Inspect the persistence boundary
+
+The Ticked list service depends on its own small store interface. The Postgres
+adapter owns SQL and maps rows to the list model. Hatmax supplies the shared
+database lifecycle, identifiers, time helpers, migrations, and validation
+building blocks without owning the application's todo schema.
+
+## Recover from persistence problems
+
+- `Unauthorized` means the session cookie was not sent or no longer validates.
+- `Failed to load list` indicates a store failure; inspect the process log and
+  Postgres connection.
+- `Text is required` means the form value was empty.
+
+## Verify the result
+
+This chapter is complete when the exact item text appears after restarting the
+process.
+
+See [Database](../../reference/database/index.md),
+[Model](../../reference/model/index.md), and
+[Validation](../../reference/validation/index.md).
+
+Continue with [Work Outside the Request](background-work.md).
+
+---
+
+[Previous: Sign In](sign-in.md) · [User Guide](index.md) ·
+[Next: Work Outside the Request](background-work.md)

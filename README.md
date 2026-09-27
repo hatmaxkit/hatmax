@@ -8,44 +8,58 @@
 [![CI](https://img.shields.io/endpoint?url=https://codeberg.org/hatmax/hatmax/raw/branch/main/.badges/ci.json)](https://codeberg.org/hatmax/hatmax)
 [![coverage](https://img.shields.io/endpoint?url=https://codeberg.org/hatmax/hatmax/raw/branch/main/.badges/coverage.json)](https://codeberg.org/hatmax/hatmax)
 
-**A composable Go toolkit for building web applications with consistent wiring, clear configuration boundaries, and predictable package integration.**
+**A composable Go toolkit for server-rendered web applications with explicit
+wiring, clear configuration boundaries, and Postgres-first infrastructure.**
 
 ## Overview
 
-HatMax provides practical, composable packages for building web applications in Go.
+Hatmax provides practical, composable packages for building web applications
+in Go.
 
 It includes:
 
-- Consistent constructors and dependency wiring across packages.
+- Explicit constructors and dependency wiring across packages.
 - Practical building blocks that work together out of the box.
 - Composable roles and interfaces instead of hidden global state.
-- Postgres-first primitives for auth, scheduling, pubsub, and app lifecycle.
+- Postgres-first primitives for authentication, scheduling, and pubsub.
 
 ## Quick Start
+
+Create a module and add Hatmax:
+
+```sh
+mkdir myapp
+cd myapp
+go mod init example.com/myapp
+go get hatmax.adrianpk.com
+```
+
+Create `config.yaml`:
+
+```yaml
+log:
+  level: info
+server:
+  port: ":8080"
+```
+
+Create `main.go`:
 
 ```go
 package main
 
 import (
 	"context"
-	"embed"
 	"fmt"
 	"os"
 
 	"hatmax.adrianpk.com/app"
 	"hatmax.adrianpk.com/config"
-	"hatmax.adrianpk.com/db"
 	"hatmax.adrianpk.com/log"
-	"hatmax.adrianpk.com/mailer"
-	"hatmax.adrianpk.com/middleware"
-	"hatmax.adrianpk.com/pubsub/postgres"
 )
 
-//go:embed assets/*
-var assetsFS embed.FS
-
 func main() {
-	cfg, err := config.Load("config.yml", "APP_", os.Args) // your env prefix
+	cfg, err := config.Load("config.yaml", "MYAPP_", os.Args)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "cannot load config: %v\n", err)
 		os.Exit(1)
@@ -56,41 +70,27 @@ func main() {
 		os.Exit(1)
 	}
 
-	ctx := context.Background()
 	logger := log.NewLogger(cfg)
-	router := app.NewRouter(
-		logger,
-		app.WithMiddleware(middleware.DefaultStack()...),
-		app.WithPing(),
-		app.WithDebugRoutes(),
-	)
-
-	// Infrastructure
-	database := db.New(assetsFS, db.Postgres, cfg, logger)
-	events := postgres.New(database, cfg, logger)
-	mail := mailer.New(cfg, logger)
-
-	// Application layer
-	service := featname.NewService(database, events, mail, cfg, logger)
-	handler := featname.NewHandler(service, cfg, logger)
-
-	deps := []any{
-		database,
-		events,
-		mail,
-		service,
-		handler,
-	}
-
-	starts, stops, registrars := app.Setup(ctx, router, deps...)
+	router := app.NewRouter(logger, app.WithPing())
+	ctx := context.Background()
+	starts, stops, registrars := app.Setup(ctx, router)
 
 	err = app.Start(ctx, logger, starts, stops, registrars, router)
 	if err != nil {
 		logger.Errorf("cannot start app: %v", err)
 		os.Exit(1)
 	}
+
+	if err = app.Serve(router, cfg.Server.Port); err != nil {
+		logger.Errorf("cannot serve: %v", err)
+		os.Exit(1)
+	}
 }
 ```
+
+Run `go run .`, then request `http://localhost:8080/ping`. Continue with the
+[User Guide](docs/tutorials/user-guide/index.md) to add Postgres, templates,
+forms, authentication, records, background work, and runtime settings.
 
 ## Package Map
 
@@ -118,16 +118,18 @@ Small interfaces make components swappable:
 
 ## Key Patterns
 
-- **Transactional startup**: If component N fails to start, components 0→N-1 stop in reverse order automatically.
-- **Two config layers**: Static config at startup, dynamic settings with schema validation at runtime. Use what you need.
-- **Just Use Postgres**: PubSub, scheduler, and sessions run on Postgres. Add Redis or RabbitMQ if you need them, but you probably don't.
+- **Ordered lifecycle**: Components start in declared order and routes register
+  only after startup succeeds. Startup rollback requires aligned start and stop
+  capabilities.
+- **Two configuration layers**: Static process configuration and schema-checked
+  runtime settings have separate lifetimes.
+- **Postgres-first infrastructure**: Pubsub, scheduler, and sessions can share
+  Postgres while remaining behind explicit interfaces.
 
 ## Docs
 
 - [User Guide](docs/tutorials/user-guide/index.md)
-- [Reference](docs/reference/index.md)
-- [Features](docs/features.md)
-- [Gallery](docs/gallery.md)
+- [Documentation index](docs/index.md)
 
 ## Repos
 

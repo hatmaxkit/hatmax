@@ -5,10 +5,6 @@ boundary, and a processor boundary. `image/local`, `image/s3`, and
 `image/stdprocessor` implement storage and processing. The implementation
 note is [image/readme.md](../../../image/readme.md).
 
-The readme calls `Resize` with a variant and uses `image.Large`,
-`image.Medium`, and `image.Thumbnail`. Those names are not in the package.
-The contracts below follow the exported code.
-
 ## Records
 
 `Image` fields are `ID`, `Filename`, `ContentType`, `SizeBytes`, `Width`,

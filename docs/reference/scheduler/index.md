@@ -2,6 +2,19 @@
 
 `scheduler` polls a `JobStore` and runs a handler for each due job.
 
+## Public boundaries
+
+| Boundary | Methods |
+| --- | --- |
+| `Scheduler` | `Register`, `Start`, `Stop`, `Tick` |
+| `JobStore` | `ListDue`, `CreateRun`, `MarkRunning`, `MarkSuccess`, `MarkFailed`, `UpdateNextRun` |
+| `SettingsProvider` | `GetBool`, `GetInt` |
+| `Clock` | `Now` |
+| `Logger` | `Info`, `Infof`, `Error`, `Errorf` |
+
+`Handler` is `func(context.Context, Job) Result`. `Schedule` has
+`Next(time.Time) time.Time`.
+
 ## Jobs and schedules
 
 `Job` has `ID`, `Name`, `TaskType`, `Payload`, `ScheduledFor`, `Attempt`, and
@@ -32,6 +45,14 @@ task type or a failed result. Success JSON-encodes `Output`, or an empty
 object when `Output` is nil. The runner does not call `UpdateNextRun` and
 does not use `RetryAttempts` or `RetryBackoff`.
 
+`WithClock` and `WithSettings` are constructor options. `SetClock` and
+`SetSettings` replace those dependencies after construction. Callers must not
+mutate them concurrently with scheduler work.
+
+The runtime reads only `scheduler.paused`. `scheduler.enabled` and
+`scheduler.interval_seconds` are exported setting keys but are not consulted
+by the current runner after construction.
+
 ## Stores
 
 `JobStore` is `ListDue`, `CreateRun`, `MarkRunning`, `MarkSuccess`,
@@ -39,3 +60,7 @@ does not use `RetryAttempts` or `RetryBackoff`.
 and no jobs. `postgres.NewStore` implements the same methods against the
 package schema. `NewFakeStore` records jobs and runs in memory. `NewFakeClock`
 returns the time set by `Set` and `Advance`.
+
+The Postgres schema contains `scheduled_jobs` and `job_runs`. `ListDue` selects
+enabled jobs ordered by `next_run_at` with `FOR UPDATE SKIP LOCKED`. The store
+implements `UpdateNextRun`, but the runner does not call it.

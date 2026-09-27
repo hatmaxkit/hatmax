@@ -16,23 +16,26 @@ the value actually implements:
 
 - `Startable` has `Start(context.Context) error`. `app.Start` calls it during
   startup.
-- `Stoppable` has `Stop(context.Context) error`. Shutdown calls it, and
-  startup rollback calls it for components that already started.
+- `Stoppable` has `Stop(context.Context) error`. Shutdown calls every
+  collected stop function. Startup rollback calls stop functions by their
+  position in the independent stop slice.
 - `RouteRegistrar` has `RegisterRoutes`. `app.Start` calls it after every
   start function has succeeded.
 
 A component may implement any subset of these interfaces. The implementation
 note is [app/readme.md](../../../app/readme.md).
 
-## Transactional startup
+## Ordered startup rollback
 
 `app.Start` runs start functions in the order `app.Setup` collected them. If
-one start function returns an error, Hatmax stops the components that already
-started, in reverse order, and returns that error. Routes are registered only
-after every start function succeeds.
+one start function returns an error at index `i`, Hatmax calls stop functions
+from index `i-1` to zero and returns the start error. Routes are registered
+only after every start function succeeds.
 
-The phrase "transactional startup" means that failure leaves no
-already-started component running. It does not mean a database transaction.
+The start and stop slices are collected independently. Rollback represents the
+already-started components only when each ordered startup component also
+contributes a stop function. Hatmax does not provide a database transaction or
+an unconditional all-or-nothing startup guarantee.
 
 ## Static configuration
 

@@ -1,128 +1,68 @@
 # Change Settings at Runtime
 
-Read one greeting that is not in `config.yaml`. Change it while the process
-is running. The next request returns the new greeting. Restarting the process
-returns the schema default again.
+This chapter changes a schema-checked greeting without changing static process
+configuration. Restarting the process restores the schema default because the
+guide uses an in-memory settings store.
 
-The contract is in
-[Configuration](../../reference/configuration/index.md).
+## Before You Begin
 
-`config.Config` is loaded once at startup. A setting is a runtime value
-checked against a `settings.Schema`. This package does not ship a Postgres
-store. The store below keeps values in memory for the life of the process.
-
-## Register the greeting
-
-```go
-type memorySettings struct {
-	mu     sync.Mutex
-	values map[string]string
-}
-
-func (m *memorySettings) Get(ctx context.Context, key string) (string, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	value, ok := m.values[key]
-	if !ok {
-		return "", errors.New("missing")
-	}
-
-	return value, nil
-}
-
-func (m *memorySettings) Set(ctx context.Context, key, value string) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	if m.values == nil {
-		m.values = map[string]string{}
-	}
-
-	m.values[key] = value
-
-	return nil
-}
-
-func (m *memorySettings) All(context.Context) ([]settings.Value, error) {
-	return nil, nil
-}
-
-func (m *memorySettings) Delete(ctx context.Context, key string) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	delete(m.values, key)
-
-	return nil
-}
-```
-
-```go
-registry := settings.NewRegistry()
-registry.Register(settings.Schema{
-	Key:     "guide.greeting",
-	Type:    settings.String,
-	Default: "Hello",
-})
-
-greetings := settings.NewService(registry, &memorySettings{})
-```
-
-`GetString` returns the schema default when the store has no value or returns
-an error. `Set` validates the value because the key is registered, then
-stores it. Nothing in `config.yaml` is rewritten.
-
-## Serve it
-
-```go
-func (p *pages) greeting(w http.ResponseWriter, r *http.Request) {
-	value, err := p.greetings.GetString(r.Context(), "guide.greeting")
-	if err != nil {
-		http.Error(w, "cannot read greeting", http.StatusInternalServerError)
-		return
-	}
-
-	fmt.Fprintln(w, value)
-}
-
-func (p *pages) setGreeting(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		return
-	}
-
-	err = p.greetings.Set(r.Context(), "guide.greeting", r.FormValue("greeting"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	p.greeting(w, r)
-}
-```
-
-Register `GET /greeting` and `POST /greeting`. Keep
-`middleware.RequireSameOrigin` on the router.
-
-## Check the result
-
-`config.yaml` still has no `guide.greeting` key. Run the process.
+Complete [Work Outside the Request](background-work.md), then stop Ticked. From
+the repository root, start the smaller companion again:
 
 ```sh
-curl -sS http://localhost:8080/greeting
-curl -sS -H 'Origin: http://localhost:8080' \
-  -d 'greeting=Hi' http://localhost:8080/greeting
-curl -sS http://localhost:8080/greeting
+cd examples/guide
+go run .
 ```
 
-The first response is `Hello`. The next two are `Hi`.
+The entrypoint registers `guide.greeting` as a string setting with default
+`Hello`. `config.yaml` has no key for it.
 
-Stop the process and start it again.
+## Read and change the setting
 
 ```sh
-curl -sS http://localhost:8080/greeting
+curl -fsS http://localhost:8080/greeting
+
+curl -sS -D - -o /dev/null \
+  -H 'Origin: http://localhost:8080' \
+  -d 'greeting=Hi' \
+  http://localhost:8080/greeting
+
+curl -fsS http://localhost:8080/greeting
 ```
 
-The response is `Hello` again. `config.yaml` is unchanged.
+The first response is `Hello`. The POST returns a `303` redirect. The final
+response is `Hi`.
+
+`settings.Service.Set` validates registered values before it writes them. The
+in-memory store changes immediately; `config.Config` remains unchanged.
+
+## Restart and verify the lifetime
+
+Stop the process with Ctrl+C and start it again:
+
+```sh
+go run .
+curl -fsS http://localhost:8080/greeting
+```
+
+The response is `Hello` because this example store is not durable.
+
+## Recover from setting problems
+
+- A rejected value returns `400` with the schema validation error.
+- A store error on `GetString` falls back to the registered default.
+- A durable application must supply a `settings.Store`; Hatmax does not ship a
+  Postgres implementation for settings.
+
+## Verify the result
+
+This chapter is complete when the value changes without a restart and returns
+to its schema default after a restart.
+
+See [Configuration](../../reference/configuration/index.md) and
+[Static Configuration and Runtime Settings](../../explanation/configuration-boundaries/index.md).
+
+---
+
+[Previous: Work Outside the Request](background-work.md) ·
+[User Guide](index.md)

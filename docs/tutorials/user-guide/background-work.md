@@ -1,95 +1,59 @@
 # Work Outside the Request
 
-Saving a note publishes one message. A subscriber receives that message on a
-later poll, after the HTTP handler has returned.
+This chapter follows a todo event from the request handler through Postgres
+pubsub to Ticked's durable audit store.
 
-The scheduler and the mailer are the other two ways to leave the request.
-Their contracts are in
-[Scheduler](../../reference/scheduler/index.md) and
-[Mailer](../../reference/mailer/index.md).
-This chapter uses
-[Pubsub](../../reference/pubsub/index.md).
+## Before You Begin
 
-## Start the broker before the subscriber
+Complete [Save a Record](records.md). Keep Ticked running with the first
+account and its cookie jar.
 
-`postgres.New` uses the database component and `cfg.PubSub`. `Start` creates
-the pubsub tables. Put the broker in `app.Setup` after `database`.
+## Publish an event
 
-A listener subscribes in its own `Start`, after the broker. An empty
-`SubscriberID` would be a new subscriber on every start. Use `guide-notes`.
-A new named subscriber begins at the current last message, so it receives
-only messages published after it subscribes.
-
-```go
-type listener struct {
-	broker *postgres.Broker
-	mu     sync.Mutex
-	seen   []string
-}
-
-func (l *listener) Start(ctx context.Context) error {
-	return l.broker.Subscribe(ctx, "notes", l.handle, pubsub.SubscribeOptions{
-		SubscriberID: "guide-notes",
-	})
-}
-
-func (l *listener) Stop(context.Context) error { return nil }
-
-func (l *listener) handle(ctx context.Context, env pubsub.Envelope) error {
-	title, _ := env.Payload.(string)
-
-	l.mu.Lock()
-	l.seen = append(l.seen, title)
-	l.mu.Unlock()
-
-	return nil
-}
-```
-
-`app.Setup` order is `database`, the broker, the listener, then the notes
-component. `Publish` inserts a row and returns. The poll loop waits for
-`cfg.PubSub.PollInterval` before the first read. The default interval is
-`100ms`.
-
-## Publish when the note is saved
-
-After the insert from Save a Record succeeds, publish the title:
-
-```go
-err = notes.Insert(r.Context(), title)
-if err != nil {
-	http.Error(w, "cannot save", http.StatusInternalServerError)
-	return
-}
-
-err = broker.Publish(r.Context(), "notes", pubsub.NewEnvelope("notes", title))
-if err != nil {
-	http.Error(w, "cannot publish", http.StatusInternalServerError)
-	return
-}
-```
-
-`Publish` JSON-encodes the string payload. The subscriber decodes it back to
-a string.
-
-Add `GET /effects`. It writes the received titles, one per line. That list
-is in memory. A restart clears it. The subscriber does not receive the old
-messages again.
-
-## Check the result
-
-Run the process against the Postgres from Add Postgres.
+Add another item:
 
 ```sh
-curl -sS -H 'Origin: http://localhost:8080' \
-  -d 'title=Hello' -o /dev/null -w '%{http_code}\n' \
-  http://localhost:8080/notes
-sleep 1
-curl -sS http://localhost:8080/effects
+curl -fsS -b /tmp/ticked-guide.cookies \
+  -d 'text=Observe the audit event' \
+  http://localhost:8080/add-item >/dev/null
 ```
 
-The POST status is `200`. That response returns before the subscriber runs.
-After the pause, `/effects` prints `Hello`.
+The list service saves the item, then publishes an `audit.todo` envelope. The
+HTTP response does not wait for the audit subscriber to persist that envelope.
 
-The scheduler would run a job on its own interval. The mailer would send from
-`Mailer.Send`. Neither runs in this chapter.
+## Observe the subscriber
+
+Wait for at least one broker poll, then request the admin event list:
+
+```sh
+sleep 1
+curl -fsS -b /tmp/ticked-guide.cookies \
+  http://localhost:8080/admin/list-events | grep -F 'todo.item.added'
+```
+
+The audit service uses the stable subscriber ID `audit-persistence`. It maps
+the copied envelope into an audit record and saves it through its store.
+
+## Restart and verify durability
+
+Restart Ticked, then request the event list again. The event remains in the
+audit table. The named subscriber resumes from its stored offset and does not
+intentionally replay already acknowledged messages.
+
+Handlers must still tolerate at-least-once delivery. A failure after an
+external effect but before offset advancement can repeat work.
+
+## Verify the result
+
+This chapter is complete when `todo.item.added` remains visible after restart.
+
+See [Pubsub](../../reference/pubsub/index.md), the focused
+[pubsub how-to](../../how-to/use-pubsub/index.md), and
+[Postgres-first Infrastructure](../../explanation/postgres-first/index.md).
+
+Continue with [Change Settings at Runtime](settings.md).
+
+---
+
+[Previous: Save a Record](records.md) · [User Guide](index.md) ·
+[Next: Change Settings at Runtime](settings.md)

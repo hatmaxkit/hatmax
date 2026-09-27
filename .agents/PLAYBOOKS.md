@@ -73,13 +73,13 @@ the global nightly `main` integration for this repository.
 When the `dev` to `main` diff contains only Markdown repository documentation:
 
 1. Skip runtime tests.
-2. Validate the diff and whitespace.
+2. Run `make docs-check` to validate the Diataxis structure, local links,
+   example compilation, stale import paths, and whitespace.
 3. Use this validation section instead:
 
 ```md
 ## Validation
 
-- docs-only diff verified
-- whitespace validation (pass)
+- make docs-check (pass)
 - local aggregate gate skipped by the docs-only exception
 ```

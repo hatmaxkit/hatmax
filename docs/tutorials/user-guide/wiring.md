@@ -7,17 +7,20 @@ registers routes only after every start function succeeds.
 The lifecycle contract is in
 [Application Lifecycle](../../reference/application-lifecycle/index.md).
 
-## Order used in this guide
+## Order used by the guide companion
 
 1. `db.Database`. Later components call `GetDB` during `Start`.
-2. Components that create tables or schemas on that connection: the auth
-   queries, the notes table, and the pubsub broker.
-3. The pubsub listener. `Subscribe` runs after the broker's `Start`.
-4. The seed runner. It inserts into a table created by an earlier `Start`.
+2. `noteStore`. It creates its table on the open connection.
+3. The Postgres broker. It creates its schema on the same connection.
+4. `eventListener`. It subscribes after the broker's `Start`.
 5. The template manager. It parses templates before any page registers routes.
-6. Route registrars. Their `RegisterRoutes` methods run last.
+6. `pages`. It contributes routes but no startup function.
 
 A component that needs another component's `Start` comes after it.
+
+The first five components implement both `Startable` and `Stoppable`. This
+keeps the independently collected start and stop slices aligned for startup
+rollback. A route-only component does not enter either slice.
 
 ## Boundaries
 
@@ -34,3 +37,6 @@ their methods.
 
 The database connection those services use is in
 [Database](../../reference/database/index.md).
+
+For the design consequences of this API, see
+[Component Order and Startup Rollback](../../explanation/component-order-and-startup/index.md).

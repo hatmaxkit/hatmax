@@ -31,6 +31,7 @@ help:
 	@echo "  lint-fix              - Apply format + auto-fixable lint rules"
 	@echo "  format                - Format code"
 	@echo "  vet                   - Run go vet"
+	@echo "  docs-check            - Check documentation structure, links, examples, and whitespace"
 	@echo "  check                 - Run all quality checks (fmt, vet, test, test-coverage-check, lint-strict)"
 	@echo "  ci                    - Run CI pipeline and update badges"
 	@echo "  update-badge          - Update coverage badge"
@@ -66,6 +67,9 @@ lint-fix:
 	@GOCACHE=$(LINT_GOCACHE) golangci-lint run --fix --default=none --enable=nlreturn --enable=wsl_v5
 	@echo "Reporting non-auto-fixable lint (noinlineerr)..."
 	@GOCACHE=$(LINT_GOCACHE) golangci-lint run --default=none --enable=noinlineerr --issues-exit-code=0
+
+docs-check:
+	@bash scripts/docs-check.sh
 
 # Format code
 format:
@@ -212,4 +216,4 @@ install-hooks:
 	@echo "✅ Git hooks installed (core.hooksPath=.githooks)"
 
 # Phony targets
-.PHONY: all test test-v test-short test-coverage test-coverage-profile test-coverage-html test-coverage-func test-coverage-check test-coverage-100 test-coverage-summary vet check ci update-badge lint lint-check lint-strict lint-fix format help clean tidy download install-hooks
+.PHONY: all test test-v test-short test-coverage test-coverage-profile test-coverage-html test-coverage-func test-coverage-check test-coverage-100 test-coverage-summary vet check ci update-badge lint lint-check lint-strict lint-fix docs-check format help clean tidy download install-hooks
