@@ -32,3 +32,4 @@ reference follows the exported code.
 - [Validation](validation/index.md)
 - [Seed](seed/index.md)
 - [Slug](slug/index.md)
+- [Image](image/index.md)
