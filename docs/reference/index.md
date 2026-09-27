@@ -25,3 +25,5 @@ reference follows the exported code.
 - [Format](format/index.md)
 - [Pagination](pagination/index.md)
 - [Internationalization](i18n/index.md)
+- [Authentication](authentication/index.md)
+- [Crypto](crypto/index.md)
