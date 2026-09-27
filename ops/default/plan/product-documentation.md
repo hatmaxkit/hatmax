@@ -12,7 +12,7 @@ Tracker: `ops/default/tracker/product-documentation.md`
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 1, documentation map
-Execution gate: Slice 1 pull request #2 is open against `dev`
+Execution gate: Slice 1 is on `docs/product-documentation`, apart from the agent-contract removal
 
 ## Objective
 
@@ -194,7 +194,7 @@ for the User Guide and the reference tree. Do not run `make check` or
 
 | Slice | Short Name | Branch | Pull Request Title | Report |
 | --- | --- | --- | --- | --- |
-| Slice 1 | documentation map | `docs/slice-1-documentation-map` | `docs(slice-1): add the documentation map` | `ops/default/report/slices/product-documentation/slice-1-documentation-map.md` |
+| Slice 1 | documentation map | `docs/product-documentation` | `docs(slice-1): add the documentation map` | `ops/default/report/slices/product-documentation/slice-1-documentation-map.md` |
 | Slice 2 | core reference | `docs/slice-2-core-reference` | `docs(slice-2): document lifecycle and configuration` | `ops/default/report/slices/product-documentation/slice-2-core-reference.md` |
 | Slice 3 | web reference | `docs/slice-3-web-reference` | `docs(slice-3): document the HTTP and HTMX surface` | `ops/default/report/slices/product-documentation/slice-3-web-reference.md` |
 | Slice 4 | UI reference | `docs/slice-4-ui-reference` | `docs(slice-4): document the UI kit` | `ops/default/report/slices/product-documentation/slice-4-ui-reference.md` |

@@ -4,8 +4,8 @@ Status: reviewing
 Delivery set: product-documentation
 Plan: `ops/default/plan/product-documentation.md`
 Tracker: `ops/default/tracker/product-documentation.md`
-Branch: `docs/slice-1-documentation-map`
-PR: `#2`
+Branch: `docs/product-documentation`
+PR: pending
 
 ## Purpose
 
