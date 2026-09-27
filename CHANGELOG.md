@@ -7,17 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-28
+
 ### Added
 
-- General authenticated string encryption with associated-data support and
-  deterministic lookup hashes.
-- Contact protection configuration keys.
-- Managed-property notes protection configuration.
+- Applications can encrypt arbitrary strings with authenticated associated
+  data and derive deterministic keyed hashes for normalized lookup values.
+  Existing email-encryption helpers remain compatible.
+- Router middleware can be installed through application options, and
+  state-changing browser requests can be restricted to same-origin sources.
+- Form handlers can expose structured, user-safe validation feedback and apply
+  password-strength or equality rules to fields.
+- Configuration now supports encryption and lookup keys for authentication
+  email addresses, contact data, and managed-property notes.
+- Database integrations can identify PostgreSQL migration and asset sets
+  through a shared engine identifier.
 
 ### Changed
 
 - Documentation now provides a reproducible User Guide, focused how-to guides,
-  package reference, and design explanations through one Diataxis index.
+  package reference, design explanations, and runnable companion applications
+  through one Diataxis index.
 
 ## [0.1.0] - 2026-02-17
 
