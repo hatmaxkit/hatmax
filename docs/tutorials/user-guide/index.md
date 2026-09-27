@@ -9,7 +9,7 @@ moving on.
 1. [Getting Started](getting-started.md)
 2. [Add Postgres](postgres.md)
 3. [Serve a Page](pages.md)
-4. Accept a Form
+4. [Accept a Form](forms.md)
 5. Sign In
 6. Save a Record
 7. Work Outside the Request
