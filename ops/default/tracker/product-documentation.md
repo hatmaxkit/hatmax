@@ -15,7 +15,7 @@ Execution gate: Slice 2 tasks complete, pull request pending
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | documentation map | delivered | `docs/product-documentation` | `docs(slice-1): add the documentation map` | #4 | `ops/default/report/slices/product-documentation/slice-1-documentation-map.md` |
-| Slice 2 | core reference | active | `docs/slice-2-core-reference` | `docs(slice-2): document lifecycle and configuration` | pending | `ops/default/report/slices/product-documentation/slice-2-core-reference.md` |
+| Slice 2 | core reference | active | `docs/slice-2-core-reference` | `docs(slice-2): document lifecycle and configuration` | #5 | `ops/default/report/slices/product-documentation/slice-2-core-reference.md` |
 | Slice 3 | web reference | pending | `docs/slice-3-web-reference` | `docs(slice-3): document the HTTP and HTMX surface` | pending | `ops/default/report/slices/product-documentation/slice-3-web-reference.md` |
 | Slice 4 | UI reference | pending | `docs/slice-4-ui-reference` | `docs(slice-4): document the UI kit` | pending | `ops/default/report/slices/product-documentation/slice-4-ui-reference.md` |
 | Slice 5 | auth reference | pending | `docs/slice-5-auth-reference` | `docs(slice-5): document authentication and crypto` | pending | `ops/default/report/slices/product-documentation/slice-5-auth-reference.md` |
@@ -156,4 +156,4 @@ Execution gate: Slice 2 tasks complete, pull request pending
 Slice 1 is merged through pull request #4. Its report status is `delivered`.
 Slice 2 tasks are complete on `docs/slice-2-core-reference`. The report is
 `ops/default/report/slices/product-documentation/slice-2-core-reference.md`
-and its status is `reviewing`. The pull request against `dev` is not open yet.
+and its status is `reviewing`. Pull request #5 is open against `dev`.
