@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 12
-Active tasks: T12.1, T12.2
-Execution gate: Slice 11 merged; Slice 12 in progress
+Active tasks: none
+Execution gate: Slice 12 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -112,8 +112,8 @@ Execution gate: Slice 11 merged; Slice 12 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T12.1 | pending | `docs(guide): add the form chapter` | pending | `git diff --check` |
-| T12.2 | pending | `docs(guide): list the form chapter` | pending | `git diff --check` |
+| T12.1 | complete | `docs(guide): add the form chapter` | `6654757` | `git diff --check` passed |
+| T12.2 | complete | `docs(guide): list the form chapter` | `3077fa0` | `git diff --check` passed |
 
 ## Slice 13 Tasks
 
@@ -164,4 +164,6 @@ Execution gate: Slice 11 merged; Slice 12 in progress
 ## Current Gate
 
 Slice 11 is merged through pull request #14. Its report status is `delivered`.
-Slice 12 is active on `docs/slice-12-form-chapter`.
+Slice 12 tasks are complete on `docs/slice-12-form-chapter`. The report is
+`ops/default/report/slices/product-documentation/slice-12-form-chapter.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
