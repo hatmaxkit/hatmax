@@ -22,7 +22,7 @@ Execution gate: Slice 9 tasks complete, pull request pending
 | Slice 6 | data reference | delivered | `docs/slice-6-data-reference` | `docs(slice-6): document persistence and validation` | #9 | `ops/default/report/slices/product-documentation/slice-6-data-reference.md` |
 | Slice 7 | media reference | delivered | `docs/slice-7-media-reference` | `docs(slice-7): document image storage and processing` | #10 | `ops/default/report/slices/product-documentation/slice-7-media-reference.md` |
 | Slice 8 | infrastructure reference | delivered | `docs/slice-8-infrastructure-reference` | `docs(slice-8): document infrastructure contracts` | #11 | `ops/default/report/slices/product-documentation/slice-8-infrastructure-reference.md` |
-| Slice 9 | getting started | active | `docs/slice-9-getting-started` | `docs(slice-9): add the getting started chapter` | pending | `ops/default/report/slices/product-documentation/slice-9-getting-started.md` |
+| Slice 9 | getting started | active | `docs/slice-9-getting-started` | `docs(slice-9): add the getting started chapter` | #12 | `ops/default/report/slices/product-documentation/slice-9-getting-started.md` |
 | Slice 10 | postgres chapter | pending | `docs/slice-10-postgres-chapter` | `docs(slice-10): add the Postgres chapter` | pending | `ops/default/report/slices/product-documentation/slice-10-postgres-chapter.md` |
 | Slice 11 | page chapter | pending | `docs/slice-11-page-chapter` | `docs(slice-11): add the page chapter` | pending | `ops/default/report/slices/product-documentation/slice-11-page-chapter.md` |
 | Slice 12 | form chapter | pending | `docs/slice-12-form-chapter` | `docs(slice-12): add the form chapter` | pending | `ops/default/report/slices/product-documentation/slice-12-form-chapter.md` |
@@ -163,4 +163,4 @@ Execution gate: Slice 9 tasks complete, pull request pending
 Slice 8 is merged through pull request #11. Its report status is `delivered`.
 Slice 9 tasks are complete on `docs/slice-9-getting-started`. The report is
 `ops/default/report/slices/product-documentation/slice-9-getting-started.md`
-and its status is `reviewing`. The pull request against `dev` is not open yet.
+and its status is `reviewing`. Pull request #12 is open against `dev`.
