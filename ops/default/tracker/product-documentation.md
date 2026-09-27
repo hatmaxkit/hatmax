@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 5
-Active tasks: T5.1, T5.2
-Execution gate: Slice 4 merged; Slice 5 in progress
+Active tasks: none
+Execution gate: Slice 5 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -63,8 +63,8 @@ Execution gate: Slice 4 merged; Slice 5 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T5.1 | pending | `docs(reference): document authentication and crypto` | pending | `git diff --check` |
-| T5.2 | pending | `docs(reference): list the auth reference subjects` | pending | `git diff --check` |
+| T5.1 | complete | `docs(reference): document authentication and crypto` | `0832079` | `git diff --check` passed |
+| T5.2 | complete | `docs(reference): list the auth reference subjects` | `8a629c1` | `git diff --check` passed |
 
 ## Slice 6 Tasks
 
@@ -157,4 +157,6 @@ Execution gate: Slice 4 merged; Slice 5 in progress
 ## Current Gate
 
 Slice 4 is merged through pull request #7. Its report status is `delivered`.
-Slice 5 is active on `docs/slice-5-auth-reference`.
+Slice 5 tasks are complete on `docs/slice-5-auth-reference`. The report is
+`ops/default/report/slices/product-documentation/slice-5-auth-reference.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
