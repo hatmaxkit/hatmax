@@ -1,6 +1,6 @@
 # Slice 15: Background-work Chapter
 
-Status: reviewing
+Status: delivered
 Delivery set: product-documentation
 Plan: `ops/default/plan/product-documentation.md`
 Tracker: `ops/default/tracker/product-documentation.md`

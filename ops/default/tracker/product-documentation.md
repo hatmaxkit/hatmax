@@ -6,9 +6,9 @@ Plan: `ops/default/plan/product-documentation.md`
 Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
-Active slice: Slice 15
-Active tasks: none
-Execution gate: Slice 15 tasks complete, pull request pending
+Active slice: Slice 16
+Active tasks: T16.1, T16.2, T16.3
+Execution gate: Slice 15 merged; Slice 16 in progress
 
 ## Slice Status
 
@@ -28,8 +28,8 @@ Execution gate: Slice 15 tasks complete, pull request pending
 | Slice 12 | form chapter | delivered | `docs/slice-12-form-chapter` | `docs(slice-12): add the form chapter` | #15 | `ops/default/report/slices/product-documentation/slice-12-form-chapter.md` |
 | Slice 13 | sign-in chapter | delivered | `docs/slice-13-sign-in-chapter` | `docs(slice-13): add the sign-in chapter` | #16 | `ops/default/report/slices/product-documentation/slice-13-sign-in-chapter.md` |
 | Slice 14 | record chapter | delivered | `docs/slice-14-record-chapter` | `docs(slice-14): add the record chapter` | #17 | `ops/default/report/slices/product-documentation/slice-14-record-chapter.md` |
-| Slice 15 | background-work chapter | active | `docs/slice-15-background-work-chapter` | `docs(slice-15): add the background-work chapter` | #18 | `ops/default/report/slices/product-documentation/slice-15-background-work-chapter.md` |
-| Slice 16 | settings chapter | pending | `docs/slice-16-settings-chapter` | `docs(slice-16): finish the User Guide` | pending | `ops/default/report/slices/product-documentation/slice-16-settings-chapter.md` |
+| Slice 15 | background-work chapter | delivered | `docs/slice-15-background-work-chapter` | `docs(slice-15): add the background-work chapter` | #18 | `ops/default/report/slices/product-documentation/slice-15-background-work-chapter.md` |
+| Slice 16 | settings chapter | active | `docs/slice-16-settings-chapter` | `docs(slice-16): finish the User Guide` | pending | `ops/default/report/slices/product-documentation/slice-16-settings-chapter.md` |
 
 ## Slice 1 Tasks
 
@@ -161,12 +161,11 @@ Execution gate: Slice 15 tasks complete, pull request pending
 - [x] Slice 12 is delivered through its recorded branch, report, pull request, review, and merge.
 - [x] Slice 13 is delivered through its recorded branch, report, pull request, review, and merge.
 - [x] Slice 14 is delivered through its recorded branch, report, pull request, review, and merge.
-- [ ] Slices 15 through 16 are each delivered through the recorded branch, report, pull request, review, and merge.
+- [x] Slice 15 is delivered through its recorded branch, report, pull request, review, and merge.
+- [ ] Slice 16 is delivered through its recorded branch, report, pull request, review, and merge.
 - [ ] The docs-only delivery-set gate passes on the integrated `dev` commit.
 
 ## Current Gate
 
-Slice 14 is merged through pull request #17. Its report status is `delivered`.
-Slice 15 tasks are complete on `docs/slice-15-background-work-chapter`. The report is
-`ops/default/report/slices/product-documentation/slice-15-background-work-chapter.md`
-and its status is `reviewing`. Pull request #18 is open against `dev`.
+Slice 15 is merged through pull request #18. Its report status is `delivered`.
+Slice 16 is active on `docs/slice-16-settings-chapter`.
