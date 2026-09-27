@@ -17,7 +17,7 @@ Execution gate: Slice 4 tasks complete, pull request pending
 | Slice 1 | documentation map | delivered | `docs/product-documentation` | `docs(slice-1): add the documentation map` | #4 | `ops/default/report/slices/product-documentation/slice-1-documentation-map.md` |
 | Slice 2 | core reference | delivered | `docs/slice-2-core-reference` | `docs(slice-2): document lifecycle and configuration` | #5 | `ops/default/report/slices/product-documentation/slice-2-core-reference.md` |
 | Slice 3 | web reference | delivered | `docs/slice-3-web-reference` | `docs(slice-3): document the HTTP and HTMX surface` | #6 | `ops/default/report/slices/product-documentation/slice-3-web-reference.md` |
-| Slice 4 | UI reference | active | `docs/slice-4-ui-reference` | `docs(slice-4): document the UI kit` | pending | `ops/default/report/slices/product-documentation/slice-4-ui-reference.md` |
+| Slice 4 | UI reference | active | `docs/slice-4-ui-reference` | `docs(slice-4): document the UI kit` | #7 | `ops/default/report/slices/product-documentation/slice-4-ui-reference.md` |
 | Slice 5 | auth reference | pending | `docs/slice-5-auth-reference` | `docs(slice-5): document authentication and crypto` | pending | `ops/default/report/slices/product-documentation/slice-5-auth-reference.md` |
 | Slice 6 | data reference | pending | `docs/slice-6-data-reference` | `docs(slice-6): document persistence and validation` | pending | `ops/default/report/slices/product-documentation/slice-6-data-reference.md` |
 | Slice 7 | media reference | pending | `docs/slice-7-media-reference` | `docs(slice-7): document image storage and processing` | pending | `ops/default/report/slices/product-documentation/slice-7-media-reference.md` |
@@ -158,4 +158,4 @@ Execution gate: Slice 4 tasks complete, pull request pending
 Slice 3 is merged through pull request #6. Its report status is `delivered`.
 Slice 4 tasks are complete on `docs/slice-4-ui-reference`. The report is
 `ops/default/report/slices/product-documentation/slice-4-ui-reference.md`
-and its status is `reviewing`. The pull request against `dev` is not open yet.
+and its status is `reviewing`. Pull request #7 is open against `dev`.
