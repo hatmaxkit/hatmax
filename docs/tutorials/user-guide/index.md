@@ -6,7 +6,7 @@ moving on.
 
 ## Learning Path
 
-1. Getting Started
+1. [Getting Started](getting-started.md)
 2. Add Postgres
 3. Serve a Page
 4. Accept a Form
