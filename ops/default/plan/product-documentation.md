@@ -11,8 +11,8 @@ Spec: none
 Tracker: `ops/default/tracker/product-documentation.md`
 Base branch: `dev`
 Planning base: `6d91be1`
-Active slice: Slice 1, documentation map
-Execution gate: Slice 1 pull request #4 is open against `dev`
+Active slice: Slice 2, core reference
+Execution gate: Slice 1 merged through pull request #4; Slice 2 in progress
 
 ## Objective
 
@@ -655,7 +655,8 @@ git diff --check
 ## Completion Gates
 
 - [x] This plan and tracker are approved and committed on `dev`.
-- [ ] Slices 1 through 16 are each delivered through the recorded branch, report, pull request, review, and merge.
+- [x] Slice 1 is delivered through its recorded branch, report, pull request, review, and merge.
+- [ ] Slices 2 through 16 are each delivered through the recorded branch, report, pull request, review, and merge.
 - [ ] The docs-only delivery-set gate passes on the integrated `dev` commit.
 
 ## Out of Scope
