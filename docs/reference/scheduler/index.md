@@ -1,7 +1,6 @@
 # Scheduler
 
-`scheduler` polls a `JobStore` and runs a handler for each due job. The
-implementation note is [scheduler/readme.md](../../../scheduler/readme.md).
+`scheduler` polls a `JobStore` and runs a handler for each due job.
 
 ## Jobs and schedules
 
