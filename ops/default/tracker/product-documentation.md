@@ -7,8 +7,8 @@ Spec: none
 Base branch: `dev`
 Planning base: `6d91be1`
 Active slice: Slice 2
-Active tasks: T2.1, T2.2
-Execution gate: Slice 1 merged; Slice 2 in progress
+Active tasks: none
+Execution gate: Slice 2 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -42,8 +42,8 @@ Execution gate: Slice 1 merged; Slice 2 in progress
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T2.1 | pending | `docs(reference): document lifecycle and configuration` | pending | `git diff --check` |
-| T2.2 | pending | `docs(reference): list the core reference subjects` | pending | `git diff --check` |
+| T2.1 | complete | `docs(reference): document lifecycle and configuration` | `86593b4` | `git diff --check` passed |
+| T2.2 | complete | `docs(reference): list the core reference subjects` | `e21c831` | `git diff --check` passed |
 
 ## Slice 3 Tasks
 
@@ -154,4 +154,6 @@ Execution gate: Slice 1 merged; Slice 2 in progress
 ## Current Gate
 
 Slice 1 is merged through pull request #4. Its report status is `delivered`.
-Slice 2 is active on `docs/slice-2-core-reference`.
+Slice 2 tasks are complete on `docs/slice-2-core-reference`. The report is
+`ops/default/report/slices/product-documentation/slice-2-core-reference.md`
+and its status is `reviewing`. The pull request against `dev` is not open yet.
