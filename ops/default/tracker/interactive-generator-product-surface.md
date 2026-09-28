@@ -1,6 +1,6 @@
 # Interactive Generator Product Surface Tracker
 
-Status: Approved
+Status: Delivered
 Delivery set: interactive-generator-product-surface
 Plan: `ops/default/plan/interactive-generator-product-surface.md`
 Umbrella spec: `ops/default/spec/interactive-hatmax-generator.md`
@@ -14,9 +14,9 @@ Specs:
 
 Base branch: `dev`
 Planning base: `ec16a4df27c6bb3ee6004d6303195f4717da73de`
-Active slice: Slice 5
-Active tasks: review and merge
-Execution gate: Slice 5 implementation is complete; authenticated smoke remains blocked by the missing standalone Codex installation
+Active slice: Complete
+Active tasks: none
+Execution gate: passed on integrated `dev` commit `d653377`
 
 ## Slice Status
 
@@ -26,7 +26,7 @@ Execution gate: Slice 5 implementation is complete; authenticated smoke remains 
 | Slice 2 | Codex App Server runtime | delivered | `feat/generator-codex-app-server` | `feat(slice-2): connect the Codex App Server runtime` | #33 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-2-codex-app-server-runtime.md` |
 | Slice 3 | Codex interpreter | delivered | `feat/generator-codex-interpreter` | `feat(slice-3): interpret Hatmax requests with Codex` | #34 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-3-codex-interpreter.md` |
 | Slice 4 | Interaction coordinator | delivered | `feat/generator-interaction-coordinator` | `feat(slice-4): coordinate interactive generation` | #35 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-4-interaction-coordinator.md` |
-| Slice 5 | Terminal product surface | reviewing | `feat/generator-terminal-surface` | `feat(slice-5): expose the Hatmax generator command` | #36 (open) | `ops/default/report/slices/interactive-generator-product-surface/slice-5-terminal-product-surface.md` |
+| Slice 5 | Terminal product surface | delivered | `feat/generator-terminal-surface` | `feat(slice-5): expose the Hatmax generator command` | #36 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-5-terminal-product-surface.md` |
 
 ## Slice 1 Tasks
 
@@ -66,7 +66,7 @@ Execution gate: Slice 5 implementation is complete; authenticated smoke remains 
 | --- | --- | --- | --- | --- |
 | T5.1 | complete | `feat(generator): add the Hatmax generate command` | `20a5f64` | terminal application and local assembly tests; `make lint-strict`; `git diff --check` passed |
 | T5.2 | complete | `feat(generator): report interactive generation results` | `8928198` | terminal reporting and interaction tests; `make lint-strict`; `git diff --check` passed |
-| T5.3 | complete | `test(generator): validate the terminal product surface` | `350e235` | focused, race, generator, full repository, documentation, and whitespace gates passed; authenticated smoke stopped before inference because the standalone Codex installation is absent |
+| T5.3 | complete | `test(generator): validate the terminal product surface` | `350e235` | focused, race, generator, full repository, documentation, and whitespace gates passed; authenticated validation completed on integrated `dev` after the Codex App Server compatibility fix in #37 |
 
 ## Completion Gates
 
@@ -77,17 +77,18 @@ Execution gate: Slice 5 implementation is complete; authenticated smoke remains 
 - [x] Slice 2 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 3 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 4 is delivered through its branch, report, pull request, and merge.
-- [ ] Slice 5 is delivered through its branch, report, pull request, and merge.
-- [ ] The exact integrated `dev` candidate passes the deterministic, full
+- [x] Slice 5 is delivered through its branch, report, pull request, and merge.
+- [x] The exact integrated `dev` candidate passes the deterministic, full
   repository, thread-reuse, project-isolation, and authenticated Codex gates.
 
 ## Current Gate
 
-Slice 5 implementation is complete and ready for review. The line-oriented
-`hatmax generate` command, bounded result reporting, and fake-backend terminal
-acceptance suite pass together with `make check` under an effective Docker
-group and `make docs-check`. `make generator-live-smoke` was executed against
-the slice candidate but stopped before inference because the installed mise
-Codex CLI cannot start the managed daemon without the standalone Codex
-installation at `~/.codex/packages/standalone/current/codex`. The exact
-integrated-candidate smoke and delivery-set closure remain open after merge.
+The delivery set is closed on integrated `dev` commit `d653377`. Pull request
+#36 delivered the terminal product surface, and pull request #37 completed
+Codex 0.158 App Server transport, protocol, authentication, and strict-schema
+compatibility before the final gate. Focused tests, race tests, the complete
+generator suite, `make check` with 83.8% statement coverage and zero strict
+lint findings, `make docs-check`, and `git diff --check` passed. The
+authenticated live smoke completed all three calls with one resident runtime,
+same-project thread reuse, and different-project thread isolation. No `main`
+alignment, mirror update, tag, or release is implied.

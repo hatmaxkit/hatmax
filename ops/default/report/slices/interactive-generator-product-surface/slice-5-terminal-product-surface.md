@@ -1,11 +1,12 @@
 # Slice 5: Terminal Product Surface
 
-Status: reviewing
+Status: delivered
 Delivery set: interactive-generator-product-surface
 Plan: `ops/default/plan/interactive-generator-product-surface.md`
 Tracker: `ops/default/tracker/interactive-generator-product-surface.md`
 Branch: `feat/generator-terminal-surface`
-PR: `#36` (open)
+PR: `#36` (merged)
+Compatibility fix: `#37` (merged)
 
 ## Purpose
 
@@ -75,28 +76,28 @@ The completed user-visible behavior is recorded once in `CHANGELOG.md` under
 - `go test -race ./generator/interaction/... ./generator/backend/codex/...`
   passed.
 - `go test ./generator/...` passed.
-- `newgrp docker` followed by `make check` passed with 84.0% statement
+- `newgrp docker` followed by `make check` passed with 83.8% statement
   coverage and zero strict-lint issues.
 - `make docs-check` passed.
 - `git diff --check` passed.
-- `make generator-live-smoke` ran against the slice candidate and stopped
-  before inference with `backend_start_failed during daemon_start`.
+- `PATH=/home/adrian/.codex/packages/standalone/current:$PATH make
+  generator-live-smoke` passed on integrated `dev` commit `d653377`.
+- The live smoke completed an initial request, reused the same resident runtime
+  and project thread for a second request, and used a different thread for a
+  different fixture project.
 
-Direct inspection confirmed the smoke prerequisite: `codex-cli 0.153.0` is
-installed through mise, but `codex app-server daemon start` requires the
-managed standalone executable at
-`~/.codex/packages/standalone/current/codex`, which is absent. No credentials,
-model output, target-project content, or inference result were exposed.
+The first authenticated attempt exposed transport and strict-schema
+incompatibilities with Codex 0.158. Pull request #37 added WebSocket proxy
+transport, the native App Server envelope, correct ChatGPT authentication
+handling, and a provider-compatible strict schema. It merged as `d653377`, and
+the exact integrated gate then passed. No credentials, reasoning, raw App
+Server events, model output, or target-project content were printed.
 
 ## Risks and Follow-ups
 
-The deterministic terminal surface and full repository gate are green. The
-authenticated Codex behavior is not yet proven for this candidate because the
-host cannot start the resident App Server daemon. Installing the standalone
-Codex distribution is an explicit machine-level prerequisite and was not
-performed as part of this slice.
-
-After merge, the delivery set remains open until the exact integrated `dev`
-candidate passes the authenticated smoke, demonstrates same-project daemon
-and thread reuse, and demonstrates different-project thread isolation. No
-`main` alignment, mirror update, tag, or release is implied.
+The deterministic terminal surface, full repository gate, and authenticated
+Codex integration are green on the exact integrated candidate. Future Codex
+App Server protocol changes remain an external compatibility risk covered by
+the deterministic fake-server tests and the opt-in authenticated live smoke.
+The delivery set is closed. No `main` alignment, mirror update, tag, or release
+is implied.
