@@ -63,6 +63,11 @@ func InspectWithOptions(ctx context.Context, root string, options Options) (Inve
 		return Inventory{}, err
 	}
 
+	err = inspectDocumentation(&result)
+	if err != nil {
+		return Inventory{}, err
+	}
+
 	sortInventory(&result)
 
 	return result, nil
@@ -221,6 +226,16 @@ func sortInventory(inventory *Inventory) {
 	})
 	sort.Slice(inventory.files, func(left, right int) bool {
 		return inventory.files[left].path < inventory.files[right].path
+	})
+	sort.Slice(inventory.Documentation.Files, func(left, right int) bool {
+		return inventory.Documentation.Files[left].Path < inventory.Documentation.Files[right].Path
+	})
+	sort.Strings(inventory.Documentation.OtherPaths)
+	sort.Slice(inventory.Documentation.ProtectedPaths, func(left, right int) bool {
+		return inventory.Documentation.ProtectedPaths[left].Path < inventory.Documentation.ProtectedPaths[right].Path
+	})
+	sort.Slice(inventory.Documentation.ValidationCommands, func(left, right int) bool {
+		return inventory.Documentation.ValidationCommands[left].Name < inventory.Documentation.ValidationCommands[right].Name
 	})
 }
 

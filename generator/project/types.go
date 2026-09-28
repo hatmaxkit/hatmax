@@ -98,6 +98,53 @@ type Layout struct {
 	Generated  []string
 }
 
+// DocumentationManagedState classifies Hatmax ownership markers without
+// interpreting surrounding prose.
+type DocumentationManagedState string
+
+const (
+	// DocumentationUnmanaged means a canonical Markdown file has no Hatmax
+	// ownership markers.
+	DocumentationUnmanaged DocumentationManagedState = "unmanaged"
+	// DocumentationManaged means a canonical Markdown file has one balanced
+	// Hatmax-owned section.
+	DocumentationManaged DocumentationManagedState = "managed"
+	// DocumentationMarkersInvalid means ownership markers are duplicated,
+	// incomplete, or reversed.
+	DocumentationMarkersInvalid DocumentationManagedState = "markers_invalid"
+	// DocumentationUnreadable means the file exceeds the bounded inspection
+	// limit.
+	DocumentationUnreadable DocumentationManagedState = "unreadable"
+)
+
+// DocumentationLink is one local Markdown link resolved inside the project.
+type DocumentationLink struct {
+	Target string
+	Exists bool
+}
+
+// DocumentationFile records only canonical path, ownership, digest, and link
+// structure. Its prose is not exposed as project authority.
+type DocumentationFile struct {
+	Path         string
+	Quadrant     string
+	Subject      string
+	Index        bool
+	Size         int64
+	Digest       string
+	ManagedState DocumentationManagedState
+	LocalLinks   []DocumentationLink
+}
+
+// DocumentationInventory describes the bounded canonical Diataxis surface.
+type DocumentationInventory struct {
+	Root               string
+	Files              []DocumentationFile
+	OtherPaths         []string
+	ProtectedPaths     []ProtectedPath
+	ValidationCommands []Command
+}
+
 // Command describes a bounded repository-owned command.
 type Command struct {
 	Kind   CommandKind
@@ -129,13 +176,14 @@ type RepositoryRules struct {
 
 // Inventory is a bounded semantic snapshot of a Hatmax project.
 type Inventory struct {
-	Root        string
-	Repository  Repository
-	Module      Module
-	Entrypoints []Entrypoint
-	Layout      Layout
-	Commands    []Command
-	Rules       RepositoryRules
+	Root          string
+	Repository    Repository
+	Module        Module
+	Entrypoints   []Entrypoint
+	Layout        Layout
+	Commands      []Command
+	Rules         RepositoryRules
+	Documentation DocumentationInventory
 
 	files           []fileRecord
 	maximumFileSize int64
