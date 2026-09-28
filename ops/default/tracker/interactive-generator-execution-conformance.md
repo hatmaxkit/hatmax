@@ -14,8 +14,8 @@ Specs:
 Base branch: `dev`
 Planning base: `9b7e0d9e71da8297665e42695459e5eb33c739e0`
 Active slice: Slice 3
-Active tasks: T3.1-T3.3
-Execution gate: Slice 2 merged as `3f65a92`; Slice 3 ready to start
+Active tasks: none
+Execution gate: Slice 3 implementation and validation complete; pull request pending
 
 ## Slice Status
 
@@ -23,7 +23,7 @@ Execution gate: Slice 2 merged as `3f65a92`; Slice 3 ready to start
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Execution manifest | delivered | `feat/generator-execution-manifest` | `feat(slice-1): define generator execution manifests` | #27 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-1-execution-manifest.md` |
 | Slice 2 | Atomic application | delivered | `feat/generator-atomic-application` | `feat(slice-2): apply generator edits atomically` | #28 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-2-atomic-application.md` |
-| Slice 3 | CRUD generation | active | `feat/generator-crud-generation` | `feat(slice-3): generate canonical Hatmax CRUD features` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-3-crud-generation.md` |
+| Slice 3 | CRUD generation | reviewing | `feat/generator-crud-generation` | `feat(slice-3): generate canonical Hatmax CRUD features` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-3-crud-generation.md` |
 | Slice 4 | Incremental mutations | pending | `feat/generator-incremental-mutations` | `feat(slice-4): mutate canonical Hatmax features` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-4-incremental-mutations.md` |
 | Slice 5 | Execution conformance | pending | `test/generator-execution-conformance` | `test(slice-5): validate generator execution conformance` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-5-execution-conformance.md` |
 
@@ -47,9 +47,9 @@ Execution gate: Slice 2 merged as `3f65a92`; Slice 3 ready to start
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T3.1 | pending | `feat(generator): render canonical CRUD packages` | pending | pending |
-| T3.2 | pending | `feat(generator): render CRUD transport surfaces` | pending | pending |
-| T3.3 | pending | `feat(generator): wire generated CRUD features` | pending | pending |
+| T3.1 | complete | `feat(generator): render canonical CRUD packages` | `9f942cf` | `go test ./generator/execute/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T3.2 | complete | `feat(generator): render CRUD transport surfaces` | `5b887af` | `go test ./generator/execute/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T3.3 | complete | `feat(generator): wire generated CRUD features` | `89ec454` | `go test ./generator/execute/...`; `go test -race ./generator/execute/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
 
 ## Slice 4 Tasks
 
@@ -80,6 +80,6 @@ Execution gate: Slice 2 merged as `3f65a92`; Slice 3 ready to start
 
 ## Current Gate
 
-Slice 2 was merged through pull request #28 as exact integrated candidate
-`3f65a92`. Slice 3 may begin from that `dev` state on
-`feat/generator-crud-generation`.
+Slice 3 implementation and validation are complete on
+`feat/generator-crud-generation`. Its pull request must be opened against
+`dev` and merged before Slice 4 begins.
