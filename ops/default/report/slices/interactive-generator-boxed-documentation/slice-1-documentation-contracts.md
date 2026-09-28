@@ -1,6 +1,6 @@
 # Slice 1: Documentation Contracts
 
-Status: reviewing
+Status: delivered
 Delivery set: interactive-generator-boxed-documentation
 Plan: `ops/default/plan/interactive-generator-boxed-documentation.md`
 Tracker: `ops/default/tracker/interactive-generator-boxed-documentation.md`
