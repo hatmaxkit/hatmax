@@ -1,11 +1,11 @@
 # Slice 3: CRUD Generation
 
-Status: reviewing
+Status: delivered
 Delivery set: interactive-generator-execution-conformance
 Plan: `ops/default/plan/interactive-generator-execution-conformance.md`
 Tracker: `ops/default/tracker/interactive-generator-execution-conformance.md`
 Branch: `feat/generator-crud-generation`
-PR: `#29` (open)
+PR: `#29` (merged)
 
 ## Purpose
 
