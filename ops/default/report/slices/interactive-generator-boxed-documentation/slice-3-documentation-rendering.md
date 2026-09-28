@@ -1,6 +1,6 @@
 # Slice 3: Diataxis Rendering and Conformance
 
-Status: reviewing
+Status: delivered
 Delivery set: interactive-generator-boxed-documentation
 Plan: `ops/default/plan/interactive-generator-boxed-documentation.md`
 Tracker: `ops/default/tracker/interactive-generator-boxed-documentation.md`

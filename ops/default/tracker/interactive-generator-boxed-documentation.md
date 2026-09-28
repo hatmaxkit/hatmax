@@ -14,9 +14,9 @@ Specs:
 
 Base branch: `dev`
 Planning base: `1549e663d0d5648e00cdcc7e5fae1c50c5dd29c3`
-Active slice: Slice 3
+Active slice: Slice 4
 Active tasks: none
-Execution gate: Slice 3 tasks complete, pull request #43 pending
+Execution gate: Slice 4 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -24,8 +24,8 @@ Execution gate: Slice 3 tasks complete, pull request #43 pending
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Documentation contracts | delivered | `feat/generator-documentation-contracts` | `feat(slice-1): define boxed documentation contracts` | #41 | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-1-documentation-contracts.md` |
 | Slice 2 | Documentation inventory and planning | delivered | `feat/generator-documentation-planning` | `feat(slice-2): plan boxed documentation changes` | #42 | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-2-documentation-planning.md` |
-| Slice 3 | Diataxis rendering and conformance | active | `feat/generator-documentation-rendering` | `feat(slice-3): render boxed Diataxis documentation` | #43 | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-3-documentation-rendering.md` |
-| Slice 4 | Interactive documentation product | pending | `feat/generator-documentation-product` | `feat(slice-4): deliver interactive documentation generation` | pending | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-4-documentation-product.md` |
+| Slice 3 | Diataxis rendering and conformance | delivered | `feat/generator-documentation-rendering` | `feat(slice-3): render boxed Diataxis documentation` | #43 | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-3-documentation-rendering.md` |
+| Slice 4 | Interactive documentation product | active | `feat/generator-documentation-product` | `feat(slice-4): deliver interactive documentation generation` | pending | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-4-documentation-product.md` |
 
 ## Slice 1 Tasks
 
@@ -55,9 +55,9 @@ Execution gate: Slice 3 tasks complete, pull request #43 pending
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T4.1 | planned | `feat(generator): coordinate documentation generation` | pending | pending |
-| T4.2 | planned | `feat(generator): interpret documentation requests` | pending | pending |
-| T4.3 | planned | `test(generator): validate boxed documentation generation` | pending | pending |
+| T4.1 | complete | `feat(generator): coordinate documentation generation` | `3dc1958` | pure and combined coordination, single approval, atomic execution, and evidence reconciliation tests passed |
+| T4.2 | complete | `feat(generator): interpret documentation requests` | `2d2b852` | Codex prompt and terminal plan/result presentation tests passed |
+| T4.3 | complete | `test(generator): validate boxed documentation generation` | `4b71e46` | terminal acceptance, repository gate, authenticated documentation smoke, and full slice gate passed |
 
 ## Completion Gates
 
@@ -66,7 +66,7 @@ Execution gate: Slice 3 tasks complete, pull request #43 pending
 - [x] Plan and tracker are committed on `dev`.
 - [x] Slice 1 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 2 is delivered through its branch, report, pull request, and merge.
-- [ ] Slice 3 is delivered through its branch, report, pull request, and merge.
+- [x] Slice 3 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 4 is delivered through its branch, report, pull request, and merge.
 - [ ] The exact integrated `dev` candidate passes deterministic, repository,
   documentation, preservation, project-isolation, and authenticated Codex
@@ -74,8 +74,9 @@ Execution gate: Slice 3 tasks complete, pull request #43 pending
 
 ## Current Gate
 
-Slices 1 and 2 were merged through PRs #41 and #42. Slice 3 implementation and
-validation are complete on `feat/generator-documentation-rendering`; its
-report is ready and the pull request is #43. Slice 4 remains blocked until
-Slice 3 is reviewed and merged into `dev`. The three generator hardening
+Slices 1 through 3 were merged through PRs #41, #42, and #43. Slice 4
+implementation and validation are complete on
+`feat/generator-documentation-product`; its report is ready and the pull
+request remains to be opened. The delivery-set gate remains pending until
+Slice 4 is reviewed and merged into `dev`. The three generator hardening
 tickets remain outside this delivery set.
