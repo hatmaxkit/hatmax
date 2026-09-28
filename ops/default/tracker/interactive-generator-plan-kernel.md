@@ -14,14 +14,14 @@ Specs:
 Base branch: `dev`
 Planning base: `28e2b943d2267d903561eb2c5d6f7ad13c31a51a`
 Active slice: Slice 1
-Active tasks: T1.1, T1.2, T1.3
-Execution gate: satisfied by this approved planning commit on `dev`
+Active tasks: none
+Execution gate: Slice 1 tasks complete, pull request pending
 
 ## Slice Status
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Book core | ready | `feat/generator-book-core` | `feat(slice-1): add the Hatmax Book core` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-1-book-core.md` |
+| Slice 1 | Book core | active | `feat/generator-book-core` | `feat(slice-1): add the Hatmax Book core` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-1-book-core.md` |
 | Slice 2 | Project inventory | pending | `feat/generator-project-inventory` | `feat(slice-2): inventory Hatmax projects` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-2-project-inventory.md` |
 | Slice 3 | Intent validation | pending | `feat/generator-intent-validation` | `feat(slice-3): validate generator intents` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-3-intent-validation.md` |
 | Slice 4 | Deterministic planning | pending | `feat/generator-deterministic-planning` | `feat(slice-4): expand deterministic generator plans` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-4-deterministic-planning.md` |
@@ -31,9 +31,9 @@ Execution gate: satisfied by this approved planning commit on `dev`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T1.1 | pending | `feat(generator): add the Hatmax Book loader` | pending | pending |
-| T1.2 | pending | `feat(generator): define the initial Hatmax Book` | pending | pending |
-| T1.3 | pending | `test(generator): validate Hatmax Book contracts` | pending | pending |
+| T1.1 | complete | `feat(generator): add the Hatmax Book loader` | `bcbd535` | `go test ./generator/book/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T1.2 | complete | `feat(generator): define the initial Hatmax Book` | `b91bb22` | `go test ./generator/book/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T1.3 | complete | `test(generator): validate Hatmax Book contracts` | `8457584` | `go test ./generator/book/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
 
 ## Slice 2 Tasks
 
@@ -81,6 +81,6 @@ Execution gate: satisfied by this approved planning commit on `dev`
 
 ## Current Gate
 
-The plan and tracker are approved and committed on `dev`. Runtime
-implementation has not started. Slice 1 is ready to begin from the planning
-commit on `feat/generator-book-core`.
+Slice 1 implementation and validation are complete on
+`feat/generator-book-core`. Its report is ready and the pull request is pending.
+Slice 2 remains blocked until Slice 1 is reviewed and merged into `dev`.
