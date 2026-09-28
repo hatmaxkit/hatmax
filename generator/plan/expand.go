@@ -332,6 +332,7 @@ func cloneExceptions(values []intent.Exception) []intent.Exception {
 func cloneDomain(value intent.Domain) intent.Domain {
 	result := value
 	result.Fields = append([]intent.Field{}, value.Fields...)
+
 	result.Rules = append([]intent.BusinessRule{}, value.Rules...)
 	if value.Field != nil {
 		field := *value.Field
