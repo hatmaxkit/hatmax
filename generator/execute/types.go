@@ -12,7 +12,7 @@ import (
 
 // CurrentSchemaVersion is the execution manifest schema understood by this
 // package.
-const CurrentSchemaVersion = 2
+const CurrentSchemaVersion = 3
 
 // EditKind identifies one structured project mutation family.
 type EditKind string
@@ -50,6 +50,9 @@ const (
 	ConditionContentContains ConditionKind = "content_contains"
 	// ConditionCommandAvailable requires a repository-owned tool.
 	ConditionCommandAvailable ConditionKind = "command_available"
+	// ConditionManagedOutsideDigest requires user-owned Markdown outside the
+	// managed section to remain byte-for-byte unchanged.
+	ConditionManagedOutsideDigest ConditionKind = "managed_outside_digest"
 )
 
 // Severity classifies an execution diagnostic.

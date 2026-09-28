@@ -173,6 +173,15 @@ func validatePostconditions(edit Edit, content []byte) error {
 			if !bytes.Contains(content, []byte(condition.Value)) {
 				return executionError("execution_postcondition_failed", edit.Target, "staged content is missing required marker %q", condition.Value)
 			}
+		case ConditionManagedOutsideDigest:
+			digest, err := managedOutsideDigest(content)
+			if err != nil {
+				return executionError("execution_postcondition_failed", edit.Target, "%v", err)
+			}
+
+			if digest != condition.Value {
+				return executionError("execution_postcondition_failed", edit.Target, "content outside the managed section changed")
+			}
 		case ConditionCommandAvailable:
 			continue
 		default:

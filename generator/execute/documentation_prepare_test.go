@@ -107,7 +107,7 @@ func TestPrepareManagedDocumentationUpdateUsesSnapshot(t *testing.T) {
 	}
 
 	edit, exists := manifestEdit(manifest.Edits, "documentation.target.reference.invoice")
-	if !exists || edit.Kind != EditUpdateMarkdown || !conditionPresent(edit.Preconditions, ConditionPathDigest) {
+	if !exists || edit.Kind != EditUpdateMarkdown || !conditionPresent(edit.Preconditions, ConditionPathDigest) || !conditionPresent(edit.Postconditions, ConditionManagedOutsideDigest) {
 		t.Errorf("managed target edit = %#v, want digest-bound Markdown update", edit)
 	}
 }

@@ -2,7 +2,9 @@ package execute
 
 import (
 	"fmt"
+	"os"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -325,6 +327,19 @@ func prepareEdit(value plan.Plan, inventory project.Inventory, operations map[st
 	}
 
 	postconditions = append(postconditions, spec.postconditions...)
+	if spec.kind == EditUpdateMarkdown {
+		content, readErr := os.ReadFile(filepath.Join(inventory.Root, filepath.FromSlash(spec.target)))
+		if readErr != nil {
+			return Edit{}, executionError("execution_target_invalid", spec.target, "read managed Markdown: %v", readErr)
+		}
+
+		outsideDigest, digestErr := managedOutsideDigest(content)
+		if digestErr != nil {
+			return Edit{}, executionError("execution_target_invalid", spec.target, "%v", digestErr)
+		}
+
+		postconditions = append(postconditions, Condition{Kind: ConditionManagedOutsideDigest, Value: outsideDigest})
+	}
 
 	return Edit{
 		ID:             spec.id,

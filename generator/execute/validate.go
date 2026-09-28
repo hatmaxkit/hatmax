@@ -289,11 +289,11 @@ func validEditKind(value EditKind) bool {
 }
 
 func validConditionKind(value ConditionKind) bool {
-	return value == ConditionPathAbsent || value == ConditionPathPresent || value == ConditionPathDigest || value == ConditionGoParses || value == ConditionContentContains || value == ConditionCommandAvailable
+	return value == ConditionPathAbsent || value == ConditionPathPresent || value == ConditionPathDigest || value == ConditionGoParses || value == ConditionContentContains || value == ConditionCommandAvailable || value == ConditionManagedOutsideDigest
 }
 
 func conditionNeedsValue(value ConditionKind) bool {
-	return value == ConditionPathDigest || value == ConditionContentContains || value == ConditionCommandAvailable
+	return value == ConditionPathDigest || value == ConditionContentContains || value == ConditionCommandAvailable || value == ConditionManagedOutsideDigest
 }
 
 func normalizeRelativePath(value string) (string, error) {
