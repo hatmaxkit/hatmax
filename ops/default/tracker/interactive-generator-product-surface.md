@@ -15,8 +15,8 @@ Specs:
 Base branch: `dev`
 Planning base: `ec16a4df27c6bb3ee6004d6303195f4717da73de`
 Active slice: Slice 5
-Active tasks: T5.1
-Execution gate: Slice 5 implementation may begin from integrated `dev` at `4f9136b`
+Active tasks: review and merge
+Execution gate: Slice 5 implementation is complete; authenticated smoke remains blocked by the missing standalone Codex installation
 
 ## Slice Status
 
@@ -26,7 +26,7 @@ Execution gate: Slice 5 implementation may begin from integrated `dev` at `4f913
 | Slice 2 | Codex App Server runtime | delivered | `feat/generator-codex-app-server` | `feat(slice-2): connect the Codex App Server runtime` | #33 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-2-codex-app-server-runtime.md` |
 | Slice 3 | Codex interpreter | delivered | `feat/generator-codex-interpreter` | `feat(slice-3): interpret Hatmax requests with Codex` | #34 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-3-codex-interpreter.md` |
 | Slice 4 | Interaction coordinator | delivered | `feat/generator-interaction-coordinator` | `feat(slice-4): coordinate interactive generation` | #35 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-4-interaction-coordinator.md` |
-| Slice 5 | Terminal product surface | active | `feat/generator-terminal-surface` | `feat(slice-5): expose the Hatmax generator command` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-5-terminal-product-surface.md` |
+| Slice 5 | Terminal product surface | reviewing | `feat/generator-terminal-surface` | `feat(slice-5): expose the Hatmax generator command` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-5-terminal-product-surface.md` |
 
 ## Slice 1 Tasks
 
@@ -64,9 +64,9 @@ Execution gate: Slice 5 implementation may begin from integrated `dev` at `4f913
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T5.1 | planned | `feat(generator): add the Hatmax generate command` | pending | pending |
-| T5.2 | planned | `feat(generator): report interactive generation results` | pending | pending |
-| T5.3 | planned | `test(generator): validate the terminal product surface` | pending | pending |
+| T5.1 | complete | `feat(generator): add the Hatmax generate command` | `20a5f64` | terminal application and local assembly tests; `make lint-strict`; `git diff --check` passed |
+| T5.2 | complete | `feat(generator): report interactive generation results` | `8928198` | terminal reporting and interaction tests; `make lint-strict`; `git diff --check` passed |
+| T5.3 | complete | `test(generator): validate the terminal product surface` | `350e235` | focused, race, generator, full repository, documentation, and whitespace gates passed; authenticated smoke stopped before inference because the standalone Codex installation is absent |
 
 ## Completion Gates
 
@@ -83,7 +83,11 @@ Execution gate: Slice 5 implementation may begin from integrated `dev` at `4f913
 
 ## Current Gate
 
-Slice 4 was delivered through pull request #35 and merged into `dev` at
-`4f9136b`. Slice 5 may begin from that integrated base with T5.1, the
-line-oriented `hatmax generate` command, as its active task. The standalone
-Codex daemon prerequisite remains open for the exact-candidate smoke.
+Slice 5 implementation is complete and ready for review. The line-oriented
+`hatmax generate` command, bounded result reporting, and fake-backend terminal
+acceptance suite pass together with `make check` under an effective Docker
+group and `make docs-check`. `make generator-live-smoke` was executed against
+the slice candidate but stopped before inference because the installed mise
+Codex CLI cannot start the managed daemon without the standalone Codex
+installation at `~/.codex/packages/standalone/current/codex`. The exact
+integrated-candidate smoke and delivery-set closure remain open after merge.
