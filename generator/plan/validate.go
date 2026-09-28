@@ -166,6 +166,10 @@ func validateDomain(value Plan) error {
 func validateDocumentationEffects(value Plan) error {
 	hasDocumentation := containsString(value.AffectedSurfaces, "documentation")
 	if value.Documentation == intent.DocumentationNotRequested {
+		if value.DocumentationEvidence != nil {
+			return planError("plan_documentation_evidence_invalid", "documentation_evidence", "documentation evidence requires explicit documentation intent")
+		}
+
 		if hasDocumentation {
 			return planError("plan_documentation_scope_invalid", "affected_surfaces", "documentation surface requires explicit documentation intent")
 		}
@@ -175,6 +179,11 @@ func validateDocumentationEffects(value Plan) error {
 
 	if !hasDocumentation {
 		return planError("plan_documentation_scope_invalid", "affected_surfaces", "active documentation must include the documentation surface")
+	}
+
+	err := validateDocumentationEvidence(value)
+	if err != nil {
+		return err
 	}
 
 	if value.Intent != intent.OperationDocumentFeature {
@@ -187,6 +196,59 @@ func validateDocumentationEffects(value Plan) error {
 
 	if len(value.AllowedEffects.Dependencies) != 0 {
 		return planError("plan_documentation_scope_invalid", "allowed_effects.dependencies", "document_feature cannot add runtime dependencies")
+	}
+
+	return nil
+}
+
+func validateDocumentationEvidence(value Plan) error {
+	evidence := value.DocumentationEvidence
+	if evidence == nil {
+		return planError("plan_documentation_evidence_invalid", "documentation_evidence", "active documentation requires feature evidence")
+	}
+
+	if evidence.Feature != value.Feature || strings.TrimSpace(evidence.Entity) == "" || strings.TrimSpace(evidence.Route) == "" || strings.TrimSpace(evidence.Table) == "" || len(evidence.Fields) == 0 {
+		return planError("plan_documentation_evidence_invalid", "documentation_evidence", "feature, entity, route, table, and fields are required")
+	}
+
+	if evidence.Basis != "existing" && evidence.Basis != "planned" {
+		return planError("plan_documentation_evidence_invalid", "documentation_evidence.basis", "unknown evidence basis %q", evidence.Basis)
+	}
+
+	if value.Documentation == intent.DocumentationExisting && (evidence.Basis != "existing" || len(evidence.Sources) == 0) {
+		return planError("plan_documentation_evidence_invalid", "documentation_evidence", "existing behavior requires inspected source evidence")
+	}
+
+	fields := make(map[string]struct{}, len(evidence.Fields))
+	for index, field := range evidence.Fields {
+		path := indexedPath("documentation_evidence.fields", index)
+		if strings.TrimSpace(field.Name) == "" || strings.TrimSpace(field.Type) == "" {
+			return planError("plan_documentation_evidence_invalid", path, "field name and type are required")
+		}
+
+		if _, exists := fields[field.Name]; exists {
+			return planError("plan_duplicate_value", path+".name", "duplicate evidence field %q", field.Name)
+		}
+
+		fields[field.Name] = struct{}{}
+	}
+
+	observedDigests := make(map[string]string, len(value.ExpectedObservations))
+	for _, observation := range value.ExpectedObservations {
+		if observation.Path != "" {
+			observedDigests[observation.Path] = observation.Digest
+		}
+	}
+
+	for index, source := range evidence.Sources {
+		path := indexedPath("documentation_evidence.sources", index)
+		if strings.TrimSpace(source.Role) == "" || strings.TrimSpace(source.Path) == "" || !fingerprintPattern.MatchString(source.Digest) {
+			return planError("plan_documentation_evidence_invalid", path, "source role, path, and digest are required")
+		}
+
+		if observedDigests[source.Path] != source.Digest {
+			return planError("plan_documentation_evidence_invalid", path, "source %q is not bound to the project fingerprint", source.Path)
+		}
 	}
 
 	return nil

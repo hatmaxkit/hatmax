@@ -100,8 +100,10 @@ func evaluateIntent(value intent.Intent, provenance Provenance, context Context)
 	}
 
 	expanded, err := plan.Expand(validation, plan.ExpansionContext{
-		Book:        context.Book,
-		Fingerprint: context.Fingerprint,
+		Book:                  context.Book,
+		Fingerprint:           context.Fingerprint,
+		Inventory:             context.Inventory,
+		DocumentationEvidence: context.DocumentationEvidence,
 	})
 	if err != nil {
 		return Result{}, fmt.Errorf("expand admitted interpretation: %w", err)

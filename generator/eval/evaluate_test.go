@@ -404,8 +404,37 @@ func syntheticEvaluationContext(t *testing.T) Context {
 			BookVersion:          1,
 			SelectedDependencies: []string{"github.com/sqlc-dev/sqlc/cmd/sqlc"},
 			PlannedSurfaces:      []string{"migration", "model", "store", "service", "handler", "templates", "wiring", "tests", "documentation"},
+			Observations: []project.Observation{{
+				Key:     "file:internal/feat/property/model.go",
+				Class:   project.ObservationPlannedSurface,
+				Path:    "internal/feat/property/model.go",
+				Surface: "model",
+				Digest:  "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+			}},
 		},
 		Book: selectedBook,
+		DocumentationEvidence: &project.FeatureEvidence{
+			Basis:   "existing",
+			Feature: "property",
+			Entity:  "Property",
+			Label:   "Properties",
+			Route:   "/properties",
+			Table:   "properties",
+			Fields: []project.FeatureFieldEvidence{{
+				Name: "name", Type: "string", Label: "Name", Required: true,
+			}},
+			Validations: []project.FeatureValidationEvidence{{
+				Field: "name", Kind: "required", Scope: "durable",
+			}},
+			Postgres:          true,
+			HTMX:              true,
+			RuntimeValidation: true,
+			Wired:             true,
+			Tested:            true,
+			Sources: []project.FeatureEvidenceSource{{
+				Role: "model", Path: "internal/feat/property/model.go", Digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+			}},
+		},
 	}
 }
 

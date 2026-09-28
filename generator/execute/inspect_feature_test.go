@@ -2,9 +2,11 @@ package execute
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"hatmax.adrianpk.com/generator/intent"
+	"hatmax.adrianpk.com/generator/project"
 )
 
 func TestInspectCanonicalFeatureDiscoversGeneratedSurfaces(t *testing.T) {
@@ -46,6 +48,50 @@ func TestInspectCanonicalFeatureRejectsMissingSemanticAnchor(t *testing.T) {
 
 	_, err = inspectCanonicalFeature(value, manifest, inventory)
 	requireExecutionCode(t, err, "execution_feature_structure_invalid")
+}
+
+func TestInspectFeatureEvidenceExtractsGeneratedContract(t *testing.T) {
+	root := generatedInvoiceProject(t)
+
+	inventory, err := project.Inspect(context.Background(), root)
+	if err != nil {
+		t.Fatalf("project.Inspect() error = %v", err)
+	}
+
+	evidence, err := inventory.InspectFeatureEvidence("invoice")
+	if err != nil {
+		t.Fatalf("InspectFeatureEvidence() error = %v", err)
+	}
+
+	if evidence.Basis != "existing" || evidence.Entity != "Invoice" || evidence.Label != "Invoices" || evidence.Route != "/invoices" || evidence.Table != "invoices" {
+		t.Errorf("feature evidence identity = %#v", evidence)
+	}
+
+	if len(evidence.Fields) != 2 || evidence.Fields[0].Name != "number" || evidence.Fields[0].Type != "string" || !evidence.Fields[0].Required || evidence.Fields[1].Name != "notes" || evidence.Fields[1].Type != "text" {
+		t.Errorf("feature evidence fields = %#v", evidence.Fields)
+	}
+
+	if !evidence.Postgres || !evidence.HTMX || !evidence.RuntimeValidation || !evidence.Wired || !evidence.Tested || len(evidence.Sources) != 15 {
+		t.Errorf("feature evidence capabilities = %#v", evidence)
+	}
+}
+
+func TestInspectFeatureEvidenceRejectsMissingSemanticAnchor(t *testing.T) {
+	root := generatedInvoiceProject(t)
+	replaceExecutionText(t, root, "internal/feat/invoice/handler.go", "func parseInput", "func parseLegacyInput")
+
+	inventory, err := project.Inspect(context.Background(), root)
+	if err != nil {
+		t.Fatalf("project.Inspect() error = %v", err)
+	}
+
+	_, err = inventory.InspectFeatureEvidence("invoice")
+
+	var projectErr project.Error
+
+	if !errors.As(err, &projectErr) || projectErr.Code != "project_feature_evidence_invalid" {
+		t.Fatalf("InspectFeatureEvidence() error = %v, want project_feature_evidence_invalid", err)
+	}
 }
 
 func generatedInvoiceProject(t *testing.T) string {

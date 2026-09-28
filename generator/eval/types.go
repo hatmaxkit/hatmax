@@ -165,9 +165,10 @@ type Interpreter interface {
 
 // Context binds evaluation to one inspected project, fingerprint, and Book.
 type Context struct {
-	Inventory   project.Inventory
-	Fingerprint project.Fingerprint
-	Book        *book.Book
+	Inventory             project.Inventory
+	Fingerprint           project.Fingerprint
+	Book                  *book.Book
+	DocumentationEvidence *project.FeatureEvidence
 }
 
 // Result records the deterministic outcome after interpreter output is

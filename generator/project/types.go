@@ -145,6 +145,51 @@ type DocumentationInventory struct {
 	ValidationCommands []Command
 }
 
+// FeatureFieldEvidence is one field established from matching model, form,
+// and persistence structure.
+type FeatureFieldEvidence struct {
+	Name     string `json:"name" yaml:"name"`
+	Type     string `json:"type" yaml:"type"`
+	Label    string `json:"label" yaml:"label"`
+	Required bool   `json:"required" yaml:"required"`
+}
+
+// FeatureValidationEvidence is one validation established at an observed
+// canonical boundary.
+type FeatureValidationEvidence struct {
+	Field string `json:"field" yaml:"field"`
+	Kind  string `json:"kind" yaml:"kind"`
+	Value string `json:"value,omitempty" yaml:"value,omitempty"`
+	Scope string `json:"scope" yaml:"scope"`
+}
+
+// FeatureEvidenceSource identifies one structurally parsed canonical source
+// without retaining its content.
+type FeatureEvidenceSource struct {
+	Role   string `json:"role" yaml:"role"`
+	Path   string `json:"path" yaml:"path"`
+	Digest string `json:"digest" yaml:"digest"`
+}
+
+// FeatureEvidence is the bounded product contract established for one
+// canonical server-rendered CRUD feature.
+type FeatureEvidence struct {
+	Basis             string                      `json:"basis" yaml:"basis"`
+	Feature           string                      `json:"feature" yaml:"feature"`
+	Entity            string                      `json:"entity" yaml:"entity"`
+	Label             string                      `json:"label" yaml:"label"`
+	Route             string                      `json:"route" yaml:"route"`
+	Table             string                      `json:"table" yaml:"table"`
+	Fields            []FeatureFieldEvidence      `json:"fields" yaml:"fields"`
+	Validations       []FeatureValidationEvidence `json:"validations" yaml:"validations"`
+	Postgres          bool                        `json:"postgres" yaml:"postgres"`
+	HTMX              bool                        `json:"htmx" yaml:"htmx"`
+	RuntimeValidation bool                        `json:"runtime_validation" yaml:"runtime_validation"`
+	Wired             bool                        `json:"wired" yaml:"wired"`
+	Tested            bool                        `json:"tested" yaml:"tested"`
+	Sources           []FeatureEvidenceSource     `json:"sources" yaml:"sources"`
+}
+
 // Command describes a bounded repository-owned command.
 type Command struct {
 	Kind   CommandKind

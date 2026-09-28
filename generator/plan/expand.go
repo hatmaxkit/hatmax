@@ -3,6 +3,7 @@ package plan
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"hatmax.adrianpk.com/generator/book"
 	"hatmax.adrianpk.com/generator/intent"
@@ -12,8 +13,10 @@ import (
 // ExpansionContext supplies the validated Book and exact project fingerprint
 // used to produce a plan.
 type ExpansionContext struct {
-	Book        *book.Book
-	Fingerprint project.Fingerprint
+	Book                  *book.Book
+	Fingerprint           project.Fingerprint
+	Inventory             project.Inventory
+	DocumentationEvidence *project.FeatureEvidence
 }
 
 type operationCandidate struct {
@@ -76,19 +79,26 @@ func Expand(admission intent.Result, context ExpansionContext) (Plan, error) {
 
 	surfaces := affectedSurfaces(selection.Archetype, operations)
 	rules := expandRules(selection.Rules)
+
+	documentationEvidence, err := expandDocumentationEvidence(value, context)
+	if err != nil {
+		return Plan{}, err
+	}
+
 	result := Plan{
-		SchemaVersion:        CurrentSchemaVersion,
-		Intent:               value.Operation,
-		Archetype:            value.Archetype,
-		Feature:              value.Feature,
-		Domain:               cloneDomain(value.Domain),
-		Capabilities:         selectedCapabilityIDs(selection.Capabilities),
-		AffectedSurfaces:     surfaces,
-		Documentation:        value.Documentation,
-		DocumentationTargets: cloneDocumentationTargets(value.DocumentationTargets),
-		HatmaxVersion:        value.HatmaxVersion,
-		BookVersion:          value.BookVersion,
-		ProjectFingerprint:   value.ProjectFingerprint,
+		SchemaVersion:         CurrentSchemaVersion,
+		Intent:                value.Operation,
+		Archetype:             value.Archetype,
+		Feature:               value.Feature,
+		Domain:                cloneDomain(value.Domain),
+		Capabilities:          selectedCapabilityIDs(selection.Capabilities),
+		AffectedSurfaces:      surfaces,
+		Documentation:         value.Documentation,
+		DocumentationTargets:  cloneDocumentationTargets(value.DocumentationTargets),
+		DocumentationEvidence: documentationEvidence,
+		HatmaxVersion:         value.HatmaxVersion,
+		BookVersion:           value.BookVersion,
+		ProjectFingerprint:    value.ProjectFingerprint,
 		FingerprintInputs: FingerprintInputs{
 			SelectedPaths:        cloneStrings(context.Fingerprint.SelectedPaths),
 			SelectedDependencies: cloneStrings(context.Fingerprint.SelectedDependencies),
@@ -112,6 +122,112 @@ func Expand(admission intent.Result, context ExpansionContext) (Plan, error) {
 	}
 
 	return result, nil
+}
+
+func expandDocumentationEvidence(value intent.Intent, context ExpansionContext) (*project.FeatureEvidence, error) {
+	if value.Documentation == intent.DocumentationNotRequested {
+		return nil, nil
+	}
+
+	if value.Operation == intent.OperationCreateFeature {
+		result := plannedFeatureEvidence(value)
+
+		return &result, nil
+	}
+
+	if context.DocumentationEvidence != nil {
+		result := cloneFeatureEvidence(*context.DocumentationEvidence)
+		if value.Operation != intent.OperationDocumentFeature {
+			result.Basis = "planned"
+		}
+
+		result = applyPlannedEvidence(value, result)
+
+		return &result, nil
+	}
+
+	evidence, err := context.Inventory.InspectFeatureEvidence(value.Feature)
+	if err != nil {
+		return nil, planError("plan_documentation_evidence_invalid", "documentation_evidence", "%v", err)
+	}
+
+	returnEvidence := applyPlannedEvidence(value, evidence)
+
+	return &returnEvidence, nil
+}
+
+func applyPlannedEvidence(value intent.Intent, evidence project.FeatureEvidence) project.FeatureEvidence {
+	if value.Operation == intent.OperationAddField && value.Domain.Field != nil {
+		evidence.Basis = "planned"
+		evidence.Fields = append(evidence.Fields, project.FeatureFieldEvidence{
+			Name:     value.Domain.Field.Name,
+			Type:     value.Domain.Field.Type,
+			Label:    value.Domain.Field.Label,
+			Required: value.Domain.Field.Required,
+		})
+	}
+
+	if value.Operation == intent.OperationAddValidation && value.Domain.Validation != nil {
+		evidence.Basis = "planned"
+		evidence.Validations = append(evidence.Validations, project.FeatureValidationEvidence{
+			Field: value.Domain.Validation.Field,
+			Kind:  value.Domain.Validation.Kind,
+			Value: value.Domain.Validation.Value,
+			Scope: string(value.Domain.Validation.Scope),
+		})
+
+		if value.Domain.Validation.Kind == "required" {
+			for index := range evidence.Fields {
+				if evidence.Fields[index].Name == value.Domain.Validation.Field {
+					evidence.Fields[index].Required = true
+				}
+			}
+		}
+	}
+
+	return evidence
+}
+
+func plannedFeatureEvidence(value intent.Intent) project.FeatureEvidence {
+	fields := make([]project.FeatureFieldEvidence, 0, len(value.Domain.Fields))
+	validations := make([]project.FeatureValidationEvidence, 0)
+
+	for _, field := range value.Domain.Fields {
+		fields = append(fields, project.FeatureFieldEvidence{
+			Name: field.Name, Type: field.Type, Label: field.Label, Required: field.Required,
+		})
+
+		if field.Required {
+			validations = append(validations, project.FeatureValidationEvidence{
+				Field: field.Name, Kind: "required", Scope: string(intent.ValidationDurable),
+			})
+		}
+	}
+
+	return project.FeatureEvidence{
+		Basis:             "planned",
+		Feature:           value.Feature,
+		Entity:            value.Domain.Entity,
+		Label:             value.Domain.Label,
+		Route:             value.Domain.Route,
+		Table:             pluralizeEvidenceName(value.Feature),
+		Fields:            fields,
+		Validations:       validations,
+		Postgres:          containsString(value.Capabilities, "postgres_persistence"),
+		HTMX:              containsString(value.Capabilities, "htmx_form"),
+		RuntimeValidation: containsString(value.Capabilities, "runtime_validation"),
+		Wired:             true,
+		Tested:            true,
+		Sources:           []project.FeatureEvidenceSource{},
+	}
+}
+
+func pluralizeEvidenceName(value string) string {
+	if strings.HasSuffix(value, "s") {
+		return value + "es"
+	}
+
+	return value + "s"
 }
 
 func selectedBookOperation(archetype book.Archetype, operation intent.Operation) (book.Operation, bool) {
@@ -355,6 +471,14 @@ func cloneExceptions(values []intent.Exception) []intent.Exception {
 
 func cloneDocumentationTargets(values []intent.DocumentationTarget) []intent.DocumentationTarget {
 	return append([]intent.DocumentationTarget{}, values...)
+}
+
+func cloneFeatureEvidence(value project.FeatureEvidence) project.FeatureEvidence {
+	value.Fields = append([]project.FeatureFieldEvidence{}, value.Fields...)
+	value.Validations = append([]project.FeatureValidationEvidence{}, value.Validations...)
+	value.Sources = append([]project.FeatureEvidenceSource{}, value.Sources...)
+
+	return value
 }
 
 func cloneDomain(value intent.Domain) intent.Domain {

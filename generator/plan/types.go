@@ -10,7 +10,7 @@ import (
 )
 
 // CurrentSchemaVersion is the plan schema understood by this package.
-const CurrentSchemaVersion = 3
+const CurrentSchemaVersion = 4
 
 // OwnerKind identifies the Book entry that owns one logical operation.
 type OwnerKind string
@@ -100,27 +100,28 @@ type ValidationObligation struct {
 // Plan is the complete deterministic planning artifact. It remains ephemeral
 // and does not authorize project mutation by itself.
 type Plan struct {
-	SchemaVersion        int                          `json:"schema_version" yaml:"schema_version"`
-	Intent               intent.Operation             `json:"intent" yaml:"intent"`
-	Archetype            string                       `json:"archetype" yaml:"archetype"`
-	Feature              string                       `json:"feature" yaml:"feature"`
-	Domain               intent.Domain                `json:"domain" yaml:"domain"`
-	Capabilities         []string                     `json:"capabilities" yaml:"capabilities"`
-	AffectedSurfaces     []string                     `json:"affected_surfaces" yaml:"affected_surfaces"`
-	Documentation        intent.Documentation         `json:"documentation" yaml:"documentation"`
-	DocumentationTargets []intent.DocumentationTarget `json:"documentation_targets" yaml:"documentation_targets"`
-	HatmaxVersion        string                       `json:"hatmax_version" yaml:"hatmax_version"`
-	BookVersion          int                          `json:"book_version" yaml:"book_version"`
-	ProjectFingerprint   string                       `json:"project_fingerprint" yaml:"project_fingerprint"`
-	FingerprintInputs    FingerprintInputs            `json:"fingerprint_inputs" yaml:"fingerprint_inputs"`
-	Rules                []RuleRef                    `json:"rules" yaml:"rules"`
-	Operations           []Operation                  `json:"operations" yaml:"operations"`
-	Preconditions        []Precondition               `json:"preconditions" yaml:"preconditions"`
-	ExpectedObservations []project.Observation        `json:"expected_observations" yaml:"expected_observations"`
-	AllowedEffects       AllowedEffects               `json:"allowed_effects" yaml:"allowed_effects"`
-	Validation           []ValidationObligation       `json:"validation" yaml:"validation"`
-	Exceptions           []intent.Exception           `json:"exceptions" yaml:"exceptions"`
-	Digest               string                       `json:"digest,omitempty" yaml:"digest,omitempty"`
+	SchemaVersion         int                          `json:"schema_version" yaml:"schema_version"`
+	Intent                intent.Operation             `json:"intent" yaml:"intent"`
+	Archetype             string                       `json:"archetype" yaml:"archetype"`
+	Feature               string                       `json:"feature" yaml:"feature"`
+	Domain                intent.Domain                `json:"domain" yaml:"domain"`
+	Capabilities          []string                     `json:"capabilities" yaml:"capabilities"`
+	AffectedSurfaces      []string                     `json:"affected_surfaces" yaml:"affected_surfaces"`
+	Documentation         intent.Documentation         `json:"documentation" yaml:"documentation"`
+	DocumentationTargets  []intent.DocumentationTarget `json:"documentation_targets" yaml:"documentation_targets"`
+	DocumentationEvidence *project.FeatureEvidence     `json:"documentation_evidence,omitempty" yaml:"documentation_evidence,omitempty"`
+	HatmaxVersion         string                       `json:"hatmax_version" yaml:"hatmax_version"`
+	BookVersion           int                          `json:"book_version" yaml:"book_version"`
+	ProjectFingerprint    string                       `json:"project_fingerprint" yaml:"project_fingerprint"`
+	FingerprintInputs     FingerprintInputs            `json:"fingerprint_inputs" yaml:"fingerprint_inputs"`
+	Rules                 []RuleRef                    `json:"rules" yaml:"rules"`
+	Operations            []Operation                  `json:"operations" yaml:"operations"`
+	Preconditions         []Precondition               `json:"preconditions" yaml:"preconditions"`
+	ExpectedObservations  []project.Observation        `json:"expected_observations" yaml:"expected_observations"`
+	AllowedEffects        AllowedEffects               `json:"allowed_effects" yaml:"allowed_effects"`
+	Validation            []ValidationObligation       `json:"validation" yaml:"validation"`
+	Exceptions            []intent.Exception           `json:"exceptions" yaml:"exceptions"`
+	Digest                string                       `json:"digest,omitempty" yaml:"digest,omitempty"`
 }
 
 // Error describes an invalid plan contract.

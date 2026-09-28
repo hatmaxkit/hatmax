@@ -227,8 +227,10 @@ func runTypedCase(t *testing.T, testCase typedCase, evaluationContext Context) t
 	}
 
 	expanded, err := plan.Expand(validation, plan.ExpansionContext{
-		Book:        evaluationContext.Book,
-		Fingerprint: evaluationContext.Fingerprint,
+		Book:                  evaluationContext.Book,
+		Fingerprint:           evaluationContext.Fingerprint,
+		Inventory:             evaluationContext.Inventory,
+		DocumentationEvidence: evaluationContext.DocumentationEvidence,
 	})
 	if err != nil {
 		t.Fatalf("plan.Expand() error = %v", err)

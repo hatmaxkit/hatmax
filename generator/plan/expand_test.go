@@ -150,7 +150,7 @@ func TestExpandCarriesIntentAndProjectContext(t *testing.T) {
 		t.Errorf("Domain = %#v, want admitted field input", result.Domain)
 	}
 
-	if len(result.ExpectedObservations) != 1 || result.ExpectedObservations[0].Key != "module:configuration" {
+	if len(result.ExpectedObservations) != 3 || result.ExpectedObservations[0].Key != "module:configuration" {
 		t.Errorf("ExpectedObservations = %#v, want detached project observations", result.ExpectedObservations)
 	}
 
@@ -195,6 +195,14 @@ func TestExpandCombinesImplementationAndDocumentationObligations(t *testing.T) {
 	if len(result.AllowedEffects.Dependencies) != 1 {
 		t.Errorf("Allowed dependency effects = %#v, want implementation dependency", result.AllowedEffects.Dependencies)
 	}
+}
+
+func TestExpandRejectsDocumentationEvidenceOutsideFingerprint(t *testing.T) {
+	admission, context := admittedExpansion(t, intent.OperationDocumentFeature, []string{"postgres_persistence"})
+	context.DocumentationEvidence.Sources[0].Digest = "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+
+	_, err := Expand(admission, context)
+	requirePlanCode(t, err, "plan_documentation_evidence_invalid")
 }
 
 func TestExpandIsDeterministic(t *testing.T) {
@@ -290,6 +298,20 @@ func admittedExpansion(
 				Path:   "go.mod",
 				Digest: "fixture-digest",
 			},
+			{
+				Key:     "file:internal/feat/property/model.go",
+				Class:   project.ObservationPlannedSurface,
+				Path:    "internal/feat/property/model.go",
+				Surface: "model",
+				Digest:  testFingerprint,
+			},
+			{
+				Key:     "file:internal/feat/invoice/model.go",
+				Class:   project.ObservationPlannedSurface,
+				Path:    "internal/feat/invoice/model.go",
+				Surface: "model",
+				Digest:  testFingerprint,
+			},
 		},
 	}
 
@@ -321,8 +343,34 @@ func admittedExpansion(
 		Intent:    value,
 		Selection: selection,
 	}, ExpansionContext{
-		Book:        selectedBook,
-		Fingerprint: fingerprint,
+		Book:                  selectedBook,
+		Fingerprint:           fingerprint,
+		DocumentationEvidence: testFeatureEvidence(value.Feature),
+	}
+}
+
+func testFeatureEvidence(feature string) *project.FeatureEvidence {
+	return &project.FeatureEvidence{
+		Basis:   "existing",
+		Feature: feature,
+		Entity:  "Property",
+		Label:   "Properties",
+		Route:   "/properties",
+		Table:   "properties",
+		Fields: []project.FeatureFieldEvidence{{
+			Name: "name", Type: "string", Label: "Name", Required: true,
+		}},
+		Validations: []project.FeatureValidationEvidence{{
+			Field: "name", Kind: "required", Scope: "durable",
+		}},
+		Postgres:          true,
+		HTMX:              true,
+		RuntimeValidation: true,
+		Wired:             true,
+		Tested:            true,
+		Sources: []project.FeatureEvidenceSource{{
+			Role: "model", Path: "internal/feat/" + feature + "/model.go", Digest: testFingerprint,
+		}},
 	}
 }
 
