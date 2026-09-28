@@ -5,7 +5,7 @@ Delivery set: interactive-generator-execution-conformance
 Plan: `ops/default/plan/interactive-generator-execution-conformance.md`
 Tracker: `ops/default/tracker/interactive-generator-execution-conformance.md`
 Branch: `feat/generator-incremental-mutations`
-PR: pending
+PR: `#30` (open)
 
 ## Purpose
 

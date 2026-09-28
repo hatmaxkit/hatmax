@@ -15,7 +15,7 @@ Base branch: `dev`
 Planning base: `9b7e0d9e71da8297665e42695459e5eb33c739e0`
 Active slice: Slice 4
 Active tasks: none
-Execution gate: Slice 4 implementation and validation complete; pull request pending
+Execution gate: Slice 4 pull request #30 open against `dev`
 
 ## Slice Status
 
@@ -24,7 +24,7 @@ Execution gate: Slice 4 implementation and validation complete; pull request pen
 | Slice 1 | Execution manifest | delivered | `feat/generator-execution-manifest` | `feat(slice-1): define generator execution manifests` | #27 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-1-execution-manifest.md` |
 | Slice 2 | Atomic application | delivered | `feat/generator-atomic-application` | `feat(slice-2): apply generator edits atomically` | #28 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-2-atomic-application.md` |
 | Slice 3 | CRUD generation | delivered | `feat/generator-crud-generation` | `feat(slice-3): generate canonical Hatmax CRUD features` | #29 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-3-crud-generation.md` |
-| Slice 4 | Incremental mutations | reviewing | `feat/generator-incremental-mutations` | `feat(slice-4): mutate canonical Hatmax features` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-4-incremental-mutations.md` |
+| Slice 4 | Incremental mutations | reviewing | `feat/generator-incremental-mutations` | `feat(slice-4): mutate canonical Hatmax features` | #30 (open) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-4-incremental-mutations.md` |
 | Slice 5 | Execution conformance | pending | `test/generator-execution-conformance` | `test(slice-5): validate generator execution conformance` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-5-execution-conformance.md` |
 
 ## Slice 1 Tasks
@@ -80,6 +80,5 @@ Execution gate: Slice 4 implementation and validation complete; pull request pen
 
 ## Current Gate
 
-Slice 4 implementation and validation are complete on
-`feat/generator-incremental-mutations`. Its pull request must be opened against
-`dev` and merged before Slice 5 begins.
+Slice 4 pull request #30 is open from `feat/generator-incremental-mutations`
+into `dev`. It must be reviewed and merged before Slice 5 begins.
