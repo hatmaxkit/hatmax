@@ -46,7 +46,7 @@ func TestCoordinatorPlansPresentsAndClaimsApprovedIntent(t *testing.T) {
 		t.Fatalf("interpreter calls = %d, want one", len(interpreter.requests))
 	}
 
-	if len(prepared.plan.FingerprintInputs.PlannedSurfaces) != 8 {
+	if len(prepared.plan.FingerprintInputs.PlannedSurfaces) != 9 {
 		t.Errorf("fingerprinted surfaces = %v, want complete bounded Book surface set", prepared.plan.FingerprintInputs.PlannedSurfaces)
 	}
 

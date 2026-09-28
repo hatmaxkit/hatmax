@@ -1,11 +1,51 @@
 package plan
 
-import "testing"
+import (
+	"testing"
+
+	"hatmax.adrianpk.com/generator/intent"
+)
 
 func TestValidateAcceptsCompletePlan(t *testing.T) {
 	err := Validate(validTestPlan())
 	if err != nil {
 		t.Fatalf("Validate() error = %v", err)
+	}
+}
+
+func TestValidateEnforcesDocumentationEffects(t *testing.T) {
+	tests := []struct {
+		name   string
+		mutate func(*Plan)
+	}{
+		{
+			name: "implicit documentation surface",
+			mutate: func(value *Plan) {
+				value.AffectedSurfaces = append(value.AffectedSurfaces, "documentation")
+				value.AllowedEffects.Surfaces = append(value.AllowedEffects.Surfaces, "documentation")
+				value.FingerprintInputs.PlannedSurfaces = append(value.FingerprintInputs.PlannedSurfaces, "documentation")
+			},
+		},
+		{
+			name: "active documentation without surface",
+			mutate: func(value *Plan) {
+				value.Documentation = intent.DocumentationPlanned
+				value.DocumentationTargets = []intent.DocumentationTarget{{
+					Quadrant:   intent.DocumentationReference,
+					Subject:    "invoice",
+					ReaderGoal: "Find invoice contracts.",
+				}}
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			value := validTestPlan()
+			test.mutate(&value)
+
+			requirePlanCode(t, Validate(value), "plan_documentation_scope_invalid")
+		})
 	}
 }
 

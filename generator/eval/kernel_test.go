@@ -224,6 +224,7 @@ func inspectAndFingerprint(t *testing.T, root string, bookVersion int) (project.
 			"templates",
 			"wiring",
 			"tests",
+			"documentation",
 		},
 	})
 	if err != nil {

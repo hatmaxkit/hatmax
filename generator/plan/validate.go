@@ -25,7 +25,7 @@ func Validate(value Plan) error {
 		return planError("plan_required_field", "identity", "intent, archetype, and feature are required")
 	}
 
-	if value.Intent != intent.OperationCreateFeature && value.Intent != intent.OperationAddField && value.Intent != intent.OperationAddValidation {
+	if value.Intent != intent.OperationCreateFeature && value.Intent != intent.OperationAddField && value.Intent != intent.OperationAddValidation && value.Intent != intent.OperationDocumentFeature {
 		return planError("plan_intent_invalid", "intent", "unknown intent %q", value.Intent)
 	}
 
@@ -84,6 +84,11 @@ func Validate(value Plan) error {
 		return err
 	}
 
+	err = validateDocumentationEffects(value)
+	if err != nil {
+		return err
+	}
+
 	err = validateFingerprintInputs(value.FingerprintInputs, value.AffectedSurfaces, value.AllowedEffects.Dependencies)
 	if err != nil {
 		return err
@@ -127,17 +132,18 @@ func validateFingerprintInputs(value FingerprintInputs, affectedSurfaces []strin
 
 func validateDomain(value Plan) error {
 	intentValue := intent.Intent{
-		SchemaVersion:      intent.CurrentSchemaVersion,
-		Operation:          value.Intent,
-		ProjectFingerprint: value.ProjectFingerprint,
-		HatmaxVersion:      value.HatmaxVersion,
-		BookVersion:        value.BookVersion,
-		Archetype:          value.Archetype,
-		Feature:            value.Feature,
-		Domain:             value.Domain,
-		Capabilities:       value.Capabilities,
-		Documentation:      value.Documentation,
-		Exceptions:         value.Exceptions,
+		SchemaVersion:        intent.CurrentSchemaVersion,
+		Operation:            value.Intent,
+		ProjectFingerprint:   value.ProjectFingerprint,
+		HatmaxVersion:        value.HatmaxVersion,
+		BookVersion:          value.BookVersion,
+		Archetype:            value.Archetype,
+		Feature:              value.Feature,
+		Domain:               value.Domain,
+		Capabilities:         value.Capabilities,
+		Documentation:        value.Documentation,
+		DocumentationTargets: value.DocumentationTargets,
+		Exceptions:           value.Exceptions,
 	}
 
 	err := intent.ValidateSchema(intentValue)
@@ -152,6 +158,35 @@ func validateDomain(value Plan) error {
 
 	if len(clarifications) > 0 {
 		return planError("plan_domain_incomplete", clarifications[0].Field, "%s", clarifications[0].Question)
+	}
+
+	return nil
+}
+
+func validateDocumentationEffects(value Plan) error {
+	hasDocumentation := containsString(value.AffectedSurfaces, "documentation")
+	if value.Documentation == intent.DocumentationNotRequested {
+		if hasDocumentation {
+			return planError("plan_documentation_scope_invalid", "affected_surfaces", "documentation surface requires explicit documentation intent")
+		}
+
+		return nil
+	}
+
+	if !hasDocumentation {
+		return planError("plan_documentation_scope_invalid", "affected_surfaces", "active documentation must include the documentation surface")
+	}
+
+	if value.Intent != intent.OperationDocumentFeature {
+		return nil
+	}
+
+	if len(value.AffectedSurfaces) != 1 || value.AffectedSurfaces[0] != "documentation" {
+		return planError("plan_documentation_scope_invalid", "affected_surfaces", "document_feature may affect only documentation")
+	}
+
+	if len(value.AllowedEffects.Dependencies) != 0 {
+		return planError("plan_documentation_scope_invalid", "allowed_effects.dependencies", "document_feature cannot add runtime dependencies")
 	}
 
 	return nil

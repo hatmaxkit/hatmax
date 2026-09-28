@@ -19,3 +19,6 @@ rules:
   - rules/validation-layered.yaml
   - rules/testing-required-boundaries.yaml
   - rules/documentation-explicit-intent.yaml
+  - rules/documentation-diataxis.yaml
+  - rules/documentation-managed-sections.yaml
+  - rules/documentation-index-reachability.yaml

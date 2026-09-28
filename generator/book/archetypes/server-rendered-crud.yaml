@@ -27,6 +27,10 @@ operations:
       - feature_handler
       - feature_templates
       - feature_tests
+  - id: document_feature
+    obligations:
+      - documentation_content
+      - documentation_navigation
 required_capabilities:
   - postgres_persistence
 optional_capabilities:
@@ -41,6 +45,7 @@ surfaces:
   - templates
   - wiring
   - tests
+  - documentation
 obligations:
   - id: feature_package
     surfaces:
@@ -88,6 +93,21 @@ obligations:
       - feature_handler
       - feature_templates
       - explicit_wiring
+  - id: documentation_content
+    surfaces:
+      - documentation
+    rules:
+      - hatmax.documentation.explicit_intent
+      - hatmax.documentation.diataxis
+      - hatmax.documentation.managed_sections
+  - id: documentation_navigation
+    surfaces:
+      - documentation
+    rules:
+      - hatmax.documentation.managed_sections
+      - hatmax.documentation.index_reachability
+    depends_on:
+      - documentation_content
 implementation_slots:
   - domain names and fields
   - admitted business rules
@@ -103,3 +123,6 @@ rules:
   - hatmax.validation.layered
   - hatmax.testing.required_boundaries
   - hatmax.documentation.explicit_intent
+  - hatmax.documentation.diataxis
+  - hatmax.documentation.managed_sections
+  - hatmax.documentation.index_reachability

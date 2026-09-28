@@ -6,9 +6,11 @@ applies_when:
   - every generator operation
 requires:
   - documentation intent is represented explicitly
+  - active documentation declares one to four typed reader targets
   - requested documents use the canonical Diataxis quadrant and index
 prohibits:
   - documentation edits when documentation is not_requested
+  - documentation targets when documentation is not_requested
   - alternate documentation architectures
 diagnostics:
   - HMGEN-DOCUMENTATION-SCOPE

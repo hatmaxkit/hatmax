@@ -1,0 +1,18 @@
+id: hatmax.documentation.diataxis
+level: required
+title: Keep each generated document within one Diataxis reader intent
+rationale: Tutorials, how-to guides, reference, and explanation serve distinct reader needs and require distinct canonical structures.
+applies_when:
+  - documentation is explicitly requested
+requires:
+  - each target declares tutorial, how_to, reference, or explanation
+  - each generated document serves its declared reader goal
+  - Hatmax derives the canonical quadrant path and structure
+prohibits:
+  - model-authored Markdown or target paths
+  - mixed-quadrant documents
+  - speculative or unsupported behavior
+diagnostics:
+  - HMGEN-DOCUMENTATION-DIATAXIS
+archetypes:
+  - server_rendered_crud

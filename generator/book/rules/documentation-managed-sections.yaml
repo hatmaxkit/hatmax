@@ -1,0 +1,17 @@
+id: hatmax.documentation.managed_sections
+level: required
+title: Mutate only Hatmax-managed documentation sections
+rationale: Generated documentation must be repeatable without overwriting user-authored Markdown.
+applies_when:
+  - documentation is explicitly requested
+requires:
+  - generated content is enclosed by balanced Hatmax ownership markers
+  - regeneration replaces only the managed section
+  - content outside managed sections is preserved byte-for-byte
+prohibits:
+  - overwriting an existing unmanaged target
+  - rewriting user-owned navigation
+diagnostics:
+  - HMGEN-DOCUMENTATION-MANAGED-SECTION
+archetypes:
+  - server_rendered_crud

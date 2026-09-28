@@ -14,6 +14,7 @@ func TestValidateAdmitsSupportedIntents(t *testing.T) {
 		{name: "create feature", fixture: "create-feature.yaml"},
 		{name: "add field", fixture: "add-field.yaml"},
 		{name: "add validation", fixture: "add-validation.yaml"},
+		{name: "document feature", fixture: "document-feature.yaml"},
 	}
 
 	for _, test := range tests {

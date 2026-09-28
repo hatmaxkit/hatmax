@@ -42,6 +42,14 @@ func TestExpandInitialOperations(t *testing.T) {
 			wantSurfaces:     []string{"migration", "model", "store", "handler", "templates", "tests"},
 			wantOperations:   10,
 		},
+		{
+			name:             "document feature",
+			operation:        intent.OperationDocumentFeature,
+			capabilities:     []string{"postgres_persistence"},
+			wantCapabilities: []string{"postgres_persistence"},
+			wantSurfaces:     []string{"documentation"},
+			wantOperations:   2,
+		},
 	}
 
 	for _, test := range tests {
@@ -119,6 +127,11 @@ func TestExpandAttributesOperationsAndEffectsToBookEntries(t *testing.T) {
 func TestExpandCarriesIntentAndProjectContext(t *testing.T) {
 	admission, context := admittedExpansion(t, intent.OperationAddField, []string{"postgres_persistence"})
 	admission.Intent.Documentation = intent.DocumentationPlanned
+	admission.Intent.DocumentationTargets = []intent.DocumentationTarget{{
+		Quadrant:   intent.DocumentationReference,
+		Subject:    "property_summary",
+		ReaderGoal: "Find the exact summary field contract.",
+	}}
 
 	result, err := Expand(admission, context)
 	if err != nil {
@@ -127,6 +140,10 @@ func TestExpandCarriesIntentAndProjectContext(t *testing.T) {
 
 	if result.Documentation != intent.DocumentationPlanned || result.ProjectFingerprint != context.Fingerprint.Value {
 		t.Errorf("expanded identity = %#v, want admitted intent and fingerprint", result)
+	}
+
+	if len(result.DocumentationTargets) != 1 || result.DocumentationTargets[0].Subject != "property_summary" {
+		t.Errorf("DocumentationTargets = %#v, want detached planned target", result.DocumentationTargets)
 	}
 
 	if result.Domain.Field == nil || result.Domain.Field.Name != "notes" {
@@ -145,6 +162,38 @@ func TestExpandCarriesIntentAndProjectContext(t *testing.T) {
 	admission.Intent.Domain.Field.Name = "changed"
 	if result.Domain.Field.Name != "notes" {
 		t.Error("Expand() exposed intent domain storage")
+	}
+
+	admission.Intent.DocumentationTargets[0].Subject = "changed"
+	if result.DocumentationTargets[0].Subject != "property_summary" {
+		t.Error("Expand() exposed documentation target storage")
+	}
+}
+
+func TestExpandCombinesImplementationAndDocumentationObligations(t *testing.T) {
+	admission, context := admittedExpansion(t, intent.OperationAddField, []string{"postgres_persistence"})
+	admission.Intent.Documentation = intent.DocumentationPlanned
+	admission.Intent.DocumentationTargets = []intent.DocumentationTarget{{
+		Quadrant:   intent.DocumentationHowTo,
+		Subject:    "property_summary",
+		ReaderGoal: "Add and use the property summary field.",
+	}}
+
+	result, err := Expand(admission, context)
+	if err != nil {
+		t.Fatalf("Expand() error = %v", err)
+	}
+
+	if !containsString(result.AffectedSurfaces, "documentation") {
+		t.Errorf("AffectedSurfaces = %v, want documentation", result.AffectedSurfaces)
+	}
+
+	if operationByID(result.Operations, "archetype.server_rendered_crud.documentation_content") == nil || operationByID(result.Operations, "archetype.server_rendered_crud.documentation_navigation") == nil {
+		t.Errorf("Operations = %#v, want boxed documentation obligations", result.Operations)
+	}
+
+	if len(result.AllowedEffects.Dependencies) != 1 {
+		t.Errorf("Allowed dependency effects = %#v, want implementation dependency", result.AllowedEffects.Dependencies)
 	}
 }
 
@@ -233,7 +282,7 @@ func admittedExpansion(
 		Value:                testFingerprint,
 		BookVersion:          1,
 		SelectedDependencies: []string{"github.com/sqlc-dev/sqlc/cmd/sqlc"},
-		PlannedSurfaces:      []string{"migration", "model", "store", "service", "handler", "templates", "wiring", "tests"},
+		PlannedSurfaces:      []string{"migration", "model", "store", "service", "handler", "templates", "wiring", "tests", "documentation"},
 		Observations: []project.Observation{
 			{
 				Key:    "module:configuration",
@@ -244,17 +293,26 @@ func admittedExpansion(
 		},
 	}
 	value := intent.Intent{
-		SchemaVersion:      intent.CurrentSchemaVersion,
-		Operation:          operation,
-		ProjectFingerprint: testFingerprint,
-		HatmaxVersion:      "v0.4.0",
-		BookVersion:        1,
-		Archetype:          "server_rendered_crud",
-		Feature:            "invoice",
-		Domain:             testDomain(operation),
-		Capabilities:       append([]string{}, capabilities...),
-		Documentation:      intent.DocumentationNotRequested,
-		Exceptions:         []intent.Exception{},
+		SchemaVersion:        intent.CurrentSchemaVersion,
+		Operation:            operation,
+		ProjectFingerprint:   testFingerprint,
+		HatmaxVersion:        "v0.4.0",
+		BookVersion:          1,
+		Archetype:            "server_rendered_crud",
+		Feature:              "invoice",
+		Domain:               testDomain(operation),
+		Capabilities:         append([]string{}, capabilities...),
+		Documentation:        intent.DocumentationNotRequested,
+		DocumentationTargets: []intent.DocumentationTarget{},
+		Exceptions:           []intent.Exception{},
+	}
+	if operation == intent.OperationDocumentFeature {
+		value.Documentation = intent.DocumentationExisting
+		value.DocumentationTargets = []intent.DocumentationTarget{{
+			Quadrant:   intent.DocumentationReference,
+			Subject:    "invoice",
+			ReaderGoal: "Find the exact invoice contracts.",
+		}}
 	}
 
 	return intent.Result{
@@ -283,6 +341,8 @@ func testDomain(operation intent.Operation) intent.Domain {
 			Kind:  "required",
 			Scope: intent.ValidationDurable,
 		}}
+	case intent.OperationDocumentFeature:
+		return intent.Domain{}
 	default:
 		return intent.Domain{}
 	}

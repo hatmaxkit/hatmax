@@ -69,7 +69,7 @@ func Expand(admission intent.Result, context ExpansionContext) (Plan, error) {
 		return Plan{}, planError("plan_capability_missing", "capabilities", "operation %q is missing a required capability", value.Operation)
 	}
 
-	operations, err := expandOperations(selection, selectedOperation)
+	operations, err := expandOperations(selection, selectedOperation, value.Documentation != intent.DocumentationNotRequested)
 	if err != nil {
 		return Plan{}, err
 	}
@@ -77,17 +77,18 @@ func Expand(admission intent.Result, context ExpansionContext) (Plan, error) {
 	surfaces := affectedSurfaces(selection.Archetype, operations)
 	rules := expandRules(selection.Rules)
 	result := Plan{
-		SchemaVersion:      CurrentSchemaVersion,
-		Intent:             value.Operation,
-		Archetype:          value.Archetype,
-		Feature:            value.Feature,
-		Domain:             cloneDomain(value.Domain),
-		Capabilities:       selectedCapabilityIDs(selection.Capabilities),
-		AffectedSurfaces:   surfaces,
-		Documentation:      value.Documentation,
-		HatmaxVersion:      value.HatmaxVersion,
-		BookVersion:        value.BookVersion,
-		ProjectFingerprint: value.ProjectFingerprint,
+		SchemaVersion:        CurrentSchemaVersion,
+		Intent:               value.Operation,
+		Archetype:            value.Archetype,
+		Feature:              value.Feature,
+		Domain:               cloneDomain(value.Domain),
+		Capabilities:         selectedCapabilityIDs(selection.Capabilities),
+		AffectedSurfaces:     surfaces,
+		Documentation:        value.Documentation,
+		DocumentationTargets: cloneDocumentationTargets(value.DocumentationTargets),
+		HatmaxVersion:        value.HatmaxVersion,
+		BookVersion:          value.BookVersion,
+		ProjectFingerprint:   value.ProjectFingerprint,
 		FingerprintInputs: FingerprintInputs{
 			SelectedPaths:        cloneStrings(context.Fingerprint.SelectedPaths),
 			SelectedDependencies: cloneStrings(context.Fingerprint.SelectedDependencies),
@@ -99,7 +100,7 @@ func Expand(admission intent.Result, context ExpansionContext) (Plan, error) {
 		ExpectedObservations: cloneObservations(context.Fingerprint.Observations),
 		AllowedEffects: AllowedEffects{
 			Surfaces:     cloneStrings(surfaces),
-			Dependencies: expandDependencies(selection.Capabilities),
+			Dependencies: expandDependencies(selection.Capabilities, value.Operation != intent.OperationDocumentFeature),
 		},
 		Validation: expandValidation(selection.Rules, operations, surfaces),
 		Exceptions: cloneExceptions(value.Exceptions),
@@ -123,10 +124,20 @@ func selectedBookOperation(archetype book.Archetype, operation intent.Operation)
 	return book.Operation{}, false
 }
 
-func expandOperations(selection book.Selection, selectedOperation book.Operation) ([]Operation, error) {
+func expandOperations(selection book.Selection, selectedOperation book.Operation, includeDocumentation bool) ([]Operation, error) {
 	candidates := make([]operationCandidate, 0)
 
 	selectedArchetypeObligations := stringSet(selectedOperation.Obligations)
+	if includeDocumentation && selectedOperation.ID != string(intent.OperationDocumentFeature) {
+		documentationOperation, exists := selectedBookOperation(selection.Archetype, intent.OperationDocumentFeature)
+		if !exists {
+			return nil, planError("plan_documentation_operation_missing", "operations", "archetype %q does not define document_feature", selection.Archetype.ID)
+		}
+
+		for _, obligation := range documentationOperation.Obligations {
+			selectedArchetypeObligations[obligation] = struct{}{}
+		}
+	}
 	for _, obligation := range selection.Archetype.Obligations {
 		if _, selected := selectedArchetypeObligations[obligation.ID]; !selected {
 			continue
@@ -139,6 +150,10 @@ func expandOperations(selection book.Selection, selectedOperation book.Operation
 
 	if len(candidates) != len(selectedArchetypeObligations) {
 		return nil, planError("plan_obligation_missing", "operations", "archetype operation references an unavailable obligation")
+	}
+
+	if selectedOperation.ID == string(intent.OperationDocumentFeature) {
+		return orderOperations(candidates)
 	}
 
 	for _, capability := range selection.Capabilities {
@@ -276,8 +291,11 @@ func expandPreconditions(value intent.Intent) []Precondition {
 	}
 }
 
-func expandDependencies(capabilities []book.Capability) []DependencyEffect {
+func expandDependencies(capabilities []book.Capability, include bool) []DependencyEffect {
 	result := make([]DependencyEffect, 0)
+	if !include {
+		return result
+	}
 
 	for _, capability := range capabilities {
 		for _, dependency := range capability.Dependencies {
@@ -332,6 +350,10 @@ func cloneObservations(values []project.Observation) []project.Observation {
 
 func cloneExceptions(values []intent.Exception) []intent.Exception {
 	return append([]intent.Exception{}, values...)
+}
+
+func cloneDocumentationTargets(values []intent.DocumentationTarget) []intent.DocumentationTarget {
+	return append([]intent.DocumentationTarget{}, values...)
 }
 
 func cloneDomain(value intent.Domain) intent.Domain {
