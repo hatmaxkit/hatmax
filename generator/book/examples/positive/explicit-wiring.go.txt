@@ -1,0 +1,8 @@
+database := db.New(assetsFS, db.Postgres, cfg, logger)
+migrator := db.NewMigrator(database, assetsFS, db.Postgres, logger)
+store := property.NewPostgresStore(database)
+service := property.NewService(store, logger)
+handler := property.NewHandler(service, templates, logger)
+
+dependencies := []any{database, migrator, templates, store, handler}
+starts, stops, registrars := app.Setup(ctx, router, dependencies...)

@@ -1,0 +1,22 @@
+id: hatmax.testing.required_boundaries
+level: required
+title: Test the boundaries that make the generated contract real
+rationale: Compilation and low-signal assertions cannot establish domain, persistence, HTTP, or wiring behavior.
+applies_when:
+  - a generated operation changes application behavior
+requires:
+  - domain tests cover valid and invalid transitions
+  - service tests use small consumer-owned fakes
+  - handler tests cover full, partial, invalid, and failure responses
+  - persistence tests use PostgreSQL when postgres_persistence is selected
+prohibits:
+  - compilation-only behavioral tests
+  - mocks that replace unrelated infrastructure
+diagnostics:
+  - HMGEN-TEST-BOUNDARY
+capabilities:
+  - postgres_persistence
+  - runtime_validation
+  - htmx_form
+archetypes:
+  - server_rendered_crud

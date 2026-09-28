@@ -1,0 +1,51 @@
+id: htmx_form
+intent: Accept and render a progressively enhanced server-side form with HTMX.
+requires:
+  - runtime_validation
+surfaces:
+  - handler
+  - templates
+  - wiring
+  - tests
+packages:
+  - hatmax.adrianpk.com/htmx
+  - hatmax.adrianpk.com/middleware
+  - hatmax.adrianpk.com/render
+  - hatmax.adrianpk.com/web
+obligations:
+  - id: full_page_response
+    surfaces:
+      - handler
+      - templates
+    rules:
+      - hatmax.web.server_rendered_htmx
+      - hatmax.http.feature_owned_handler
+  - id: htmx_partial_response
+    surfaces:
+      - handler
+      - templates
+    rules:
+      - hatmax.web.server_rendered_htmx
+      - hatmax.dependencies.use_owned_primitive
+    depends_on:
+      - full_page_response
+  - id: form_handler_tests
+    surfaces:
+      - tests
+    rules:
+      - hatmax.testing.required_boundaries
+    depends_on:
+      - full_page_response
+      - htmx_partial_response
+rules:
+  - hatmax.dependencies.use_owned_primitive
+  - hatmax.http.feature_owned_handler
+  - hatmax.web.server_rendered_htmx
+  - hatmax.validation.layered
+  - hatmax.testing.required_boundaries
+extensions:
+  - raw HTMX attributes when no Hatmax helper exists and the gap is declared
+unsupported:
+  - client-side application state
+  - JSON API as the primary form transport
+  - alternate routers

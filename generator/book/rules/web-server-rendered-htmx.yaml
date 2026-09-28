@@ -1,0 +1,20 @@
+id: hatmax.web.server_rendered_htmx
+level: required
+title: Keep server-rendered HTML authoritative
+rationale: HTMX enhances server-rendered interaction without creating a second client-side application model.
+applies_when:
+  - the archetype includes templates or htmx_form
+requires:
+  - full-page response or explicit redirect for non-HTMX requests
+  - named partial response for HTMX requests
+  - Hatmax HTMX helpers when a matching helper exists
+prohibits:
+  - client-side domain state
+  - raw HTMX attributes when Hatmax owns the helper
+diagnostics:
+  - HMGEN-HTMX-RESPONSE
+  - HMGEN-HTMX-HELPER
+capabilities:
+  - htmx_form
+archetypes:
+  - server_rendered_crud

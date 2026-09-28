@@ -1,0 +1,22 @@
+id: hatmax.persistence.postgres_sqlc
+level: required
+title: Use Postgres migrations and SQLC for generated CRUD persistence
+rationale: One explicit query and migration path keeps schema, mappings, constraints, and generated adapters inspectable.
+applies_when:
+  - postgres_persistence is selected
+requires:
+  - reversible Postgres migration
+  - SQLC query definitions and generated adapter
+  - store-owned mapping and stable not-found translation
+  - Postgres integration tests
+prohibits:
+  - ORM-backed persistence
+  - silent fallback to ad hoc SQL
+diagnostics:
+  - HMGEN-POSTGRES-MIGRATION
+  - HMGEN-SQLC-QUERY
+  - HMGEN-STORE-MAPPING
+capabilities:
+  - postgres_persistence
+archetypes:
+  - server_rendered_crud

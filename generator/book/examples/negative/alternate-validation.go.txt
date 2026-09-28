@@ -1,0 +1,5 @@
+import "github.com/example/alternate-validator"
+
+func validate(input CreateInput) error {
+	return alternatevalidator.Struct(input)
+}

@@ -1,0 +1,23 @@
+id: hatmax.lifecycle.explicit_wiring
+level: required
+title: Keep lifecycle and route wiring visible in the composition root
+rationale: Hatmax uses ordered explicit assembly as dependency information and does not infer a hidden graph.
+applies_when:
+  - generated components have startup, shutdown, or route registration behavior
+requires:
+  - constructors retain dependencies without I/O
+  - fallible initialization occurs in Start
+  - app.Setup order follows startup dependencies
+prohibits:
+  - startup I/O in constructors
+  - implicit dependency discovery
+diagnostics:
+  - HMGEN-WIRING-ORDER
+  - HMGEN-CONSTRUCTOR-IO
+capabilities:
+  - postgres_persistence
+  - htmx_form
+archetypes:
+  - server_rendered_crud
+positive_examples:
+  - examples/positive/explicit-wiring.go.txt

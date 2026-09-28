@@ -1,0 +1,17 @@
+id: hatmax.feature.cohesive_package
+level: required
+title: Keep generated feature behavior in one feature-owned package
+rationale: Cohesive ownership keeps domain, persistence, service, and HTTP changes reviewable as one feature.
+applies_when:
+  - the server_rendered_crud archetype is selected
+requires:
+  - domain model, store contract, service, and handler are owned by internal/feat/<feature>
+prohibits:
+  - generic utility packages for feature behavior
+  - application-wide handlers that absorb generated feature routes
+diagnostics:
+  - HMGEN-FEATURE-OWNERSHIP
+archetypes:
+  - server_rendered_crud
+positive_examples:
+  - examples/positive/feature-handler.go.txt

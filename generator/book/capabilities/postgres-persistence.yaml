@@ -1,0 +1,45 @@
+id: postgres_persistence
+intent: Persist feature state in PostgreSQL through the canonical Hatmax database lifecycle.
+surfaces:
+  - migration
+  - model
+  - store
+  - wiring
+  - tests
+packages:
+  - hatmax.adrianpk.com/db
+  - hatmax.adrianpk.com/model
+  - hatmax.adrianpk.com/testhelper
+dependencies:
+  - kind: tool
+    module: github.com/sqlc-dev/sqlc/cmd/sqlc
+    purpose: Generate type-safe PostgreSQL query adapters.
+obligations:
+  - id: migration
+    surfaces:
+      - migration
+    rules:
+      - hatmax.persistence.postgres_sqlc
+  - id: query_adapter
+    surfaces:
+      - store
+    rules:
+      - hatmax.persistence.postgres_sqlc
+      - hatmax.dependencies.use_owned_primitive
+    depends_on:
+      - migration
+  - id: postgres_integration_tests
+    surfaces:
+      - tests
+    rules:
+      - hatmax.testing.required_boundaries
+    depends_on:
+      - query_adapter
+rules:
+  - hatmax.persistence.postgres_sqlc
+  - hatmax.lifecycle.explicit_wiring
+  - hatmax.testing.required_boundaries
+unsupported:
+  - alternate SQL databases
+  - ORM-backed persistence
+  - handler-owned SQL

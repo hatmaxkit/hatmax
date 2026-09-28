@@ -1,0 +1,21 @@
+id: hatmax.dependencies.use_owned_primitive
+level: required
+title: Use the Hatmax-owned primitive
+rationale: A generated feature must not create a competing implementation when Hatmax already owns the capability.
+applies_when:
+  - a selected capability names an owning Hatmax package
+requires:
+  - imports and calls use the owning Hatmax package
+prohibits:
+  - undeclared replacement libraries
+  - local reimplementations of an owned primitive
+diagnostics:
+  - HMGEN-DEPENDENCY-SUBSTITUTION
+capabilities:
+  - postgres_persistence
+  - runtime_validation
+  - htmx_form
+archetypes:
+  - server_rendered_crud
+negative_examples:
+  - examples/negative/alternate-validation.go.txt

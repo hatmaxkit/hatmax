@@ -1,0 +1,16 @@
+id: hatmax.documentation.explicit_intent
+level: required
+title: Generate documentation only from explicit documentation intent
+rationale: Implementation requests do not authorize documentation changes, and requested documentation follows the boxed Diataxis system.
+applies_when:
+  - every generator operation
+requires:
+  - documentation intent is represented explicitly
+  - requested documents use the canonical Diataxis quadrant and index
+prohibits:
+  - documentation edits when documentation is not_requested
+  - alternate documentation architectures
+diagnostics:
+  - HMGEN-DOCUMENTATION-SCOPE
+archetypes:
+  - server_rendered_crud

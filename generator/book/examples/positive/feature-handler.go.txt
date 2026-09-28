@@ -1,0 +1,12 @@
+type propertyService interface {
+	Create(context.Context, property.CreateInput) (*property.Property, error)
+}
+
+type Handler struct {
+	service propertyService
+	templates *web.TemplateManager
+}
+
+func (h *Handler) RegisterRoutes(router chi.Router) {
+	router.Post("/properties", h.create)
+}

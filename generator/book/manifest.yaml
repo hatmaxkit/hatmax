@@ -1,0 +1,21 @@
+schema_version: 1
+book_version: 1
+hatmax:
+  minimum: 0.4.0
+  maximum_exclusive: 0.5.0
+capabilities:
+  - capabilities/postgres-persistence.yaml
+  - capabilities/runtime-validation.yaml
+  - capabilities/htmx-form.yaml
+archetypes:
+  - archetypes/server-rendered-crud.yaml
+rules:
+  - rules/dependencies-use-owned-primitive.yaml
+  - rules/feature-cohesive-package.yaml
+  - rules/http-feature-owned-handler.yaml
+  - rules/lifecycle-explicit-wiring.yaml
+  - rules/persistence-postgres-sqlc.yaml
+  - rules/web-server-rendered-htmx.yaml
+  - rules/validation-layered.yaml
+  - rules/testing-required-boundaries.yaml
+  - rules/documentation-explicit-intent.yaml

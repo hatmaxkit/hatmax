@@ -1,0 +1,39 @@
+id: runtime_validation
+intent: Validate user and domain data through Hatmax validation primitives and durable invariants.
+surfaces:
+  - model
+  - handler
+  - tests
+packages:
+  - hatmax.adrianpk.com/model
+  - hatmax.adrianpk.com/validation
+obligations:
+  - id: domain_validation
+    surfaces:
+      - model
+    rules:
+      - hatmax.validation.layered
+  - id: form_validation
+    surfaces:
+      - handler
+    rules:
+      - hatmax.validation.layered
+    depends_on:
+      - domain_validation
+  - id: validation_tests
+    surfaces:
+      - tests
+    rules:
+      - hatmax.validation.layered
+      - hatmax.testing.required_boundaries
+    depends_on:
+      - domain_validation
+      - form_validation
+rules:
+  - hatmax.dependencies.use_owned_primitive
+  - hatmax.validation.layered
+  - hatmax.testing.required_boundaries
+unsupported:
+  - alternate validation frameworks
+  - template-only durable validation
+  - JavaScript-only durable validation

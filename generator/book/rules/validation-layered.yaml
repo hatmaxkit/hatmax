@@ -1,0 +1,24 @@
+id: hatmax.validation.layered
+level: required
+title: Validate at every boundary that owns the invariant
+rationale: Form feedback improves interaction, while domain and persistence checks protect durable state independently of HTTP.
+applies_when:
+  - runtime_validation is selected
+requires:
+  - durable invariants are enforced by the domain
+  - applicable durable invariants use Postgres constraints
+  - forms return structured user-safe field errors
+prohibits:
+  - template-only durable validation
+  - JavaScript-only durable validation
+  - alternate validation frameworks
+diagnostics:
+  - HMGEN-VALIDATION-OWNER
+  - HMGEN-VALIDATION-SUBSTITUTION
+capabilities:
+  - runtime_validation
+  - htmx_form
+archetypes:
+  - server_rendered_crud
+negative_examples:
+  - examples/negative/alternate-validation.go.txt

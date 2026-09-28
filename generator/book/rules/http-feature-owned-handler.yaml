@@ -1,0 +1,22 @@
+id: hatmax.http.feature_owned_handler
+level: required
+title: Register routes through a feature-owned handler
+rationale: Feature-owned route registration keeps transport dependencies local and wiring explicit.
+applies_when:
+  - the archetype includes a handler surface
+requires:
+  - the handler implements RegisterRoutes with chi.Router
+  - the handler depends on a consumer-owned service interface
+prohibits:
+  - direct database or SQLC access from handlers
+  - hidden service construction inside handlers
+diagnostics:
+  - HMGEN-HANDLER-BOUNDARY
+capabilities:
+  - htmx_form
+archetypes:
+  - server_rendered_crud
+positive_examples:
+  - examples/positive/feature-handler.go.txt
+negative_examples:
+  - examples/negative/direct-database-handler.go.txt

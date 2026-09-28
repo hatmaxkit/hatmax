@@ -1,0 +1,7 @@
+type Handler struct {
+	database *sql.DB
+}
+
+func (h *Handler) create(writer http.ResponseWriter, request *http.Request) {
+	_, _ = h.database.ExecContext(request.Context(), "INSERT INTO properties ...")
+}
