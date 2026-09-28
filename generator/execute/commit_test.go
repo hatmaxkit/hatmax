@@ -36,6 +36,7 @@ func TestWorkspaceCommitsAllStagedTargets(t *testing.T) {
 	if err != nil {
 		t.Fatalf("find temporary files: %v", err)
 	}
+
 	if len(stagedFiles) != 0 {
 		t.Errorf("temporary files remain after commit: %v", stagedFiles)
 	}
@@ -92,14 +93,17 @@ func stageCreateFeature(t *testing.T, workspace *Workspace, root string) {
 			mutation.Content = fixtureContent(edit.Target)
 		} else {
 			mutation.Kind = MutationReplace
+
 			content, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(edit.Target)))
 			if err != nil {
 				t.Fatalf("read update target %q: %v", edit.Target, err)
 			}
+
 			mutation.Content = content
 		}
 
-		if _, err := workspace.Stage(mutation); err != nil {
+		_, err := workspace.Stage(mutation)
+		if err != nil {
 			t.Fatalf("Stage(%q) error = %v", edit.ID, err)
 		}
 	}

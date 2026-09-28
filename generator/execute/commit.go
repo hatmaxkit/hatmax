@@ -64,17 +64,20 @@ func (w *Workspace) Commit(ctx context.Context) (Result, error) {
 		return w.verifyCommittedState()
 	}
 
-	if result, err := w.revalidateProject(ctx); err != nil {
-		return result, err
+	validationResult, err := w.revalidateProject(ctx)
+	if err != nil {
+		return validationResult, err
 	}
 
-	if result, err := w.revalidateSnapshots(); err != nil {
-		return result, err
+	validationResult, err = w.revalidateSnapshots()
+	if err != nil {
+		return validationResult, err
 	}
 
 	prepared, createdDirectories, err := w.prepareTargets()
 	if err != nil {
 		diagnostic := executionDiagnostic("HMGEN-EXEC-PREPARE", Edit{}, "temporary target preparation failed", "all targets prepared", false)
+
 		cleanupPrepared(prepared)
 		removeCreatedDirectories(createdDirectories)
 
@@ -88,23 +91,28 @@ func (w *Workspace) Commit(ctx context.Context) (Result, error) {
 			continue
 		}
 
-		if result, changed, applyErr := w.applyPrepared(index, item); applyErr != nil {
+		applyResult, changed, applyErr := w.applyPrepared(index, item)
+		if applyErr != nil {
 			cleanupPrepared(prepared[index:])
+
 			if changed {
 				applied = append(applied, item)
 			}
 
-			return w.rollback(applied, createdDirectories, item.staged.edit, applyErr, result.Diagnostics)
+			return w.rollback(applied, createdDirectories, item.staged.edit, applyErr, applyResult.Diagnostics)
 		}
 
 		prepared[index].tempPath = ""
+
 		applied = append(applied, item)
 	}
 
 	cleanupPrepared(prepared)
+
 	w.committed = true
 
 	changes := w.resultChanges(ChangeApplied)
+
 	status := ExecutionApplied
 	if len(applied) == 0 {
 		status = ExecutionAlreadySatisfied
@@ -194,6 +202,7 @@ func (w *Workspace) prepareTargets() ([]preparedTarget, []string, error) {
 		if err != nil {
 			return prepared, append(createdDirectories, created...), err
 		}
+
 		createdDirectories = append(createdDirectories, created...)
 
 		target, err = secureTargetPath(w.root, edit.Target)
@@ -215,7 +224,8 @@ func (w *Workspace) prepareTargets() ([]preparedTarget, []string, error) {
 		prepared[len(prepared)-1].target = target
 		prepared[len(prepared)-1].tempPath = tempPath
 
-		if err = writeTemporary(temporary, staged.content, mode); err != nil {
+		err = writeTemporary(temporary, staged.content, mode)
+		if err != nil {
 			return prepared, createdDirectories, fmt.Errorf("prepare %s: %w", edit.Target, err)
 		}
 	}
@@ -224,6 +234,15 @@ func (w *Workspace) prepareTargets() ([]preparedTarget, []string, error) {
 }
 
 func (w *Workspace) applyPrepared(index int, item preparedTarget) (Result, bool, error) {
+	if w.hooks.beforeApply != nil {
+		err := w.hooks.beforeApply(index, item.staged.edit)
+		if err != nil {
+			diagnostic := executionDiagnostic("HMGEN-EXEC-APPLY", item.staged.edit, err.Error(), "target applied", true)
+
+			return failedResult(w.manifest.Digest, []Diagnostic{diagnostic}), false, err
+		}
+	}
+
 	current, err := readTargetState(w.root, item.staged.edit.Target)
 	if err != nil || !sameSnapshot(current, w.snapshots[item.staged.edit.ID]) {
 		observed := "unreadable"
@@ -242,21 +261,15 @@ func (w *Workspace) applyPrepared(index int, item preparedTarget) (Result, bool,
 		return failedResult(w.manifest.Digest, []Diagnostic{diagnostic}), false, executionError("execution_conflict", item.staged.edit.Target, "target changed during commit")
 	}
 
-	if w.hooks.beforeApply != nil {
-		if err = w.hooks.beforeApply(index, item.staged.edit); err != nil {
-			diagnostic := executionDiagnostic("HMGEN-EXEC-APPLY", item.staged.edit, err.Error(), "target applied", true)
-
-			return failedResult(w.manifest.Digest, []Diagnostic{diagnostic}), false, err
-		}
-	}
-
-	if err = os.Rename(item.tempPath, item.target); err != nil {
+	err = os.Rename(item.tempPath, item.target)
+	if err != nil {
 		diagnostic := executionDiagnostic("HMGEN-EXEC-APPLY", item.staged.edit, err.Error(), "target applied", true)
 
 		return failedResult(w.manifest.Digest, []Diagnostic{diagnostic}), false, err
 	}
 
-	if err = syncDirectory(filepath.Dir(item.target)); err != nil {
+	err = syncDirectory(filepath.Dir(item.target))
+	if err != nil {
 		diagnostic := executionDiagnostic("HMGEN-EXEC-APPLY", item.staged.edit, err.Error(), "target directory synchronized", true)
 
 		return failedResult(w.manifest.Digest, []Diagnostic{diagnostic}), true, err
@@ -269,7 +282,8 @@ func (w *Workspace) applyPrepared(index int, item preparedTarget) (Result, bool,
 		return failedResult(w.manifest.Digest, []Diagnostic{diagnostic}), true, executionError("execution_postcondition_failed", item.staged.edit.Target, "committed target does not match staged content")
 	}
 
-	if err = validatePostconditions(item.staged.edit, current.content); err != nil {
+	err = validatePostconditions(item.staged.edit, current.content)
+	if err != nil {
 		diagnostic := executionDiagnostic("HMGEN-EXEC-APPLY", item.staged.edit, err.Error(), "postconditions satisfied", true)
 
 		return failedResult(w.manifest.Digest, []Diagnostic{diagnostic}), true, err
@@ -289,20 +303,25 @@ func (w *Workspace) rollback(
 
 	for index := len(applied) - 1; index >= 0; index-- {
 		item := applied[index]
+
 		current, err := readTargetState(w.root, item.staged.edit.Target)
 		if err != nil || current.digest != contentDigest(item.staged.content) {
 			recoveryPaths = append(recoveryPaths, item.staged.edit.Target)
+
 			continue
 		}
 
 		if w.hooks.beforeRollback != nil {
-			if err = w.hooks.beforeRollback(index, item.staged.edit); err != nil {
+			err = w.hooks.beforeRollback(index, item.staged.edit)
+			if err != nil {
 				recoveryPaths = append(recoveryPaths, item.staged.edit.Target)
+
 				continue
 			}
 		}
 
-		if err = restoreSnapshot(item.target, w.snapshots[item.staged.edit.ID]); err != nil {
+		err = restoreSnapshot(item.target, w.snapshots[item.staged.edit.ID])
+		if err != nil {
 			recoveryPaths = append(recoveryPaths, item.staged.edit.Target)
 		}
 	}
@@ -360,6 +379,7 @@ func (w *Workspace) resultChanges(appliedStatus ChangeStatus) []Change {
 	result := make([]Change, 0, len(w.manifest.Edits))
 	for _, edit := range w.manifest.Edits {
 		staged := w.staged[edit.ID]
+
 		status := staged.status
 		if status == ChangeStaged {
 			status = appliedStatus
@@ -413,12 +433,14 @@ func sameSnapshot(left, right targetSnapshot) bool {
 
 func ensureTargetDirectory(root, directory string) ([]string, error) {
 	missing := make([]string, 0)
+
 	current := directory
 	for current != root {
 		_, err := os.Lstat(current)
 		if err == nil {
 			break
 		}
+
 		if !errors.Is(err, os.ErrNotExist) {
 			return missing, err
 		}
@@ -427,7 +449,8 @@ func ensureTargetDirectory(root, directory string) ([]string, error) {
 		current = filepath.Dir(current)
 	}
 
-	if err := os.MkdirAll(directory, 0o755); err != nil {
+	err := os.MkdirAll(directory, 0o755)
+	if err != nil {
 		return missing, err
 	}
 
@@ -439,10 +462,13 @@ func writeTemporary(file *os.File, content []byte, mode fs.FileMode) error {
 	if writeErr == nil {
 		writeErr = file.Sync()
 	}
+
 	if writeErr == nil {
 		writeErr = file.Chmod(mode)
 	}
+
 	closeErr := file.Close()
+
 	if writeErr != nil {
 		return writeErr
 	}
@@ -452,7 +478,8 @@ func writeTemporary(file *os.File, content []byte, mode fs.FileMode) error {
 
 func restoreSnapshot(target string, snapshot targetSnapshot) error {
 	if !snapshot.exists {
-		if err := os.Remove(target); err != nil && !errors.Is(err, os.ErrNotExist) {
+		err := os.Remove(target)
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
 			return err
 		}
 
@@ -465,13 +492,16 @@ func restoreSnapshot(target string, snapshot targetSnapshot) error {
 	}
 
 	tempPath := temporary.Name()
-	if err = writeTemporary(temporary, snapshot.content, snapshot.mode); err != nil {
+
+	err = writeTemporary(temporary, snapshot.content, snapshot.mode)
+	if err != nil {
 		_ = os.Remove(tempPath)
 
 		return err
 	}
 
-	if err = os.Rename(tempPath, target); err != nil {
+	err = os.Rename(tempPath, target)
+	if err != nil {
 		_ = os.Remove(tempPath)
 
 		return err
@@ -488,6 +518,7 @@ func syncDirectory(directory string) error {
 
 	syncErr := file.Sync()
 	closeErr := file.Close()
+
 	if syncErr != nil {
 		return syncErr
 	}
@@ -505,11 +536,13 @@ func cleanupPrepared(values []preparedTarget) {
 
 func uniqueDeepestFirst(values []string) []string {
 	seen := make(map[string]struct{}, len(values))
+
 	result := make([]string, 0, len(values))
 	for _, value := range values {
 		if _, exists := seen[value]; exists {
 			continue
 		}
+
 		seen[value] = struct{}{}
 		result = append(result, value)
 	}

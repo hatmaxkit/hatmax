@@ -26,6 +26,7 @@ func (w *Workspace) Stage(mutation Mutation) (Change, error) {
 	}
 
 	snapshot := w.snapshots[edit.ID]
+
 	content, status, err := applyMutation(edit, snapshot, mutation)
 	if err != nil {
 		return Change{}, err
@@ -39,7 +40,8 @@ func (w *Workspace) Stage(mutation Mutation) (Change, error) {
 		return Change{}, executionError("execution_limit_exceeded", "edits", "staged content exceeds the %d-byte workspace limit", MaximumStagedBytes)
 	}
 
-	if err = validatePostconditions(edit, content); err != nil {
+	err = validatePostconditions(edit, content)
+	if err != nil {
 		return Change{}, err
 	}
 
@@ -127,6 +129,7 @@ func applyInsertion(edit Edit, snapshot targetSnapshot, mutation Mutation) ([]by
 	}
 
 	anchorIndex := bytes.Index(snapshot.content, mutation.Anchor)
+
 	insertAt := anchorIndex
 	if mutation.Position == InsertAfter {
 		insertAt += len(mutation.Anchor)
@@ -162,7 +165,8 @@ func validatePostconditions(edit Edit, content []byte) error {
 		case ConditionPathPresent:
 			continue
 		case ConditionGoParses:
-			if _, err := parser.ParseFile(token.NewFileSet(), edit.Target, content, parser.AllErrors); err != nil {
+			_, err := parser.ParseFile(token.NewFileSet(), edit.Target, content, parser.AllErrors)
+			if err != nil {
 				return executionError("execution_postcondition_failed", edit.Target, "staged Go source does not parse: %v", err)
 			}
 		case ConditionContentContains:

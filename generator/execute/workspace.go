@@ -114,11 +114,13 @@ func OpenWorkspace(
 	value plan.Plan,
 	inventory project.Inventory,
 ) (*Workspace, error) {
-	if err := VerifyDigest(manifest); err != nil {
+	err := VerifyDigest(manifest)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := plan.VerifyDigest(value); err != nil {
+	err = plan.VerifyDigest(value)
+	if err != nil {
 		return nil, executionError("execution_plan_invalid", "plan", "%v", err)
 	}
 
@@ -137,7 +139,8 @@ func OpenWorkspace(
 		return nil, executionError("execution_project_inspection_failed", "project", "%v", err)
 	}
 
-	if err = validateFreshness(value, current); err != nil {
+	err = validateFreshness(value, current)
+	if err != nil {
 		return nil, err
 	}
 
@@ -175,6 +178,7 @@ func captureTarget(root string, edit Edit) (targetSnapshot, error) {
 	info, err := os.Lstat(target)
 	if errors.Is(err, os.ErrNotExist) {
 		snapshot := targetSnapshot{digest: "missing"}
+
 		if conditionPresent(edit.Preconditions, ConditionPathPresent) || conditionPresent(edit.Preconditions, ConditionPathDigest) {
 			return targetSnapshot{}, executionError("execution_precondition_failed", edit.Target, "target must exist")
 		}
@@ -226,11 +230,13 @@ func secureTargetPath(root, target string) (string, error) {
 	}
 
 	absolute := filepath.Join(root, filepath.FromSlash(target))
+
 	parent := filepath.Dir(absolute)
 	for parent != root {
 		info, statErr := os.Lstat(parent)
 		if errors.Is(statErr, os.ErrNotExist) {
 			parent = filepath.Dir(parent)
+
 			continue
 		}
 
@@ -267,19 +273,23 @@ func conditionPresent(values []Condition, expected ConditionKind) bool {
 func cloneManifest(value Manifest) Manifest {
 	result := value
 	result.AllowedSurfaces = append([]string{}, value.AllowedSurfaces...)
+
 	result.Edits = make([]Edit, len(value.Edits))
 	for index, edit := range value.Edits {
 		result.Edits[index] = edit
+
 		result.Edits[index].Obligations = make([]Obligation, len(edit.Obligations))
 		for obligationIndex, obligation := range edit.Obligations {
 			result.Edits[index].Obligations[obligationIndex] = obligation
 			result.Edits[index].Obligations[obligationIndex].Rules = append([]string{}, obligation.Rules...)
 		}
+
 		result.Edits[index].DependsOn = append([]string{}, edit.DependsOn...)
 		result.Edits[index].Preconditions = append([]Condition{}, edit.Preconditions...)
 		result.Edits[index].Postconditions = append([]Condition{}, edit.Postconditions...)
 		result.Edits[index].Slots = append([]ImplementationSlot{}, edit.Slots...)
 	}
+
 	result.Commands = make([]Command, len(value.Commands))
 	for index, command := range value.Commands {
 		result.Commands[index] = command
