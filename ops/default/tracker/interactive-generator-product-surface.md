@@ -16,7 +16,7 @@ Base branch: `dev`
 Planning base: `ec16a4df27c6bb3ee6004d6303195f4717da73de`
 Active slice: Slice 4
 Active tasks: none
-Execution gate: Slice 4 implementation and deterministic validation complete; report ready for review
+Execution gate: Slice 4 pull request #35 open for review
 
 ## Slice Status
 
@@ -25,7 +25,7 @@ Execution gate: Slice 4 implementation and deterministic validation complete; re
 | Slice 1 | Interpreter contracts | delivered | `feat/generator-interpreter-contracts` | `feat(slice-1): define interactive interpreter contracts` | #32 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-1-interpreter-contracts.md` |
 | Slice 2 | Codex App Server runtime | delivered | `feat/generator-codex-app-server` | `feat(slice-2): connect the Codex App Server runtime` | #33 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-2-codex-app-server-runtime.md` |
 | Slice 3 | Codex interpreter | delivered | `feat/generator-codex-interpreter` | `feat(slice-3): interpret Hatmax requests with Codex` | #34 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-3-codex-interpreter.md` |
-| Slice 4 | Interaction coordinator | active | `feat/generator-interaction-coordinator` | `feat(slice-4): coordinate interactive generation` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-4-interaction-coordinator.md` |
+| Slice 4 | Interaction coordinator | active | `feat/generator-interaction-coordinator` | `feat(slice-4): coordinate interactive generation` | #35 | `ops/default/report/slices/interactive-generator-product-surface/slice-4-interaction-coordinator.md` |
 | Slice 5 | Terminal product surface | pending | `feat/generator-terminal-surface` | `feat(slice-5): expose the Hatmax generator command` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-5-terminal-product-surface.md` |
 
 ## Slice 1 Tasks
@@ -84,7 +84,7 @@ Execution gate: Slice 4 implementation and deterministic validation complete; re
 ## Current Gate
 
 Slice 4 implementation and deterministic validation are complete on
-`feat/generator-interaction-coordinator`. Its report is ready for review and
-the pull request is pending. Slice 5 remains blocked until Slice 4 is reviewed
-and merged into `dev`. The standalone Codex daemon prerequisite remains open
-for the later exact-candidate smoke.
+`feat/generator-interaction-coordinator`. Its report is ready and pull request
+#35 is open for review. Slice 5 remains blocked until Slice 4 is reviewed and
+merged into `dev`. The standalone Codex daemon prerequisite remains open for
+the later exact-candidate smoke.
