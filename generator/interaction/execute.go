@@ -77,16 +77,45 @@ func (c *Coordinator) Run(ctx context.Context, root, prompt string) Result {
 }
 
 func renderPlan(value plan.Plan, manifest execute.Manifest, inventory project.Inventory) ([]execute.Mutation, error) {
+	mutations := make([]execute.Mutation, 0, len(manifest.Edits))
+
 	switch value.Intent {
 	case intent.OperationCreateFeature:
-		return execute.RenderCreateFeature(value, manifest, inventory)
+		implementation, err := execute.RenderCreateFeature(value, manifest, inventory)
+		if err != nil {
+			return nil, err
+		}
+
+		mutations = append(mutations, implementation...)
 	case intent.OperationAddField:
-		return execute.RenderAddField(value, manifest, inventory)
+		implementation, err := execute.RenderAddField(value, manifest, inventory)
+		if err != nil {
+			return nil, err
+		}
+
+		mutations = append(mutations, implementation...)
 	case intent.OperationAddValidation:
-		return execute.RenderAddValidation(value, manifest, inventory)
+		implementation, err := execute.RenderAddValidation(value, manifest, inventory)
+		if err != nil {
+			return nil, err
+		}
+
+		mutations = append(mutations, implementation...)
+	case intent.OperationDocumentFeature:
 	default:
 		return nil, fmt.Errorf("no canonical renderer for operation %q", value.Intent)
 	}
+
+	if value.Documentation != intent.DocumentationNotRequested {
+		documentation, err := execute.RenderDocumentation(value, manifest, inventory)
+		if err != nil {
+			return nil, err
+		}
+
+		mutations = append(mutations, documentation...)
+	}
+
+	return mutations, nil
 }
 
 func executionDiagnostics(values []execute.Diagnostic, phase Phase) []Diagnostic {

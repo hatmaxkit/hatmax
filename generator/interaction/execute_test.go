@@ -54,6 +54,109 @@ func TestCoordinatorRunsEveryCanonicalOperationWithoutGitEffects(t *testing.T) {
 	}
 }
 
+func TestCoordinatorRunsPureDocumentationWithoutImplementationEffects(t *testing.T) {
+	installFixtureCommands(t, false)
+
+	root := copySupportedProject(t)
+	writeCanonicalCompositionRoot(t, root)
+	appendFixtureFile(t, root, "Makefile", "\ndocs-check:\n\t@echo docs\n")
+	createCoordinator := newTestCoordinator(t, operationInterpreter(intent.OperationCreateFeature), approvingPort(), nil)
+
+	created := createCoordinator.Run(context.Background(), root, "Create an invoice feature.")
+	if created.Outcome != OutcomeCompleted {
+		t.Fatalf("create prerequisite = %#v, want completed", created)
+	}
+
+	interpreter := &functionInterpreter{interpret: func(_ context.Context, request eval.Request) (eval.InterpreterResult, error) {
+		value := baseIntent(request, intent.OperationDocumentFeature)
+		value.Capabilities = []string{"postgres_persistence"}
+		value.Documentation = intent.DocumentationExisting
+		value.DocumentationTargets = []intent.DocumentationTarget{{
+			Quadrant:   intent.DocumentationReference,
+			Subject:    "invoice",
+			ReaderGoal: "Find the exact invoice contract.",
+		}}
+
+		return intentInterpreterResult(value), nil
+	}}
+	coordinator := newTestCoordinator(t, interpreter, approvingPort(), nil)
+
+	result := coordinator.Run(context.Background(), root, "Document the invoice reference.")
+	if result.Outcome != OutcomeCompleted || result.Manifest == nil || result.Execution == nil {
+		t.Fatalf("Run() = %#v, want completed documentation interaction", result)
+	}
+
+	for _, edit := range result.Manifest.Edits {
+		if edit.Surface != "documentation" {
+			t.Errorf("manifest edit %#v exceeds documentation-only scope", edit)
+		}
+	}
+
+	for _, target := range []string{"docs/index.md", "docs/reference/index.md", "docs/reference/invoice/index.md"} {
+		_, err := os.Stat(filepath.Join(root, filepath.FromSlash(target)))
+		if err != nil {
+			t.Errorf("documentation target %q: %v", target, err)
+		}
+	}
+}
+
+func TestCoordinatorRunsCombinedImplementationAndDocumentationUnderOneApproval(t *testing.T) {
+	installFixtureCommands(t, false)
+
+	root := copySupportedProject(t)
+	writeCanonicalCompositionRoot(t, root)
+	appendFixtureFile(t, root, "Makefile", "\ndocs-check:\n\t@echo docs\n")
+
+	interpreter := &functionInterpreter{interpret: func(_ context.Context, request eval.Request) (eval.InterpreterResult, error) {
+		value := createFeatureIntent(request)
+		value.Documentation = intent.DocumentationPlanned
+		value.DocumentationTargets = []intent.DocumentationTarget{{
+			Quadrant:   intent.DocumentationReference,
+			Subject:    "invoice",
+			ReaderGoal: "Find the exact invoice contract.",
+		}}
+
+		return intentInterpreterResult(value), nil
+	}}
+	approver := approvingPort()
+	coordinator := newTestCoordinator(t, interpreter, approver, nil)
+
+	result := coordinator.Run(context.Background(), root, "Create and document an invoice feature.")
+	if result.Outcome != OutcomeCompleted || result.Report == nil || !result.Report.Conformance.Passed {
+		t.Fatalf("Run() = %#v, want completed combined interaction", result)
+	}
+
+	if approver.calls != 1 {
+		t.Fatalf("approval calls = %d, want one combined approval", approver.calls)
+	}
+
+	_, err := os.Stat(filepath.Join(root, "internal", "feat", "invoice", "model.go"))
+	if err != nil {
+		t.Errorf("generated implementation: %v", err)
+	}
+
+	_, err = os.Stat(filepath.Join(root, "docs", "reference", "invoice", "index.md"))
+	if err != nil {
+		t.Errorf("generated documentation: %v", err)
+	}
+
+	changed := make(map[string]bool)
+
+	for _, change := range result.Execution.Changes {
+		if change.Status == execute.ChangeApplied {
+			for _, edit := range result.Manifest.Edits {
+				if edit.ID == change.EditID {
+					changed[edit.Surface] = true
+				}
+			}
+		}
+	}
+
+	if !changed["model"] || !changed["documentation"] {
+		t.Errorf("changed surfaces = %v, want implementation and documentation", changed)
+	}
+}
+
 func TestCoordinatorRetainsChangesAndEvidenceAfterValidationFailure(t *testing.T) {
 	installFixtureCommands(t, true)
 
@@ -234,12 +337,32 @@ func main() {
 	migrator := buildMigrator()
 	tmplMgr := buildTemplates()
 	deps := []any{database, migrator, tmplMgr}
-	app.Setup(context.Background(), nil, deps...)
+app.Setup(context.Background(), nil, deps...)
 }
 `
 
 	err := os.WriteFile(filepath.Join(root, "main.go"), []byte(source), 0o644)
 	if err != nil {
 		t.Fatalf("write canonical composition root: %v", err)
+	}
+}
+
+func appendFixtureFile(t *testing.T, root, relative, content string) {
+	t.Helper()
+
+	file, err := os.OpenFile(filepath.Join(root, filepath.FromSlash(relative)), os.O_APPEND|os.O_WRONLY, 0)
+	if err != nil {
+		t.Fatalf("open fixture file: %v", err)
+	}
+
+	_, writeErr := file.WriteString(content)
+	closeErr := file.Close()
+
+	if writeErr != nil {
+		t.Fatalf("append fixture file: %v", writeErr)
+	}
+
+	if closeErr != nil {
+		t.Fatalf("close fixture file: %v", closeErr)
 	}
 }

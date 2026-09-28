@@ -45,6 +45,8 @@ func checkDocumentationConformance(snapshot conformanceSnapshot, diagnostics *[]
 	}
 
 	edits := documentationManifestEdits(snapshot, expected, diagnostics)
+	checkExecutedDocumentationEvidence(snapshot, *evidence, diagnostics)
+
 	for _, target := range documentationPlan.Targets {
 		checkDocumentationTarget(snapshot, edits[target.Path], target, *evidence, diagnostics)
 	}
@@ -52,6 +54,61 @@ func checkDocumentationConformance(snapshot conformanceSnapshot, diagnostics *[]
 	for _, index := range documentationPlan.Indexes {
 		checkDocumentationIndex(snapshot, edits[index.Path], index, diagnostics)
 	}
+}
+
+func checkExecutedDocumentationEvidence(
+	snapshot conformanceSnapshot,
+	expected project.FeatureEvidence,
+	diagnostics *[]Diagnostic,
+) {
+	actual, err := snapshot.inventory.InspectFeatureEvidence(snapshot.value.Feature)
+	if err != nil {
+		addConformanceDiagnostic(diagnostics, documentationEvidenceCode, documentationDiataxisRule, "documentation", "feature_evidence", "executed feature evidence is unavailable", "inspectable canonical feature evidence")
+
+		return
+	}
+
+	if !sameExecutedFeatureEvidence(expected, actual) {
+		addConformanceDiagnostic(diagnostics, documentationEvidenceCode, documentationDiataxisRule, "documentation", "feature_evidence", "executed behavior differs from planned documentation evidence", "matching executed feature contract")
+	}
+}
+
+func sameExecutedFeatureEvidence(expected, actual project.FeatureEvidence) bool {
+	return expected.Feature == actual.Feature && expected.Entity == actual.Entity &&
+		(expected.Label == "" || expected.Label == actual.Label) && expected.Route == actual.Route &&
+		expected.Table == actual.Table && sameFeatureFields(expected.Fields, actual.Fields) &&
+		sameFeatureValidations(expected.Validations, actual.Validations) &&
+		expected.Postgres == actual.Postgres && expected.HTMX == actual.HTMX &&
+		expected.RuntimeValidation == actual.RuntimeValidation && expected.Wired == actual.Wired &&
+		expected.Tested == actual.Tested
+}
+
+func sameFeatureFields(left, right []project.FeatureFieldEvidence) bool {
+	if len(left) != len(right) {
+		return false
+	}
+
+	for index := range left {
+		if left[index] != right[index] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func sameFeatureValidations(left, right []project.FeatureValidationEvidence) bool {
+	if len(left) != len(right) {
+		return false
+	}
+
+	for index := range left {
+		if left[index] != right[index] {
+			return false
+		}
+	}
+
+	return true
 }
 
 func checkInactiveDocumentation(snapshot conformanceSnapshot, diagnostics *[]Diagnostic) {
