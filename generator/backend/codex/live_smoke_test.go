@@ -48,6 +48,18 @@ func TestAuthenticatedLiveSmoke(t *testing.T) {
 		t.Fatalf("same-project request did not reuse runtime and thread: %#v", second.Provenance)
 	}
 
+	documentation, err := interpreter.Interpret(ctx, liveDocumentationSmokeRequest())
+	if err != nil {
+		t.Fatalf("authenticated documentation smoke failed: %v", err)
+	}
+
+	value := documentation.Interpretation.Intent
+	if documentation.Interpretation.Kind != eval.InterpretationIntent || value == nil ||
+		value.Operation != "document_feature" || value.Documentation != "document_existing_behavior" ||
+		len(value.DocumentationTargets) != 1 || value.DocumentationTargets[0].Quadrant != "reference" {
+		t.Fatalf("authenticated documentation smoke returned invalid bounded intent: %#v", documentation.Interpretation)
+	}
+
 	isolated, err := NewLocalInterpreter(InterpreterConfig{
 		ContextRoot:     contextRoot,
 		ProjectIdentity: "hatmax-authenticated-live-smoke-isolated-v1",
@@ -87,7 +99,7 @@ func liveSmokeRequest() eval.Request {
 			Version: 1,
 			Archetypes: []eval.ArchetypeContext{{
 				ID:                   "server_rendered_crud",
-				Operations:           []string{"create_feature", "add_field", "add_validation"},
+				Operations:           []string{"create_feature", "add_field", "add_validation", "document_feature"},
 				RequiredCapabilities: []string{"postgres_persistence", "htmx_form", "runtime_validation"},
 			}},
 			Capabilities: []eval.CapabilityContext{
@@ -97,4 +109,12 @@ func liveSmokeRequest() eval.Request {
 			},
 		},
 	}
+}
+
+func liveDocumentationSmokeRequest() eval.Request {
+	request := liveSmokeRequest()
+	request.Prompt = "Document the existing invoice feature as reference for readers who need its exact contract"
+	request.Project.ExistingFeatures = []string{"invoice"}
+
+	return request
 }

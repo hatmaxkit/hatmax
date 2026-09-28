@@ -177,6 +177,178 @@ func TestTerminalSurfaceReportsPrincipalFailurePaths(t *testing.T) {
 	})
 }
 
+func TestTerminalSurfaceGeneratesBoxedDocumentation(t *testing.T) {
+	installCLICommands(t, false)
+
+	root := copyCLIProject(t)
+	writeCLICompositionRoot(t, root)
+	appendCLIFile(t, root, "Makefile", "\ndocs-check:\n\t@echo docs\n")
+
+	interpreter := &cliInterpreter{interpret: interpretCLIDocumentation}
+
+	exitCode, _, _, created := runCLIRequest(t, root, "yes\n", "Create an invoice feature.", interpreter, nil)
+	if exitCode != ExitSuccess || created == nil || created.Outcome != interaction.OutcomeCompleted {
+		t.Fatalf("ordinary generation = exit %d, result %#v; want completed", exitCode, created)
+	}
+
+	_, err := os.Stat(filepath.Join(root, "docs"))
+	if !os.IsNotExist(err) {
+		t.Fatalf("ordinary generation created documentation without intent: %v", err)
+	}
+
+	exitCode, output, _, documented := runCLIRequest(t, root, "yes\n", "Document every invoice reader need.", interpreter, nil)
+	if exitCode != ExitSuccess || documented == nil || documented.Outcome != interaction.OutcomeCompleted {
+		t.Fatalf("documentation generation = exit %d, result %#v; want completed", exitCode, documented)
+	}
+
+	for _, target := range []string{
+		"docs/tutorials/invoice-basics/index.md",
+		"docs/how-to/invoice-workflow/index.md",
+		"docs/reference/invoice/index.md",
+		"docs/explanation/invoice-ownership/index.md",
+	} {
+		_, err = os.Stat(filepath.Join(root, filepath.FromSlash(target)))
+		if err != nil {
+			t.Errorf("generated documentation target %q: %v", target, err)
+		}
+	}
+
+	for _, expected := range []string{
+		"Documentation: document_existing_behavior",
+		"tutorial: subject=invoice_basics",
+		"how_to: subject=invoice_workflow",
+		"reference: subject=invoice",
+		"explanation: subject=invoice_ownership",
+		"Conformance passed: true",
+	} {
+		if !strings.Contains(output, expected) {
+			t.Errorf("documentation output does not contain %q:\n%s", expected, output)
+		}
+	}
+
+	referencePath := filepath.Join(root, "docs", "reference", "invoice", "index.md")
+
+	reference, err := os.ReadFile(referencePath)
+	if err != nil {
+		t.Fatalf("read generated reference: %v", err)
+	}
+
+	userPrefix := "User introduction.\n\n"
+	userSuffix := "\nUser follow-up.\n"
+
+	err = os.WriteFile(referencePath, append(append([]byte(userPrefix), reference...), []byte(userSuffix)...), 0o644)
+	if err != nil {
+		t.Fatalf("add user documentation: %v", err)
+	}
+
+	exitCode, output, _, regenerated := runCLIRequest(t, root, "yes\n", "Document every invoice reader need.", interpreter, nil)
+	if exitCode != ExitSuccess || regenerated == nil || regenerated.Outcome != interaction.OutcomeCompleted {
+		t.Fatalf("documentation regeneration = exit %d, result %#v; want completed", exitCode, regenerated)
+	}
+
+	regeneratedReference, err := os.ReadFile(referencePath)
+	if err != nil {
+		t.Fatalf("read regenerated reference: %v", err)
+	}
+
+	if !strings.HasPrefix(string(regeneratedReference), userPrefix) || !strings.HasSuffix(string(regeneratedReference), userSuffix) {
+		t.Fatalf("regeneration did not preserve user-owned bytes: %q", regeneratedReference)
+	}
+
+	if !strings.Contains(output, "docs/reference/invoice/index.md: unchanged ownership=outside_content_preserved") {
+		t.Errorf("regeneration output omitted preservation evidence:\n%s", output)
+	}
+
+	unmanaged := strings.ReplaceAll(string(regeneratedReference), "<!-- hatmax:generated:start -->\n", "")
+	unmanaged = strings.ReplaceAll(unmanaged, "<!-- hatmax:generated:end -->", "")
+
+	err = os.WriteFile(referencePath, []byte(unmanaged), 0o644)
+	if err != nil {
+		t.Fatalf("write unmanaged conflict: %v", err)
+	}
+
+	beforeConflict := snapshotCLIProject(t, root)
+
+	exitCode, output, _, conflict := runCLIRequest(t, root, "", "Document every invoice reader need.", interpreter, nil)
+	if exitCode != ExitFailure || conflict == nil || conflict.Outcome != interaction.OutcomeFailed {
+		t.Fatalf("unmanaged conflict = exit %d, result %#v; want failed", exitCode, conflict)
+	}
+
+	if !strings.Contains(output, "plan_documentation_conflict") {
+		t.Errorf("unmanaged conflict output omitted exact failure:\n%s", output)
+	}
+
+	assertEqualCLISnapshots(t, beforeConflict, snapshotCLIProject(t, root))
+}
+
+func TestTerminalSurfaceGeneratesCombinedDocumentationAndReportsGateFailure(t *testing.T) {
+	t.Run("combined planned change", func(t *testing.T) {
+		installCLICommands(t, false)
+
+		root := copyCLIProject(t)
+		writeCLICompositionRoot(t, root)
+		appendCLIFile(t, root, "Makefile", "\ndocs-check:\n\t@echo docs\n")
+		before := snapshotCLIProject(t, root)
+
+		exitCode, output, _, result := runCLIRequest(
+			t,
+			root,
+			"yes\n",
+			"Create and document an invoice feature.",
+			&cliInterpreter{interpret: interpretCLIDocumentation},
+			nil,
+		)
+		if exitCode != ExitSuccess || result == nil || result.Outcome != interaction.OutcomeCompleted {
+			t.Fatalf("combined generation = exit %d, result %#v; want completed", exitCode, result)
+		}
+
+		for _, target := range []string{
+			"internal/feat/invoice/model.go",
+			"docs/reference/invoice/index.md",
+		} {
+			_, err := os.Stat(filepath.Join(root, filepath.FromSlash(target)))
+			if err != nil {
+				t.Errorf("combined target %q: %v", target, err)
+			}
+		}
+
+		if !strings.Contains(output, "Documentation: document_planned_change") || !strings.Contains(output, "Changed surfaces:") {
+			t.Errorf("combined output omitted documentation plan or execution ownership:\n%s", output)
+		}
+
+		assertDeclaredCLIChanges(t, before, snapshotCLIProject(t, root), result)
+	})
+
+	t.Run("documentation gate failure", func(t *testing.T) {
+		installCLIDocumentationCommands(t, true)
+
+		root := copyCLIProject(t)
+		writeCLICompositionRoot(t, root)
+		appendCLIFile(t, root, "Makefile", "\ndocs-check:\n\t@echo docs\n")
+
+		exitCode, output, _, result := runCLIRequest(
+			t,
+			root,
+			"yes\n",
+			"Create and document an invoice feature.",
+			&cliInterpreter{interpret: interpretCLIDocumentation},
+			nil,
+		)
+		if exitCode != ExitExecutionFailed || result == nil || result.Outcome != interaction.OutcomeExecutionFailed {
+			t.Fatalf("documentation gate failure = exit %d, result %#v; want execution_failed", exitCode, result)
+		}
+
+		if !strings.Contains(output, "Command validation.docs-check:") || !strings.Contains(output, "exit=9") {
+			t.Errorf("documentation gate failure omitted command evidence:\n%s", output)
+		}
+
+		_, err := os.Stat(filepath.Join(root, "docs", "reference", "invoice", "index.md"))
+		if err != nil {
+			t.Errorf("documentation gate failure removed retained documentation: %v", err)
+		}
+	})
+}
+
 type cliInterpreter struct {
 	interpret func(context.Context, eval.Request) (eval.InterpreterResult, error)
 }
@@ -280,6 +452,38 @@ func interpretCLIOperation(_ context.Context, request eval.Request) (eval.Interp
 	}
 
 	value := cliIntent(request, operation)
+
+	return cliInterpreterResult(eval.Interpretation{
+		SchemaVersion: eval.CurrentInterpretationSchemaVersion,
+		Kind:          eval.InterpretationIntent,
+		Intent:        &value,
+	}), nil
+}
+
+func interpretCLIDocumentation(_ context.Context, request eval.Request) (eval.InterpreterResult, error) {
+	var value intent.Intent
+
+	switch request.Prompt {
+	case "Create an invoice feature.":
+		value = cliIntent(request, intent.OperationCreateFeature)
+	case "Create and document an invoice feature.":
+		value = cliIntent(request, intent.OperationCreateFeature)
+		value.Documentation = intent.DocumentationPlanned
+		value.DocumentationTargets = []intent.DocumentationTarget{{
+			Quadrant: intent.DocumentationReference, Subject: "invoice", ReaderGoal: "Find the exact invoice contract.",
+		}}
+	case "Document every invoice reader need.":
+		value = cliIntent(request, intent.OperationDocumentFeature)
+		value.Documentation = intent.DocumentationExisting
+		value.DocumentationTargets = []intent.DocumentationTarget{
+			{Quadrant: intent.DocumentationTutorial, Subject: "invoice_basics", ReaderGoal: "Learn the invoice workflow."},
+			{Quadrant: intent.DocumentationHowTo, Subject: "invoice_workflow", ReaderGoal: "Complete the invoice workflow."},
+			{Quadrant: intent.DocumentationReference, Subject: "invoice", ReaderGoal: "Find the exact invoice contract."},
+			{Quadrant: intent.DocumentationExplanation, Subject: "invoice_ownership", ReaderGoal: "Understand invoice ownership."},
+		}
+	default:
+		return eval.InterpreterResult{}, fmt.Errorf("unexpected documentation test prompt %q", request.Prompt)
+	}
 
 	return cliInterpreterResult(eval.Interpretation{
 		SchemaVersion: eval.CurrentInterpretationSchemaVersion,
@@ -405,6 +609,41 @@ func installCLICommands(t *testing.T, failValidation bool) {
 	writeCLIExecutable(t, filepath.Join(directory, "make"), makeSource)
 	writeCLIExecutable(t, filepath.Join(directory, "sqlc"), "#!/bin/sh\nexit 0\n")
 	t.Setenv("PATH", directory+string(os.PathListSeparator)+os.Getenv("PATH"))
+}
+
+func installCLIDocumentationCommands(t *testing.T, failDocumentation bool) {
+	t.Helper()
+
+	directory := t.TempDir()
+	makeSource := "#!/bin/sh\nexit 0\n"
+
+	if failDocumentation {
+		makeSource = "#!/bin/sh\nif [ \"$1\" = \"docs-check\" ]; then\n  echo documentation validation failed\n  exit 9\nfi\nexit 0\n"
+	}
+
+	writeCLIExecutable(t, filepath.Join(directory, "make"), makeSource)
+	writeCLIExecutable(t, filepath.Join(directory, "sqlc"), "#!/bin/sh\nexit 0\n")
+	t.Setenv("PATH", directory+string(os.PathListSeparator)+os.Getenv("PATH"))
+}
+
+func appendCLIFile(t *testing.T, root, relative, content string) {
+	t.Helper()
+
+	file, err := os.OpenFile(filepath.Join(root, filepath.FromSlash(relative)), os.O_APPEND|os.O_WRONLY, 0)
+	if err != nil {
+		t.Fatalf("open CLI fixture file: %v", err)
+	}
+
+	_, writeErr := file.WriteString(content)
+	closeErr := file.Close()
+
+	if writeErr != nil {
+		t.Fatalf("append CLI fixture file: %v", writeErr)
+	}
+
+	if closeErr != nil {
+		t.Fatalf("close CLI fixture file: %v", closeErr)
+	}
 }
 
 func writeCLIExecutable(t *testing.T, path, content string) {

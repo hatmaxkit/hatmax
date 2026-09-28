@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   inspectable Hatmax plan, requires explicit approval, applies only canonical
   Book-owned project changes, and reports conformance and repository validation
   evidence through a resident Codex session.
+- Explicit documentation requests now generate the smallest warranted
+  tutorial, how-to, reference, or explanation surface from sealed Hatmax
+  evidence, preserving user-authored Markdown outside managed sections.
 
 ## [0.4.0] - 2026-09-28
 
