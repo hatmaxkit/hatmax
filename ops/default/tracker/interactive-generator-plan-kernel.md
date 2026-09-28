@@ -14,7 +14,7 @@ Specs:
 Base branch: `dev`
 Planning base: `28e2b943d2267d903561eb2c5d6f7ad13c31a51a`
 Active slice: Slice 5
-Active tasks: T5.1, T5.2, T5.3
+Active tasks: none
 Execution gate: Slice 4 merged into `dev` at `697feb9`
 
 ## Slice Status
@@ -25,7 +25,7 @@ Execution gate: Slice 4 merged into `dev` at `697feb9`
 | Slice 2 | Project inventory | delivered | `feat/generator-project-inventory` | `feat(slice-2): inventory Hatmax projects` | #23 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-2-project-inventory.md` |
 | Slice 3 | Intent validation | delivered | `feat/generator-intent-validation` | `feat(slice-3): validate generator intents` | #24 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-3-intent-validation.md` |
 | Slice 4 | Deterministic planning | delivered | `feat/generator-deterministic-planning` | `feat(slice-4): expand deterministic generator plans` | #25 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-4-deterministic-planning.md` |
-| Slice 5 | Planning evaluation | pending | `test/generator-planning-evaluation` | `test(slice-5): validate generator planning` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-5-planning-evaluation.md` |
+| Slice 5 | Planning evaluation | reviewing | `test/generator-planning-evaluation` | `test(slice-5): validate generator planning` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-5-planning-evaluation.md` |
 
 ## Slice 1 Tasks
 
@@ -63,9 +63,9 @@ Execution gate: Slice 4 merged into `dev` at `697feb9`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T5.1 | pending | `test(generator): add the planning corpus` | pending | pending |
-| T5.2 | pending | `feat(generator): define interpreter evaluation` | pending | pending |
-| T5.3 | pending | `test(generator): exercise the plan kernel` | pending | pending |
+| T5.1 | complete | `test(generator): add the planning corpus` | `d0677d0` | `go test ./generator/...`; `go test -race ./generator/eval/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T5.2 | complete | `feat(generator): define interpreter evaluation` | `8e3195b` | `go test ./generator/...`; `go test -race ./generator/eval/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T5.3 | complete | `test(generator): exercise the plan kernel` | `663b17f` | `go test ./generator/...`; `go test -race ./generator/eval/...`; `make vet`; `make lint-strict`; `git diff --check` passed; `make check` pending Docker access |
 
 ## Completion Gates
 
@@ -81,6 +81,7 @@ Execution gate: Slice 4 merged into `dev` at `697feb9`
 
 ## Current Gate
 
-Slice 4 was delivered through pull request #25 and merged into `dev` at
-`697feb9`. Slice 5 is ready to begin from that integrated commit on
-`test/generator-planning-evaluation`.
+Slice 5 implementation and focused validation are complete on
+`test/generator-planning-evaluation`. Pull-request publication and maintainer
+review are pending. The Docker-backed aggregate gate remains pending on a
+capable host or CI; local `make check` could not access the Docker socket.
