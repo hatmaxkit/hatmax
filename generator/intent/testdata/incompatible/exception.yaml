@@ -1,0 +1,18 @@
+schema_version: 1
+operation: add_field
+project_fingerprint: sha256:0000000000000000000000000000000000000000000000000000000000000000
+hatmax_version: 0.4.0
+book_version: 1
+archetype: server_rendered_crud
+feature: property
+domain:
+  field:
+    name: notes
+    type: text
+capabilities:
+  - postgres_persistence
+exceptions:
+  - rule: hatmax.persistence.postgres_sqlc
+    reason: A bounded legacy adapter is required.
+    scope: property store only
+    approved: true

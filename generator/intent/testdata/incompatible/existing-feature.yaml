@@ -1,0 +1,15 @@
+schema_version: 1
+operation: create_feature
+project_fingerprint: sha256:0000000000000000000000000000000000000000000000000000000000000000
+hatmax_version: 0.4.0
+book_version: 1
+archetype: server_rendered_crud
+feature: property
+domain:
+  entity: Property
+  route: /properties
+  fields:
+    - name: name
+      type: string
+capabilities:
+  - postgres_persistence
