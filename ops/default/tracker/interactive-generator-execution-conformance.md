@@ -14,8 +14,8 @@ Specs:
 Base branch: `dev`
 Planning base: `9b7e0d9e71da8297665e42695459e5eb33c739e0`
 Active slice: Slice 4
-Active tasks: T4.1-T4.3
-Execution gate: Slice 3 merged as `6c7df8a`; Slice 4 ready to start
+Active tasks: none
+Execution gate: Slice 4 implementation and validation complete; pull request pending
 
 ## Slice Status
 
@@ -24,7 +24,7 @@ Execution gate: Slice 3 merged as `6c7df8a`; Slice 4 ready to start
 | Slice 1 | Execution manifest | delivered | `feat/generator-execution-manifest` | `feat(slice-1): define generator execution manifests` | #27 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-1-execution-manifest.md` |
 | Slice 2 | Atomic application | delivered | `feat/generator-atomic-application` | `feat(slice-2): apply generator edits atomically` | #28 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-2-atomic-application.md` |
 | Slice 3 | CRUD generation | delivered | `feat/generator-crud-generation` | `feat(slice-3): generate canonical Hatmax CRUD features` | #29 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-3-crud-generation.md` |
-| Slice 4 | Incremental mutations | active | `feat/generator-incremental-mutations` | `feat(slice-4): mutate canonical Hatmax features` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-4-incremental-mutations.md` |
+| Slice 4 | Incremental mutations | reviewing | `feat/generator-incremental-mutations` | `feat(slice-4): mutate canonical Hatmax features` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-4-incremental-mutations.md` |
 | Slice 5 | Execution conformance | pending | `test/generator-execution-conformance` | `test(slice-5): validate generator execution conformance` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-5-execution-conformance.md` |
 
 ## Slice 1 Tasks
@@ -55,9 +55,9 @@ Execution gate: Slice 3 merged as `6c7df8a`; Slice 4 ready to start
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T4.1 | pending | `feat(generator): inspect canonical feature structure` | pending | pending |
-| T4.2 | pending | `feat(generator): add fields across CRUD surfaces` | pending | pending |
-| T4.3 | pending | `feat(generator): add layered feature validation` | pending | pending |
+| T4.1 | complete | `feat(generator): inspect canonical feature structure` | `8954f6e` | `go test ./generator/execute/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T4.2 | complete | `feat(generator): add fields across CRUD surfaces` | `0f64e59` | `go test ./generator/execute/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T4.3 | complete | `feat(generator): add layered feature validation` | `55c666e` | `go test ./generator/execute/...`; `go test -race ./generator/execute/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
 
 ## Slice 5 Tasks
 
@@ -80,6 +80,6 @@ Execution gate: Slice 3 merged as `6c7df8a`; Slice 4 ready to start
 
 ## Current Gate
 
-Slice 3 was merged through pull request #29 as exact integrated candidate
-`6c7df8a`. Slice 4 may begin from that `dev` state on
-`feat/generator-incremental-mutations`.
+Slice 4 implementation and validation are complete on
+`feat/generator-incremental-mutations`. Its pull request must be opened against
+`dev` and merged before Slice 5 begins.
