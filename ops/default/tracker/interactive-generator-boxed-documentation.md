@@ -1,6 +1,6 @@
 # Interactive Generator Boxed Documentation Tracker
 
-Status: Approved
+Status: Delivered
 Delivery set: interactive-generator-boxed-documentation
 Plan: `ops/default/plan/interactive-generator-boxed-documentation.md`
 Umbrella spec: `ops/default/spec/interactive-hatmax-generator.md`
@@ -14,9 +14,9 @@ Specs:
 
 Base branch: `dev`
 Planning base: `1549e663d0d5648e00cdcc7e5fae1c50c5dd29c3`
-Active slice: Slice 4
+Active slice: Complete
 Active tasks: none
-Execution gate: Slice 4 tasks complete, pull request #44 pending
+Execution gate: passed on integrated `dev` commit `3d0dffb`
 
 ## Slice Status
 
@@ -25,7 +25,7 @@ Execution gate: Slice 4 tasks complete, pull request #44 pending
 | Slice 1 | Documentation contracts | delivered | `feat/generator-documentation-contracts` | `feat(slice-1): define boxed documentation contracts` | #41 | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-1-documentation-contracts.md` |
 | Slice 2 | Documentation inventory and planning | delivered | `feat/generator-documentation-planning` | `feat(slice-2): plan boxed documentation changes` | #42 | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-2-documentation-planning.md` |
 | Slice 3 | Diataxis rendering and conformance | delivered | `feat/generator-documentation-rendering` | `feat(slice-3): render boxed Diataxis documentation` | #43 | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-3-documentation-rendering.md` |
-| Slice 4 | Interactive documentation product | active | `feat/generator-documentation-product` | `feat(slice-4): deliver interactive documentation generation` | #44 | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-4-documentation-product.md` |
+| Slice 4 | Interactive documentation product | delivered | `feat/generator-documentation-product` | `feat(slice-4): deliver interactive documentation generation` | #44 (merged) | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-4-documentation-product.md` |
 
 ## Slice 1 Tasks
 
@@ -67,16 +67,23 @@ Execution gate: Slice 4 tasks complete, pull request #44 pending
 - [x] Slice 1 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 2 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 3 is delivered through its branch, report, pull request, and merge.
-- [ ] Slice 4 is delivered through its branch, report, pull request, and merge.
-- [ ] The exact integrated `dev` candidate passes deterministic, repository,
+- [x] Slice 4 is delivered through its branch, report, pull request, and merge.
+- [x] The exact integrated `dev` candidate passes deterministic, repository,
   documentation, preservation, project-isolation, and authenticated Codex
   gates.
 
 ## Current Gate
 
-Slices 1 through 3 were merged through PRs #41, #42, and #43. Slice 4
-implementation and validation are complete on
-`feat/generator-documentation-product`; its report is ready and the pull
-request is #44. The delivery-set gate remains pending until Slice 4 is
-reviewed and merged into `dev`. The three generator hardening tickets remain
-outside this delivery set.
+The delivery set is closed on integrated `dev` commit `3d0dffb`. Pull requests
+#41 through #44 delivered the contracts, inventory and planning, deterministic
+rendering and conformance, and interactive product surface. `make check`
+passed with 82.3% aggregate coverage and zero strict-lint findings; the
+complete generator corpus passed with the race detector; focused terminal
+acceptance proved no implicit documentation, pure and combined requests, all
+four quadrants, regeneration preservation, unmanaged conflicts, retained
+gate failures, and declared-effect isolation. The authenticated smoke passed
+with Codex and App Server 0.158.0, including explicit documentation intent,
+resident runtime reuse, same-project thread reuse, and different-project
+thread isolation. `make docs-check` and `git diff --check` also passed. The
+three generator hardening tickets remain outside this delivery set. No
+`main` alignment, mirror update, tag, or release is implied.

@@ -1,11 +1,11 @@
 # Slice 4: Interactive Documentation Product
 
-Status: reviewing
+Status: delivered
 Delivery set: interactive-generator-boxed-documentation
 Plan: `ops/default/plan/interactive-generator-boxed-documentation.md`
 Tracker: `ops/default/tracker/interactive-generator-boxed-documentation.md`
 Branch: `feat/generator-documentation-product`
-PR: #44
+PR: #44 (merged)
 
 ## Purpose
 
@@ -71,6 +71,12 @@ request and requires Codex to return a typed `document_feature` intent with
 - `make docs-check` passed.
 - `git diff --check` passed.
 
+The exact integrated `dev` candidate
+`3d0dffb10016574d1c3f300a3fb8162eef1f2d41` passed `make check` with
+82.3% aggregate coverage, the complete generator corpus with the race
+detector, focused terminal documentation acceptance, the authenticated
+documentation smoke, `make docs-check`, and `git diff --check`.
+
 ## Risks and Follow-ups
 
 The default shell path currently resolves Codex 0.153.0 while the resident
@@ -79,5 +85,5 @@ installed 0.158.0 executable explicitly. Runtime version mismatch continues
 to fail closed as specified.
 
 The three generator-quality hardening tickets remain outside this delivery
-set. Delivery-set closure still requires validation of the exact integrated
-`dev` commit after this slice merges.
+set. The delivery set is closed. No `main` alignment, mirror update, tag, or
+release is implied.
