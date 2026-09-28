@@ -236,6 +236,12 @@ func (client *Client) handleMessage(value []byte) error {
 
 	if envelope.Method != "" {
 		notification := Notification{Method: envelope.Method, Params: cloneRawMessage(envelope.Params)}
+
+		err := forbiddenToolNotification(notification)
+		if err != nil {
+			return err
+		}
+
 		select {
 		case client.notifications <- notification:
 			return nil
