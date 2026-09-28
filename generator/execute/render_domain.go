@@ -3,6 +3,8 @@ package execute
 import (
 	"fmt"
 	"strings"
+
+	"hatmax.adrianpk.com/generator/intent"
 )
 
 var domainRenderers = map[string]recipeRenderer{
@@ -18,7 +20,13 @@ var domainRenderers = map[string]recipeRenderer{
 func renderModel(context renderContext, edit Edit) ([]byte, error) {
 	var source strings.Builder
 	fmt.Fprintf(&source, "package %s\n\n", context.feature)
-	source.WriteString("import (\n\t\"time\"\n\n\t\"hatmax.adrianpk.com/model\"\n\t\"hatmax.adrianpk.com/validation\"\n)\n\n")
+	source.WriteString("import (\n")
+
+	if context.validation != nil && context.validation.Kind == "pattern" {
+		source.WriteString("\t\"regexp\"\n")
+	}
+
+	source.WriteString("\t\"time\"\n\n\t\"hatmax.adrianpk.com/model\"\n\t\"hatmax.adrianpk.com/validation\"\n)\n\n")
 	fmt.Fprintf(&source, "// %s is the feature-owned domain entity.\ntype %s struct {\n", context.entity, context.entity)
 	source.WriteString("\tID string\n")
 
@@ -55,7 +63,7 @@ func renderModel(context renderContext, edit Edit) ([]byte, error) {
 	source.WriteString("\tvar errors validation.ValidationErrors\n")
 
 	for _, field := range context.fields {
-		renderFieldValidation(&source, field)
+		renderFieldValidation(&source, field, context.validation)
 	}
 
 	source.WriteString("\n\tif errors.HasErrors() {\n\t\treturn errors\n\t}\n\n\treturn nil\n}\n")
@@ -63,11 +71,13 @@ func renderModel(context renderContext, edit Edit) ([]byte, error) {
 	return formatGo(edit.Target, source.String())
 }
 
-func renderFieldValidation(source *strings.Builder, field renderField) {
+func renderFieldValidation(source *strings.Builder, field renderField, rule *intent.ValidationRule) {
+	customRequired := rule != nil && rule.Field == field.Name && rule.Scope == intent.ValidationDurable && rule.Kind == "required"
+
 	if field.ParseKind == "string" || field.ParseKind == "text" || field.ParseKind == "decimal" || field.ParseKind == "uuid" {
 		fmt.Fprintf(source, "\n\t%sValidator := validation.Field(%q, value.%s)", field.Name, field.Name, field.GoName)
 
-		if field.Required {
+		if field.Required && !customRequired {
 			source.WriteString(".Required()")
 		}
 
@@ -78,12 +88,65 @@ func renderFieldValidation(source *strings.Builder, field renderField) {
 		fmt.Fprintf(source, "\n\terrors.Merge(%sValidator.Errors())\n", field.Name)
 	}
 
-	if field.Required && (field.ParseKind == "date" || field.ParseKind == "timestamp") {
+	if field.Required && !customRequired && (field.ParseKind == "date" || field.ParseKind == "timestamp") {
 		fmt.Fprintf(source, "\n\tif value.%s.IsZero() {\n\t\terrors.Add(%q, \"is required\")\n\t}\n", field.GoName, field.Name)
 	}
 
 	if field.ParseKind == "uuid" {
 		fmt.Fprintf(source, "\n\tif value.%s != \"\" {\n\t\tif _, err := model.ParseID(value.%s); err != nil {\n\t\t\terrors.Add(%q, \"must be a valid UUID\")\n\t\t}\n\t}\n", field.GoName, field.GoName, field.Name)
+	}
+
+	if rule != nil && rule.Field == field.Name && rule.Scope == intent.ValidationDurable {
+		renderAdditionalValidation(source, field, *rule)
+	}
+}
+
+func renderAdditionalValidation(source *strings.Builder, field renderField, rule intent.ValidationRule) {
+	message := validationMessage(rule)
+
+	switch rule.Kind {
+	case "required":
+		condition := "value." + field.GoName + ` == ""`
+		if field.GoType == "time.Time" {
+			condition = "value." + field.GoName + ".IsZero()"
+		} else if field.GoType == "int64" {
+			condition = "value." + field.GoName + " == 0"
+		}
+
+		fmt.Fprintf(source, "\n\tif %s {\n\t\terrors.Add(%q, %q)\n\t}\n", condition, field.Name, message)
+	case "min_length":
+		fmt.Fprintf(source, "\n\tif value.%s != \"\" && len(value.%s) < %s {\n\t\terrors.Add(%q, %q)\n\t}\n", field.GoName, field.GoName, rule.Value, field.Name, message)
+	case "max_length":
+		fmt.Fprintf(source, "\n\tif len(value.%s) > %s {\n\t\terrors.Add(%q, %q)\n\t}\n", field.GoName, rule.Value, field.Name, message)
+	case "minimum":
+		fmt.Fprintf(source, "\n\tif value.%s < %s {\n\t\terrors.Add(%q, %q)\n\t}\n", field.GoName, rule.Value, field.Name, message)
+	case "maximum":
+		fmt.Fprintf(source, "\n\tif value.%s > %s {\n\t\terrors.Add(%q, %q)\n\t}\n", field.GoName, rule.Value, field.Name, message)
+	case "pattern":
+		fmt.Fprintf(source, "\n\tif value.%s != \"\" && !regexp.MustCompile(%q).MatchString(value.%s) {\n\t\terrors.Add(%q, %q)\n\t}\n", field.GoName, rule.Value, field.GoName, field.Name, message)
+	}
+}
+
+func validationMessage(rule intent.ValidationRule) string {
+	if strings.TrimSpace(rule.Message) != "" {
+		return rule.Message
+	}
+
+	switch rule.Kind {
+	case "maximum":
+		return "must be at most " + rule.Value
+	case "max_length":
+		return "must be at most " + rule.Value + " characters"
+	case "minimum":
+		return "must be at least " + rule.Value
+	case "min_length":
+		return "must be at least " + rule.Value + " characters"
+	case "pattern":
+		return "has an invalid format"
+	case "required":
+		return "is required"
+	default:
+		return "is invalid"
 	}
 }
 
@@ -215,6 +278,10 @@ func renderModelTests(context renderContext, edit Edit) ([]byte, error) {
 	var source strings.Builder
 	fmt.Fprintf(&source, "package %s\n\nimport (\n\t\"testing\"\n", context.feature)
 
+	if context.validation != nil && (context.validation.Kind == "min_length" || context.validation.Kind == "max_length") {
+		source.WriteString("\t\"strings\"\n")
+	}
+
 	if fieldsNeedTime(context.fields) {
 		source.WriteString("\t\"time\"\n")
 	}
@@ -232,7 +299,65 @@ func renderModelTests(context renderContext, edit Edit) ([]byte, error) {
 	fmt.Fprintf(&source, "\t\t\tvalue, err := New%s(test.input)\n", context.entity)
 	source.WriteString("\t\t\tif (err != nil) != test.wantError { t.Fatalf(\"error = %v, wantError %v\", err, test.wantError) }\n\t\t\tif !test.wantError && (value.ID == \"\" || value.CreatedAt.IsZero() || value.UpdatedAt.IsZero()) { t.Error(\"constructor did not establish identity and timestamps\") }\n\t\t})\n\t}\n}\n")
 
+	if context.validation != nil && context.validation.Scope == intent.ValidationDurable && context.validation.Kind != "unique" {
+		renderValidationModelTest(&source, context)
+	}
+
 	return formatGo(edit.Target, source.String())
+}
+
+func renderValidationModelTest(source *strings.Builder, context renderContext) {
+	field, found := renderFieldByName(context.fields, context.validation.Field)
+	if !found {
+		return
+	}
+
+	fmt.Fprintf(source, "\nfunc Test%sRejects%sValidation(t *testing.T) {\n", context.entity, exportedName(context.validation.Field))
+	fmt.Fprintf(source, "\tinput := %sInput{%s}\n", context.entity, renderTestInput(context.fields, true))
+	fmt.Fprintf(source, "\tinput.%s = %s\n", field.GoName, invalidValidationValue(field, *context.validation))
+	fmt.Fprintf(source, "\tif _, err := New%s(input); err == nil { t.Fatal(\"New%s() error = nil, want validation failure\") }\n}\n", context.entity, context.entity)
+}
+
+func renderFieldByName(fields []renderField, name string) (renderField, bool) {
+	for _, field := range fields {
+		if field.Name == name {
+			return field, true
+		}
+	}
+
+	return renderField{}, false
+}
+
+func invalidValidationValue(field renderField, rule intent.ValidationRule) string {
+	switch rule.Kind {
+	case "required":
+		return zeroValue(field)
+	case "minimum":
+		return rule.Value + " - 1"
+	case "maximum":
+		return rule.Value + " + 1"
+	case "min_length":
+		return fmt.Sprintf("strings.Repeat(\"x\", %s-1)", rule.Value)
+	case "max_length":
+		return fmt.Sprintf("strings.Repeat(\"x\", %s+1)", rule.Value)
+	case "pattern":
+		return `"invalid"`
+	default:
+		return testValue(field, false)
+	}
+}
+
+func zeroValue(field renderField) string {
+	switch field.GoType {
+	case "bool":
+		return "false"
+	case "int64":
+		return "0"
+	case "time.Time":
+		return "time.Time{}"
+	default:
+		return `""`
+	}
 }
 
 func renderServiceTests(context renderContext, edit Edit) ([]byte, error) {

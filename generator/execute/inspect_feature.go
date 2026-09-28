@@ -84,28 +84,67 @@ func inspectCanonicalFeature(value plan.Plan, manifest Manifest, inventory proje
 		}
 	}
 
-	model := contentForRecipe(manifest, result.contents, "model")
+	canonicalFiles := []struct {
+		role   string
+		base   string
+		recipe string
+	}{
+		{role: "model", base: "model.go", recipe: "server_rendered_crud.model"},
+		{role: "store", base: "store.go", recipe: "server_rendered_crud.store_contract"},
+		{role: "postgres_store", base: "postgres_store.go", recipe: "server_rendered_crud.postgres_store"},
+		{role: "service", base: "service.go", recipe: "server_rendered_crud.service"},
+		{role: "handler", base: "handler.go", recipe: "server_rendered_crud.handler"},
+		{role: "model_tests", base: "model_test.go", recipe: "server_rendered_crud.model_tests"},
+		{role: "service_tests", base: "service_test.go", recipe: "server_rendered_crud.service_tests"},
+		{role: "handler_tests", base: "handler_test.go", recipe: "server_rendered_crud.handler_tests"},
+		{role: "postgres_store_tests", base: "postgres_store_test.go", recipe: "server_rendered_crud.postgres_store_tests"},
+		{role: "queries", base: value.Feature + ".sql", recipe: "server_rendered_crud.queries"},
+		{role: "page_template", base: "page.html", recipe: "server_rendered_crud.page_template"},
+		{role: "form_template", base: "form.html", recipe: "server_rendered_crud.form_template"},
+		{role: "row_template", base: "row.html", recipe: "server_rendered_crud.row_template"},
+	}
+
+	for _, canonical := range canonicalFiles {
+		path, found := canonicalFeaturePath(inventory, value.Feature, canonical.role, canonical.base)
+		if !found {
+			return canonicalFeature{}, featureStructureError(canonical.base, "canonical feature target is missing")
+		}
+
+		content, readErr := readFeatureTarget(inventory.Root, Edit{Target: path})
+		if readErr != nil {
+			return canonicalFeature{}, readErr
+		}
+
+		validateErr := validateFeatureTarget(Edit{Target: path, Recipe: canonical.recipe}, content)
+		if validateErr != nil {
+			return canonicalFeature{}, validateErr
+		}
+
+		result.contents[canonical.role] = content
+	}
+
+	model := result.contents["model"]
 
 	inputs, entity, err := discoverModel(model)
 	if err != nil {
 		return canonicalFeature{}, featureStructureError("model.go", "%v", err)
 	}
 
-	form := contentForRecipe(manifest, result.contents, "form_template")
+	form := result.contents["form_template"]
 
 	formFields := discoverFormFields(form)
 	if len(inputs) == 0 || len(inputs) != len(formFields) {
 		return canonicalFeature{}, featureStructureError("form.html", "model input and form field counts differ")
 	}
 
-	queries := contentForRecipe(manifest, result.contents, "queries")
+	queries := result.contents["queries"]
 
 	tableMatch := queryTablePattern.FindSubmatch(queries)
 	if len(tableMatch) != 2 {
 		return canonicalFeature{}, featureStructureError("queries", "canonical table query is missing")
 	}
 
-	handler := contentForRecipe(manifest, result.contents, "handler")
+	handler := result.contents["handler"]
 	routeMatch := routePattern.FindSubmatch(handler)
 
 	labelMatch := labelPattern.FindSubmatch(handler)
@@ -151,6 +190,37 @@ func inspectCanonicalFeature(value plan.Plan, manifest Manifest, inventory proje
 	}
 
 	return result, nil
+}
+
+func canonicalFeaturePath(inventory project.Inventory, feature, role, base string) (string, bool) {
+	featureSegments := []string{"/feat/" + feature + "/", "/features/" + feature + "/"}
+	templateSegment := "/templates/" + feature + "/"
+
+	for _, file := range inventory.Files() {
+		candidate := "/" + file.Path
+		if filepath.Base(file.Path) != base {
+			continue
+		}
+
+		switch role {
+		case "queries":
+			if containsString(file.Surfaces, "store") && filepath.Ext(file.Path) == ".sql" {
+				return file.Path, true
+			}
+		case "page_template", "form_template", "row_template":
+			if strings.Contains(candidate, templateSegment) {
+				return file.Path, true
+			}
+		default:
+			for _, featureSegment := range featureSegments {
+				if strings.Contains(candidate, featureSegment) {
+					return file.Path, true
+				}
+			}
+		}
+	}
+
+	return "", false
 }
 
 func readFeatureTarget(root string, edit Edit) ([]byte, error) {
@@ -232,16 +302,6 @@ func hasTestFunction(file *ast.File) bool {
 	}
 
 	return false
-}
-
-func contentForRecipe(manifest Manifest, contents map[string][]byte, suffix string) []byte {
-	for _, edit := range manifest.Edits {
-		if strings.HasSuffix(edit.Recipe, suffix) {
-			return contents[edit.ID]
-		}
-	}
-
-	return nil
 }
 
 func discoverModel(content []byte) ([]discoveredInputField, string, error) {

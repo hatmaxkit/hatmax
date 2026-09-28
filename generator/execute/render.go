@@ -26,6 +26,7 @@ type renderContext struct {
 	label      string
 	plural     string
 	fields     []renderField
+	validation *intent.ValidationRule
 }
 
 type renderField struct {

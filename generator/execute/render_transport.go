@@ -2,6 +2,7 @@ package execute
 
 import (
 	"fmt"
+	"html"
 	"strings"
 )
 
@@ -221,7 +222,7 @@ func renderFormTemplate(context renderContext, _ Edit) ([]byte, error) {
 		if field.HTMLType == "checkbox" {
 			fmt.Fprintf(&source, "    <input type=\"checkbox\" name=\"%s\" value=\"true\">\n", field.Name)
 		} else {
-			fmt.Fprintf(&source, "    <input type=\"%s\" name=\"%s\" value=\"{{index .Values %q}}\"%s>\n", field.HTMLType, field.Name, field.Name, requiredAttribute(field))
+			fmt.Fprintf(&source, "    <input type=\"%s\" name=\"%s\" value=\"{{index .Values %q}}\"%s>\n", field.HTMLType, field.Name, field.Name, validationAttributes(context, field))
 		}
 
 		fmt.Fprintf(&source, "    {{with .Errors.First %q}}<span role=\"alert\">{{.}}</span>{{end}}\n  </label>\n", field.Name)
@@ -240,7 +241,7 @@ func renderRowTemplate(context renderContext, _ Edit) ([]byte, error) {
 		if field.HTMLType == "checkbox" {
 			fmt.Fprintf(&source, "\n    <label>%s <input type=\"checkbox\" name=\"%s\" value=\"true\" {{if .%s}}checked{{end}}></label>", field.Label, field.Name, field.GoName)
 		} else {
-			fmt.Fprintf(&source, "\n    <label>%s <input type=\"%s\" name=\"%s\" value=\"{{.%s}}\"%s></label>", field.Label, field.HTMLType, field.Name, field.GoName, requiredAttribute(field))
+			fmt.Fprintf(&source, "\n    <label>%s <input type=\"%s\" name=\"%s\" value=\"{{.%s}}\"%s></label>", field.Label, field.HTMLType, field.Name, field.GoName, validationAttributes(context, field))
 		}
 	}
 
@@ -250,16 +251,58 @@ func renderRowTemplate(context renderContext, _ Edit) ([]byte, error) {
 	return []byte(source.String()), nil
 }
 
-func requiredAttribute(field renderField) string {
-	if field.Required {
-		return " required"
+func validationAttributes(context renderContext, field renderField) string {
+	attributes := ""
+	if field.Required || (context.validation != nil && context.validation.Field == field.Name && context.validation.Kind == "required") {
+		attributes += " required"
 	}
 
-	return ""
+	if context.validation == nil || context.validation.Field != field.Name {
+		return attributes
+	}
+
+	switch context.validation.Kind {
+	case "minimum":
+		attributes += " min=\"" + context.validation.Value + "\""
+	case "maximum":
+		attributes += " max=\"" + context.validation.Value + "\""
+	case "min_length":
+		attributes += " minlength=\"" + context.validation.Value + "\""
+	case "max_length":
+		attributes += " maxlength=\"" + context.validation.Value + "\""
+	case "pattern":
+		attributes += " pattern=\"" + html.EscapeString(context.validation.Value) + "\""
+	}
+
+	return attributes
 }
 
 func renderHandlerTests(context renderContext, edit Edit) ([]byte, error) {
 	validForm := renderFormValues(context.fields)
+	validationImport := ""
+	validationTest := ""
+
+	if context.validation != nil {
+		validationImport = "\n\t\"hatmax.adrianpk.com/validation\""
+		validationTest = fmt.Sprintf(`
+
+func TestHandlerMapsValidationErrors(t *testing.T) {
+	service := &handlerService{createErr: validation.NewSingleError(%q, %q)}
+	renderer := &renderedTemplate{}
+	handler := NewHandler(service, renderer, log.NewNoopLogger())
+	router := chi.NewRouter()
+	handler.RegisterRoutes(router)
+
+	request := httptest.NewRequest(http.MethodPost, %q, strings.NewReader(%q))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	request.Header.Set("HX-Request", "true")
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+	if response.Code != http.StatusUnprocessableEntity || renderer.name != "form" || !renderer.partial { t.Fatalf("validation response = %%d, %%#v", response.Code, renderer) }
+}
+`, context.validation.Field, validationMessage(*context.validation), context.route, validForm)
+	}
+
 	source := fmt.Sprintf(`package %s
 
 import (
@@ -270,12 +313,12 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"hatmax.adrianpk.com/log"
+	"hatmax.adrianpk.com/log"%s
 )
 
-type handlerService struct { created bool }
+type handlerService struct { created bool; createErr error }
 func (service *handlerService) List(context.Context) ([]%s, error) { return nil, nil }
-func (service *handlerService) Create(_ context.Context, _ %sInput) (*%s, error) { service.created = true; return &%s{ID: "created"}, nil }
+func (service *handlerService) Create(_ context.Context, _ %sInput) (*%s, error) { if service.createErr != nil { return nil, service.createErr }; service.created = true; return &%s{ID: "created"}, nil }
 func (service *handlerService) Update(context.Context, string, %sInput) (*%s, error) { return &%s{ID: "updated"}, nil }
 func (service *handlerService) Delete(context.Context, string) error { return nil }
 
@@ -300,8 +343,8 @@ func TestHandlerRendersPageAndHTMXCreate(t *testing.T) {
 	created := httptest.NewRecorder()
 	router.ServeHTTP(created, request)
 	if created.Code != http.StatusOK || !service.created || renderer.name != "row" || !renderer.partial { t.Fatalf("create response = %%d, %%#v", created.Code, renderer) }
-}
-`, context.feature, context.entity, context.entity, context.entity, context.entity, context.entity, context.entity, context.entity, context.route, context.route, validForm)
+}%s
+`, context.feature, validationImport, context.entity, context.entity, context.entity, context.entity, context.entity, context.entity, context.entity, context.route, context.route, validForm, validationTest)
 
 	return formatGo(edit.Target, source)
 }
