@@ -26,7 +26,7 @@ Execution gate: Slice 5 implementation is complete; authenticated smoke remains 
 | Slice 2 | Codex App Server runtime | delivered | `feat/generator-codex-app-server` | `feat(slice-2): connect the Codex App Server runtime` | #33 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-2-codex-app-server-runtime.md` |
 | Slice 3 | Codex interpreter | delivered | `feat/generator-codex-interpreter` | `feat(slice-3): interpret Hatmax requests with Codex` | #34 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-3-codex-interpreter.md` |
 | Slice 4 | Interaction coordinator | delivered | `feat/generator-interaction-coordinator` | `feat(slice-4): coordinate interactive generation` | #35 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-4-interaction-coordinator.md` |
-| Slice 5 | Terminal product surface | reviewing | `feat/generator-terminal-surface` | `feat(slice-5): expose the Hatmax generator command` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-5-terminal-product-surface.md` |
+| Slice 5 | Terminal product surface | reviewing | `feat/generator-terminal-surface` | `feat(slice-5): expose the Hatmax generator command` | #36 (open) | `ops/default/report/slices/interactive-generator-product-surface/slice-5-terminal-product-surface.md` |
 
 ## Slice 1 Tasks
 
