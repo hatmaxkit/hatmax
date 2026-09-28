@@ -13,17 +13,17 @@ Specs:
 
 Base branch: `dev`
 Planning base: `28e2b943d2267d903561eb2c5d6f7ad13c31a51a`
-Active slice: Slice 2
-Active tasks: none
-Execution gate: Slice 2 pull request open for review
+Active slice: Slice 3
+Active tasks: T3.1, T3.2, T3.3
+Execution gate: Slice 2 merged into `dev` at `374de57`
 
 ## Slice Status
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Book core | delivered | `feat/generator-book-core` | `feat(slice-1): add the Hatmax Book core` | #22 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-1-book-core.md` |
-| Slice 2 | Project inventory | active | `feat/generator-project-inventory` | `feat(slice-2): inventory Hatmax projects` | #23 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-2-project-inventory.md` |
-| Slice 3 | Intent validation | pending | `feat/generator-intent-validation` | `feat(slice-3): validate generator intents` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-3-intent-validation.md` |
+| Slice 2 | Project inventory | delivered | `feat/generator-project-inventory` | `feat(slice-2): inventory Hatmax projects` | #23 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-2-project-inventory.md` |
+| Slice 3 | Intent validation | ready | `feat/generator-intent-validation` | `feat(slice-3): validate generator intents` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-3-intent-validation.md` |
 | Slice 4 | Deterministic planning | pending | `feat/generator-deterministic-planning` | `feat(slice-4): expand deterministic generator plans` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-4-deterministic-planning.md` |
 | Slice 5 | Planning evaluation | pending | `test/generator-planning-evaluation` | `test(slice-5): validate generator planning` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-5-planning-evaluation.md` |
 
@@ -73,7 +73,7 @@ Execution gate: Slice 2 pull request open for review
 - [x] Subordinate specifications are approved.
 - [x] Plan and tracker are committed on `dev`.
 - [x] Slice 1 is delivered through its branch, report, pull request, and merge.
-- [ ] Slice 2 is delivered through its branch, report, pull request, and merge.
+- [x] Slice 2 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 3 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 4 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 5 is delivered through its branch, report, pull request, and merge.
@@ -81,6 +81,6 @@ Execution gate: Slice 2 pull request open for review
 
 ## Current Gate
 
-Slice 2 implementation and validation are complete on
-`feat/generator-project-inventory`. Pull request #23 is open against `dev`.
-Slice 3 remains blocked until Slice 2 is reviewed and merged.
+Slice 2 was delivered through pull request #23 and merged into `dev` at
+`374de57`. Slice 3 is ready to begin from that integrated commit on
+`feat/generator-intent-validation`.

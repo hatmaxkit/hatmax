@@ -1,11 +1,11 @@
 # Slice 2: Project Inventory
 
-Status: reviewing
+Status: delivered
 Delivery set: interactive-generator-plan-kernel
 Plan: `ops/default/plan/interactive-generator-plan-kernel.md`
 Tracker: `ops/default/tracker/interactive-generator-plan-kernel.md`
 Branch: `feat/generator-project-inventory`
-PR: `#23`
+PR: `#23` (merged)
 
 ## Purpose
 
