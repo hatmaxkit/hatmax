@@ -1,11 +1,11 @@
 # Slice 4: Interaction Coordinator
 
-Status: reviewing
+Status: delivered
 Delivery set: interactive-generator-product-surface
 Plan: `ops/default/plan/interactive-generator-product-surface.md`
 Tracker: `ops/default/tracker/interactive-generator-product-surface.md`
 Branch: `feat/generator-interaction-coordinator`
-PR: `#35` (open)
+PR: `#35` (merged)
 
 ## Purpose
 

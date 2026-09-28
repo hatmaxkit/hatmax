@@ -14,9 +14,9 @@ Specs:
 
 Base branch: `dev`
 Planning base: `ec16a4df27c6bb3ee6004d6303195f4717da73de`
-Active slice: Slice 4
-Active tasks: none
-Execution gate: Slice 4 pull request #35 open for review
+Active slice: Slice 5
+Active tasks: T5.1
+Execution gate: Slice 5 implementation may begin from integrated `dev` at `4f9136b`
 
 ## Slice Status
 
@@ -25,8 +25,8 @@ Execution gate: Slice 4 pull request #35 open for review
 | Slice 1 | Interpreter contracts | delivered | `feat/generator-interpreter-contracts` | `feat(slice-1): define interactive interpreter contracts` | #32 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-1-interpreter-contracts.md` |
 | Slice 2 | Codex App Server runtime | delivered | `feat/generator-codex-app-server` | `feat(slice-2): connect the Codex App Server runtime` | #33 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-2-codex-app-server-runtime.md` |
 | Slice 3 | Codex interpreter | delivered | `feat/generator-codex-interpreter` | `feat(slice-3): interpret Hatmax requests with Codex` | #34 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-3-codex-interpreter.md` |
-| Slice 4 | Interaction coordinator | active | `feat/generator-interaction-coordinator` | `feat(slice-4): coordinate interactive generation` | #35 | `ops/default/report/slices/interactive-generator-product-surface/slice-4-interaction-coordinator.md` |
-| Slice 5 | Terminal product surface | pending | `feat/generator-terminal-surface` | `feat(slice-5): expose the Hatmax generator command` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-5-terminal-product-surface.md` |
+| Slice 4 | Interaction coordinator | delivered | `feat/generator-interaction-coordinator` | `feat(slice-4): coordinate interactive generation` | #35 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-4-interaction-coordinator.md` |
+| Slice 5 | Terminal product surface | active | `feat/generator-terminal-surface` | `feat(slice-5): expose the Hatmax generator command` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-5-terminal-product-surface.md` |
 
 ## Slice 1 Tasks
 
@@ -76,15 +76,14 @@ Execution gate: Slice 4 pull request #35 open for review
 - [x] Slice 1 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 2 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 3 is delivered through its branch, report, pull request, and merge.
-- [ ] Slice 4 is delivered through its branch, report, pull request, and merge.
+- [x] Slice 4 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 5 is delivered through its branch, report, pull request, and merge.
 - [ ] The exact integrated `dev` candidate passes the deterministic, full
   repository, thread-reuse, project-isolation, and authenticated Codex gates.
 
 ## Current Gate
 
-Slice 4 implementation and deterministic validation are complete on
-`feat/generator-interaction-coordinator`. Its report is ready and pull request
-#35 is open for review. Slice 5 remains blocked until Slice 4 is reviewed and
-merged into `dev`. The standalone Codex daemon prerequisite remains open for
-the later exact-candidate smoke.
+Slice 4 was delivered through pull request #35 and merged into `dev` at
+`4f9136b`. Slice 5 may begin from that integrated base with T5.1, the
+line-oriented `hatmax generate` command, as its active task. The standalone
+Codex daemon prerequisite remains open for the exact-candidate smoke.
