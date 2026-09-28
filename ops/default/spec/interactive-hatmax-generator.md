@@ -1,6 +1,6 @@
 # Interactive Hatmax Generator
 
-Status: Accepted
+Status: Approved
 Kind: Umbrella specification
 
 ## Purpose
