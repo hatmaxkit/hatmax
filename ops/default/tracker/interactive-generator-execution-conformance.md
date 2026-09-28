@@ -13,9 +13,9 @@ Specs:
 
 Base branch: `dev`
 Planning base: `9b7e0d9e71da8297665e42695459e5eb33c739e0`
-Active slice: Slice 4
-Active tasks: none
-Execution gate: Slice 4 pull request #30 open against `dev`
+Active slice: Slice 5
+Active tasks: T5.1-T5.3
+Execution gate: Slice 4 merged as `37ba171`; Slice 5 ready to start
 
 ## Slice Status
 
@@ -24,8 +24,8 @@ Execution gate: Slice 4 pull request #30 open against `dev`
 | Slice 1 | Execution manifest | delivered | `feat/generator-execution-manifest` | `feat(slice-1): define generator execution manifests` | #27 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-1-execution-manifest.md` |
 | Slice 2 | Atomic application | delivered | `feat/generator-atomic-application` | `feat(slice-2): apply generator edits atomically` | #28 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-2-atomic-application.md` |
 | Slice 3 | CRUD generation | delivered | `feat/generator-crud-generation` | `feat(slice-3): generate canonical Hatmax CRUD features` | #29 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-3-crud-generation.md` |
-| Slice 4 | Incremental mutations | reviewing | `feat/generator-incremental-mutations` | `feat(slice-4): mutate canonical Hatmax features` | #30 (open) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-4-incremental-mutations.md` |
-| Slice 5 | Execution conformance | pending | `test/generator-execution-conformance` | `test(slice-5): validate generator execution conformance` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-5-execution-conformance.md` |
+| Slice 4 | Incremental mutations | delivered | `feat/generator-incremental-mutations` | `feat(slice-4): mutate canonical Hatmax features` | #30 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-4-incremental-mutations.md` |
+| Slice 5 | Execution conformance | active | `test/generator-execution-conformance` | `test(slice-5): validate generator execution conformance` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-5-execution-conformance.md` |
 
 ## Slice 1 Tasks
 
@@ -74,11 +74,12 @@ Execution gate: Slice 4 pull request #30 open against `dev`
 - [x] Slice 1 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 2 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 3 is delivered through its branch, report, pull request, and merge.
-- [ ] Slice 4 is delivered through its branch, report, pull request, and merge.
+- [x] Slice 4 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 5 is delivered through its branch, report, pull request, and merge.
 - [ ] The exact integrated `dev` candidate passes the delivery-set gate.
 
 ## Current Gate
 
-Slice 4 pull request #30 is open from `feat/generator-incremental-mutations`
-into `dev`. It must be reviewed and merged before Slice 5 begins.
+Slice 4 was merged through pull request #30 as exact integrated candidate
+`37ba171`. Slice 5 may begin from that `dev` state on
+`test/generator-execution-conformance`.

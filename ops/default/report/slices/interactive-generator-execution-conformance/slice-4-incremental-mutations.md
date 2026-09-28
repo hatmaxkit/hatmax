@@ -1,11 +1,11 @@
 # Slice 4: Incremental Mutations
 
-Status: reviewing
+Status: delivered
 Delivery set: interactive-generator-execution-conformance
 Plan: `ops/default/plan/interactive-generator-execution-conformance.md`
 Tracker: `ops/default/tracker/interactive-generator-execution-conformance.md`
 Branch: `feat/generator-incremental-mutations`
-PR: `#30` (open)
+PR: `#30` (merged)
 
 ## Purpose
 
