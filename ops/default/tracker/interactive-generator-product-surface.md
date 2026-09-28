@@ -15,8 +15,8 @@ Specs:
 Base branch: `dev`
 Planning base: `ec16a4df27c6bb3ee6004d6303195f4717da73de`
 Active slice: Slice 2
-Active tasks: T2.1
-Execution gate: Slice 2 implementation may begin from integrated `dev` at `e9a84c1`
+Active tasks: none
+Execution gate: Slice 2 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -40,9 +40,9 @@ Execution gate: Slice 2 implementation may begin from integrated `dev` at `e9a84
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T2.1 | planned | `feat(generator): manage the Codex runtime` | pending | pending |
-| T2.2 | planned | `feat(generator): speak the Codex App Server protocol` | pending | pending |
-| T2.3 | planned | `feat(generator): manage isolated Codex threads` | pending | pending |
+| T2.1 | complete | `feat(generator): manage the Codex runtime` | `9c9e169` | `go test ./generator/backend/codex/...`; `go test -race ./generator/backend/codex/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T2.2 | complete | `feat(generator): speak the Codex App Server protocol` | `8bd4172` | `go test ./generator/backend/codex/...`; `go test -race ./generator/backend/codex/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T2.3 | complete | `feat(generator): manage isolated Codex threads` | `2262759` | `go test ./generator/backend/codex/...`; `go test -race ./generator/backend/codex/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
 
 ## Slice 3 Tasks
 
@@ -83,6 +83,7 @@ Execution gate: Slice 2 implementation may begin from integrated `dev` at `e9a84
 
 ## Current Gate
 
-Slice 1 was delivered through pull request #32 and merged into `dev` at
-`e9a84c1`. Slice 2 may begin from that integrated base with T2.1, the Codex
-runtime lifecycle, as its active task.
+Slice 2 implementation and deterministic validation are complete on
+`feat/generator-codex-app-server`. Its report is ready and the pull request is
+pending. Slice 3 remains blocked until Slice 2 is reviewed and merged into
+`dev`.
