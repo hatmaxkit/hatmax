@@ -129,10 +129,10 @@ func renderPostgresStore(context renderContext, edit Edit) ([]byte, error) {
 	source.WriteString("\tif errors.Is(err, sql.ErrNoRows) {\n\t\treturn nil, ErrNotFound\n\t}\n\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"get record: %w\", err)\n\t}\n\n")
 	fmt.Fprintf(&source, "\tresult := %sFromRow(row)\n\n\treturn &result, nil\n}\n\n", context.feature)
 	fmt.Fprintf(&source, "func (store *PostgresStore) Create(ctx context.Context, value *%s) error {\n\terr := store.queries.Create%s(ctx, dal.Create%sParams{\n", context.entity, context.entity, context.entity)
-	renderDALParams(&source, context, "value")
+	renderDALParams(&source, context, "value", true)
 	source.WriteString("\t})\n\tif err != nil {\n\t\treturn fmt.Errorf(\"create record: %w\", err)\n\t}\n\n\treturn nil\n}\n\n")
 	fmt.Fprintf(&source, "func (store *PostgresStore) Update(ctx context.Context, value *%s) error {\n\tresult, err := store.queries.Update%s(ctx, dal.Update%sParams{\n", context.entity, context.entity, context.entity)
-	renderDALParams(&source, context, "value")
+	renderDALParams(&source, context, "value", false)
 	source.WriteString("\t})\n\tif err != nil {\n\t\treturn fmt.Errorf(\"update record: %w\", err)\n\t}\n\tif result == 0 {\n\t\treturn ErrNotFound\n\t}\n\n\treturn nil\n}\n\n")
 	fmt.Fprintf(&source, "func (store *PostgresStore) Delete(ctx context.Context, id string) error {\n\tresult, err := store.queries.Delete%s(ctx, id)\n", context.entity)
 	source.WriteString("\tif err != nil {\n\t\treturn fmt.Errorf(\"delete record: %w\", err)\n\t}\n\tif result == 0 {\n\t\treturn ErrNotFound\n\t}\n\n\treturn nil\n}\n\n")
@@ -147,14 +147,18 @@ func renderPostgresStore(context renderContext, edit Edit) ([]byte, error) {
 	return formatGo(edit.Target, source.String())
 }
 
-func renderDALParams(source *strings.Builder, context renderContext, receiver string) {
+func renderDALParams(source *strings.Builder, context renderContext, receiver string, includeCreated bool) {
 	fmt.Fprintf(source, "\t\tID: %s.ID,\n", receiver)
 
 	for _, field := range context.fields {
 		fmt.Fprintf(source, "\t\t%s: %s.%s,\n", field.GoName, receiver, field.GoName)
 	}
 
-	fmt.Fprintf(source, "\t\tCreatedAt: %s.CreatedAt,\n\t\tUpdatedAt: %s.UpdatedAt,\n", receiver, receiver)
+	if includeCreated {
+		fmt.Fprintf(source, "\t\tCreatedAt: %s.CreatedAt,\n", receiver)
+	}
+
+	fmt.Fprintf(source, "\t\tUpdatedAt: %s.UpdatedAt,\n", receiver)
 }
 
 func renderService(context renderContext, edit Edit) ([]byte, error) {
@@ -264,12 +268,20 @@ func TestServiceCreateValidatesBeforePersistence(t *testing.T) {
 }
 
 func renderPostgresStoreTests(context renderContext, edit Edit) ([]byte, error) {
+	imports := ""
+	if fieldsNeedTime(context.fields) {
+		imports = "\n\t\"time\""
+	}
+
 	source := fmt.Sprintf(`package %s
 
 import (
 	"context"
 	"database/sql"
-	"testing"
+	"errors"
+	"testing"%s
+
+	"hatmax.adrianpk.com/testhelper"
 )
 
 type testDBProvider struct { database *sql.DB }
@@ -281,9 +293,46 @@ func TestPostgresStoreRequiresStartedDatabase(t *testing.T) {
 		t.Fatal("Start() error = nil, want unavailable database")
 	}
 }
-`, context.feature)
+
+func TestPostgresStoreCRUD(t *testing.T) {
+	database, _, cleanup := testhelper.SetupTestDB(t)
+	defer cleanup()
+
+	_, err := database.Exec(%q)
+	if err != nil { t.Fatalf("create table: %%v", err) }
+
+	store := NewPostgresStore(testDBProvider{database: database})
+	if err = store.Start(context.Background()); err != nil { t.Fatalf("Start() error = %%v", err) }
+
+	value, err := New%s(%sInput{%s})
+	if err != nil { t.Fatalf("New%s() error = %%v", err) }
+	if err = store.Create(context.Background(), value); err != nil { t.Fatalf("Create() error = %%v", err) }
+
+	loaded, err := store.Get(context.Background(), value.ID)
+	if err != nil || loaded.ID != value.ID { t.Fatalf("Get() = %%#v, %%v", loaded, err) }
+
+	values, err := store.List(context.Background())
+	if err != nil || len(values) != 1 { t.Fatalf("List() = %%#v, %%v", values, err) }
+
+	if err = store.Delete(context.Background(), value.ID); err != nil { t.Fatalf("Delete() error = %%v", err) }
+	if _, err = store.Get(context.Background(), value.ID); !errors.Is(err, ErrNotFound) { t.Fatalf("Get() after Delete() error = %%v", err) }
+}
+`, context.feature, imports, renderTestTableSQL(context), context.entity, context.entity, renderTestInput(context.fields, true), context.entity)
 
 	return formatGo(edit.Target, source)
+}
+
+func renderTestTableSQL(context renderContext) string {
+	var source strings.Builder
+	fmt.Fprintf(&source, "CREATE TABLE %s (id TEXT PRIMARY KEY, ", context.table)
+
+	for _, field := range context.fields {
+		fmt.Fprintf(&source, "%s %s NOT NULL, ", field.Name, field.SQLType)
+	}
+
+	source.WriteString("created_at TIMESTAMPTZ NOT NULL, updated_at TIMESTAMPTZ NOT NULL)")
+
+	return source.String()
 }
 
 func renderTestInput(fields []renderField, valid bool) string {
