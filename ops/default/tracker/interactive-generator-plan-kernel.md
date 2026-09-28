@@ -25,7 +25,7 @@ Execution gate: Slice 4 merged into `dev` at `697feb9`
 | Slice 2 | Project inventory | delivered | `feat/generator-project-inventory` | `feat(slice-2): inventory Hatmax projects` | #23 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-2-project-inventory.md` |
 | Slice 3 | Intent validation | delivered | `feat/generator-intent-validation` | `feat(slice-3): validate generator intents` | #24 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-3-intent-validation.md` |
 | Slice 4 | Deterministic planning | delivered | `feat/generator-deterministic-planning` | `feat(slice-4): expand deterministic generator plans` | #25 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-4-deterministic-planning.md` |
-| Slice 5 | Planning evaluation | reviewing | `test/generator-planning-evaluation` | `test(slice-5): validate generator planning` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-5-planning-evaluation.md` |
+| Slice 5 | Planning evaluation | reviewing | `test/generator-planning-evaluation` | `test(slice-5): validate generator planning` | #26 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-5-planning-evaluation.md` |
 
 ## Slice 1 Tasks
 
@@ -82,6 +82,6 @@ Execution gate: Slice 4 merged into `dev` at `697feb9`
 ## Current Gate
 
 Slice 5 implementation and focused validation are complete on
-`test/generator-planning-evaluation`. Pull-request publication and maintainer
-review are pending. The Docker-backed aggregate gate remains pending on a
-capable host or CI; local `make check` could not access the Docker socket.
+`test/generator-planning-evaluation`. Pull request #26 is open for maintainer
+review. The Docker-backed aggregate gate remains pending on a capable host or
+CI; local `make check` could not access the Docker socket.
