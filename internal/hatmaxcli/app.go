@@ -110,7 +110,7 @@ func (app *App) Run(ctx context.Context, arguments []string) int {
 
 	result := runner.Run(ctx, root, prompt)
 
-	err = writeBasicResult(app.output, result)
+	err = writeResult(app.output, result)
 	if err != nil {
 		_, _ = fmt.Fprintf(app.errorOutput, "hatmax: write result: %v\n", err)
 
@@ -128,12 +128,6 @@ func parseGenerate(arguments []string) (string, bool) {
 	prompt := strings.TrimSpace(arguments[1])
 
 	return prompt, prompt != ""
-}
-
-func writeBasicResult(output io.Writer, result interaction.Result) error {
-	_, err := fmt.Fprintf(output, "Outcome: %s\n", result.Outcome)
-
-	return err
 }
 
 func exitStatus(outcome interaction.Outcome) int {

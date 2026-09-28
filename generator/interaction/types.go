@@ -160,6 +160,7 @@ type Result struct {
 	Plan             *plan.Plan
 	PlanYAML         []byte
 	Provenance       Provenance
+	Manifest         *execute.Manifest
 	Execution        *execute.Result
 	Report           *execute.ExecutionReport
 	Diagnostics      []Diagnostic

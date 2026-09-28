@@ -27,6 +27,8 @@ func (c *Coordinator) Run(ctx context.Context, root, prompt string) Result {
 		return *terminalFailure(result, OutcomeExecutionFailed, PhasePreparation, "HMGEN-EXECUTION-PREPARATION-FAILED", err)
 	}
 
+	result.Manifest = &manifest
+
 	mutations, err := renderPlan(prepared.plan, manifest, prepared.inventory)
 	if err != nil {
 		return *terminalFailure(result, OutcomeExecutionFailed, PhaseRendering, "HMGEN-EXECUTION-RENDERING-FAILED", err)
