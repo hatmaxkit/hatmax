@@ -5,7 +5,7 @@ Delivery set: interactive-generator-product-surface
 Plan: `ops/default/plan/interactive-generator-product-surface.md`
 Tracker: `ops/default/tracker/interactive-generator-product-surface.md`
 Branch: `feat/generator-interpreter-contracts`
-PR: pending
+PR: #32
 
 ## Purpose
 
