@@ -102,6 +102,8 @@ type Workspace struct {
 	snapshots          map[string]targetSnapshot
 	staged             map[string]stagedMutation
 	stagedBytes        int64
+	committed          bool
+	hooks              commitHooks
 }
 
 // OpenWorkspace verifies the sealed execution identities against current
