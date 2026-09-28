@@ -36,12 +36,7 @@ func validationError(code, path, format string, arguments ...any) error {
 }
 
 func (b *Book) validate() error {
-	err := b.validateManifest()
-	if err != nil {
-		return err
-	}
-
-	err = b.validateCapabilities()
+	err := b.validateCapabilities()
 	if err != nil {
 		return err
 	}
@@ -106,19 +101,42 @@ func (b *Book) validateManifest() error {
 		)
 	}
 
-	err = validateUniqueStrings("manifest.capabilities", b.manifest.Capabilities, true)
+	err = validateManifestEntries("capabilities", b.manifest.Capabilities)
 	if err != nil {
 		return err
 	}
 
-	err = validateUniqueStrings("manifest.archetypes", b.manifest.Archetypes, true)
+	err = validateManifestEntries("archetypes", b.manifest.Archetypes)
 	if err != nil {
 		return err
 	}
 
-	err = validateUniqueStrings("manifest.rules", b.manifest.Rules, true)
+	err = validateManifestEntries("rules", b.manifest.Rules)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func validateManifestEntries(directory string, paths []string) error {
+	path := "manifest." + directory
+	if len(paths) == 0 {
+		return validationError("book_required_field", path, "at least one value is required")
+	}
+
+	seen := make(map[string]struct{}, len(paths))
+	for _, entryPath := range paths {
+		if _, exists := seen[entryPath]; exists {
+			return validationError("book_duplicate_path", path, "duplicate entry path %q", entryPath)
+		}
+
+		err := validateEntryPath(directory, entryPath)
+		if err != nil {
+			return err
+		}
+
+		seen[entryPath] = struct{}{}
 	}
 
 	return nil

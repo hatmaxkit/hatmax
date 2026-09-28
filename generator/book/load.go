@@ -41,6 +41,11 @@ func Load(source fs.FS) (*Book, error) {
 		ruleOrder:       make([]string, 0, len(manifest.Rules)),
 	}
 
+	err = result.validateManifest()
+	if err != nil {
+		return nil, err
+	}
+
 	err = result.loadCapabilities()
 	if err != nil {
 		return nil, err
