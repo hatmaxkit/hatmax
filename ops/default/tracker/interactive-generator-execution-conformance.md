@@ -15,7 +15,7 @@ Base branch: `dev`
 Planning base: `9b7e0d9e71da8297665e42695459e5eb33c739e0`
 Active slice: Slice 5
 Active tasks: none
-Execution gate: Slice 5 implementation and validation complete; pull request pending
+Execution gate: Slice 5 pull request #31 open and mergeable
 
 ## Slice Status
 
@@ -25,7 +25,7 @@ Execution gate: Slice 5 implementation and validation complete; pull request pen
 | Slice 2 | Atomic application | delivered | `feat/generator-atomic-application` | `feat(slice-2): apply generator edits atomically` | #28 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-2-atomic-application.md` |
 | Slice 3 | CRUD generation | delivered | `feat/generator-crud-generation` | `feat(slice-3): generate canonical Hatmax CRUD features` | #29 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-3-crud-generation.md` |
 | Slice 4 | Incremental mutations | delivered | `feat/generator-incremental-mutations` | `feat(slice-4): mutate canonical Hatmax features` | #30 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-4-incremental-mutations.md` |
-| Slice 5 | Execution conformance | reviewing | `test/generator-execution-conformance` | `test(slice-5): validate generator execution conformance` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-5-execution-conformance.md` |
+| Slice 5 | Execution conformance | reviewing | `test/generator-execution-conformance` | `test(slice-5): validate generator execution conformance` | #31 (open) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-5-execution-conformance.md` |
 
 ## Slice 1 Tasks
 
@@ -82,4 +82,5 @@ Execution gate: Slice 5 implementation and validation complete; pull request pen
 
 Slice 5 implementation and validation are complete on
 `test/generator-execution-conformance` at `849008b`. The focused generator
-gate and Docker-backed `make check` pass; the pull request is pending.
+gate and Docker-backed `make check` pass. Pull request #31 is open and
+mergeable against `dev`.

@@ -5,7 +5,7 @@ Delivery set: interactive-generator-execution-conformance
 Plan: `ops/default/plan/interactive-generator-execution-conformance.md`
 Tracker: `ops/default/tracker/interactive-generator-execution-conformance.md`
 Branch: `test/generator-execution-conformance`
-PR: pending
+PR: `#31` (open)
 
 ## Purpose
 
