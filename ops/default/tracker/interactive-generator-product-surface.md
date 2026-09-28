@@ -15,8 +15,8 @@ Specs:
 Base branch: `dev`
 Planning base: `ec16a4df27c6bb3ee6004d6303195f4717da73de`
 Active slice: Slice 3
-Active tasks: T3.1
-Execution gate: Slice 3 implementation may begin from integrated `dev` at `ecf59b9`
+Active tasks: none
+Execution gate: Slice 3 tasks complete, pull request pending
 
 ## Slice Status
 
@@ -48,9 +48,9 @@ Execution gate: Slice 3 implementation may begin from integrated `dev` at `ecf59
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T3.1 | planned | `feat(generator): compile bounded Codex interpretation` | pending | pending |
-| T3.2 | planned | `feat(generator): add the Codex interpreter` | pending | pending |
-| T3.3 | planned | `test(generator): exercise Codex interpretation` | pending | pending |
+| T3.1 | complete | `feat(generator): compile bounded Codex interpretation` | `64cff25` | `go test ./generator/backend/codex/...`; `go test -race ./generator/backend/codex/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T3.2 | complete | `feat(generator): add the Codex interpreter` | `e9d15c8` | `go test ./generator/backend/codex/...`; `go test -race ./generator/backend/codex/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T3.3 | complete | `test(generator): exercise Codex interpretation` | `457e6d7` | deterministic and race validation passed; `make generator-live-smoke` observed the missing standalone Codex daemon prerequisite before inference |
 
 ## Slice 4 Tasks
 
@@ -83,6 +83,8 @@ Execution gate: Slice 3 implementation may begin from integrated `dev` at `ecf59
 
 ## Current Gate
 
-Slice 2 was delivered through pull request #33 and merged into `dev` at
-`ecf59b9`. Slice 3 may begin from that integrated base with T3.1, bounded Codex
-prompt compilation, as its active task.
+Slice 3 implementation and deterministic validation are complete on
+`feat/generator-codex-interpreter`. Its report is ready and the pull request is
+pending. The observational live smoke stopped before inference because the
+installed `mise` binary lacks the standalone daemon installation. Slice 4
+remains blocked until Slice 3 is reviewed and merged into `dev`.
