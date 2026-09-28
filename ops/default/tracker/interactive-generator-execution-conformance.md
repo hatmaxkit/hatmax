@@ -14,8 +14,8 @@ Specs:
 Base branch: `dev`
 Planning base: `9b7e0d9e71da8297665e42695459e5eb33c739e0`
 Active slice: Slice 5
-Active tasks: T5.1-T5.3
-Execution gate: Slice 4 merged as `37ba171`; Slice 5 ready to start
+Active tasks: none
+Execution gate: Slice 5 implementation and validation complete; pull request pending
 
 ## Slice Status
 
@@ -25,7 +25,7 @@ Execution gate: Slice 4 merged as `37ba171`; Slice 5 ready to start
 | Slice 2 | Atomic application | delivered | `feat/generator-atomic-application` | `feat(slice-2): apply generator edits atomically` | #28 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-2-atomic-application.md` |
 | Slice 3 | CRUD generation | delivered | `feat/generator-crud-generation` | `feat(slice-3): generate canonical Hatmax CRUD features` | #29 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-3-crud-generation.md` |
 | Slice 4 | Incremental mutations | delivered | `feat/generator-incremental-mutations` | `feat(slice-4): mutate canonical Hatmax features` | #30 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-4-incremental-mutations.md` |
-| Slice 5 | Execution conformance | active | `test/generator-execution-conformance` | `test(slice-5): validate generator execution conformance` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-5-execution-conformance.md` |
+| Slice 5 | Execution conformance | reviewing | `test/generator-execution-conformance` | `test(slice-5): validate generator execution conformance` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-5-execution-conformance.md` |
 
 ## Slice 1 Tasks
 
@@ -63,9 +63,9 @@ Execution gate: Slice 4 merged as `37ba171`; Slice 5 ready to start
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T5.1 | pending | `feat(generator): check Hatmax execution conformance` | pending | pending |
-| T5.2 | pending | `feat(generator): report validated execution` | pending | pending |
-| T5.3 | pending | `test(generator): exercise execution conformance` | pending | pending |
+| T5.1 | complete | `feat(generator): check Hatmax execution conformance` | `7357be6` | `go test ./generator/execute/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T5.2 | complete | `feat(generator): report validated execution` | `7afc8f4` | `go test ./generator/execute/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T5.3 | complete | `test(generator): exercise execution conformance` | `849008b` | `go test ./generator/execute/...`; `go test -race ./generator/execute/...`; `go test ./generator/...`; `newgrp docker -c 'make check'`; `git diff --check` passed |
 
 ## Completion Gates
 
@@ -80,6 +80,6 @@ Execution gate: Slice 4 merged as `37ba171`; Slice 5 ready to start
 
 ## Current Gate
 
-Slice 4 was merged through pull request #30 as exact integrated candidate
-`37ba171`. Slice 5 may begin from that `dev` state on
-`test/generator-execution-conformance`.
+Slice 5 implementation and validation are complete on
+`test/generator-execution-conformance` at `849008b`. The focused generator
+gate and Docker-backed `make check` pass; the pull request is pending.
