@@ -1,0 +1,9 @@
+version: "2"
+sql:
+  - engine: postgresql
+    queries: internal/dal/queries
+    schema: db/migrations
+    gen:
+      go:
+        package: dal
+        out: internal/dal
