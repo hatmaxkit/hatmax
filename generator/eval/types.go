@@ -16,6 +16,19 @@ import (
 	"hatmax.adrianpk.com/generator/project"
 )
 
+const (
+	// CurrentContractVersion is the interactive interpreter contract understood
+	// by this package.
+	CurrentContractVersion = 1
+	// MaximumPromptBytes bounds one natural-language request.
+	MaximumPromptBytes = 32 << 10
+	// MaximumClarificationExchanges bounds one explicit clarification history.
+	MaximumClarificationExchanges = 8
+	// MaximumClarificationTextBytes bounds one clarification field, question, or
+	// answer.
+	MaximumClarificationTextBytes = 4 << 10
+)
+
 // InterpretationKind identifies one structured interpreter response.
 type InterpretationKind string
 
@@ -62,11 +75,21 @@ type BookContext struct {
 	Capabilities []CapabilityContext `json:"capabilities" yaml:"capabilities"`
 }
 
+// ClarificationExchange records one focused question and explicit user answer
+// supplied by Hatmax. Backend thread history never replaces this state.
+type ClarificationExchange struct {
+	Field    string `json:"field" yaml:"field"`
+	Question string `json:"question" yaml:"question"`
+	Answer   string `json:"answer" yaml:"answer"`
+}
+
 // Request contains one natural-language goal and its bounded Hatmax context.
 type Request struct {
-	Prompt  string         `json:"prompt" yaml:"prompt"`
-	Project ProjectContext `json:"project" yaml:"project"`
-	Book    BookContext    `json:"book" yaml:"book"`
+	ContractVersion int                     `json:"contract_version" yaml:"contract_version"`
+	Prompt          string                  `json:"prompt" yaml:"prompt"`
+	Clarifications  []ClarificationExchange `json:"clarifications" yaml:"clarifications"`
+	Project         ProjectContext          `json:"project" yaml:"project"`
+	Book            BookContext             `json:"book" yaml:"book"`
 }
 
 // Interpretation is the only provider result admitted by the evaluation
@@ -78,10 +101,59 @@ type Interpretation struct {
 	Diagnostics    []intent.Diagnostic    `json:"diagnostics,omitempty" yaml:"diagnostics,omitempty"`
 }
 
+// ModelSelection records how the backend model was chosen.
+type ModelSelection string
+
+const (
+	// ModelBackendDefault means Hatmax did not request a model override.
+	ModelBackendDefault ModelSelection = "backend_default"
+	// ModelExplicit means Hatmax supplied an explicit model identifier.
+	ModelExplicit ModelSelection = "explicit"
+	// ModelNotApplicable is reserved for deterministic fixture interpreters.
+	ModelNotApplicable ModelSelection = "not_applicable"
+)
+
+// TimingClass is a bounded duration classification that avoids exposing raw
+// backend event timing.
+type TimingClass string
+
+const (
+	// TimingNotMeasured is used by deterministic interpreters without a runtime.
+	TimingNotMeasured TimingClass = "not_measured"
+	// TimingUnderSecond completed in less than one second.
+	TimingUnderSecond TimingClass = "under_1s"
+	// TimingUnderTenSeconds completed in less than ten seconds.
+	TimingUnderTenSeconds TimingClass = "under_10s"
+	// TimingUnderThirtySeconds completed in less than thirty seconds.
+	TimingUnderThirtySeconds TimingClass = "under_30s"
+	// TimingUnderTwoMinutes completed within the initial turn deadline.
+	TimingUnderTwoMinutes TimingClass = "under_2m"
+)
+
+// Provenance records bounded, non-secret backend facts for one interpretation.
+type Provenance struct {
+	Adapter         string         `json:"adapter" yaml:"adapter"`
+	ContractVersion int            `json:"contract_version" yaml:"contract_version"`
+	BackendVersion  string         `json:"backend_version,omitempty" yaml:"backend_version,omitempty"`
+	ProtocolVersion string         `json:"protocol_version,omitempty" yaml:"protocol_version,omitempty"`
+	ModelSelection  ModelSelection `json:"model_selection" yaml:"model_selection"`
+	EffectiveModel  string         `json:"effective_model,omitempty" yaml:"effective_model,omitempty"`
+	RuntimeReused   bool           `json:"runtime_reused" yaml:"runtime_reused"`
+	ThreadReused    bool           `json:"thread_reused" yaml:"thread_reused"`
+	Timing          TimingClass    `json:"timing" yaml:"timing"`
+}
+
+// InterpreterResult combines the only model-controlled value with
+// adapter-controlled provenance.
+type InterpreterResult struct {
+	Interpretation Interpretation
+	Provenance     Provenance
+}
+
 // Interpreter converts one bounded natural-language request into a structured
 // result. Provider adapters implement this interface outside the kernel.
 type Interpreter interface {
-	Interpret(context.Context, Request) (Interpretation, error)
+	Interpret(context.Context, Request) (InterpreterResult, error)
 }
 
 // Context binds evaluation to one inspected project, fingerprint, and Book.
@@ -99,6 +171,38 @@ type Result struct {
 	Plan           *plan.Plan
 	Diagnostics    []intent.Diagnostic
 	Clarifications []intent.Clarification
+	Provenance     Provenance
+}
+
+// BackendFailureCode classifies stable interpreter backend failures.
+type BackendFailureCode string
+
+const (
+	BackendUnavailable            BackendFailureCode = "backend_unavailable"
+	BackendAuthenticationRequired BackendFailureCode = "backend_authentication_required"
+	BackendIncompatible           BackendFailureCode = "backend_incompatible"
+	BackendStartFailed            BackendFailureCode = "backend_start_failed"
+	BackendThreadFailed           BackendFailureCode = "backend_thread_failed"
+	BackendTimeout                BackendFailureCode = "backend_timeout"
+	BackendCancelled              BackendFailureCode = "backend_cancelled"
+	BackendOutputInvalid          BackendFailureCode = "backend_output_invalid"
+	BackendTurnFailed             BackendFailureCode = "backend_turn_failed"
+	BackendProtocolViolation      BackendFailureCode = "backend_protocol_violation"
+)
+
+// BackendError reports one bounded interpreter backend failure.
+type BackendError struct {
+	Code      BackendFailureCode
+	Operation string
+	Message   string
+}
+
+func (e BackendError) Error() string {
+	if e.Operation == "" {
+		return fmt.Sprintf("%s: %s", e.Code, e.Message)
+	}
+
+	return fmt.Sprintf("%s during %s: %s", e.Code, e.Operation, e.Message)
 }
 
 // Error describes an invalid evaluation boundary or interpreter result.

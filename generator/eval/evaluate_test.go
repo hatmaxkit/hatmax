@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"gopkg.in/yaml.v3"
@@ -33,19 +35,27 @@ type fixtureInterpreter struct {
 	err      error
 }
 
-func (f *fixtureInterpreter) Interpret(_ context.Context, request Request) (Interpretation, error) {
+func (f *fixtureInterpreter) Interpret(_ context.Context, request Request) (InterpreterResult, error) {
 	f.requests = append(f.requests, request)
 
 	if f.err != nil {
-		return Interpretation{}, f.err
+		return InterpreterResult{}, f.err
 	}
 
 	result, exists := f.outputs[request.Prompt]
 	if !exists {
-		return Interpretation{}, errors.New("fixture output missing")
+		return InterpreterResult{}, errors.New("fixture output missing")
 	}
 
-	return result, nil
+	return InterpreterResult{
+		Interpretation: result,
+		Provenance: Provenance{
+			Adapter:         "fixture",
+			ContractVersion: CurrentContractVersion,
+			ModelSelection:  ModelNotApplicable,
+			Timing:          TimingNotMeasured,
+		},
+	}, nil
 }
 
 func TestNaturalLanguageCasesUseFixtureInterpreterOnly(t *testing.T) {
@@ -116,6 +126,122 @@ func TestEvaluateAcceptsDirectClarification(t *testing.T) {
 	if result.Status != intent.StatusClarificationRequired || len(result.Clarifications) != 1 {
 		t.Errorf("Evaluate() = %#v, want direct clarification", result)
 	}
+}
+
+func TestEvaluateConversationSuppliesDetachedClarificationHistory(t *testing.T) {
+	interpreter := &fixtureInterpreter{outputs: map[string]Interpretation{
+		"Add validation.": {
+			Kind: InterpretationClarification,
+			Clarifications: []intent.Clarification{{
+				Field:    "domain.validation.value",
+				Question: "What minimum length should be used?",
+			}},
+		},
+	}}
+	clarifications := []ClarificationExchange{{
+		Field:    "domain.validation.kind",
+		Question: "Which validation should be added?",
+		Answer:   "Minimum length.",
+	}}
+
+	result, err := EvaluateConversation(
+		context.Background(),
+		interpreter,
+		"Add validation.",
+		clarifications,
+		syntheticEvaluationContext(t),
+	)
+	if err != nil {
+		t.Fatalf("EvaluateConversation() error = %v", err)
+	}
+
+	clarifications[0].Answer = "changed"
+	if len(interpreter.requests) != 1 || interpreter.requests[0].Clarifications[0].Answer != "Minimum length." {
+		t.Errorf("Interpreter request = %#v, want detached clarification history", interpreter.requests)
+	}
+
+	if result.Provenance.Adapter != "fixture" || result.Provenance.ContractVersion != CurrentContractVersion {
+		t.Errorf("Provenance = %#v, want validated fixture provenance", result.Provenance)
+	}
+}
+
+func TestEvaluateConversationBoundsClarificationHistory(t *testing.T) {
+	valid := ClarificationExchange{Field: "domain.validation.kind", Question: "Which kind?", Answer: "required"}
+	tests := []struct {
+		name           string
+		prompt         string
+		clarifications []ClarificationExchange
+		code           string
+	}{
+		{name: "large prompt", prompt: strings.Repeat("p", MaximumPromptBytes+1), code: "evaluation_prompt_too_large"},
+		{name: "too many exchanges", prompt: "prompt", clarifications: repeatedExchanges(valid, MaximumClarificationExchanges+1), code: "evaluation_clarification_limit"},
+		{name: "empty answer", prompt: "prompt", clarifications: []ClarificationExchange{{Field: valid.Field, Question: valid.Question}}, code: "evaluation_clarification_invalid"},
+		{name: "large answer", prompt: "prompt", clarifications: []ClarificationExchange{{Field: valid.Field, Question: valid.Question, Answer: strings.Repeat("a", MaximumClarificationTextBytes+1)}}, code: "evaluation_clarification_too_large"},
+		{name: "duplicate field", prompt: "prompt", clarifications: []ClarificationExchange{valid, valid}, code: "evaluation_clarification_duplicate"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := EvaluateConversation(
+				context.Background(),
+				&fixtureInterpreter{},
+				test.prompt,
+				test.clarifications,
+				syntheticEvaluationContext(t),
+			)
+			requireEvaluationCode(t, err, test.code)
+		})
+	}
+}
+
+func TestEvaluatePreservesStableBackendFailure(t *testing.T) {
+	interpreter := &fixtureInterpreter{err: BackendError{
+		Code:      BackendTimeout,
+		Operation: "turn/start",
+		Message:   "deadline exceeded",
+	}}
+
+	_, err := Evaluate(context.Background(), interpreter, "prompt", syntheticEvaluationContext(t))
+	if err == nil {
+		t.Fatal("Evaluate() error = nil, want backend failure")
+	}
+
+	var backendErr BackendError
+	if !errors.As(err, &backendErr) || backendErr.Code != BackendTimeout {
+		t.Errorf("Evaluate() error = %#v, want backend timeout", err)
+	}
+}
+
+func TestEvaluateRejectsInvalidBackendProvenance(t *testing.T) {
+	interpreter := &invalidProvenanceInterpreter{}
+
+	_, err := Evaluate(context.Background(), interpreter, "prompt", syntheticEvaluationContext(t))
+	requireEvaluationCode(t, err, "evaluation_provenance_invalid")
+}
+
+type invalidProvenanceInterpreter struct{}
+
+func (invalidProvenanceInterpreter) Interpret(_ context.Context, _ Request) (InterpreterResult, error) {
+	return InterpreterResult{
+		Interpretation: Interpretation{
+			Kind: InterpretationUnsupported,
+			Diagnostics: []intent.Diagnostic{{
+				Code:    "HMGEN-CAPABILITY-UNSUPPORTED",
+				Field:   "capabilities",
+				Message: "unsupported",
+			}},
+		},
+	}, nil
+}
+
+func repeatedExchanges(value ClarificationExchange, count int) []ClarificationExchange {
+	result := make([]ClarificationExchange, count)
+	for index := range result {
+		result[index] = value
+		result[index].Field = fmt.Sprintf("%s.%d", value.Field, index)
+	}
+
+	return result
 }
 
 func TestEvaluateRejectsInvalidBoundaryResults(t *testing.T) {
