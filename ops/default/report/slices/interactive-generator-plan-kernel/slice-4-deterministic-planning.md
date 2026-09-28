@@ -5,7 +5,7 @@ Delivery set: interactive-generator-plan-kernel
 Plan: `ops/default/plan/interactive-generator-plan-kernel.md`
 Tracker: `ops/default/tracker/interactive-generator-plan-kernel.md`
 Branch: `feat/generator-deterministic-planning`
-PR: pending
+PR: `#25` (open)
 
 ## Purpose
 

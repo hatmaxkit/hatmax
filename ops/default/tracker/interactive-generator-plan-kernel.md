@@ -24,7 +24,7 @@ Execution gate: Slice 3 merged into `dev` at `93ae422`
 | Slice 1 | Book core | delivered | `feat/generator-book-core` | `feat(slice-1): add the Hatmax Book core` | #22 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-1-book-core.md` |
 | Slice 2 | Project inventory | delivered | `feat/generator-project-inventory` | `feat(slice-2): inventory Hatmax projects` | #23 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-2-project-inventory.md` |
 | Slice 3 | Intent validation | delivered | `feat/generator-intent-validation` | `feat(slice-3): validate generator intents` | #24 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-3-intent-validation.md` |
-| Slice 4 | Deterministic planning | reviewing | `feat/generator-deterministic-planning` | `feat(slice-4): expand deterministic generator plans` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-4-deterministic-planning.md` |
+| Slice 4 | Deterministic planning | reviewing | `feat/generator-deterministic-planning` | `feat(slice-4): expand deterministic generator plans` | #25 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-4-deterministic-planning.md` |
 | Slice 5 | Planning evaluation | pending | `test/generator-planning-evaluation` | `test(slice-5): validate generator planning` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-5-planning-evaluation.md` |
 
 ## Slice 1 Tasks
@@ -82,5 +82,5 @@ Execution gate: Slice 3 merged into `dev` at `93ae422`
 ## Current Gate
 
 Slice 4 implementation and validation are complete on
-`feat/generator-deterministic-planning`. Pull-request publication and
-maintainer review are pending.
+`feat/generator-deterministic-planning`. Pull request #25 is open for
+maintainer review.
