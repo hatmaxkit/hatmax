@@ -1,11 +1,11 @@
 # Slice 3: Codex Interpreter
 
-Status: reviewing
+Status: delivered
 Delivery set: interactive-generator-product-surface
 Plan: `ops/default/plan/interactive-generator-product-surface.md`
 Tracker: `ops/default/tracker/interactive-generator-product-surface.md`
 Branch: `feat/generator-codex-interpreter`
-PR: #34
+PR: `#34` (merged)
 
 ## Purpose
 
