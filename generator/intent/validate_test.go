@@ -51,6 +51,10 @@ func TestValidateSelectsBookContextInCanonicalOrder(t *testing.T) {
 	if len(result.Selection.Rules) != len(validationContext(t).Book.Rules()) {
 		t.Errorf("len(Selection.Rules) = %d, want all applicable Book rules", len(result.Selection.Rules))
 	}
+
+	if result.Intent.HatmaxVersion != "v0.4.0" {
+		t.Errorf("Intent.HatmaxVersion = %q, want canonical v0.4.0", result.Intent.HatmaxVersion)
+	}
 }
 
 func TestValidateRequestsOnlyMissingProductDecisions(t *testing.T) {

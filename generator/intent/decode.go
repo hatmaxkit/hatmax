@@ -42,6 +42,10 @@ func DecodeYAML(data []byte) (Intent, error) {
 }
 
 func normalize(value *Intent) {
+	if version := canonicalVersion(value.HatmaxVersion); version != "" {
+		value.HatmaxVersion = version
+	}
+
 	if value.Documentation == "" {
 		value.Documentation = DocumentationNotRequested
 	}

@@ -50,6 +50,14 @@ func TestDecodeYAMLDefaultsDocumentationToNotRequested(t *testing.T) {
 	}
 }
 
+func TestDecodeYAMLCanonicalizesHatmaxVersion(t *testing.T) {
+	value := loadIntentFixture(t, "valid", "create-feature.yaml")
+
+	if value.HatmaxVersion != "v0.4.0" {
+		t.Errorf("HatmaxVersion = %q, want v0.4.0", value.HatmaxVersion)
+	}
+}
+
 func TestDecodeYAMLRejectsInvalidFixtures(t *testing.T) {
 	tests := []struct {
 		fixture string

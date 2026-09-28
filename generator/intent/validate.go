@@ -22,6 +22,8 @@ type ValidationContext struct {
 // Validate semantically validates a typed intent without producing a plan or
 // modifying the project.
 func Validate(value Intent, context ValidationContext) Result {
+	normalize(&value)
+
 	result := Result{Intent: value}
 
 	err := ValidateSchema(value)
