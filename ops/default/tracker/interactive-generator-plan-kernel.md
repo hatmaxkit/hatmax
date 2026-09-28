@@ -14,7 +14,7 @@ Specs:
 Base branch: `dev`
 Planning base: `28e2b943d2267d903561eb2c5d6f7ad13c31a51a`
 Active slice: Slice 4
-Active tasks: T4.1, T4.2, T4.3
+Active tasks: none
 Execution gate: Slice 3 merged into `dev` at `93ae422`
 
 ## Slice Status
@@ -24,7 +24,7 @@ Execution gate: Slice 3 merged into `dev` at `93ae422`
 | Slice 1 | Book core | delivered | `feat/generator-book-core` | `feat(slice-1): add the Hatmax Book core` | #22 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-1-book-core.md` |
 | Slice 2 | Project inventory | delivered | `feat/generator-project-inventory` | `feat(slice-2): inventory Hatmax projects` | #23 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-2-project-inventory.md` |
 | Slice 3 | Intent validation | delivered | `feat/generator-intent-validation` | `feat(slice-3): validate generator intents` | #24 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-3-intent-validation.md` |
-| Slice 4 | Deterministic planning | pending | `feat/generator-deterministic-planning` | `feat(slice-4): expand deterministic generator plans` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-4-deterministic-planning.md` |
+| Slice 4 | Deterministic planning | reviewing | `feat/generator-deterministic-planning` | `feat(slice-4): expand deterministic generator plans` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-4-deterministic-planning.md` |
 | Slice 5 | Planning evaluation | pending | `test/generator-planning-evaluation` | `test(slice-5): validate generator planning` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-5-planning-evaluation.md` |
 
 ## Slice 1 Tasks
@@ -55,9 +55,9 @@ Execution gate: Slice 3 merged into `dev` at `93ae422`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T4.1 | pending | `feat(generator): define execution plans` | pending | pending |
-| T4.2 | pending | `feat(generator): expand Hatmax obligations` | pending | pending |
-| T4.3 | pending | `feat(generator): bind plans to project state` | pending | pending |
+| T4.1 | complete | `feat(generator): define execution plans` | `7ac3945` | `go test ./generator/plan/...`; `go test ./generator/book/... ./generator/project/... ./generator/intent/... ./generator/plan/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T4.2 | complete | `feat(generator): expand Hatmax obligations` | `f4ede18` | `go test ./generator/plan/...`; `go test ./generator/book/... ./generator/project/... ./generator/intent/... ./generator/plan/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T4.3 | complete | `feat(generator): bind plans to project state` | `1e666ae` | `go test ./generator/plan/...`; `go test ./generator/book/... ./generator/project/... ./generator/intent/... ./generator/plan/...`; `go test -race ./generator/plan/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
 
 ## Slice 5 Tasks
 
@@ -81,6 +81,6 @@ Execution gate: Slice 3 merged into `dev` at `93ae422`
 
 ## Current Gate
 
-Slice 3 was delivered through pull request #24 and merged into `dev` at
-`93ae422`. Slice 4 is ready to begin from that integrated commit on
-`feat/generator-deterministic-planning`.
+Slice 4 implementation and validation are complete on
+`feat/generator-deterministic-planning`. Pull-request publication and
+maintainer review are pending.
