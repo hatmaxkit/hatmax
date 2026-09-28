@@ -14,16 +14,16 @@ Specs:
 
 Base branch: `dev`
 Planning base: `ec16a4df27c6bb3ee6004d6303195f4717da73de`
-Active slice: Slice 1
-Active tasks: none
-Execution gate: Slice 1 pull request #32 open for review
+Active slice: Slice 2
+Active tasks: T2.1
+Execution gate: Slice 2 implementation may begin from integrated `dev` at `e9a84c1`
 
 ## Slice Status
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Interpreter contracts | active | `feat/generator-interpreter-contracts` | `feat(slice-1): define interactive interpreter contracts` | #32 | `ops/default/report/slices/interactive-generator-product-surface/slice-1-interpreter-contracts.md` |
-| Slice 2 | Codex App Server runtime | pending | `feat/generator-codex-app-server` | `feat(slice-2): connect the Codex App Server runtime` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-2-codex-app-server-runtime.md` |
+| Slice 1 | Interpreter contracts | delivered | `feat/generator-interpreter-contracts` | `feat(slice-1): define interactive interpreter contracts` | #32 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-1-interpreter-contracts.md` |
+| Slice 2 | Codex App Server runtime | active | `feat/generator-codex-app-server` | `feat(slice-2): connect the Codex App Server runtime` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-2-codex-app-server-runtime.md` |
 | Slice 3 | Codex interpreter | pending | `feat/generator-codex-interpreter` | `feat(slice-3): interpret Hatmax requests with Codex` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-3-codex-interpreter.md` |
 | Slice 4 | Interaction coordinator | pending | `feat/generator-interaction-coordinator` | `feat(slice-4): coordinate interactive generation` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-4-interaction-coordinator.md` |
 | Slice 5 | Terminal product surface | pending | `feat/generator-terminal-surface` | `feat(slice-5): expose the Hatmax generator command` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-5-terminal-product-surface.md` |
@@ -73,7 +73,7 @@ Execution gate: Slice 1 pull request #32 open for review
 - [x] Umbrella and prerequisite subordinate specifications are approved.
 - [x] The interactive product-surface specification is approved on `dev`.
 - [x] Plan and tracker are approved and committed on `dev`.
-- [ ] Slice 1 is delivered through its branch, report, pull request, and merge.
+- [x] Slice 1 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 2 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 3 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 4 is delivered through its branch, report, pull request, and merge.
@@ -83,7 +83,6 @@ Execution gate: Slice 1 pull request #32 open for review
 
 ## Current Gate
 
-Slice 1 implementation and validation are complete on
-`feat/generator-interpreter-contracts`. Its report is ready and pull request
-#32 is open for review. Slice 2 remains blocked until Slice 1 is reviewed and
-merged into `dev`.
+Slice 1 was delivered through pull request #32 and merged into `dev` at
+`e9a84c1`. Slice 2 may begin from that integrated base with T2.1, the Codex
+runtime lifecycle, as its active task.
