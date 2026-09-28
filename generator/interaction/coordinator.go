@@ -9,6 +9,7 @@ import (
 
 	"hatmax.adrianpk.com/generator/book"
 	"hatmax.adrianpk.com/generator/eval"
+	"hatmax.adrianpk.com/generator/execute"
 	"hatmax.adrianpk.com/generator/intent"
 	"hatmax.adrianpk.com/generator/plan"
 	"hatmax.adrianpk.com/generator/project"
@@ -424,6 +425,14 @@ func diagnosticFromError(phase Phase, fallbackCode string, err error) Diagnostic
 	if errors.As(err, &backendErr) {
 		diagnostic.Code = stableCode(string(backendErr.Code))
 		diagnostic.Field = backendErr.Operation
+
+		return diagnostic
+	}
+
+	var executionErr execute.Error
+	if errors.As(err, &executionErr) {
+		diagnostic.Code = stableCode(executionErr.Code)
+		diagnostic.Field = executionErr.Path
 	}
 
 	return diagnostic
