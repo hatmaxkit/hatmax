@@ -16,7 +16,7 @@ Base branch: `dev`
 Planning base: `ec16a4df27c6bb3ee6004d6303195f4717da73de`
 Active slice: Slice 3
 Active tasks: none
-Execution gate: Slice 3 tasks complete, pull request pending
+Execution gate: Slice 3 pull request #34 open for review
 
 ## Slice Status
 
@@ -24,7 +24,7 @@ Execution gate: Slice 3 tasks complete, pull request pending
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Interpreter contracts | delivered | `feat/generator-interpreter-contracts` | `feat(slice-1): define interactive interpreter contracts` | #32 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-1-interpreter-contracts.md` |
 | Slice 2 | Codex App Server runtime | delivered | `feat/generator-codex-app-server` | `feat(slice-2): connect the Codex App Server runtime` | #33 (merged) | `ops/default/report/slices/interactive-generator-product-surface/slice-2-codex-app-server-runtime.md` |
-| Slice 3 | Codex interpreter | active | `feat/generator-codex-interpreter` | `feat(slice-3): interpret Hatmax requests with Codex` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-3-codex-interpreter.md` |
+| Slice 3 | Codex interpreter | active | `feat/generator-codex-interpreter` | `feat(slice-3): interpret Hatmax requests with Codex` | #34 | `ops/default/report/slices/interactive-generator-product-surface/slice-3-codex-interpreter.md` |
 | Slice 4 | Interaction coordinator | pending | `feat/generator-interaction-coordinator` | `feat(slice-4): coordinate interactive generation` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-4-interaction-coordinator.md` |
 | Slice 5 | Terminal product surface | pending | `feat/generator-terminal-surface` | `feat(slice-5): expose the Hatmax generator command` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-5-terminal-product-surface.md` |
 
@@ -84,7 +84,7 @@ Execution gate: Slice 3 tasks complete, pull request pending
 ## Current Gate
 
 Slice 3 implementation and deterministic validation are complete on
-`feat/generator-codex-interpreter`. Its report is ready and the pull request is
-pending. The observational live smoke stopped before inference because the
-installed `mise` binary lacks the standalone daemon installation. Slice 4
+`feat/generator-codex-interpreter`. Its report is ready and pull request #34 is
+open for review. The observational live smoke stopped before inference because
+the installed `mise` binary lacks the standalone daemon installation. Slice 4
 remains blocked until Slice 3 is reviewed and merged into `dev`.
