@@ -14,15 +14,15 @@ Specs:
 Base branch: `dev`
 Planning base: `28e2b943d2267d903561eb2c5d6f7ad13c31a51a`
 Active slice: Slice 2
-Active tasks: T2.1, T2.2, T2.3
-Execution gate: Slice 1 merged into `dev` at `c580104`
+Active tasks: none
+Execution gate: Slice 2 tasks complete, pull request pending
 
 ## Slice Status
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Book core | delivered | `feat/generator-book-core` | `feat(slice-1): add the Hatmax Book core` | #22 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-1-book-core.md` |
-| Slice 2 | Project inventory | ready | `feat/generator-project-inventory` | `feat(slice-2): inventory Hatmax projects` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-2-project-inventory.md` |
+| Slice 2 | Project inventory | active | `feat/generator-project-inventory` | `feat(slice-2): inventory Hatmax projects` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-2-project-inventory.md` |
 | Slice 3 | Intent validation | pending | `feat/generator-intent-validation` | `feat(slice-3): validate generator intents` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-3-intent-validation.md` |
 | Slice 4 | Deterministic planning | pending | `feat/generator-deterministic-planning` | `feat(slice-4): expand deterministic generator plans` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-4-deterministic-planning.md` |
 | Slice 5 | Planning evaluation | pending | `test/generator-planning-evaluation` | `test(slice-5): validate generator planning` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-5-planning-evaluation.md` |
@@ -39,9 +39,9 @@ Execution gate: Slice 1 merged into `dev` at `c580104`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T2.1 | pending | `feat(generator): inventory Hatmax projects` | pending | pending |
-| T2.2 | pending | `feat(generator): fingerprint planning inputs` | pending | pending |
-| T2.3 | pending | `test(generator): cover project inventory states` | pending | pending |
+| T2.1 | complete | `feat(generator): inventory Hatmax projects` | `979df13` | `go test ./generator/project/...`; `go test ./generator/book/... ./generator/project/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T2.2 | complete | `feat(generator): fingerprint planning inputs` | `98d59cb` | `go test ./generator/project/...`; `go test ./generator/book/... ./generator/project/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T2.3 | complete | `test(generator): cover project inventory states` | `bd149a6` | `go test ./generator/project/...`; `go test ./generator/book/... ./generator/project/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
 
 ## Slice 3 Tasks
 
@@ -81,6 +81,7 @@ Execution gate: Slice 1 merged into `dev` at `c580104`
 
 ## Current Gate
 
-Slice 1 was delivered through pull request #22 and merged into `dev` at
-`c580104`. Slice 2 is ready to begin from that integrated commit on
-`feat/generator-project-inventory`.
+Slice 2 implementation and validation are complete on
+`feat/generator-project-inventory`. Its report is ready and the pull request is
+pending. Slice 3 remains blocked until Slice 2 is reviewed and merged into
+`dev`.
