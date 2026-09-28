@@ -1,11 +1,11 @@
 # Slice 2: Codex App Server Runtime
 
-Status: reviewing
+Status: delivered
 Delivery set: interactive-generator-product-surface
 Plan: `ops/default/plan/interactive-generator-product-surface.md`
 Tracker: `ops/default/tracker/interactive-generator-product-surface.md`
 Branch: `feat/generator-codex-app-server`
-PR: #33
+PR: `#33` (merged)
 
 ## Purpose
 
