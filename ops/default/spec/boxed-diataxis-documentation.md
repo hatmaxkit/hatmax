@@ -1,6 +1,6 @@
 # Boxed Diataxis Documentation Generation
 
-Status: Proposed
+Status: Approved
 Kind: Subordinate capability specification
 Umbrella: `ops/default/spec/interactive-hatmax-generator.md`
 Book: `ops/default/spec/hatmax-book.md`
