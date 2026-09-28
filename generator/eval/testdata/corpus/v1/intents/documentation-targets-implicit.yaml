@@ -1,0 +1,17 @@
+schema_version: 2
+operation: add_field
+project_fingerprint: sha256:0000000000000000000000000000000000000000000000000000000000000000
+hatmax_version: v0.4.0
+book_version: 1
+archetype: server_rendered_crud
+feature: property
+domain:
+  field:
+    name: summary
+    type: text
+capabilities:
+  - postgres_persistence
+documentation_targets:
+  - quadrant: reference
+    subject: property_summary
+    reader_goal: Find the exact summary field contract.

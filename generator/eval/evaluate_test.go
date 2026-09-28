@@ -354,6 +354,15 @@ func promptInterpretation(t *testing.T, testCase promptCase) Interpretation {
 				Message: "request requires an architecture outside the Hatmax Book",
 			}},
 		}
+	case testCase.DirectResult == "clarification":
+		return Interpretation{
+			SchemaVersion: CurrentInterpretationSchemaVersion,
+			Kind:          InterpretationClarification,
+			Clarifications: []intent.Clarification{{
+				Field:    "documentation_targets",
+				Question: "What should the reader be able to learn, do, look up, or understand?",
+			}},
+		}
 	default:
 		t.Fatalf("prompt case %q has no fixture result", testCase.ID)
 

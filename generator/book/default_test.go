@@ -46,6 +46,7 @@ func TestLoadDefaultIncludesBoxedDocumentationContract(t *testing.T) {
 	}
 
 	operationFound := false
+
 	for _, operation := range archetype.Operations {
 		if operation.ID != "document_feature" {
 			continue

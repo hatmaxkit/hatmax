@@ -292,6 +292,7 @@ func admittedExpansion(
 			},
 		},
 	}
+
 	value := intent.Intent{
 		SchemaVersion:        intent.CurrentSchemaVersion,
 		Operation:            operation,

@@ -1,0 +1,18 @@
+documentation_targets:
+  - reader_goal: Understand how Hatmax assigns property ownership across boundaries.
+    subject: property_ownership
+    quadrant: explanation
+  - reader_goal: Find the exact property fields, routes, and validation behavior.
+    subject: property
+    quadrant: reference
+documentation: document_existing_behavior
+capabilities:
+  - postgres_persistence
+domain: {}
+feature: property
+archetype: server_rendered_crud
+book_version: 1
+hatmax_version: 0.4.0
+project_fingerprint: sha256:0000000000000000000000000000000000000000000000000000000000000000
+operation: document_feature
+schema_version: 2

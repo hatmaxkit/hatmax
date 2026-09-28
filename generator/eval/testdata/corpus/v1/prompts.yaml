@@ -28,6 +28,36 @@ cases:
     intent: intents/add-field-summary.yaml
     expected:
       status: admitted
+  - id: document_property_reference
+    prompt: Document the exact fields, routes, validation behavior, and ownership design of the property feature.
+    intent: intents/document-property-reference.yaml
+    expected:
+      status: admitted
+      equivalent_group: document_property
+  - id: document_property_reference_conversational
+    prompt: I need a reference for property contracts and an explanation of how ownership crosses its boundaries.
+    intent: intents/document-property-reference-reordered.yaml
+    expected:
+      status: admitted
+      equivalent_group: document_property
+  - id: add_property_field_with_documentation
+    prompt: Add an optional summary field to property and document how to use it.
+    intent: intents/add-field-summary-documented.yaml
+    expected:
+      status: admitted
+  - id: document_property_ambiguous
+    prompt: Document the property feature.
+    direct_result: clarification
+    expected:
+      status: clarification_required
+      clarifications:
+        - documentation_targets
+  - id: create_invoice_without_implicit_documentation
+    prompt: Create the invoice feature but do not write documentation.
+    intent: intents/create-invoice-reordered.yaml
+    expected:
+      status: admitted
+      equivalent_group: create_invoice
   - id: request_redis_storage
     prompt: Build invoices using Redis as the primary persistence layer.
     intent: intents/redis-unsupported.yaml

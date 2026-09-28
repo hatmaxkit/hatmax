@@ -1,0 +1,21 @@
+schema_version: 2
+operation: add_field
+project_fingerprint: sha256:0000000000000000000000000000000000000000000000000000000000000000
+hatmax_version: v0.4.0
+book_version: 1
+archetype: server_rendered_crud
+feature: property
+domain:
+  field:
+    name: summary
+    type: text
+    label: Summary
+    required: false
+capabilities:
+  - postgres_persistence
+documentation: document_planned_change
+documentation_targets:
+  - quadrant: how_to
+    subject: property_summary
+    reader_goal: Add and use the property summary field.
+exceptions: []

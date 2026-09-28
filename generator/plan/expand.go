@@ -138,6 +138,7 @@ func expandOperations(selection book.Selection, selectedOperation book.Operation
 			selectedArchetypeObligations[obligation] = struct{}{}
 		}
 	}
+
 	for _, obligation := range selection.Archetype.Obligations {
 		if _, selected := selectedArchetypeObligations[obligation.ID]; !selected {
 			continue

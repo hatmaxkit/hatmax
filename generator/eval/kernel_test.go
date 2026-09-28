@@ -62,6 +62,52 @@ func TestTypedCorpusExercisesPlanningKernel(t *testing.T) {
 	}
 }
 
+func TestDocumentationCorpusEnforcesBoxedPlanning(t *testing.T) {
+	loaded := loadCorpus(t)
+	context := syntheticEvaluationContext(t)
+
+	pure := runTypedCase(t, typedCaseByID(t, loaded, "document_property_reference"), context)
+	if pure.plan == nil {
+		t.Fatal("pure documentation case has no plan")
+	}
+
+	if pure.plan.Documentation != intent.DocumentationExisting || len(pure.plan.DocumentationTargets) != 2 {
+		t.Errorf("pure documentation contract = %#v, want existing behavior with two targets", pure.plan)
+	}
+
+	if len(pure.plan.AffectedSurfaces) != 1 || pure.plan.AffectedSurfaces[0] != "documentation" || len(pure.plan.AllowedEffects.Dependencies) != 0 {
+		t.Errorf("pure documentation effects = surfaces %v dependencies %v, want documentation only", pure.plan.AffectedSurfaces, pure.plan.AllowedEffects.Dependencies)
+	}
+
+	combined := runTypedCase(t, typedCaseByID(t, loaded, "add_property_summary_documented"), context)
+	if combined.plan == nil {
+		t.Fatal("combined documentation case has no plan")
+	}
+
+	if combined.plan.Documentation != intent.DocumentationPlanned || !containsPlanString(combined.plan.AffectedSurfaces, "documentation") || !containsPlanString(combined.plan.AffectedSurfaces, "model") {
+		t.Errorf("combined documentation effects = %#v, want implementation and documentation", combined.plan)
+	}
+
+	implicit := runTypedCase(t, typedCaseByID(t, loaded, "create_invoice_implicit_documentation"), context)
+	if implicit.plan == nil {
+		t.Fatal("implicit documentation case has no plan")
+	}
+
+	if implicit.plan.Documentation != intent.DocumentationNotRequested || len(implicit.plan.DocumentationTargets) != 0 || containsPlanString(implicit.plan.AffectedSurfaces, "documentation") {
+		t.Errorf("implicit documentation plan = %#v, want no documentation effects", implicit.plan)
+	}
+}
+
+func containsPlanString(values []string, expected string) bool {
+	for _, value := range values {
+		if value == expected {
+			return true
+		}
+	}
+
+	return false
+}
+
 func TestKernelFromProjectInventoryThroughDriftDiagnostic(t *testing.T) {
 	root := copySupportedProject(t)
 	selectedBook := loadDefaultBook(t)
