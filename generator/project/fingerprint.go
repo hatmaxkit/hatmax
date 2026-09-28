@@ -254,7 +254,7 @@ func (i Inventory) selectRelevantFiles(selectedPaths, surfaces []string) (map[st
 		info, err := os.Lstat(absolute)
 		if errors.Is(err, os.ErrNotExist) {
 			markers = append(markers, Observation{
-				Key:    "selected:" + path,
+				Key:    "file:" + path,
 				Class:  ObservationSelectedInput,
 				Path:   path,
 				Digest: "missing",
@@ -278,7 +278,7 @@ func (i Inventory) selectRelevantFiles(selectedPaths, surfaces []string) (map[st
 		}
 
 		markers = append(markers, Observation{
-			Key:    "selected:" + path,
+			Key:    "file:" + path,
 			Class:  ObservationSelectedInput,
 			Path:   path,
 			Digest: "directory",
