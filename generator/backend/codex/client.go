@@ -164,6 +164,11 @@ func (client *Client) Notifications() <-chan Notification {
 	return client.notifications
 }
 
+// Failure returns the stable terminal connection failure.
+func (client *Client) Failure(operation string) error {
+	return client.connectionError(operation)
+}
+
 // Close shuts down only the owned proxy process. The resident daemon is not
 // affected.
 func (client *Client) Close() error {
