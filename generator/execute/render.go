@@ -1,6 +1,7 @@
 package execute
 
 import (
+	"errors"
 	"fmt"
 	"go/format"
 	"path"
@@ -155,13 +156,49 @@ func renderSelectedRecipes(
 
 		content, renderErr := renderer(context, edit)
 		if renderErr != nil {
+			var typedError Error
+			if errors.As(renderErr, &typedError) {
+				return nil, renderErr
+			}
+
 			return nil, executionError("execution_render_failed", edit.ID, "%v", renderErr)
 		}
 
-		result = append(result, Mutation{EditID: edit.ID, Kind: MutationCreate, Content: content})
+		kind := MutationCreate
+		if edit.Kind != EditCreateFile {
+			kind = MutationReplace
+		}
+
+		result = append(result, Mutation{EditID: edit.ID, Kind: kind, Content: content})
 	}
 
 	return result, nil
+}
+
+// RenderCreateFeature renders every edit in a canonical create-feature
+// manifest. It does not modify the inspected project or execute commands.
+func RenderCreateFeature(value plan.Plan, manifest Manifest, inventory project.Inventory) ([]Mutation, error) {
+	renderers := make(map[string]recipeRenderer, len(domainRenderers)+len(transportRenderers)+len(wiringRenderers))
+
+	for recipe, renderer := range domainRenderers {
+		renderers[recipe] = renderer
+	}
+
+	for recipe, renderer := range transportRenderers {
+		renderers[recipe] = renderer
+	}
+
+	for recipe, renderer := range wiringRenderers {
+		renderers[recipe] = renderer
+	}
+
+	for _, edit := range manifest.Edits {
+		if _, exists := renderers[edit.Recipe]; !exists {
+			return nil, executionError("execution_renderer_missing", edit.ID, "recipe %q has no canonical renderer", edit.Recipe)
+		}
+	}
+
+	return renderSelectedRecipes(value, manifest, inventory, renderers)
 }
 
 func formatGo(target string, source string) ([]byte, error) {

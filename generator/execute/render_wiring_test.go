@@ -1,0 +1,124 @@
+package execute
+
+import (
+	"context"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"hatmax.adrianpk.com/generator/intent"
+)
+
+const canonicalCompositionRoot = `package main
+
+import (
+	"context"
+
+	"hatmax.adrianpk.com/app"
+)
+
+func main() {
+	logger := buildLogger()
+	database := buildDatabase()
+	migrator := buildMigrator()
+	tmplMgr := buildTemplates()
+	deps := []any{database, migrator, tmplMgr}
+	app.Setup(context.Background(), nil, deps...)
+}
+`
+
+func TestRenderCreateFeatureRendersAndAppliesCompleteManifest(t *testing.T) {
+	root := copyExecutionFixture(t)
+	writeExecutionFile(t, root, "main.go", canonicalCompositionRoot)
+	value, inventory, selectedBook := executionPlan(t, root, intent.OperationCreateFeature, intent.Domain{
+		Entity: "Invoice",
+		Route:  "/invoices",
+		Label:  "Invoices",
+		Fields: []intent.Field{
+			{Name: "number", Type: "string", Label: "Number", Required: true},
+			{Name: "notes", Type: "text", Label: "Notes"},
+		},
+	}, []string{"postgres_persistence", "runtime_validation", "htmx_form"})
+
+	manifest, err := Prepare(value, inventory, selectedBook)
+	if err != nil {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+
+	mutations, err := RenderCreateFeature(value, manifest, inventory)
+	if err != nil {
+		t.Fatalf("RenderCreateFeature() error = %v", err)
+	}
+
+	if len(mutations) != len(manifest.Edits) {
+		t.Fatalf("rendered mutations = %d, want %d", len(mutations), len(manifest.Edits))
+	}
+
+	workspace, err := OpenWorkspace(context.Background(), manifest, value, inventory)
+	if err != nil {
+		t.Fatalf("OpenWorkspace() error = %v", err)
+	}
+
+	for _, mutation := range mutations {
+		_, err = workspace.Stage(mutation)
+		if err != nil {
+			t.Fatalf("Stage(%q) error = %v", mutation.EditID, err)
+		}
+	}
+
+	result, err := workspace.Commit(context.Background())
+	if err != nil {
+		t.Fatalf("Commit() error = %v", err)
+	}
+
+	if result.Status != ExecutionApplied || len(result.Changes) != len(manifest.Edits) {
+		t.Fatalf("Commit() = %#v, want %d applied changes", result, len(manifest.Edits))
+	}
+
+	mainSource, err := os.ReadFile(filepath.Join(root, "main.go"))
+	if err != nil {
+		t.Fatalf("read main.go: %v", err)
+	}
+
+	wired := string(mainSource)
+	if !strings.Contains(wired, "\t\"context\"\n\n\tinvoicefeat") {
+		t.Errorf("main.go import groups are not canonical:\n%s", wired)
+	}
+
+	for _, expected := range []string{
+		`invoicefeat "example.com/property/internal/feat/invoice"`,
+		"invoiceStore := invoicefeat.NewPostgresStore(database)",
+		"invoiceService := invoicefeat.NewService(invoiceStore)",
+		"invoiceHandler := invoicefeat.NewHandler(invoiceService, tmplMgr, logger)",
+		"database, migrator, tmplMgr, invoiceStore, invoiceHandler",
+	} {
+		if !strings.Contains(strings.Join(strings.Fields(wired), " "), strings.Join(strings.Fields(expected), " ")) {
+			t.Errorf("main.go does not contain %q:\n%s", expected, wired)
+		}
+	}
+
+	for _, edit := range manifest.Edits {
+		_, statErr := os.Stat(filepath.Join(root, filepath.FromSlash(edit.Target)))
+		if statErr != nil {
+			t.Errorf("target %q was not applied: %v", edit.Target, statErr)
+		}
+	}
+}
+
+func TestRenderCreateFeatureRejectsNoncanonicalCompositionRoot(t *testing.T) {
+	root := copyExecutionFixture(t)
+	value, inventory, selectedBook := executionPlan(t, root, intent.OperationCreateFeature, intent.Domain{
+		Entity: "Invoice",
+		Route:  "/invoices",
+		Fields: []intent.Field{{Name: "number", Type: "string"}},
+	}, []string{"postgres_persistence"})
+
+	manifest, err := Prepare(value, inventory, selectedBook)
+	if err != nil {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+
+	_, err = RenderCreateFeature(value, manifest, inventory)
+	requireExecutionCode(t, err, "execution_wiring_prerequisite_missing")
+}
