@@ -38,7 +38,10 @@ func InspectWithOptions(ctx context.Context, root string, options Options) (Inve
 		return Inventory{}, err
 	}
 
-	result := Inventory{Root: normalizedRoot}
+	result := Inventory{
+		Root:            normalizedRoot,
+		maximumFileSize: normalizedOptions.MaximumFileSize,
+	}
 
 	result.Module, err = inspectModule(normalizedRoot)
 	if err != nil {
