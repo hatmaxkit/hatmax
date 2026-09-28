@@ -76,18 +76,13 @@ planning. No production interpreter adapter is included in this delivery set.
 - `make lint-strict` passed with zero issues.
 - `git diff --check` passed.
 - Evaluation package tests report 88.5% statement coverage.
-- `make check` was attempted and reached the integration suites, but this user
-  cannot access `/var/run/docker.sock`; Testcontainers failed before starting
-  PostgreSQL. The Docker-backed aggregate gate remains pending on a capable
-  host or CI.
-- After merge, the exact integrated code candidate `473c3ad` passed the full
-  generator corpus, evaluation race test, vet, strict lint, and diff check;
-  `make check` reproduced only the Docker socket permission failure.
+- After merge, the exact integrated `dev` candidate `91d3a66` passed the full
+  `make check` gate, including Docker-backed PostgreSQL integration tests, 85.2%
+  statement coverage against the 80% threshold, vet, formatting, and strict
+  lint.
 
 ## Risks and Follow-ups
 
 No production model, provider prompt, response parser, API credential flow, or
 subscription harness has been evaluated. Those belong to a later interactive
-product delivery. The delivery-set gate still requires `make check` against
-the exact integrated `dev` commit on a Docker-capable host after this slice is
-merged.
+product delivery.

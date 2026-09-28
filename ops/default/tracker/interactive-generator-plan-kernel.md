@@ -1,6 +1,6 @@
 # Interactive Generator Plan Kernel Tracker
 
-Status: Validation pending
+Status: Delivered
 Delivery set: interactive-generator-plan-kernel
 Plan: `ops/default/plan/interactive-generator-plan-kernel.md`
 Umbrella spec: `ops/default/spec/interactive-hatmax-generator.md`
@@ -15,7 +15,7 @@ Base branch: `dev`
 Planning base: `28e2b943d2267d903561eb2c5d6f7ad13c31a51a`
 Active slice: none
 Active tasks: none
-Execution gate: Slice 5 merged into `dev` at `473c3ad`; Docker-backed aggregate check pending
+Execution gate: exact integrated `dev` candidate `91d3a66` passed `make check`
 
 ## Slice Status
 
@@ -65,7 +65,7 @@ Execution gate: Slice 5 merged into `dev` at `473c3ad`; Docker-backed aggregate 
 | --- | --- | --- | --- | --- |
 | T5.1 | complete | `test(generator): add the planning corpus` | `d0677d0` | `go test ./generator/...`; `go test -race ./generator/eval/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
 | T5.2 | complete | `feat(generator): define interpreter evaluation` | `8e3195b` | `go test ./generator/...`; `go test -race ./generator/eval/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
-| T5.3 | complete | `test(generator): exercise the plan kernel` | `663b17f` | `go test ./generator/...`; `go test -race ./generator/eval/...`; `make vet`; `make lint-strict`; `git diff --check` passed; `make check` pending Docker access |
+| T5.3 | complete | `test(generator): exercise the plan kernel` | `663b17f` | `go test ./generator/...`; `go test -race ./generator/eval/...`; `make vet`; `make lint-strict`; `git diff --check` passed; integrated `dev` candidate `91d3a66` passed `make check` |
 
 ## Completion Gates
 
@@ -77,13 +77,12 @@ Execution gate: Slice 5 merged into `dev` at `473c3ad`; Docker-backed aggregate 
 - [x] Slice 3 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 4 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 5 is delivered through its branch, report, pull request, and merge.
-- [ ] The exact integrated `dev` candidate passes the delivery-set gate.
+- [x] The exact integrated `dev` candidate passes the delivery-set gate.
 
 ## Current Gate
 
 Slice 5 was delivered through pull request #26 and merged into `dev` at
-`473c3ad`. That integrated candidate passes the generator corpus, evaluation
-race test, vet, strict lint, and diff check. The delivery set remains open
-because `make check` cannot start Testcontainers while the current user lacks
-access to `/var/run/docker.sock`; the exact-candidate Docker gate must run on a
-capable host or CI before the tracker can be marked delivered.
+`473c3ad`. The exact integrated `dev` candidate `91d3a66` passed `make check`
+with Docker-backed PostgreSQL integration tests, 85.2% statement coverage
+against the 80% threshold, vet, formatting, and strict lint. The delivery set
+is closed.
