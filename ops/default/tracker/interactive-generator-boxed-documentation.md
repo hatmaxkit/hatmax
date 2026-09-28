@@ -22,7 +22,7 @@ Execution gate: Slice 1 tasks complete, pull request pending
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Documentation contracts | active | `feat/generator-documentation-contracts` | `feat(slice-1): define boxed documentation contracts` | pending | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-1-documentation-contracts.md` |
+| Slice 1 | Documentation contracts | active | `feat/generator-documentation-contracts` | `feat(slice-1): define boxed documentation contracts` | #41 | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-1-documentation-contracts.md` |
 | Slice 2 | Documentation inventory and planning | pending | `feat/generator-documentation-planning` | `feat(slice-2): plan boxed documentation changes` | pending | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-2-documentation-planning.md` |
 | Slice 3 | Diataxis rendering and conformance | pending | `feat/generator-documentation-rendering` | `feat(slice-3): render boxed Diataxis documentation` | pending | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-3-documentation-rendering.md` |
 | Slice 4 | Interactive documentation product | pending | `feat/generator-documentation-product` | `feat(slice-4): deliver interactive documentation generation` | pending | `ops/default/report/slices/interactive-generator-boxed-documentation/slice-4-documentation-product.md` |
@@ -76,6 +76,6 @@ Execution gate: Slice 1 tasks complete, pull request pending
 
 Slice 1 implementation and validation are complete on
 `feat/generator-documentation-contracts`. Its report is ready and the pull
-request is pending. Slice 2 remains blocked until Slice 1 is reviewed and
+request is #41. Slice 2 remains blocked until Slice 1 is reviewed and
 merged into `dev`. The three generator hardening tickets remain outside this
 delivery set.
