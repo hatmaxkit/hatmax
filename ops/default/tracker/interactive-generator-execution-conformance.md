@@ -14,15 +14,15 @@ Specs:
 Base branch: `dev`
 Planning base: `9b7e0d9e71da8297665e42695459e5eb33c739e0`
 Active slice: Slice 2
-Active tasks: T2.1-T2.3
-Execution gate: Slice 1 merged as `d84d7cc`; Slice 2 ready to start
+Active tasks: none
+Execution gate: Slice 2 implementation and validation complete; pull request pending
 
 ## Slice Status
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Execution manifest | delivered | `feat/generator-execution-manifest` | `feat(slice-1): define generator execution manifests` | #27 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-1-execution-manifest.md` |
-| Slice 2 | Atomic application | active | `feat/generator-atomic-application` | `feat(slice-2): apply generator edits atomically` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-2-atomic-application.md` |
+| Slice 2 | Atomic application | reviewing | `feat/generator-atomic-application` | `feat(slice-2): apply generator edits atomically` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-2-atomic-application.md` |
 | Slice 3 | CRUD generation | pending | `feat/generator-crud-generation` | `feat(slice-3): generate canonical Hatmax CRUD features` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-3-crud-generation.md` |
 | Slice 4 | Incremental mutations | pending | `feat/generator-incremental-mutations` | `feat(slice-4): mutate canonical Hatmax features` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-4-incremental-mutations.md` |
 | Slice 5 | Execution conformance | pending | `test/generator-execution-conformance` | `test(slice-5): validate generator execution conformance` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-5-execution-conformance.md` |
@@ -39,9 +39,9 @@ Execution gate: Slice 1 merged as `d84d7cc`; Slice 2 ready to start
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T2.1 | pending | `feat(generator): stage bounded project edits` | pending | pending |
-| T2.2 | pending | `feat(generator): apply project edits atomically` | pending | pending |
-| T2.3 | pending | `test(generator): cover atomic execution behavior` | pending | pending |
+| T2.1 | complete | `feat(generator): stage bounded project edits` | `f9457b0` | `go test ./generator/execute/...`; `go test ./generator/...`; `git diff --check` passed |
+| T2.2 | complete | `feat(generator): apply project edits atomically` | `f8ea0d6` | `go test ./generator/execute/...`; `go test -race ./generator/execute/...`; `go test ./generator/...`; `make vet`; `git diff --check` passed |
+| T2.3 | complete | `test(generator): cover atomic execution behavior` | `5304c7f` | `go test ./generator/execute/...`; `go test -race ./generator/execute/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
 
 ## Slice 3 Tasks
 
@@ -80,6 +80,6 @@ Execution gate: Slice 1 merged as `d84d7cc`; Slice 2 ready to start
 
 ## Current Gate
 
-Slice 1 was merged through pull request #27 as exact integrated candidate
-`d84d7cc`. Slice 2 may begin from that `dev` state on
-`feat/generator-atomic-application`.
+Slice 2 implementation and validation are complete on
+`feat/generator-atomic-application`. Its pull request must be opened against
+`dev` and merged before Slice 3 begins.
