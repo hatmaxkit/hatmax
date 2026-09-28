@@ -84,6 +84,10 @@ func renderIncrementalManifest(
 	result := make([]Mutation, 0, len(manifest.Edits))
 
 	for _, edit := range manifest.Edits {
+		if edit.Surface == "documentation" {
+			continue
+		}
+
 		renderer, exists := renderers[edit.Recipe]
 		if !exists {
 			return nil, executionError("execution_renderer_missing", edit.ID, "recipe %q has no canonical renderer", edit.Recipe)

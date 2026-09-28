@@ -73,6 +73,15 @@ func TestRenderDocumentationUsesPlannedChangeEvidence(t *testing.T) {
 		t.Fatalf("RenderDocumentation() error = %v", err)
 	}
 
+	implementation, err := RenderAddField(value, manifest, inventory)
+	if err != nil {
+		t.Fatalf("RenderAddField() error = %v", err)
+	}
+
+	if len(implementation) != 14 {
+		t.Errorf("len(RenderAddField()) = %d, want 14 implementation mutations", len(implementation))
+	}
+
 	contents := documentationMutationContents(t, manifest, mutations)
 	assertDocumentationContains(t, contents["docs/reference/invoice/index.md"], "`due_on`", "`date`", "Due on")
 }

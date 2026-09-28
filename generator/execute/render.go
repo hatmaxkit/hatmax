@@ -194,6 +194,10 @@ func RenderCreateFeature(value plan.Plan, manifest Manifest, inventory project.I
 	}
 
 	for _, edit := range manifest.Edits {
+		if edit.Surface == "documentation" {
+			continue
+		}
+
 		if _, exists := renderers[edit.Recipe]; !exists {
 			return nil, executionError("execution_renderer_missing", edit.ID, "recipe %q has no canonical renderer", edit.Recipe)
 		}

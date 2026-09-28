@@ -56,7 +56,7 @@ func CheckConformance(value plan.Plan, manifest Manifest, inventory project.Inve
 	checkServerRenderedHTMX(snapshot, &diagnostics)
 	checkLayeredValidation(snapshot, &diagnostics)
 	checkRequiredTests(snapshot, &diagnostics)
-	checkDocumentationBoundary(snapshot, &diagnostics)
+	checkDocumentationConformance(snapshot, &diagnostics)
 
 	return ConformanceResult{Passed: len(diagnostics) == 0, Diagnostics: diagnostics}, nil
 }
@@ -228,19 +228,6 @@ func checkRequiredTests(snapshot conformanceSnapshot, diagnostics *[]Diagnostic)
 		content := conformanceContent(snapshot, base)
 		if !strings.Contains(content, "func Test") {
 			addConformanceDiagnostic(diagnostics, "HMGEN-TEST-BOUNDARY", rule, "tests", base, "behavioral test missing", "at least one behavioral Test function")
-		}
-	}
-}
-
-func checkDocumentationBoundary(snapshot conformanceSnapshot, diagnostics *[]Diagnostic) {
-	rule := "hatmax.documentation.explicit_intent"
-	if !selectedRule(snapshot.value, rule) || snapshot.value.Documentation != intent.DocumentationNotRequested {
-		return
-	}
-
-	for _, edit := range snapshot.manifest.Edits {
-		if edit.Surface == "documentation" {
-			addConformanceDiagnostic(diagnostics, "HMGEN-DOCUMENTATION-SCOPE", rule, "documentation", edit.Target, "documentation edit declared without intent", "no documentation mutations")
 		}
 	}
 }

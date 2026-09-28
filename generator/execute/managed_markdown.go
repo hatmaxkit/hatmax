@@ -56,6 +56,18 @@ func managedOutsideDigest(content []byte) (string, error) {
 	return contentDigest(outside), nil
 }
 
+func managedSectionContent(content []byte) ([]byte, error) {
+	start, end, err := managedSectionBounds(content)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStart := start + len(managedMarkdownStart)
+	bodyEnd := end - len(managedMarkdownEnd)
+
+	return content[bodyStart:bodyEnd], nil
+}
+
 func managedSectionBounds(content []byte) (int, int, error) {
 	if bytes.Count(content, managedMarkdownStart) != 1 || bytes.Count(content, managedMarkdownEnd) != 1 {
 		return 0, 0, executionError("execution_managed_section_invalid", "documentation", "managed Markdown requires one balanced marker pair")
