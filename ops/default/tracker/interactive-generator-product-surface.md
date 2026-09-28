@@ -15,8 +15,8 @@ Specs:
 Base branch: `dev`
 Planning base: `ec16a4df27c6bb3ee6004d6303195f4717da73de`
 Active slice: Slice 4
-Active tasks: T4.1
-Execution gate: Slice 4 implementation may begin from integrated `dev` at `3ccb816`
+Active tasks: none
+Execution gate: Slice 4 implementation and deterministic validation complete; report ready for review
 
 ## Slice Status
 
@@ -56,9 +56,9 @@ Execution gate: Slice 4 implementation may begin from integrated `dev` at `3ccb8
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T4.1 | planned | `feat(generator): define interactive generation lifecycle` | pending | pending |
-| T4.2 | planned | `feat(generator): coordinate intent and approval` | pending | pending |
-| T4.3 | planned | `feat(generator): coordinate validated execution` | pending | pending |
+| T4.1 | complete | `feat(generator): define interactive generation lifecycle` | `6369800` | `go test ./generator/interaction/...`; `go test -race ./generator/interaction/...`; `make lint-strict`; `git diff --check` passed |
+| T4.2 | complete | `feat(generator): coordinate intent and approval` | `3a7648d` | kernel and interaction tests; stale-plan coverage; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T4.3 | complete | `feat(generator): coordinate validated execution` | `90f9a50` | interaction and executor race tests; all generator tests; `make vet`; `make lint-strict`; `git diff --check` passed |
 
 ## Slice 5 Tasks
 
@@ -83,7 +83,8 @@ Execution gate: Slice 4 implementation may begin from integrated `dev` at `3ccb8
 
 ## Current Gate
 
-Slice 3 was delivered through pull request #34 and merged into `dev` at
-`3ccb816`. Slice 4 may begin from that integrated base with T4.1, the
-backend-neutral interaction lifecycle, as its active task. The standalone
-Codex daemon prerequisite remains open for the later exact-candidate smoke.
+Slice 4 implementation and deterministic validation are complete on
+`feat/generator-interaction-coordinator`. Its report is ready for review and
+the pull request is pending. Slice 5 remains blocked until Slice 4 is reviewed
+and merged into `dev`. The standalone Codex daemon prerequisite remains open
+for the later exact-candidate smoke.
