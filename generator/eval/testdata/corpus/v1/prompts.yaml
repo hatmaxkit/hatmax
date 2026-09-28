@@ -1,0 +1,35 @@
+schema_version: 1
+cases:
+  - id: create_invoice_direct
+    prompt: Build a server-rendered invoice CRUD feature with Postgres, Hatmax validation, and an HTMX form.
+    intent: intents/create-invoice-canonical.yaml
+    expected:
+      status: admitted
+      equivalent_group: create_invoice
+  - id: create_invoice_conversational
+    prompt: I need invoices with a required number and optional notes, persisted in Postgres and rendered as an HTMX-enhanced form.
+    intent: intents/create-invoice-reordered.yaml
+    expected:
+      status: admitted
+      equivalent_group: create_invoice
+  - id: add_property_field_ambiguous
+    prompt: Add another field to property.
+    intent: intents/add-field-ambiguous.yaml
+    expected:
+      status: clarification_required
+      clarifications:
+        - domain.field
+  - id: request_redis_storage
+    prompt: Build invoices using Redis as the primary persistence layer.
+    intent: intents/redis-unsupported.yaml
+    expected:
+      status: capability_unsupported
+      diagnostics:
+        - HMGEN-CAPABILITY-UNSUPPORTED
+  - id: request_non_hatmax_spa
+    prompt: Replace the Hatmax server-rendered interface with a React single-page application.
+    direct_result: unsupported
+    expected:
+      status: capability_unsupported
+      diagnostics:
+        - HMGEN-REQUEST-UNSUPPORTED
