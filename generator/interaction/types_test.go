@@ -19,6 +19,7 @@ func TestInteractionContractsKeepApprovalAndClarificationExplicit(t *testing.T) 
 	if err != nil {
 		t.Fatalf("Approve() error = %v", err)
 	}
+
 	if decision != ApprovalGranted {
 		t.Fatalf("Approve() = %q, want %q", decision, ApprovalGranted)
 	}
@@ -26,6 +27,7 @@ func TestInteractionContractsKeepApprovalAndClarificationExplicit(t *testing.T) 
 	clarifier := recordingClarifier{response: ClarificationResponse{
 		Answers: []ClarificationAnswer{{Field: "domain.route", Answer: "/invoices"}},
 	}}
+
 	response, err := clarifier.Clarify(context.Background(), ClarificationRequest{
 		Round: 1,
 		Questions: []intent.Clarification{{
@@ -36,6 +38,7 @@ func TestInteractionContractsKeepApprovalAndClarificationExplicit(t *testing.T) 
 	if err != nil {
 		t.Fatalf("Clarify() error = %v", err)
 	}
+
 	if len(response.Answers) != 1 || response.Answers[0].Field != "domain.route" {
 		t.Fatalf("Clarify() = %#v, want one bound answer", response)
 	}
@@ -51,6 +54,7 @@ func TestInteractionStatesAndOutcomesAreStable(t *testing.T) {
 		StateValidating,
 		StateFinished,
 	}
+
 	wantStates := []State{
 		"inspecting",
 		"interpreting",
@@ -76,6 +80,7 @@ func TestInteractionStatesAndOutcomesAreStable(t *testing.T) {
 		OutcomeExecutionFailed,
 		OutcomeFailed,
 	}
+
 	wantOutcomes := []Outcome{
 		"completed",
 		"cancelled",

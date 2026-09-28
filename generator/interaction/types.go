@@ -13,9 +13,12 @@ import (
 )
 
 const (
-	// MaximumClarificationRounds bounds model and user clarification turns in
+	// MaximumClarificationRounds bounds model and user clarification rounds in
 	// one interaction.
-	MaximumClarificationRounds = eval.MaximumClarificationExchanges
+	MaximumClarificationRounds = 8
+	// MaximumClarificationExchanges bounds individual answered questions across
+	// every clarification round.
+	MaximumClarificationExchanges = eval.MaximumClarificationExchanges
 	// MaximumPlanPresentationBytes bounds the canonical plan supplied to an
 	// approval surface.
 	MaximumPlanPresentationBytes = 256 << 10
@@ -160,6 +163,7 @@ type Result struct {
 	Execution        *execute.Result
 	Report           *execute.ExecutionReport
 	Diagnostics      []Diagnostic
+	Clarifications   []intent.Clarification
 	FreshnessChanges []project.Change
 	RetainedChanges  []execute.Change
 }
