@@ -40,6 +40,17 @@ type staleCase struct {
 	ExpectedDiagnostics []string `yaml:"expected_diagnostics"`
 }
 
+type modelOutputCorpus struct {
+	SchemaVersion int               `yaml:"schema_version"`
+	Cases         []modelOutputCase `yaml:"cases"`
+}
+
+type modelOutputCase struct {
+	ID            string `yaml:"id"`
+	Output        string `yaml:"output"`
+	ExpectedError string `yaml:"expected_error"`
+}
+
 func TestPlanningCorpusIsVersionedAndComplete(t *testing.T) {
 	loaded := loadCorpus(t)
 	if loaded.SchemaVersion != 1 || loaded.CorpusVersion != 1 {
@@ -102,6 +113,27 @@ func TestPlanningCorpusIsVersionedAndComplete(t *testing.T) {
 	}
 }
 
+func TestModelOutputCorpusRejectsNonContractResults(t *testing.T) {
+	loaded := loadModelOutputCorpus(t)
+	if loaded.SchemaVersion != 1 || len(loaded.Cases) == 0 {
+		t.Fatalf("model output corpus = %#v, want schema 1 with cases", loaded)
+	}
+
+	seen := make(map[string]struct{}, len(loaded.Cases))
+	for index, testCase := range loaded.Cases {
+		t.Run(corpusCaseName(index, testCase.ID), func(t *testing.T) {
+			assertCorpusID(t, seen, testCase.ID)
+
+			if testCase.ExpectedError == "" {
+				t.Fatal("model output case has no expected error")
+			}
+
+			_, err := DecodeInterpretation([]byte(testCase.Output))
+			requireEvaluationCode(t, err, testCase.ExpectedError)
+		})
+	}
+}
+
 func loadCorpus(t *testing.T) corpus {
 	t.Helper()
 
@@ -118,6 +150,27 @@ func loadCorpus(t *testing.T) corpus {
 	err = decoder.Decode(&result)
 	if err != nil {
 		t.Fatalf("decode planning corpus: %v", err)
+	}
+
+	return result
+}
+
+func loadModelOutputCorpus(t *testing.T) modelOutputCorpus {
+	t.Helper()
+
+	data, err := os.ReadFile(filepath.Join(corpusRoot, "model-outputs.yaml"))
+	if err != nil {
+		t.Fatalf("read model output corpus: %v", err)
+	}
+
+	decoder := yaml.NewDecoder(bytes.NewReader(data))
+	decoder.KnownFields(true)
+
+	var result modelOutputCorpus
+
+	err = decoder.Decode(&result)
+	if err != nil {
+		t.Fatalf("decode model output corpus: %v", err)
 	}
 
 	return result

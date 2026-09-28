@@ -22,11 +22,12 @@ type promptCorpus struct {
 }
 
 type promptCase struct {
-	ID           string       `yaml:"id"`
-	Prompt       string       `yaml:"prompt"`
-	Intent       string       `yaml:"intent,omitempty"`
-	DirectResult string       `yaml:"direct_result,omitempty"`
-	Expected     expectedCase `yaml:"expected"`
+	ID             string                  `yaml:"id"`
+	Prompt         string                  `yaml:"prompt"`
+	Clarifications []ClarificationExchange `yaml:"clarifications,omitempty"`
+	Intent         string                  `yaml:"intent,omitempty"`
+	DirectResult   string                  `yaml:"direct_result,omitempty"`
+	Expected       expectedCase            `yaml:"expected"`
 }
 
 type fixtureInterpreter struct {
@@ -42,7 +43,7 @@ func (f *fixtureInterpreter) Interpret(_ context.Context, request Request) (Inte
 		return InterpreterResult{}, f.err
 	}
 
-	result, exists := f.outputs[request.Prompt]
+	result, exists := f.outputs[fixtureRequestKey(request)]
 	if !exists {
 		return InterpreterResult{}, errors.New("fixture output missing")
 	}
@@ -68,14 +69,23 @@ func TestNaturalLanguageCasesUseFixtureInterpreterOnly(t *testing.T) {
 	interpreter := &fixtureInterpreter{outputs: make(map[string]Interpretation, len(loaded.Cases))}
 
 	for _, testCase := range loaded.Cases {
-		interpreter.outputs[testCase.Prompt] = promptInterpretation(t, testCase)
+		interpreter.outputs[fixtureRequestKey(Request{
+			Prompt:         testCase.Prompt,
+			Clarifications: testCase.Clarifications,
+		})] = promptInterpretation(t, testCase)
 	}
 
 	digests := make(map[string]string)
 
 	for index, testCase := range loaded.Cases {
 		t.Run(corpusCaseName(index, testCase.ID), func(t *testing.T) {
-			result, err := Evaluate(context.Background(), interpreter, testCase.Prompt, evaluationContext)
+			result, err := EvaluateConversation(
+				context.Background(),
+				interpreter,
+				testCase.Prompt,
+				testCase.Clarifications,
+				evaluationContext,
+			)
 			if err != nil {
 				t.Fatalf("Evaluate() error = %v", err)
 			}
@@ -86,6 +96,10 @@ func TestNaturalLanguageCasesUseFixtureInterpreterOnly(t *testing.T) {
 
 			assertExpectedDiagnostics(t, result.Diagnostics, testCase.Expected.Diagnostics)
 			assertExpectedClarifications(t, result.Clarifications, testCase.Expected.Clarifications)
+
+			if result.Provenance.Adapter != "fixture" || result.Provenance.ModelSelection != ModelNotApplicable {
+				t.Errorf("Provenance = %#v, want bounded fixture provenance", result.Provenance)
+			}
 
 			if testCase.Expected.EquivalentGroup != "" {
 				if result.Plan == nil {
@@ -111,6 +125,23 @@ func TestNaturalLanguageCasesUseFixtureInterpreterOnly(t *testing.T) {
 	}
 }
 
+func fixtureRequestKey(request Request) string {
+	var result strings.Builder
+
+	result.WriteString(request.Prompt)
+
+	for _, clarification := range request.Clarifications {
+		result.WriteByte(0)
+		result.WriteString(clarification.Field)
+		result.WriteByte(0)
+		result.WriteString(clarification.Question)
+		result.WriteByte(0)
+		result.WriteString(clarification.Answer)
+	}
+
+	return result.String()
+}
+
 func TestEvaluateAcceptsDirectClarification(t *testing.T) {
 	interpreter := &fixtureInterpreter{outputs: map[string]Interpretation{
 		"Add validation.": {
@@ -133,19 +164,19 @@ func TestEvaluateAcceptsDirectClarification(t *testing.T) {
 }
 
 func TestEvaluateConversationSuppliesDetachedClarificationHistory(t *testing.T) {
+	clarifications := []ClarificationExchange{{
+		Field:    "domain.validation.kind",
+		Question: "Which validation should be added?",
+		Answer:   "Minimum length.",
+	}}
 	interpreter := &fixtureInterpreter{outputs: map[string]Interpretation{
-		"Add validation.": {
+		fixtureRequestKey(Request{Prompt: "Add validation.", Clarifications: clarifications}): {
 			Kind: InterpretationClarification,
 			Clarifications: []intent.Clarification{{
 				Field:    "domain.validation.value",
 				Question: "What minimum length should be used?",
 			}},
 		},
-	}}
-	clarifications := []ClarificationExchange{{
-		Field:    "domain.validation.kind",
-		Question: "Which validation should be added?",
-		Answer:   "Minimum length.",
 	}}
 
 	result, err := EvaluateConversation(
@@ -312,10 +343,11 @@ func promptInterpretation(t *testing.T, testCase promptCase) Interpretation {
 	case testCase.Intent != "":
 		value := decodeCorpusIntent(t, testCase.Intent)
 
-		return Interpretation{Kind: InterpretationIntent, Intent: &value}
+		return Interpretation{SchemaVersion: CurrentInterpretationSchemaVersion, Kind: InterpretationIntent, Intent: &value}
 	case testCase.DirectResult == "unsupported":
 		return Interpretation{
-			Kind: InterpretationUnsupported,
+			SchemaVersion: CurrentInterpretationSchemaVersion,
+			Kind:          InterpretationUnsupported,
 			Diagnostics: []intent.Diagnostic{{
 				Code:    "HMGEN-REQUEST-UNSUPPORTED",
 				Field:   "prompt",
@@ -410,6 +442,10 @@ func assertExpectedClarifications(t *testing.T, got []intent.Clarification, want
 
 func assertBoundedRequest(t *testing.T, request Request) {
 	t.Helper()
+
+	if request.ContractVersion != CurrentContractVersion {
+		t.Errorf("Request.ContractVersion = %d, want %d", request.ContractVersion, CurrentContractVersion)
+	}
 
 	if request.Project.Fingerprint == "" || request.Project.HatmaxVersion == "" {
 		t.Errorf("Request.Project = %#v, want versioned bounded context", request.Project)
