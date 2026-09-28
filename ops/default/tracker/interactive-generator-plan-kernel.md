@@ -1,6 +1,6 @@
 # Interactive Generator Plan Kernel Tracker
 
-Status: Approved
+Status: Validation pending
 Delivery set: interactive-generator-plan-kernel
 Plan: `ops/default/plan/interactive-generator-plan-kernel.md`
 Umbrella spec: `ops/default/spec/interactive-hatmax-generator.md`
@@ -13,9 +13,9 @@ Specs:
 
 Base branch: `dev`
 Planning base: `28e2b943d2267d903561eb2c5d6f7ad13c31a51a`
-Active slice: Slice 5
+Active slice: none
 Active tasks: none
-Execution gate: Slice 4 merged into `dev` at `697feb9`
+Execution gate: Slice 5 merged into `dev` at `473c3ad`; Docker-backed aggregate check pending
 
 ## Slice Status
 
@@ -25,7 +25,7 @@ Execution gate: Slice 4 merged into `dev` at `697feb9`
 | Slice 2 | Project inventory | delivered | `feat/generator-project-inventory` | `feat(slice-2): inventory Hatmax projects` | #23 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-2-project-inventory.md` |
 | Slice 3 | Intent validation | delivered | `feat/generator-intent-validation` | `feat(slice-3): validate generator intents` | #24 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-3-intent-validation.md` |
 | Slice 4 | Deterministic planning | delivered | `feat/generator-deterministic-planning` | `feat(slice-4): expand deterministic generator plans` | #25 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-4-deterministic-planning.md` |
-| Slice 5 | Planning evaluation | reviewing | `test/generator-planning-evaluation` | `test(slice-5): validate generator planning` | #26 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-5-planning-evaluation.md` |
+| Slice 5 | Planning evaluation | delivered | `test/generator-planning-evaluation` | `test(slice-5): validate generator planning` | #26 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-5-planning-evaluation.md` |
 
 ## Slice 1 Tasks
 
@@ -76,12 +76,14 @@ Execution gate: Slice 4 merged into `dev` at `697feb9`
 - [x] Slice 2 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 3 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 4 is delivered through its branch, report, pull request, and merge.
-- [ ] Slice 5 is delivered through its branch, report, pull request, and merge.
+- [x] Slice 5 is delivered through its branch, report, pull request, and merge.
 - [ ] The exact integrated `dev` candidate passes the delivery-set gate.
 
 ## Current Gate
 
-Slice 5 implementation and focused validation are complete on
-`test/generator-planning-evaluation`. Pull request #26 is open for maintainer
-review. The Docker-backed aggregate gate remains pending on a capable host or
-CI; local `make check` could not access the Docker socket.
+Slice 5 was delivered through pull request #26 and merged into `dev` at
+`473c3ad`. That integrated candidate passes the generator corpus, evaluation
+race test, vet, strict lint, and diff check. The delivery set remains open
+because `make check` cannot start Testcontainers while the current user lacks
+access to `/var/run/docker.sock`; the exact-candidate Docker gate must run on a
+capable host or CI before the tracker can be marked delivered.

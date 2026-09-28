@@ -1,11 +1,11 @@
 # Slice 5: Planning Evaluation
 
-Status: reviewing
+Status: delivered
 Delivery set: interactive-generator-plan-kernel
 Plan: `ops/default/plan/interactive-generator-plan-kernel.md`
 Tracker: `ops/default/tracker/interactive-generator-plan-kernel.md`
 Branch: `test/generator-planning-evaluation`
-PR: `#26` (open)
+PR: `#26` (merged)
 
 ## Purpose
 
@@ -80,6 +80,9 @@ planning. No production interpreter adapter is included in this delivery set.
   cannot access `/var/run/docker.sock`; Testcontainers failed before starting
   PostgreSQL. The Docker-backed aggregate gate remains pending on a capable
   host or CI.
+- After merge, the exact integrated code candidate `473c3ad` passed the full
+  generator corpus, evaluation race test, vet, strict lint, and diff check;
+  `make check` reproduced only the Docker socket permission failure.
 
 ## Risks and Follow-ups
 
