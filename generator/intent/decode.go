@@ -54,6 +54,10 @@ func normalize(value *Intent) {
 		value.Capabilities = []string{}
 	}
 
+	if value.DocumentationTargets == nil {
+		value.DocumentationTargets = []DocumentationTarget{}
+	}
+
 	if value.Exceptions == nil {
 		value.Exceptions = []Exception{}
 	}

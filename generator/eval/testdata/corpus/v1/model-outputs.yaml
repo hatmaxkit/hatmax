@@ -6,7 +6,7 @@ cases:
     expected_error: evaluation_output_invalid
   - id: target_path_rejected
     output: >-
-      {"schema_version":1,"kind":"intent","intent":{"schema_version":1,"operation":"create_feature","project_fingerprint":"sha256:0000000000000000000000000000000000000000000000000000000000000000","hatmax_version":"v0.4.0","book_version":1,"archetype":"server_rendered_crud","feature":"invoice","domain":{"fields":[]},"capabilities":[],"documentation":"not_requested","exceptions":[],"path":"main.go"}}
+      {"schema_version":1,"kind":"intent","intent":{"schema_version":2,"operation":"create_feature","project_fingerprint":"sha256:0000000000000000000000000000000000000000000000000000000000000000","hatmax_version":"v0.4.0","book_version":1,"archetype":"server_rendered_crud","feature":"invoice","domain":{"fields":[]},"capabilities":[],"documentation":"not_requested","documentation_targets":[],"exceptions":[],"path":"main.go"}}
     expected_error: evaluation_output_invalid
   - id: contradictory_variant_rejected
     output: >-

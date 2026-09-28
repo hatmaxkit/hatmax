@@ -80,6 +80,8 @@ func ValidateDomainDecisions(value Intent) ([]Diagnostic, []Clarification) {
 		validateAddField(value, &diagnostics, &clarifications)
 	case OperationAddValidation:
 		validateAddValidation(value, &diagnostics, &clarifications)
+	case OperationDocumentFeature:
+		// Documentation-only intent carries no application-domain mutation.
 	}
 
 	validateBusinessRules(value.Domain.Rules, &diagnostics, &clarifications)

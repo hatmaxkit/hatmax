@@ -1,6 +1,10 @@
 package eval
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"hatmax.adrianpk.com/generator/intent"
+)
 
 // InterpretationOutputSchema returns the versioned JSON Schema supplied to an
 // interpreter backend. The schema admits no plan, path, command, dependency,
@@ -37,11 +41,12 @@ func interpretationDefinitions() map[string]any {
 			"required": []string{
 				"schema_version", "operation", "project_fingerprint",
 				"hatmax_version", "book_version", "archetype", "feature",
-				"domain", "capabilities", "documentation", "exceptions",
+				"domain", "capabilities", "documentation", "documentation_targets",
+				"exceptions",
 			},
 			"properties": map[string]any{
-				"schema_version":      map[string]any{"type": "integer", "enum": []int{1}},
-				"operation":           enumSchema("create_feature", "add_field", "add_validation"),
+				"schema_version":      map[string]any{"type": "integer", "enum": []int{intent.CurrentSchemaVersion}},
+				"operation":           enumSchema("create_feature", "add_field", "add_validation", "document_feature"),
 				"project_fingerprint": map[string]any{"type": "string"},
 				"hatmax_version":      nonemptyStringSchema(),
 				"book_version":        map[string]any{"type": "integer"},
@@ -53,10 +58,25 @@ func interpretationDefinitions() map[string]any {
 					"items": nonemptyStringSchema(),
 				},
 				"documentation": enumSchema("not_requested", "document_existing_behavior", "document_planned_change"),
+				"documentation_targets": map[string]any{
+					"type":     "array",
+					"maxItems": intent.MaximumDocumentationTargets,
+					"items":    map[string]any{"$ref": "#/$defs/documentation_target"},
+				},
 				"exceptions": map[string]any{
 					"type":  "array",
 					"items": map[string]any{"$ref": "#/$defs/exception"},
 				},
+			},
+		},
+		"documentation_target": map[string]any{
+			"type":                 "object",
+			"additionalProperties": false,
+			"required":             []string{"quadrant", "subject", "reader_goal"},
+			"properties": map[string]any{
+				"quadrant":    enumSchema("tutorial", "how_to", "reference", "explanation"),
+				"subject":     nonemptyStringSchema(),
+				"reader_goal": boundedStringSchema(),
 			},
 		},
 		"domain": map[string]any{

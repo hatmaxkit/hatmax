@@ -17,6 +17,7 @@ func TestDecodeYAMLAcceptsSupportedOperations(t *testing.T) {
 		{name: "create feature", fixture: "create-feature.yaml", operation: OperationCreateFeature},
 		{name: "add field", fixture: "add-field.yaml", operation: OperationAddField},
 		{name: "add validation", fixture: "add-validation.yaml", operation: OperationAddValidation},
+		{name: "document feature", fixture: "document-feature.yaml", operation: OperationDocumentFeature},
 	}
 
 	for _, test := range tests {
@@ -31,7 +32,7 @@ func TestDecodeYAMLAcceptsSupportedOperations(t *testing.T) {
 				t.Errorf("ProjectFingerprint = %q, want fixture fingerprint", value.ProjectFingerprint)
 			}
 
-			if value.Documentation == "" || value.Capabilities == nil || value.Exceptions == nil {
+			if value.Documentation == "" || value.Capabilities == nil || value.DocumentationTargets == nil || value.Exceptions == nil {
 				t.Errorf("DecodeYAML() did not normalize intent: %#v", value)
 			}
 
@@ -112,7 +113,7 @@ func TestValidateSchemaRejectsInvalidEnvelopeFields(t *testing.T) {
 		mutate func(*Intent)
 		code   string
 	}{
-		{name: "schema version", mutate: func(value *Intent) { value.SchemaVersion = 2 }, code: "intent_schema_unsupported"},
+		{name: "schema version", mutate: func(value *Intent) { value.SchemaVersion = CurrentSchemaVersion + 1 }, code: "intent_schema_unsupported"},
 		{name: "operation", mutate: func(value *Intent) { value.Operation = "remove_feature" }, code: "intent_operation_invalid"},
 		{name: "project fingerprint", mutate: func(value *Intent) { value.ProjectFingerprint = "" }, code: "intent_required_field"},
 		{name: "Hatmax version", mutate: func(value *Intent) { value.HatmaxVersion = " " }, code: "intent_required_field"},
@@ -127,6 +128,50 @@ func TestValidateSchemaRejectsInvalidEnvelopeFields(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			value := base
 			value.Capabilities = append([]string(nil), base.Capabilities...)
+			test.mutate(&value)
+
+			requireSchemaCode(t, ValidateSchema(value), test.code)
+		})
+	}
+}
+
+func TestValidateSchemaEnforcesDocumentationShape(t *testing.T) {
+	base := loadIntentFixture(t, "valid", "document-feature.yaml")
+	tests := []struct {
+		name   string
+		mutate func(*Intent)
+		code   string
+	}{
+		{name: "active targets missing", mutate: func(value *Intent) { value.DocumentationTargets = nil }, code: "intent_documentation_targets_required"},
+		{name: "too many targets", mutate: func(value *Intent) {
+			value.DocumentationTargets = append(value.DocumentationTargets, DocumentationTarget{Quadrant: DocumentationTutorial, Subject: "property_tutorial", ReaderGoal: "Learn another property workflow."}, DocumentationTarget{Quadrant: DocumentationHowTo, Subject: "property_editing", ReaderGoal: "Update a property."}, DocumentationTarget{Quadrant: DocumentationExplanation, Subject: "property_ownership", ReaderGoal: "Understand property ownership."}, DocumentationTarget{Quadrant: DocumentationReference, Subject: "property_routes", ReaderGoal: "Find property routes."})
+		}, code: "intent_documentation_targets_limit"},
+		{name: "invalid quadrant", mutate: func(value *Intent) { value.DocumentationTargets[0].Quadrant = "guide" }, code: "intent_documentation_quadrant_invalid"},
+		{name: "invalid subject", mutate: func(value *Intent) { value.DocumentationTargets[0].Subject = "Property Guide" }, code: "intent_documentation_subject_invalid"},
+		{name: "empty reader goal", mutate: func(value *Intent) { value.DocumentationTargets[0].ReaderGoal = " " }, code: "intent_required_field"},
+		{name: "large reader goal", mutate: func(value *Intent) {
+			value.DocumentationTargets[0].ReaderGoal = strings.Repeat("a", MaximumDocumentationReaderGoalBytes+1)
+		}, code: "intent_documentation_reader_goal_too_large"},
+		{name: "duplicate target", mutate: func(value *Intent) {
+			value.DocumentationTargets = append(value.DocumentationTargets, value.DocumentationTargets[0])
+		}, code: "intent_documentation_target_duplicate"},
+		{name: "document planned behavior", mutate: func(value *Intent) { value.Documentation = DocumentationPlanned }, code: "intent_documentation_mode_invalid"},
+		{name: "document feature domain", mutate: func(value *Intent) { value.Domain.Label = "Properties" }, code: "intent_domain_shape_invalid"},
+		{name: "inactive targets", mutate: func(value *Intent) {
+			value.Operation = OperationAddField
+			value.Domain.Field = &Field{Name: "summary", Type: "text"}
+			value.Documentation = DocumentationNotRequested
+		}, code: "intent_documentation_targets_unexpected"},
+		{name: "implementation existing behavior", mutate: func(value *Intent) {
+			value.Operation = OperationAddField
+			value.Domain.Field = &Field{Name: "summary", Type: "text"}
+		}, code: "intent_documentation_mode_invalid"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			value := base
+			value.DocumentationTargets = append([]DocumentationTarget{}, base.DocumentationTargets...)
 			test.mutate(&value)
 
 			requireSchemaCode(t, ValidateSchema(value), test.code)

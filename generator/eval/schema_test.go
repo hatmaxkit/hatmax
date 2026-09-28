@@ -117,7 +117,7 @@ func TestDecodeInterpretationRejectsInvalidModelOutput(t *testing.T) {
 		{name: "empty", data: nil, code: "evaluation_output_invalid"},
 		{name: "oversized", data: bytes.Repeat([]byte(" "), MaximumInterpretationBytes+1), code: "evaluation_output_too_large"},
 		{name: "unknown top-level field", data: []byte(`{"schema_version":1,"kind":"unsupported","diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}],"plan":{}}`), code: "evaluation_output_invalid"},
-		{name: "unknown intent field", data: []byte(`{"schema_version":1,"kind":"intent","intent":{"schema_version":1,"operation":"create_feature","project_fingerprint":"sha256:0000000000000000000000000000000000000000000000000000000000000000","hatmax_version":"v0.4.0","book_version":1,"archetype":"server_rendered_crud","feature":"invoice","domain":{"fields":[]},"capabilities":[],"documentation":"not_requested","exceptions":[],"path":"main.go"}}`), code: "evaluation_output_invalid"},
+		{name: "unknown intent field", data: []byte(`{"schema_version":1,"kind":"intent","intent":{"schema_version":2,"operation":"create_feature","project_fingerprint":"sha256:0000000000000000000000000000000000000000000000000000000000000000","hatmax_version":"v0.4.0","book_version":1,"archetype":"server_rendered_crud","feature":"invoice","domain":{"fields":[]},"capabilities":[],"documentation":"not_requested","documentation_targets":[],"exceptions":[],"path":"main.go"}}`), code: "evaluation_output_invalid"},
 		{name: "multiple values", data: []byte(`{"schema_version":1,"kind":"unsupported","diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}]} {}`), code: "evaluation_output_invalid"},
 		{name: "unsupported schema", data: []byte(`{"schema_version":2,"kind":"unsupported","diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}]}`), code: "evaluation_output_schema_unsupported"},
 		{name: "contradictory variant", data: []byte(`{"schema_version":1,"kind":"intent","intent":` + string(intentData) + `,"diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}]}`), code: "evaluation_result_invalid"},
@@ -164,8 +164,9 @@ func validOutputIntent() intent.Intent {
 			Entity: "Invoice",
 			Fields: []intent.Field{{Name: "name", Type: "string", Required: true}},
 		},
-		Capabilities:  []string{"postgres_persistence", "htmx_form", "runtime_validation"},
-		Documentation: intent.DocumentationNotRequested,
-		Exceptions:    []intent.Exception{},
+		Capabilities:         []string{"postgres_persistence", "htmx_form", "runtime_validation"},
+		Documentation:        intent.DocumentationNotRequested,
+		DocumentationTargets: []intent.DocumentationTarget{},
+		Exceptions:           []intent.Exception{},
 	}
 }

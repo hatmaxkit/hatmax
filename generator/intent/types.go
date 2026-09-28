@@ -4,7 +4,14 @@ package intent
 import "fmt"
 
 // CurrentSchemaVersion is the intent schema understood by this package.
-const CurrentSchemaVersion = 1
+const CurrentSchemaVersion = 2
+
+// MaximumDocumentationTargets bounds one documentation request to the four
+// canonical Diataxis quadrants.
+const MaximumDocumentationTargets = 4
+
+// MaximumDocumentationReaderGoalBytes bounds one user-facing reader goal.
+const MaximumDocumentationReaderGoalBytes = 4 << 10
 
 // Operation is one admitted generator operation.
 type Operation string
@@ -16,6 +23,8 @@ const (
 	OperationAddField Operation = "add_field"
 	// OperationAddValidation adds one validation at every owning boundary.
 	OperationAddValidation Operation = "add_validation"
+	// OperationDocumentFeature documents one existing canonical feature.
+	OperationDocumentFeature Operation = "document_feature"
 )
 
 // Documentation describes explicit documentation intent.
@@ -30,6 +39,28 @@ const (
 	DocumentationPlanned Documentation = "document_planned_change"
 )
 
+// DocumentationQuadrant identifies one canonical Diataxis reader need.
+type DocumentationQuadrant string
+
+const (
+	// DocumentationTutorial guides a newcomer through a concrete outcome.
+	DocumentationTutorial DocumentationQuadrant = "tutorial"
+	// DocumentationHowTo guides an experienced reader through one task.
+	DocumentationHowTo DocumentationQuadrant = "how_to"
+	// DocumentationReference records exact observed contracts.
+	DocumentationReference DocumentationQuadrant = "reference"
+	// DocumentationExplanation describes rationale and relationships.
+	DocumentationExplanation DocumentationQuadrant = "explanation"
+)
+
+// DocumentationTarget records a reader need without prescribing paths,
+// headings, prose, or navigation.
+type DocumentationTarget struct {
+	Quadrant   DocumentationQuadrant `json:"quadrant" yaml:"quadrant"`
+	Subject    string                `json:"subject" yaml:"subject"`
+	ReaderGoal string                `json:"reader_goal" yaml:"reader_goal"`
+}
+
 // ValidationScope identifies the boundary owned by a requested validation.
 type ValidationScope string
 
@@ -42,17 +73,18 @@ const (
 
 // Intent is the complete ephemeral interpreter output admitted by the schema.
 type Intent struct {
-	SchemaVersion      int           `json:"schema_version" yaml:"schema_version"`
-	Operation          Operation     `json:"operation" yaml:"operation"`
-	ProjectFingerprint string        `json:"project_fingerprint" yaml:"project_fingerprint"`
-	HatmaxVersion      string        `json:"hatmax_version" yaml:"hatmax_version"`
-	BookVersion        int           `json:"book_version" yaml:"book_version"`
-	Archetype          string        `json:"archetype" yaml:"archetype"`
-	Feature            string        `json:"feature" yaml:"feature"`
-	Domain             Domain        `json:"domain" yaml:"domain"`
-	Capabilities       []string      `json:"capabilities" yaml:"capabilities"`
-	Documentation      Documentation `json:"documentation,omitempty" yaml:"documentation,omitempty"`
-	Exceptions         []Exception   `json:"exceptions,omitempty" yaml:"exceptions,omitempty"`
+	SchemaVersion        int                   `json:"schema_version" yaml:"schema_version"`
+	Operation            Operation             `json:"operation" yaml:"operation"`
+	ProjectFingerprint   string                `json:"project_fingerprint" yaml:"project_fingerprint"`
+	HatmaxVersion        string                `json:"hatmax_version" yaml:"hatmax_version"`
+	BookVersion          int                   `json:"book_version" yaml:"book_version"`
+	Archetype            string                `json:"archetype" yaml:"archetype"`
+	Feature              string                `json:"feature" yaml:"feature"`
+	Domain               Domain                `json:"domain" yaml:"domain"`
+	Capabilities         []string              `json:"capabilities" yaml:"capabilities"`
+	Documentation        Documentation         `json:"documentation,omitempty" yaml:"documentation,omitempty"`
+	DocumentationTargets []DocumentationTarget `json:"documentation_targets,omitempty" yaml:"documentation_targets,omitempty"`
+	Exceptions           []Exception           `json:"exceptions,omitempty" yaml:"exceptions,omitempty"`
 }
 
 // Domain contains only application-specific decisions admitted by the

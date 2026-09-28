@@ -1,5 +1,5 @@
 schema_version: 2
-operation: add_field
+operation: document_feature
 project_fingerprint: sha256:0000000000000000000000000000000000000000000000000000000000000000
 hatmax_version: v0.4.0
 book_version: 1
@@ -8,3 +8,9 @@ feature: property
 domain: {}
 capabilities:
   - postgres_persistence
+documentation: document_existing_behavior
+documentation_targets:
+  - quadrant: reference
+    subject: property
+    reader_goal: Find the exact property fields, routes, and validation behavior.
+exceptions: []

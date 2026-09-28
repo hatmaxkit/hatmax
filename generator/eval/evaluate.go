@@ -217,6 +217,7 @@ func cloneInterpretation(value Interpretation) Interpretation {
 func cloneIntent(value intent.Intent) *intent.Intent {
 	result := value
 	result.Capabilities = append([]string{}, value.Capabilities...)
+	result.DocumentationTargets = append([]intent.DocumentationTarget{}, value.DocumentationTargets...)
 	result.Exceptions = append([]intent.Exception{}, value.Exceptions...)
 	result.Domain.Fields = append([]intent.Field{}, value.Domain.Fields...)
 	result.Domain.Rules = append([]intent.BusinessRule{}, value.Domain.Rules...)

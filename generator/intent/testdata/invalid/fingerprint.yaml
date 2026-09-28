@@ -1,4 +1,4 @@
-schema_version: 1
+schema_version: 2
 operation: create_feature
 project_fingerprint: not-a-fingerprint
 hatmax_version: 0.4.0

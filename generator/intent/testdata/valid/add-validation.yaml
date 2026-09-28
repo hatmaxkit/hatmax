@@ -1,4 +1,4 @@
-schema_version: 1
+schema_version: 2
 operation: add_validation
 project_fingerprint: sha256:0000000000000000000000000000000000000000000000000000000000000000
 hatmax_version: 0.4.0
@@ -16,3 +16,7 @@ capabilities:
   - postgres_persistence
   - runtime_validation
 documentation: document_planned_change
+documentation_targets:
+  - quadrant: reference
+    subject: property_validation
+    reader_goal: Find the exact validation behavior for property names.

@@ -1,6 +1,7 @@
 package intent
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -51,7 +52,12 @@ func ValidateSchema(value Intent) error {
 		return schemaError("intent_documentation_invalid", "documentation", "unknown documentation intent %q", value.Documentation)
 	}
 
-	err := validateUniqueCapabilities(value.Capabilities)
+	err := validateDocumentationShape(value)
+	if err != nil {
+		return err
+	}
+
+	err = validateUniqueCapabilities(value.Capabilities)
 	if err != nil {
 		return err
 	}
@@ -60,7 +66,71 @@ func ValidateSchema(value Intent) error {
 }
 
 func validOperation(operation Operation) bool {
-	return operation == OperationCreateFeature || operation == OperationAddField || operation == OperationAddValidation
+	return operation == OperationCreateFeature || operation == OperationAddField || operation == OperationAddValidation || operation == OperationDocumentFeature
+}
+
+func validateDocumentationShape(value Intent) error {
+	targets := value.DocumentationTargets
+	if value.Documentation == DocumentationNotRequested {
+		if len(targets) != 0 {
+			return schemaError("intent_documentation_targets_unexpected", "documentation_targets", "documentation targets require explicit documentation intent")
+		}
+
+		if value.Operation == OperationDocumentFeature {
+			return schemaError("intent_documentation_mode_invalid", "documentation", "document_feature requires document_existing_behavior")
+		}
+
+		return nil
+	}
+
+	if len(targets) == 0 {
+		return schemaError("intent_documentation_targets_required", "documentation_targets", "active documentation requires at least one target")
+	}
+
+	if len(targets) > MaximumDocumentationTargets {
+		return schemaError("intent_documentation_targets_limit", "documentation_targets", "documentation supports at most %d targets", MaximumDocumentationTargets)
+	}
+
+	if value.Operation == OperationDocumentFeature && value.Documentation != DocumentationExisting {
+		return schemaError("intent_documentation_mode_invalid", "documentation", "document_feature requires document_existing_behavior")
+	}
+
+	if value.Operation != OperationDocumentFeature && value.Documentation != DocumentationPlanned {
+		return schemaError("intent_documentation_mode_invalid", "documentation", "implementation operations require document_planned_change when documentation is active")
+	}
+
+	seen := make(map[string]struct{}, len(targets))
+	for index, target := range targets {
+		path := fmt.Sprintf("documentation_targets[%d]", index)
+		if !validDocumentationQuadrant(target.Quadrant) {
+			return schemaError("intent_documentation_quadrant_invalid", path+".quadrant", "unknown Diataxis quadrant %q", target.Quadrant)
+		}
+
+		if !featureNamePattern.MatchString(target.Subject) {
+			return schemaError("intent_documentation_subject_invalid", path+".subject", "documentation subject %q must use lower snake case", target.Subject)
+		}
+
+		if strings.TrimSpace(target.ReaderGoal) == "" {
+			return schemaError("intent_required_field", path+".reader_goal", "reader goal is required")
+		}
+
+		if len(target.ReaderGoal) > MaximumDocumentationReaderGoalBytes {
+			return schemaError("intent_documentation_reader_goal_too_large", path+".reader_goal", "reader goal exceeds %d bytes", MaximumDocumentationReaderGoalBytes)
+		}
+
+		identity := string(target.Quadrant) + "\x00" + target.Subject
+		if _, exists := seen[identity]; exists {
+			return schemaError("intent_documentation_target_duplicate", path, "documentation target %q for %q is duplicated", target.Quadrant, target.Subject)
+		}
+
+		seen[identity] = struct{}{}
+	}
+
+	return nil
+}
+
+func validDocumentationQuadrant(quadrant DocumentationQuadrant) bool {
+	return quadrant == DocumentationTutorial || quadrant == DocumentationHowTo || quadrant == DocumentationReference || quadrant == DocumentationExplanation
 }
 
 func validDocumentation(documentation Documentation) bool {
@@ -97,6 +167,10 @@ func validateOperationShape(value Intent) error {
 	case OperationAddValidation:
 		if len(value.Domain.Fields) > 0 || value.Domain.Field != nil {
 			return schemaError("intent_domain_shape_invalid", "domain", "add_validation uses validation, not field or fields")
+		}
+	case OperationDocumentFeature:
+		if value.Domain.Entity != "" || value.Domain.Route != "" || value.Domain.Label != "" || value.Domain.Ownership != "" || len(value.Domain.Fields) > 0 || value.Domain.Field != nil || value.Domain.Validation != nil || len(value.Domain.Rules) > 0 {
+			return schemaError("intent_domain_shape_invalid", "domain", "document_feature does not accept domain changes")
 		}
 	}
 
