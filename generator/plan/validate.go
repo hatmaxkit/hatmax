@@ -41,6 +41,10 @@ func Validate(value Plan) error {
 		return planError("plan_fingerprint_invalid", "project_fingerprint", "fingerprint must use sha256:<hex>")
 	}
 
+	if value.Digest != "" && !fingerprintPattern.MatchString(value.Digest) {
+		return planError("plan_digest_invalid", "digest", "digest must use sha256:<hex>")
+	}
+
 	if len(value.Capabilities) == 0 || len(value.AffectedSurfaces) == 0 {
 		return planError("plan_required_field", "selection", "capabilities and affected surfaces are required")
 	}

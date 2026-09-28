@@ -9,7 +9,7 @@ import (
 
 // MarshalYAML returns a stable user-visible representation of a valid plan.
 func MarshalYAML(value Plan) ([]byte, error) {
-	err := Validate(value)
+	err := validateForSerialization(value)
 	if err != nil {
 		return nil, fmt.Errorf("validate plan: %w", err)
 	}
@@ -20,6 +20,14 @@ func MarshalYAML(value Plan) ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+func validateForSerialization(value Plan) error {
+	if value.Digest != "" {
+		return VerifyDigest(value)
+	}
+
+	return Validate(value)
 }
 
 func canonicalJSON(value Plan) ([]byte, error) {

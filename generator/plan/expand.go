@@ -99,9 +99,9 @@ func Expand(admission intent.Result, context ExpansionContext) (Plan, error) {
 		Exceptions: cloneExceptions(value.Exceptions),
 	}
 
-	err = Validate(result)
+	result, err = Seal(result)
 	if err != nil {
-		return Plan{}, fmt.Errorf("validate expanded plan: %w", err)
+		return Plan{}, fmt.Errorf("seal expanded plan: %w", err)
 	}
 
 	return result, nil

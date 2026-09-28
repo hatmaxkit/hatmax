@@ -1,0 +1,51 @@
+package plan
+
+import "hatmax.adrianpk.com/generator/project"
+
+// Diagnostic describes one stable plan lifecycle failure.
+type Diagnostic struct {
+	Code    string `json:"code" yaml:"code"`
+	Field   string `json:"field" yaml:"field"`
+	Message string `json:"message" yaml:"message"`
+}
+
+// Freshness reports whether current relevant project state still matches a
+// sealed plan.
+type Freshness struct {
+	Stale       bool             `json:"stale" yaml:"stale"`
+	Changes     []project.Change `json:"changes" yaml:"changes"`
+	Diagnostics []Diagnostic     `json:"diagnostics" yaml:"diagnostics"`
+}
+
+// CheckFingerprint compares a sealed plan with a freshly computed project
+// fingerprint without changing lifecycle state.
+func CheckFingerprint(value Plan, current project.Fingerprint) (Freshness, error) {
+	err := VerifyDigest(value)
+	if err != nil {
+		return Freshness{}, err
+	}
+
+	if current.Value == value.ProjectFingerprint && current.BookVersion == value.BookVersion {
+		return Freshness{
+			Changes:     []project.Change{},
+			Diagnostics: []Diagnostic{},
+		}, nil
+	}
+
+	planned := project.Fingerprint{
+		Value:        value.ProjectFingerprint,
+		BookVersion:  value.BookVersion,
+		Observations: cloneObservations(value.ExpectedObservations),
+	}
+	changes := project.CompareFingerprints(planned, current)
+
+	return Freshness{
+		Stale:   true,
+		Changes: changes,
+		Diagnostics: []Diagnostic{{
+			Code:    "HMGEN-PLAN-STALE",
+			Field:   "project_fingerprint",
+			Message: "relevant project state changed after the plan was produced",
+		}},
+	}, nil
+}
