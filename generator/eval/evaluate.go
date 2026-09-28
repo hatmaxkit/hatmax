@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"hatmax.adrianpk.com/generator/intent"
 	"hatmax.adrianpk.com/generator/plan"
 )
+
+var interpretationDiagnosticCodePattern = regexp.MustCompile(`^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+$`)
 
 // Evaluate runs one provider-neutral interpretation and sends any typed intent
 // through deterministic validation and planning.
@@ -130,24 +133,85 @@ func validateProvenance(value Provenance) error {
 }
 
 func validateInterpretation(value Interpretation) error {
+	if value.SchemaVersion != CurrentInterpretationSchemaVersion {
+		return evaluationError("evaluation_output_schema_unsupported", "interpretation.schema_version", "interpretation schema version %d is not supported", value.SchemaVersion)
+	}
+
 	switch value.Kind {
 	case InterpretationIntent:
 		if value.Intent == nil || len(value.Clarifications) != 0 || len(value.Diagnostics) != 0 {
 			return evaluationError("evaluation_result_invalid", "interpretation", "intent result must contain only one typed intent")
 		}
+
+		err := intent.ValidateSchema(*value.Intent)
+		if err != nil {
+			return evaluationError("evaluation_result_invalid", "interpretation.intent", "%v", err)
+		}
 	case InterpretationClarification:
 		if value.Intent != nil || len(value.Clarifications) == 0 || len(value.Diagnostics) != 0 {
 			return evaluationError("evaluation_result_invalid", "interpretation", "clarification result must contain only focused questions")
 		}
+
+		if len(value.Clarifications) > MaximumClarificationExchanges {
+			return evaluationError("evaluation_result_invalid", "interpretation.clarifications", "clarification result exceeds %d questions", MaximumClarificationExchanges)
+		}
+
+		seen := make(map[string]struct{}, len(value.Clarifications))
+		for index, clarification := range value.Clarifications {
+			field := strings.TrimSpace(clarification.Field)
+			question := strings.TrimSpace(clarification.Question)
+
+			if field == "" || question == "" {
+				return evaluationError("evaluation_result_invalid", indexedField("interpretation.clarifications", index), "field and question are required")
+			}
+
+			if len(clarification.Field) > MaximumClarificationTextBytes || len(clarification.Question) > MaximumClarificationTextBytes {
+				return evaluationError("evaluation_result_invalid", indexedField("interpretation.clarifications", index), "clarification exceeds %d bytes", MaximumClarificationTextBytes)
+			}
+
+			if _, exists := seen[field]; exists {
+				return evaluationError("evaluation_result_invalid", indexedField("interpretation.clarifications", index)+".field", "clarification field %q is duplicated", field)
+			}
+
+			seen[field] = struct{}{}
+		}
 	case InterpretationUnsupported:
 		if value.Intent != nil || len(value.Clarifications) != 0 || len(value.Diagnostics) == 0 {
 			return evaluationError("evaluation_result_invalid", "interpretation", "unsupported result must contain only diagnostics")
+		}
+
+		if len(value.Diagnostics) > MaximumInterpretationDiagnostics {
+			return evaluationError("evaluation_result_invalid", "interpretation.diagnostics", "unsupported result exceeds %d diagnostics", MaximumInterpretationDiagnostics)
+		}
+
+		for index, diagnostic := range value.Diagnostics {
+			if !interpretationDiagnosticCodePattern.MatchString(diagnostic.Code) || strings.TrimSpace(diagnostic.Field) == "" || strings.TrimSpace(diagnostic.Message) == "" {
+				return evaluationError("evaluation_result_invalid", indexedField("interpretation.diagnostics", index), "stable code, field, and message are required")
+			}
+
+			if len(diagnostic.Field) > MaximumClarificationTextBytes || len(diagnostic.Message) > MaximumClarificationTextBytes {
+				return evaluationError("evaluation_result_invalid", indexedField("interpretation.diagnostics", index), "diagnostic exceeds %d bytes", MaximumClarificationTextBytes)
+			}
 		}
 	default:
 		return evaluationError("evaluation_kind_invalid", "interpretation.kind", "unknown interpretation kind %q", value.Kind)
 	}
 
 	return nil
+}
+
+func cloneInterpretation(value Interpretation) Interpretation {
+	result := value
+	result.Intent = nil
+
+	if value.Intent != nil {
+		result.Intent = cloneIntent(*value.Intent)
+	}
+
+	result.Clarifications = cloneClarifications(value.Clarifications)
+	result.Diagnostics = cloneDiagnostics(value.Diagnostics)
+
+	return result
 }
 
 func cloneIntent(value intent.Intent) *intent.Intent {

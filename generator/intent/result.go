@@ -22,16 +22,16 @@ const (
 
 // Diagnostic describes one stable semantic validation failure.
 type Diagnostic struct {
-	Code    string
-	Field   string
-	Message string
+	Code    string `json:"code" yaml:"code"`
+	Field   string `json:"field" yaml:"field"`
+	Message string `json:"message" yaml:"message"`
 }
 
 // Clarification asks for one product decision without exposing architecture
 // choices owned by the Book.
 type Clarification struct {
-	Field    string
-	Question string
+	Field    string `json:"field" yaml:"field"`
+	Question string `json:"question" yaml:"question"`
 }
 
 // Result is the deterministic outcome of intent validation.

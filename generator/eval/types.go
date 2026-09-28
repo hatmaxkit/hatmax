@@ -27,6 +27,12 @@ const (
 	// MaximumClarificationTextBytes bounds one clarification field, question, or
 	// answer.
 	MaximumClarificationTextBytes = 4 << 10
+	// CurrentInterpretationSchemaVersion is the model-output schema version.
+	CurrentInterpretationSchemaVersion = 1
+	// MaximumInterpretationBytes bounds one complete model output.
+	MaximumInterpretationBytes = 64 << 10
+	// MaximumInterpretationDiagnostics bounds one unsupported result.
+	MaximumInterpretationDiagnostics = 16
 )
 
 // InterpretationKind identifies one structured interpreter response.
@@ -95,6 +101,7 @@ type Request struct {
 // Interpretation is the only provider result admitted by the evaluation
 // boundary. It cannot contain plans, edits, commands, or file paths.
 type Interpretation struct {
+	SchemaVersion  int                    `json:"schema_version" yaml:"schema_version"`
 	Kind           InterpretationKind     `json:"kind" yaml:"kind"`
 	Intent         *intent.Intent         `json:"intent,omitempty" yaml:"intent,omitempty"`
 	Clarifications []intent.Clarification `json:"clarifications,omitempty" yaml:"clarifications,omitempty"`

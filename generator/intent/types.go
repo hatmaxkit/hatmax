@@ -42,63 +42,63 @@ const (
 
 // Intent is the complete ephemeral interpreter output admitted by the schema.
 type Intent struct {
-	SchemaVersion      int           `yaml:"schema_version"`
-	Operation          Operation     `yaml:"operation"`
-	ProjectFingerprint string        `yaml:"project_fingerprint"`
-	HatmaxVersion      string        `yaml:"hatmax_version"`
-	BookVersion        int           `yaml:"book_version"`
-	Archetype          string        `yaml:"archetype"`
-	Feature            string        `yaml:"feature"`
-	Domain             Domain        `yaml:"domain"`
-	Capabilities       []string      `yaml:"capabilities"`
-	Documentation      Documentation `yaml:"documentation,omitempty"`
-	Exceptions         []Exception   `yaml:"exceptions,omitempty"`
+	SchemaVersion      int           `json:"schema_version" yaml:"schema_version"`
+	Operation          Operation     `json:"operation" yaml:"operation"`
+	ProjectFingerprint string        `json:"project_fingerprint" yaml:"project_fingerprint"`
+	HatmaxVersion      string        `json:"hatmax_version" yaml:"hatmax_version"`
+	BookVersion        int           `json:"book_version" yaml:"book_version"`
+	Archetype          string        `json:"archetype" yaml:"archetype"`
+	Feature            string        `json:"feature" yaml:"feature"`
+	Domain             Domain        `json:"domain" yaml:"domain"`
+	Capabilities       []string      `json:"capabilities" yaml:"capabilities"`
+	Documentation      Documentation `json:"documentation,omitempty" yaml:"documentation,omitempty"`
+	Exceptions         []Exception   `json:"exceptions,omitempty" yaml:"exceptions,omitempty"`
 }
 
 // Domain contains only application-specific decisions admitted by the
 // archetype.
 type Domain struct {
-	Entity     string          `yaml:"entity,omitempty"`
-	Route      string          `yaml:"route,omitempty"`
-	Label      string          `yaml:"label,omitempty"`
-	Ownership  string          `yaml:"ownership,omitempty"`
-	Fields     []Field         `yaml:"fields,omitempty"`
-	Field      *Field          `yaml:"field,omitempty"`
-	Validation *ValidationRule `yaml:"validation,omitempty"`
-	Rules      []BusinessRule  `yaml:"rules,omitempty"`
+	Entity     string          `json:"entity,omitempty" yaml:"entity,omitempty"`
+	Route      string          `json:"route,omitempty" yaml:"route,omitempty"`
+	Label      string          `json:"label,omitempty" yaml:"label,omitempty"`
+	Ownership  string          `json:"ownership,omitempty" yaml:"ownership,omitempty"`
+	Fields     []Field         `json:"fields,omitempty" yaml:"fields,omitempty"`
+	Field      *Field          `json:"field,omitempty" yaml:"field,omitempty"`
+	Validation *ValidationRule `json:"validation,omitempty" yaml:"validation,omitempty"`
+	Rules      []BusinessRule  `json:"rules,omitempty" yaml:"rules,omitempty"`
 }
 
 // Field describes one domain field without prescribing implementation files
 // or storage adapters.
 type Field struct {
-	Name     string `yaml:"name"`
-	Type     string `yaml:"type"`
-	Label    string `yaml:"label,omitempty"`
-	Required bool   `yaml:"required,omitempty"`
+	Name     string `json:"name" yaml:"name"`
+	Type     string `json:"type" yaml:"type"`
+	Label    string `json:"label,omitempty" yaml:"label,omitempty"`
+	Required bool   `json:"required,omitempty" yaml:"required,omitempty"`
 }
 
 // ValidationRule describes one requested domain or interaction constraint.
 type ValidationRule struct {
-	Field   string          `yaml:"field"`
-	Kind    string          `yaml:"kind"`
-	Value   string          `yaml:"value,omitempty"`
-	Message string          `yaml:"message,omitempty"`
-	Scope   ValidationScope `yaml:"scope"`
+	Field   string          `json:"field" yaml:"field"`
+	Kind    string          `json:"kind" yaml:"kind"`
+	Value   string          `json:"value,omitempty" yaml:"value,omitempty"`
+	Message string          `json:"message,omitempty" yaml:"message,omitempty"`
+	Scope   ValidationScope `json:"scope" yaml:"scope"`
 }
 
 // BusinessRule records one application-specific invariant or workflow rule.
 type BusinessRule struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
-	Owner       string `yaml:"owner"`
+	Name        string `json:"name" yaml:"name"`
+	Description string `json:"description" yaml:"description"`
+	Owner       string `json:"owner" yaml:"owner"`
 }
 
 // Exception records one explicitly approved, bounded departure request.
 type Exception struct {
-	Rule     string `yaml:"rule"`
-	Reason   string `yaml:"reason"`
-	Scope    string `yaml:"scope"`
-	Approved bool   `yaml:"approved"`
+	Rule     string `json:"rule" yaml:"rule"`
+	Reason   string `json:"reason" yaml:"reason"`
+	Scope    string `json:"scope" yaml:"scope"`
+	Approved bool   `json:"approved" yaml:"approved"`
 }
 
 // SchemaError describes invalid typed intent content.

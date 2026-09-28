@@ -47,6 +47,10 @@ func (f *fixtureInterpreter) Interpret(_ context.Context, request Request) (Inte
 		return InterpreterResult{}, errors.New("fixture output missing")
 	}
 
+	if result.SchemaVersion == 0 {
+		result.SchemaVersion = CurrentInterpretationSchemaVersion
+	}
+
 	return InterpreterResult{
 		Interpretation: result,
 		Provenance: Provenance{
