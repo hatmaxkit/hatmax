@@ -455,7 +455,7 @@ This umbrella requires subordinate specifications for:
 - boxed Diataxis documentation generation;
 - existing-project adoption and migration;
 - Hatmax capability-gap and exception handling;
-- the interactive product surface and model-provider boundary.
+- the interactive product surface and interpreter-backend boundary.
 
 The first implementation sequence must resolve these specifications in this
 order:
@@ -466,7 +466,7 @@ order:
    Postgres persistence, store, service, handler, HTMX form, runtime
    validation, templates, wiring, and tests.
 4. Conformance checks and the regression evaluation corpus for that slice.
-5. Interactive product surface and model-provider boundary.
+5. Interactive product surface and interpreter-backend boundary.
 6. Boxed Diataxis documentation generation.
 
 The exact Go source layout, approval policy, existing-project admission
