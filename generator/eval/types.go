@@ -1,5 +1,9 @@
 // Package eval defines provider-neutral evaluation contracts for the Hatmax
 // generator planning kernel.
+//
+// Deterministic tests use fixture interpreters. Passing those tests proves the
+// kernel boundary and expected structured outcomes; it does not validate any
+// production model, prompt, provider, or subscription harness.
 package eval
 
 import (
