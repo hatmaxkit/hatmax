@@ -5,7 +5,7 @@ Delivery set: interactive-generator-plan-kernel
 Plan: `ops/default/plan/interactive-generator-plan-kernel.md`
 Tracker: `ops/default/tracker/interactive-generator-plan-kernel.md`
 Branch: `feat/generator-book-core`
-PR: pending
+PR: `#22`
 
 ## Purpose
 

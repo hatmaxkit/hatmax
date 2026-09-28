@@ -15,13 +15,13 @@ Base branch: `dev`
 Planning base: `28e2b943d2267d903561eb2c5d6f7ad13c31a51a`
 Active slice: Slice 1
 Active tasks: none
-Execution gate: Slice 1 tasks complete, pull request pending
+Execution gate: Slice 1 pull request open for review
 
 ## Slice Status
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Book core | active | `feat/generator-book-core` | `feat(slice-1): add the Hatmax Book core` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-1-book-core.md` |
+| Slice 1 | Book core | active | `feat/generator-book-core` | `feat(slice-1): add the Hatmax Book core` | #22 | `ops/default/report/slices/interactive-generator-plan-kernel/slice-1-book-core.md` |
 | Slice 2 | Project inventory | pending | `feat/generator-project-inventory` | `feat(slice-2): inventory Hatmax projects` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-2-project-inventory.md` |
 | Slice 3 | Intent validation | pending | `feat/generator-intent-validation` | `feat(slice-3): validate generator intents` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-3-intent-validation.md` |
 | Slice 4 | Deterministic planning | pending | `feat/generator-deterministic-planning` | `feat(slice-4): expand deterministic generator plans` | pending | `ops/default/report/slices/interactive-generator-plan-kernel/slice-4-deterministic-planning.md` |
@@ -82,5 +82,5 @@ Execution gate: Slice 1 tasks complete, pull request pending
 ## Current Gate
 
 Slice 1 implementation and validation are complete on
-`feat/generator-book-core`. Its report is ready and the pull request is pending.
-Slice 2 remains blocked until Slice 1 is reviewed and merged into `dev`.
+`feat/generator-book-core`. Pull request #22 is open against `dev`. Slice 2
+remains blocked until Slice 1 is reviewed and merged.
