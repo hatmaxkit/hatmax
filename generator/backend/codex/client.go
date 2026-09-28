@@ -33,7 +33,7 @@ type InitializeResult struct {
 	PlatformOS     string `json:"platformOs"`
 }
 
-// Client is a minimal concurrent JSON-RPC 2.0 client for Codex App Server v2.
+// Client is a minimal concurrent client for the Codex App Server v2 protocol.
 type Client struct {
 	process       Process
 	writeMutex    sync.Mutex
@@ -93,7 +93,7 @@ func (client *Client) Initialize(ctx context.Context) (InitializeResult, error) 
 	return result, nil
 }
 
-// Call sends one correlated JSON-RPC request and decodes its result.
+// Call sends one correlated App Server request and decodes its result.
 func (client *Client) Call(ctx context.Context, method string, parameters any, result any) error {
 	if client == nil || client.process == nil {
 		return backendError(eval.BackendUnavailable, method, "Codex App Server connection is unavailable")
@@ -106,7 +106,7 @@ func (client *Client) Call(ctx context.Context, method string, parameters any, r
 	client.pending[requestID] = responseChannel
 	client.pendingMutex.Unlock()
 
-	request := rpcRequest{JSONRPC: "2.0", ID: requestID, Method: method, Params: parameters}
+	request := rpcRequest{ID: requestID, Method: method, Params: parameters}
 
 	err := client.write(request)
 	if err != nil {
@@ -149,7 +149,7 @@ func (client *Client) Notify(method string, parameters any) error {
 		return backendError(eval.BackendUnavailable, method, "Codex App Server connection is unavailable")
 	}
 
-	return client.write(rpcNotification{JSONRPC: "2.0", Method: method, Params: parameters})
+	return client.write(rpcNotification{Method: method, Params: parameters})
 }
 
 // Interrupt cancels one active Codex turn through the supported v2 method.
@@ -222,14 +222,13 @@ func (client *Client) handleMessage(value []byte) error {
 	var envelope rpcEnvelope
 
 	err := json.Unmarshal(value, &envelope)
-	if err != nil || envelope.JSONRPC != "2.0" {
-		return backendError(eval.BackendProtocolViolation, "decode", "Codex App Server sent an invalid JSON-RPC message")
+	if err != nil {
+		return backendError(eval.BackendProtocolViolation, "decode", "Codex App Server sent an invalid protocol message")
 	}
 
 	if envelope.Method != "" && len(envelope.ID) > 0 {
 		_ = client.write(rpcErrorResponse{
-			JSONRPC: "2.0",
-			ID:      envelope.ID,
+			ID: envelope.ID,
 			Error: rpcError{
 				Code:    -32601,
 				Message: "Hatmax rejects App Server requests",
@@ -357,31 +356,27 @@ func cloneRawMessage(value json.RawMessage) json.RawMessage {
 }
 
 type rpcRequest struct {
-	JSONRPC string `json:"jsonrpc"`
-	ID      int64  `json:"id"`
-	Method  string `json:"method"`
-	Params  any    `json:"params"`
+	ID     int64  `json:"id"`
+	Method string `json:"method"`
+	Params any    `json:"params"`
 }
 
 type rpcNotification struct {
-	JSONRPC string `json:"jsonrpc"`
-	Method  string `json:"method"`
-	Params  any    `json:"params"`
+	Method string `json:"method"`
+	Params any    `json:"params"`
 }
 
 type rpcErrorResponse struct {
-	JSONRPC string          `json:"jsonrpc"`
-	ID      json.RawMessage `json:"id"`
-	Error   rpcError        `json:"error"`
+	ID    json.RawMessage `json:"id"`
+	Error rpcError        `json:"error"`
 }
 
 type rpcEnvelope struct {
-	JSONRPC string          `json:"jsonrpc"`
-	ID      json.RawMessage `json:"id"`
-	Method  string          `json:"method"`
-	Params  json.RawMessage `json:"params"`
-	Result  json.RawMessage `json:"result"`
-	Error   *rpcError       `json:"error"`
+	ID     json.RawMessage `json:"id"`
+	Method string          `json:"method"`
+	Params json.RawMessage `json:"params"`
+	Result json.RawMessage `json:"result"`
+	Error  *rpcError       `json:"error"`
 }
 
 type rpcResponse struct {

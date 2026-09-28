@@ -145,7 +145,15 @@ func (runtime *Runtime) OpenProxy(ctx context.Context, info RuntimeInfo) (Proces
 		return nil, backendError(eval.BackendStartFailed, "proxy_start", "Codex App Server proxy could not be started")
 	}
 
-	return process, nil
+	websocket, err := openWebSocketProcess(ctx, process)
+	if err != nil {
+		_ = process.Kill()
+		_ = process.Close()
+
+		return nil, err
+	}
+
+	return websocket, nil
 }
 
 func parseSemanticVersion(value string) (string, error) {

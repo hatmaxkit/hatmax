@@ -17,8 +17,10 @@ func TestAuthenticatedLiveSmoke(t *testing.T) {
 		t.Skip("set HATMAX_CODEX_LIVE_SMOKE=1 to run the authenticated Codex smoke test")
 	}
 
+	contextRoot := t.TempDir()
+
 	interpreter, err := NewLocalInterpreter(InterpreterConfig{
-		ContextRoot:     t.TempDir(),
+		ContextRoot:     contextRoot,
 		ProjectIdentity: "hatmax-authenticated-live-smoke-v1",
 	})
 	if err != nil {
@@ -28,21 +30,48 @@ func TestAuthenticatedLiveSmoke(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
 
-	result, err := interpreter.Interpret(ctx, liveSmokeRequest())
+	first, err := interpreter.Interpret(ctx, liveSmokeRequest())
 	if err != nil {
-		t.Fatalf("authenticated Codex smoke failed: %v", err)
+		t.Fatalf("initial authenticated Codex smoke failed: %v", err)
 	}
 
-	if result.Interpretation.Kind == "" || result.Provenance.EffectiveModel == "" {
-		t.Fatal("authenticated Codex smoke returned incomplete bounded provenance")
+	if first.Interpretation.Kind == "" || first.Provenance.EffectiveModel == "" || first.Provenance.ThreadReused {
+		t.Fatalf("initial authenticated Codex smoke returned invalid bounded provenance: %#v", first.Provenance)
 	}
 
-	t.Logf("authenticated Codex smoke passed: kind=%s model_selection=%s runtime_reused=%t thread_reused=%t timing=%s",
-		result.Interpretation.Kind,
-		result.Provenance.ModelSelection,
-		result.Provenance.RuntimeReused,
-		result.Provenance.ThreadReused,
-		result.Provenance.Timing,
+	second, err := interpreter.Interpret(ctx, liveSmokeRequest())
+	if err != nil {
+		t.Fatalf("same-project authenticated Codex smoke failed: %v", err)
+	}
+
+	if !second.Provenance.RuntimeReused || !second.Provenance.ThreadReused {
+		t.Fatalf("same-project request did not reuse runtime and thread: %#v", second.Provenance)
+	}
+
+	isolated, err := NewLocalInterpreter(InterpreterConfig{
+		ContextRoot:     contextRoot,
+		ProjectIdentity: "hatmax-authenticated-live-smoke-isolated-v1",
+	})
+	if err != nil {
+		t.Fatalf("NewLocalInterpreter() for isolated project error = %v", err)
+	}
+
+	third, err := isolated.Interpret(ctx, liveSmokeRequest())
+	if err != nil {
+		t.Fatalf("different-project authenticated Codex smoke failed: %v", err)
+	}
+
+	if !third.Provenance.RuntimeReused || third.Provenance.ThreadReused {
+		t.Fatalf("different-project request did not reuse only the runtime: %#v", third.Provenance)
+	}
+
+	t.Logf("authenticated Codex smoke passed: kind=%s model_selection=%s runtime_reused=%t same_project_thread_reused=%t different_project_thread_reused=%t timing=%s",
+		second.Interpretation.Kind,
+		second.Provenance.ModelSelection,
+		second.Provenance.RuntimeReused,
+		second.Provenance.ThreadReused,
+		third.Provenance.ThreadReused,
+		second.Provenance.Timing,
 	)
 }
 

@@ -7,40 +7,26 @@ import "encoding/json"
 // edit, or approval fields.
 func InterpretationOutputSchema() ([]byte, error) {
 	schema := map[string]any{
-		"$schema": "http://json-schema.org/draft-07/schema#",
-		"title":   "Hatmax interpreter result v1",
-		"oneOf": []any{
-			interpretationVariant("intent", "intent", map[string]any{"$ref": "#/definitions/intent"}),
-			interpretationVariant("clarification_required", "clarifications", map[string]any{
-				"type":     "array",
-				"minItems": 1,
-				"maxItems": MaximumClarificationExchanges,
-				"items":    map[string]any{"$ref": "#/definitions/clarification"},
+		"type":                 "object",
+		"additionalProperties": false,
+		"required":             []string{"schema_version", "kind", "intent", "clarifications", "diagnostics"},
+		"properties": map[string]any{
+			"schema_version": map[string]any{"type": "integer", "enum": []int{CurrentInterpretationSchemaVersion}},
+			"kind":           enumSchema("intent", "clarification_required", "unsupported"),
+			"intent":         nullableSchema(map[string]any{"$ref": "#/$defs/intent"}),
+			"clarifications": nullableSchema(map[string]any{
+				"type":  "array",
+				"items": map[string]any{"$ref": "#/$defs/clarification"},
 			}),
-			interpretationVariant("unsupported", "diagnostics", map[string]any{
-				"type":     "array",
-				"minItems": 1,
-				"maxItems": MaximumInterpretationDiagnostics,
-				"items":    map[string]any{"$ref": "#/definitions/diagnostic"},
+			"diagnostics": nullableSchema(map[string]any{
+				"type":  "array",
+				"items": map[string]any{"$ref": "#/$defs/diagnostic"},
 			}),
 		},
-		"definitions": interpretationDefinitions(),
+		"$defs": interpretationDefinitions(),
 	}
 
 	return json.Marshal(schema)
-}
-
-func interpretationVariant(kind, payload string, payloadSchema map[string]any) map[string]any {
-	return map[string]any{
-		"type":                 "object",
-		"additionalProperties": false,
-		"required":             []string{"schema_version", "kind", payload},
-		"properties": map[string]any{
-			"schema_version": map[string]any{"const": CurrentInterpretationSchemaVersion},
-			"kind":           map[string]any{"const": kind},
-			payload:          payloadSchema,
-		},
-	}
 }
 
 func interpretationDefinitions() map[string]any {
@@ -54,66 +40,69 @@ func interpretationDefinitions() map[string]any {
 				"domain", "capabilities", "documentation", "exceptions",
 			},
 			"properties": map[string]any{
-				"schema_version":      map[string]any{"const": 1},
+				"schema_version":      map[string]any{"type": "integer", "enum": []int{1}},
 				"operation":           enumSchema("create_feature", "add_field", "add_validation"),
-				"project_fingerprint": map[string]any{"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+				"project_fingerprint": map[string]any{"type": "string"},
 				"hatmax_version":      nonemptyStringSchema(),
-				"book_version":        map[string]any{"type": "integer", "minimum": 1},
+				"book_version":        map[string]any{"type": "integer"},
 				"archetype":           nonemptyStringSchema(),
 				"feature":             nonemptyStringSchema(),
-				"domain":              map[string]any{"$ref": "#/definitions/domain"},
+				"domain":              map[string]any{"$ref": "#/$defs/domain"},
 				"capabilities": map[string]any{
-					"type":        "array",
-					"uniqueItems": true,
-					"items":       nonemptyStringSchema(),
+					"type":  "array",
+					"items": nonemptyStringSchema(),
 				},
 				"documentation": enumSchema("not_requested", "document_existing_behavior", "document_planned_change"),
 				"exceptions": map[string]any{
 					"type":  "array",
-					"items": map[string]any{"$ref": "#/definitions/exception"},
+					"items": map[string]any{"$ref": "#/$defs/exception"},
 				},
 			},
 		},
 		"domain": map[string]any{
 			"type":                 "object",
 			"additionalProperties": false,
+			"required": []string{
+				"entity", "route", "label", "ownership", "fields", "field",
+				"validation", "rules",
+			},
 			"properties": map[string]any{
-				"entity":    nonemptyStringSchema(),
-				"route":     nonemptyStringSchema(),
-				"label":     nonemptyStringSchema(),
-				"ownership": nonemptyStringSchema(),
-				"fields": map[string]any{
+				"entity":    nullableSchema(nonemptyStringSchema()),
+				"route":     nullableSchema(nonemptyStringSchema()),
+				"label":     nullableSchema(nonemptyStringSchema()),
+				"ownership": nullableSchema(nonemptyStringSchema()),
+				"fields": nullableSchema(map[string]any{
 					"type":  "array",
-					"items": map[string]any{"$ref": "#/definitions/field"},
-				},
-				"field":      map[string]any{"$ref": "#/definitions/field"},
-				"validation": map[string]any{"$ref": "#/definitions/validation"},
-				"rules": map[string]any{
+					"items": map[string]any{"$ref": "#/$defs/field"},
+				}),
+				"field":      nullableSchema(map[string]any{"$ref": "#/$defs/field"}),
+				"validation": nullableSchema(map[string]any{"$ref": "#/$defs/validation"}),
+				"rules": nullableSchema(map[string]any{
 					"type":  "array",
-					"items": map[string]any{"$ref": "#/definitions/business_rule"},
-				},
+					"items": map[string]any{"$ref": "#/$defs/business_rule"},
+				}),
 			},
 		},
 		"field": map[string]any{
 			"type":                 "object",
 			"additionalProperties": false,
-			"required":             []string{"name", "type", "required"},
+			"required":             []string{"name", "type", "label", "required"},
 			"properties": map[string]any{
 				"name":     nonemptyStringSchema(),
 				"type":     nonemptyStringSchema(),
-				"label":    map[string]any{"type": "string"},
+				"label":    map[string]any{"type": []string{"string", "null"}},
 				"required": map[string]any{"type": "boolean"},
 			},
 		},
 		"validation": map[string]any{
 			"type":                 "object",
 			"additionalProperties": false,
-			"required":             []string{"field", "kind", "scope"},
+			"required":             []string{"field", "kind", "value", "message", "scope"},
 			"properties": map[string]any{
 				"field":   nonemptyStringSchema(),
 				"kind":    nonemptyStringSchema(),
-				"value":   map[string]any{"type": "string"},
-				"message": map[string]any{"type": "string"},
+				"value":   map[string]any{"type": []string{"string", "null"}},
+				"message": map[string]any{"type": []string{"string", "null"}},
 				"scope":   enumSchema("durable", "client_only"),
 			},
 		},
@@ -152,7 +141,7 @@ func interpretationDefinitions() map[string]any {
 			"additionalProperties": false,
 			"required":             []string{"code", "field", "message"},
 			"properties": map[string]any{
-				"code":    map[string]any{"type": "string", "pattern": "^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+$"},
+				"code":    map[string]any{"type": "string"},
 				"field":   boundedStringSchema(),
 				"message": boundedStringSchema(),
 			},
@@ -165,9 +154,13 @@ func enumSchema(values ...string) map[string]any {
 }
 
 func nonemptyStringSchema() map[string]any {
-	return map[string]any{"type": "string", "minLength": 1}
+	return map[string]any{"type": "string"}
 }
 
 func boundedStringSchema() map[string]any {
-	return map[string]any{"type": "string", "minLength": 1, "maxLength": MaximumClarificationTextBytes}
+	return map[string]any{"type": "string"}
+}
+
+func nullableSchema(value map[string]any) map[string]any {
+	return map[string]any{"anyOf": []any{value, map[string]any{"type": "null"}}}
 }

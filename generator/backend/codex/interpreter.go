@@ -160,9 +160,11 @@ func (interpreter *Interpreter) Interpret(ctx context.Context, request eval.Requ
 }
 
 func (interpreter *Interpreter) interpretTurn(ctx context.Context, client AppServerClient, compiled CompiledTurn) (eval.Interpretation, error) {
+	var lastDecodeError error
+
 	for attempt := 0; attempt < 2; attempt++ {
 		if attempt == 1 {
-			compiled.Prompt = correctionPrompt(compiled.Prompt)
+			compiled.Prompt = correctionPrompt(compiled.Prompt, lastDecodeError)
 		}
 
 		output, err := interpreter.runTurn(ctx, client, compiled)
@@ -174,9 +176,16 @@ func (interpreter *Interpreter) interpretTurn(ctx context.Context, client AppSer
 		if decodeErr == nil {
 			return result, nil
 		}
+
+		lastDecodeError = decodeErr
 	}
 
-	return eval.Interpretation{}, backendError(eval.BackendOutputInvalid, "decode_output", "Codex returned invalid structured output twice")
+	message := "Codex returned invalid structured output twice"
+	if lastDecodeError != nil {
+		message += ": " + boundedText(lastDecodeError.Error(), 512)
+	}
+
+	return eval.Interpretation{}, backendError(eval.BackendOutputInvalid, "decode_output", message)
 }
 
 func (interpreter *Interpreter) runTurn(ctx context.Context, client AppServerClient, compiled CompiledTurn) ([]byte, error) {
@@ -203,7 +212,7 @@ func (interpreter *Interpreter) runTurn(ctx context.Context, client AppServerCli
 
 		return []byte(message), nil
 	case "failed":
-		return nil, backendError(eval.BackendTurnFailed, "turn_start", "Codex turn failed")
+		return nil, failedTurnError("turn_start", response.Turn)
 	case "interrupted":
 		return nil, backendError(eval.BackendCancelled, "turn_start", "Codex turn was interrupted")
 	case "inProgress":
@@ -299,7 +308,7 @@ func consumeTurnNotification(notification Notification, threadID, turnID string)
 		case "interrupted":
 			return "", false, backendError(eval.BackendCancelled, "turn_complete", "Codex turn was interrupted")
 		case "failed":
-			return "", false, backendError(eval.BackendTurnFailed, "turn_complete", "Codex turn failed")
+			return "", false, failedTurnError("turn_complete", parameters.Turn)
 		default:
 			return "", false, backendError(eval.BackendProtocolViolation, "turn_complete", "Codex turn completed with an invalid status")
 		}
@@ -316,7 +325,9 @@ func readAuthenticatedIdentity(ctx context.Context, client AppServerClient) (str
 		return "", backendError(eval.BackendAuthenticationRequired, "account_read", "Codex ChatGPT authentication could not be verified")
 	}
 
-	if response.RequiresOpenAIAuth || response.Account == nil || response.Account.Type != "chatgpt" {
+	// RequiresOpenAIAuth describes provider policy, not whether the account is
+	// signed in. A present ChatGPT account is the authentication state.
+	if response.Account == nil || response.Account.Type != "chatgpt" {
 		return "", backendError(eval.BackendAuthenticationRequired, "account_read", "Codex ChatGPT sign-in is required")
 	}
 
@@ -330,6 +341,15 @@ func readAuthenticatedIdentity(ctx context.Context, client AppServerClient) (str
 	return hex.EncodeToString(digest[:]), nil
 }
 
+func failedTurnError(operation string, value turn) error {
+	message := "Codex turn failed"
+	if value.Error != nil && strings.TrimSpace(value.Error.Message) != "" {
+		message += ": " + boundedText(value.Error.Message, 512)
+	}
+
+	return backendError(eval.BackendTurnFailed, operation, message)
+}
+
 func interruptTurn(client AppServerClient, threadID, turnID string) {
 	ctx, cancel := context.WithTimeout(context.Background(), interruptTimeout)
 	defer cancel()
@@ -337,8 +357,13 @@ func interruptTurn(client AppServerClient, threadID, turnID string) {
 	_ = client.Interrupt(ctx, threadID, turnID)
 }
 
-func correctionPrompt(original string) string {
-	return "The previous response did not satisfy the supplied JSON Schema. Retry once. Return only one corrected JSON value and do not use tools.\n\n" + original
+func correctionPrompt(original string, validationError error) string {
+	diagnostic := "Hatmax rejected the previous structured result."
+	if validationError != nil {
+		diagnostic += " Validation diagnostic: " + boundedText(validationError.Error(), 512)
+	}
+
+	return diagnostic + " Retry once. Return only one corrected JSON value and do not use tools.\n\n" + original
 }
 
 func lastAgentMessage(items []turnItem) string {
@@ -411,6 +436,11 @@ type turn struct {
 	ID     string     `json:"id"`
 	Status string     `json:"status"`
 	Items  []turnItem `json:"items"`
+	Error  *turnError `json:"error"`
+}
+
+type turnError struct {
+	Message string `json:"message"`
 }
 
 type turnItem struct {

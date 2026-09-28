@@ -191,9 +191,8 @@ func TestClientRejectsToolNotifications(t *testing.T) {
 	encoder := json.NewEncoder(serverProcess)
 
 	err := encoder.Encode(map[string]any{
-		"jsonrpc": "2.0",
-		"method":  "item/started",
-		"params":  map[string]any{"item": map[string]string{"type": "commandExecution"}},
+		"method": "item/started",
+		"params": map[string]any{"item": map[string]string{"type": "commandExecution"}},
 	})
 	if err != nil {
 		t.Fatalf("Encode() error = %v", err)

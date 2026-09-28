@@ -23,16 +23,50 @@ func TestInterpretationOutputSchemaIsClosedAndVersioned(t *testing.T) {
 		t.Fatalf("decode output schema: %v", err)
 	}
 
-	variants, ok := schema["oneOf"].([]any)
-	if !ok || len(variants) != 3 {
-		t.Fatalf("Output schema variants = %#v, want three", schema["oneOf"])
+	properties, ok := schema["properties"].(map[string]any)
+	if !ok || len(properties) != 5 {
+		t.Fatalf("Output schema properties = %#v, want five", schema["properties"])
 	}
 
 	assertClosedSchemaObjects(t, schema, "schema")
+	assertStrictRequiredProperties(t, schema, "schema")
 
 	for _, forbidden := range []string{`"plan"`, `"path"`, `"command"`, `"dependency"`, `"edit"`, `"approval"`} {
 		if bytes.Contains(data, []byte(forbidden)) {
 			t.Errorf("Output schema contains forbidden field %s", forbidden)
+		}
+	}
+}
+
+func assertStrictRequiredProperties(t *testing.T, value any, path string) {
+	t.Helper()
+
+	switch typed := value.(type) {
+	case map[string]any:
+		if properties, hasProperties := typed["properties"].(map[string]any); hasProperties {
+			required, ok := typed["required"].([]any)
+			if !ok || len(required) != len(properties) {
+				t.Errorf("%s requires %#v for properties %#v", path, typed["required"], properties)
+			} else {
+				requiredSet := make(map[string]struct{}, len(required))
+				for _, name := range required {
+					requiredSet[name.(string)] = struct{}{}
+				}
+
+				for name := range properties {
+					if _, exists := requiredSet[name]; !exists {
+						t.Errorf("%s property %q is not required", path, name)
+					}
+				}
+			}
+		}
+
+		for key, child := range typed {
+			assertStrictRequiredProperties(t, child, path+"."+key)
+		}
+	case []any:
+		for index, child := range typed {
+			assertStrictRequiredProperties(t, child, path+"["+strconv.Itoa(index)+"]")
 		}
 	}
 }

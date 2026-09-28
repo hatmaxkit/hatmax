@@ -118,7 +118,7 @@ func TestInterpreterInterruptsTimedOutTurn(t *testing.T) {
 func TestInterpreterRequiresChatGPTAuthentication(t *testing.T) {
 	// Missing managed ChatGPT authentication is a distinct stable failure.
 	client := newInterpreterFakeClient()
-	client.authRequired = true
+	client.accountMissing = true
 	interpreter := newTestInterpreter(t, client, time.Second)
 
 	_, err := interpreter.Interpret(context.Background(), promptTestRequest())
@@ -260,14 +260,14 @@ func (runtime *interpreterFakeRuntime) OpenProxy(context.Context, RuntimeInfo) (
 }
 
 type interpreterFakeClient struct {
-	mutex         sync.Mutex
-	notifications chan Notification
-	authRequired  bool
-	threadReused  bool
-	turnStarts    int
-	turnPrompts   []string
-	interrupts    int
-	closed        bool
+	mutex          sync.Mutex
+	notifications  chan Notification
+	accountMissing bool
+	threadReused   bool
+	turnStarts     int
+	turnPrompts    []string
+	interrupts     int
+	closed         bool
 }
 
 func newInterpreterFakeClient() *interpreterFakeClient {
@@ -285,9 +285,9 @@ func (client *interpreterFakeClient) Call(_ context.Context, method string, para
 	switch method {
 	case "account/read":
 		response := result.(*accountReadResponse)
+		response.RequiresOpenAIAuth = true
 
-		response.RequiresOpenAIAuth = client.authRequired
-		if !client.authRequired {
+		if !client.accountMissing {
 			response.Account = &account{Type: "chatgpt", Email: "hidden@example.com", PlanType: "plus"}
 		}
 	case "thread/list":

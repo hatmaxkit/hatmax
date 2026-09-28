@@ -38,8 +38,8 @@ func TestCompileTurnContainsOnlyBoundedRequestAndSchema(t *testing.T) {
 		t.Fatalf("turn parameters = %s", encoded)
 	}
 
-	if turn.Schema["title"] != "Hatmax interpreter result v1" {
-		t.Fatalf("schema title = %#v", turn.Schema["title"])
+	if turn.Schema["type"] != "object" {
+		t.Fatalf("schema type = %#v", turn.Schema["type"])
 	}
 }
 

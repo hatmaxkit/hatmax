@@ -28,9 +28,31 @@ func TestClientInitializesAndCorrelatesRequests(t *testing.T) {
 		decoder := json.NewDecoder(serverProcess)
 		encoder := json.NewEncoder(serverProcess)
 
+		var document map[string]json.RawMessage
+
+		err := decoder.Decode(&document)
+		if err != nil {
+			serverDone <- err
+
+			return
+		}
+
+		if _, exists := document["jsonrpc"]; exists {
+			serverDone <- errors.New("initialize request contains unsupported jsonrpc field")
+
+			return
+		}
+
+		encoded, err := json.Marshal(document)
+		if err != nil {
+			serverDone <- err
+
+			return
+		}
+
 		var initialize rpcEnvelope
 
-		err := decoder.Decode(&initialize)
+		err = json.Unmarshal(encoded, &initialize)
 		if err != nil {
 			serverDone <- err
 
@@ -44,8 +66,7 @@ func TestClientInitializesAndCorrelatesRequests(t *testing.T) {
 		}
 
 		err = encoder.Encode(map[string]any{
-			"jsonrpc": "2.0",
-			"id":      json.RawMessage(initialize.ID),
+			"id": json.RawMessage(initialize.ID),
 			"result": map[string]string{
 				"userAgent":      "codex/0.153.0",
 				"platformFamily": "unix",
@@ -104,8 +125,8 @@ func TestClientCorrelatesConcurrentResponses(t *testing.T) {
 		requests := make([]rpcEnvelope, 2)
 		_ = decoder.Decode(&requests[0])
 		_ = decoder.Decode(&requests[1])
-		_ = encoder.Encode(map[string]any{"jsonrpc": "2.0", "id": json.RawMessage(requests[1].ID), "result": map[string]string{"value": requests[1].Method}})
-		_ = encoder.Encode(map[string]any{"jsonrpc": "2.0", "id": json.RawMessage(requests[0].ID), "result": map[string]string{"value": requests[0].Method}})
+		_ = encoder.Encode(map[string]any{"id": json.RawMessage(requests[1].ID), "result": map[string]string{"value": requests[1].Method}})
+		_ = encoder.Encode(map[string]any{"id": json.RawMessage(requests[0].ID), "result": map[string]string{"value": requests[0].Method}})
 	}()
 
 	type result struct {
@@ -189,10 +210,9 @@ func TestClientRejectsServerRequests(t *testing.T) {
 	encoder := json.NewEncoder(serverProcess)
 
 	err := encoder.Encode(map[string]any{
-		"jsonrpc": "2.0",
-		"id":      44,
-		"method":  "item/tool/call",
-		"params":  map[string]any{},
+		"id":     44,
+		"method": "item/tool/call",
+		"params": map[string]any{},
 	})
 	if err != nil {
 		t.Fatalf("Encode() error = %v", err)
@@ -233,7 +253,7 @@ func TestClientInterruptsTurns(t *testing.T) {
 		var request rpcEnvelope
 
 		_ = decoder.Decode(&request)
-		_ = encoder.Encode(map[string]any{"jsonrpc": "2.0", "id": json.RawMessage(request.ID), "result": map[string]any{}})
+		_ = encoder.Encode(map[string]any{"id": json.RawMessage(request.ID), "result": map[string]any{}})
 	}()
 
 	err := client.Interrupt(context.Background(), "thread-1", "turn-1")
@@ -251,7 +271,7 @@ func TestClientBoundsNotifications(t *testing.T) {
 
 	writer := bufio.NewWriter(serverProcess)
 	for index := 0; index <= maximumNotifications; index++ {
-		_, _ = writer.WriteString(`{"jsonrpc":"2.0","method":"thread/status/changed","params":{}}` + "\n")
+		_, _ = writer.WriteString(`{"method":"thread/status/changed","params":{}}` + "\n")
 	}
 
 	_ = writer.Flush()

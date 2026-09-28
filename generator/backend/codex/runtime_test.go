@@ -90,23 +90,31 @@ func TestRuntimeReportsMissingExecutable(t *testing.T) {
 
 func TestRuntimeOpensOwnedProxy(t *testing.T) {
 	// The proxy is a child connection; daemon lifecycle commands are excluded.
-	process := &fakeProcess{}
+	process, server := newPipeProcesses()
 	runner := &fakeRunner{process: process}
 	runtime := NewRuntime(fakeLocator{}, runner, fakeClock{})
+	serverDone := serveTestWebSocket(server)
 
 	got, err := runtime.OpenProxy(context.Background(), RuntimeInfo{Executable: "/usr/bin/codex"})
 	if err != nil {
 		t.Fatalf("OpenProxy() error = %v", err)
 	}
 
-	if got != process {
-		t.Fatal("OpenProxy() returned an unexpected process")
+	if _, ok := got.(*webSocketProcess); !ok {
+		t.Fatalf("OpenProxy() process = %T, want WebSocket transport", got)
 	}
 
 	want := [][]string{{"app-server", "proxy"}}
 	if !reflect.DeepEqual(runner.started, want) {
 		t.Fatalf("started = %#v, want %#v", runner.started, want)
 	}
+
+	err = <-serverDone
+	if err != nil {
+		t.Fatalf("WebSocket server error = %v", err)
+	}
+
+	_ = got.Close()
 }
 
 func assertBackendCode(t *testing.T, err error, want eval.BackendFailureCode) {

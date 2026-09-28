@@ -78,8 +78,13 @@ func interpretationPrompt(request []byte) string {
 
 	prompt.WriteString("Interpret the bounded Hatmax request below.\n")
 	prompt.WriteString("Choose exactly one schema result: intent, clarification_required, or unsupported.\n")
+	prompt.WriteString("Set payloads for every unchosen result kind to null.\n")
 	prompt.WriteString("Use only operations, archetypes, capabilities, and variants present in the request.\n")
 	prompt.WriteString("Preserve project_fingerprint, hatmax_version, and book_version exactly in an intent.\n")
+	prompt.WriteString("For create_feature, use domain.fields and set domain.field and domain.validation to null. A required field uses its required boolean, not domain.validation.\n")
+	prompt.WriteString("For add_field, use domain.field and set domain.fields and domain.validation to null.\n")
+	prompt.WriteString("For add_validation, use domain.validation and set domain.fields and domain.field to null.\n")
+	prompt.WriteString("Set every inapplicable optional domain property to null.\n")
 	prompt.WriteString("Documentation remains not_requested unless the request explicitly asks for documentation.\n")
 	prompt.WriteString("Do not produce a plan, file path, edit, command, dependency, approval decision, prose, or Markdown.\n")
 	prompt.WriteString("Do not use tools or external context. Return only the JSON value constrained by the supplied schema.\n")
