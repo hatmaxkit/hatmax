@@ -1,0 +1,25 @@
+schema_version: 1
+operation: create_feature
+project_fingerprint: sha256:0000000000000000000000000000000000000000000000000000000000000000
+hatmax_version: v0.4.0
+book_version: 1
+archetype: server_rendered_crud
+feature: invoice
+domain:
+  entity: Invoice
+  route: /invoices
+  label: Invoices
+  ownership: owner
+  fields:
+    - name: number
+      type: string
+      label: Number
+      required: true
+    - name: notes
+      type: text
+capabilities:
+  - postgres_persistence
+  - runtime_validation
+  - htmx_form
+documentation: not_requested
+exceptions: []

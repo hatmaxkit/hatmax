@@ -1,0 +1,49 @@
+schema_version: 1
+corpus_version: 1
+typed_cases:
+  - id: create_invoice_canonical
+    category: admitted
+    intent: intents/create-invoice-canonical.yaml
+    expected:
+      status: admitted
+      equivalent_group: create_invoice
+  - id: create_invoice_reordered
+    category: admitted
+    intent: intents/create-invoice-reordered.yaml
+    expected:
+      status: admitted
+      equivalent_group: create_invoice
+  - id: add_field_ambiguous
+    category: ambiguous
+    intent: intents/add-field-ambiguous.yaml
+    expected:
+      status: clarification_required
+      clarifications:
+        - domain.field
+  - id: redis_unsupported
+    category: unsupported
+    intent: intents/redis-unsupported.yaml
+    expected:
+      status: capability_unsupported
+      diagnostics:
+        - HMGEN-CAPABILITY-UNSUPPORTED
+  - id: existing_feature_incompatible
+    category: incompatible
+    intent: intents/existing-feature.yaml
+    expected:
+      status: intent_incompatible
+      diagnostics:
+        - HMGEN-FEATURE-EXISTS
+  - id: unknown_field_invalid
+    category: invalid
+    intent: intents/unknown-field.yaml
+    expected:
+      status: intent_invalid
+      diagnostics:
+        - HMGEN-INTENT-SCHEMA
+stale_cases:
+  - id: property_model_changed
+    intent: intents/create-invoice-canonical.yaml
+    changed_path: internal/feat/property/model.go
+    expected_diagnostics:
+      - HMGEN-PLAN-STALE
