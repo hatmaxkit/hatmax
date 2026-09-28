@@ -1,11 +1,11 @@
 # Slice 5: Execution Conformance
 
-Status: reviewing
+Status: delivered
 Delivery set: interactive-generator-execution-conformance
 Plan: `ops/default/plan/interactive-generator-execution-conformance.md`
 Tracker: `ops/default/tracker/interactive-generator-execution-conformance.md`
 Branch: `test/generator-execution-conformance`
-PR: `#31` (open)
+PR: `#31` (merged)
 
 ## Purpose
 
@@ -78,6 +78,9 @@ The public execution contract adds `ConformanceResult`, `CheckConformance`,
 - `newgrp docker -c 'make check'` passed, including Docker-backed PostgreSQL
   integration tests, 84.4% total statement coverage against the 80% threshold,
   vet, formatting, and strict lint.
+- After merge, exact integrated `dev` candidate `b5f5135` passed the execution
+  corpus, reapplication, drift, semantic-conflict, and rollback checks with the
+  race detector, followed by the complete Docker-backed `make check` gate.
 
 ## Risks and Follow-ups
 
