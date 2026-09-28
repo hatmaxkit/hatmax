@@ -14,14 +14,14 @@ Specs:
 Base branch: `dev`
 Planning base: `9b7e0d9e71da8297665e42695459e5eb33c739e0`
 Active slice: Slice 1
-Active tasks: T1.1, T1.2, T1.3
-Execution gate: satisfied by this approved planning commit on `dev`
+Active tasks: none
+Execution gate: Slice 1 implementation complete; pull request pending
 
 ## Slice Status
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Execution manifest | ready | `feat/generator-execution-manifest` | `feat(slice-1): define generator execution manifests` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-1-execution-manifest.md` |
+| Slice 1 | Execution manifest | reviewing | `feat/generator-execution-manifest` | `feat(slice-1): define generator execution manifests` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-1-execution-manifest.md` |
 | Slice 2 | Atomic application | pending | `feat/generator-atomic-application` | `feat(slice-2): apply generator edits atomically` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-2-atomic-application.md` |
 | Slice 3 | CRUD generation | pending | `feat/generator-crud-generation` | `feat(slice-3): generate canonical Hatmax CRUD features` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-3-crud-generation.md` |
 | Slice 4 | Incremental mutations | pending | `feat/generator-incremental-mutations` | `feat(slice-4): mutate canonical Hatmax features` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-4-incremental-mutations.md` |
@@ -31,9 +31,9 @@ Execution gate: satisfied by this approved planning commit on `dev`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T1.1 | pending | `feat(generator): preserve executable plan inputs` | pending | pending |
-| T1.2 | pending | `feat(generator): define execution manifests` | pending | pending |
-| T1.3 | pending | `feat(generator): prepare canonical execution targets` | pending | pending |
+| T1.1 | complete | `feat(generator): preserve executable plan inputs` | `b62486c` | `go test ./generator/plan/... ./generator/intent/...`; `go test ./generator/...`; `git diff --check` passed |
+| T1.2 | complete | `feat(generator): define execution manifests` | `b7203e6` | `go test ./generator/execute/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T1.3 | complete | `feat(generator): prepare canonical execution targets` | `44513b2` | `go test ./generator/plan/... ./generator/execute/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
 
 ## Slice 2 Tasks
 
@@ -80,6 +80,6 @@ Execution gate: satisfied by this approved planning commit on `dev`
 
 ## Current Gate
 
-The plan and tracker are approved and committed on `dev`. Runtime
-implementation has not started. Slice 1 is ready to begin from the planning
-commit on `feat/generator-execution-manifest`.
+Slice 1 implementation and validation are complete on
+`feat/generator-execution-manifest`. Its report is ready for review. The pull
+request must be opened against `dev` before Slice 2 begins.
