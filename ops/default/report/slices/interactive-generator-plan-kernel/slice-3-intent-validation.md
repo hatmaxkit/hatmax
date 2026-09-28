@@ -1,11 +1,11 @@
 # Slice 3: Intent Validation
 
-Status: reviewing
+Status: delivered
 Delivery set: interactive-generator-plan-kernel
 Plan: `ops/default/plan/interactive-generator-plan-kernel.md`
 Tracker: `ops/default/tracker/interactive-generator-plan-kernel.md`
 Branch: `feat/generator-intent-validation`
-PR: `#24` (open)
+PR: `#24` (merged)
 
 ## Purpose
 
