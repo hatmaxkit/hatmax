@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"hatmax.adrianpk.com/generator/book"
+	"hatmax.adrianpk.com/generator/intent"
 	"hatmax.adrianpk.com/generator/plan"
 	"hatmax.adrianpk.com/generator/project"
 )
@@ -39,7 +40,7 @@ func Prepare(value plan.Plan, inventory project.Inventory, selectedBook *book.Bo
 		return Manifest{}, err
 	}
 
-	commands, err := prepareCommands(value, inventory.Commands)
+	commands, err := prepareCommands(value, inventory)
 	if err != nil {
 		return Manifest{}, err
 	}
@@ -101,12 +102,35 @@ func selectedOperations(value plan.Plan, selection book.Selection) ([]plan.Opera
 		return nil, executionError("execution_obligation_mismatch", "intent", "Book archetype does not define intent %q", value.Intent)
 	}
 
+	selectedObligations := stringSet(selected.Obligations)
+
+	if value.Documentation != intent.DocumentationNotRequested && value.Intent != intent.OperationDocumentFeature {
+		documentation, found := selectedArchetypeOperation(selection.Archetype, string(intent.OperationDocumentFeature))
+		if !found {
+			return nil, executionError("execution_obligation_mismatch", "operations", "Book archetype does not define documentation obligations")
+		}
+
+		for _, obligation := range documentation.Obligations {
+			selectedObligations[obligation] = struct{}{}
+		}
+	}
+
+	available := make([]string, 0, len(selectedObligations))
+	for _, obligation := range selection.Archetype.Obligations {
+		if _, exists := selectedObligations[obligation.ID]; exists {
+			available = append(available, obligation.ID)
+		}
+	}
+
+	if len(available) != len(selectedObligations) {
+		return nil, executionError("execution_obligation_mismatch", "operations", "Book archetype operation references a missing obligation")
+	}
+
 	result := make([]plan.Operation, 0)
 
-	for _, obligationID := range selected.Obligations {
-		obligation, found := bookObligation(selection.Archetype.Obligations, obligationID)
-		if !found {
-			return nil, executionError("execution_obligation_mismatch", "operations", "Book archetype obligation %q is missing", obligationID)
+	for _, obligation := range selection.Archetype.Obligations {
+		if _, exists := selectedObligations[obligation.ID]; !exists {
+			continue
 		}
 
 		result = append(result, plan.Operation{
@@ -115,8 +139,12 @@ func selectedOperations(value plan.Plan, selection book.Selection) ([]plan.Opera
 			Obligation: obligation.ID,
 			Surfaces:   append([]string{}, obligation.Surfaces...),
 			Rules:      append([]string{}, obligation.Rules...),
-			DependsOn:  ownerDependencies(plan.OwnerArchetype, selection.Archetype.ID, obligation, selected.Obligations),
+			DependsOn:  ownerDependencies(plan.OwnerArchetype, selection.Archetype.ID, obligation, available),
 		})
+	}
+
+	if value.Intent == intent.OperationDocumentFeature {
+		return result, nil
 	}
 
 	for _, capability := range selection.Capabilities {
@@ -148,16 +176,6 @@ func selectedArchetypeOperation(value book.Archetype, id string) (book.Operation
 	}
 
 	return book.Operation{}, false
-}
-
-func bookObligation(values []book.Obligation, id string) (book.Obligation, bool) {
-	for _, obligation := range values {
-		if obligation.ID == id {
-			return obligation, true
-		}
-	}
-
-	return book.Obligation{}, false
 }
 
 func ownerDependencies(kind plan.OwnerKind, owner string, obligation book.Obligation, available []string) []string {
@@ -306,6 +324,8 @@ func prepareEdit(value plan.Plan, inventory project.Inventory, operations map[st
 		postconditions = append(postconditions, Condition{Kind: ConditionGoParses})
 	}
 
+	postconditions = append(postconditions, spec.postconditions...)
+
 	return Edit{
 		ID:             spec.id,
 		Kind:           spec.kind,
@@ -313,7 +333,7 @@ func prepareEdit(value plan.Plan, inventory project.Inventory, operations map[st
 		Target:         spec.target,
 		Recipe:         spec.recipe,
 		Obligations:    obligations,
-		DependsOn:      []string{},
+		DependsOn:      append([]string{}, spec.dependsOn...),
 		Preconditions:  preconditions,
 		Postconditions: postconditions,
 		Slots:          implementationSlots(value, spec.surface),
@@ -322,8 +342,10 @@ func prepareEdit(value plan.Plan, inventory project.Inventory, operations map[st
 
 func applyEditDependencies(edits []Edit, operations map[string]plan.Operation) {
 	lastByOperation := make(map[string]string)
+
 	for index := range edits {
-		dependencies := make(map[string]struct{})
+		dependencies := stringSet(edits[index].DependsOn)
+		edits[index].DependsOn = []string{}
 
 		for _, obligation := range edits[index].Obligations {
 			for _, dependency := range operations[obligation.Operation].DependsOn {
@@ -395,7 +417,12 @@ func implementationSlots(value plan.Plan, surface string) []ImplementationSlot {
 	return result
 }
 
-func prepareCommands(value plan.Plan, commands []project.Command) ([]Command, error) {
+func prepareCommands(value plan.Plan, inventory project.Inventory) ([]Command, error) {
+	commands := inventory.Commands
+	if value.Intent == intent.OperationDocumentFeature {
+		commands = inventory.Documentation.ValidationCommands
+	}
+
 	result := make([]Command, 0, len(commands))
 	foundSQLC := false
 
@@ -413,7 +440,7 @@ func prepareCommands(value plan.Plan, commands []project.Command) ([]Command, er
 		})
 	}
 
-	if containsString(value.Capabilities, "postgres_persistence") && !foundSQLC {
+	if value.Intent != intent.OperationDocumentFeature && containsString(value.Capabilities, "postgres_persistence") && !foundSQLC {
 		return nil, executionError("execution_command_missing", "commands", "postgres_persistence requires a repository-owned sqlc generate command")
 	}
 

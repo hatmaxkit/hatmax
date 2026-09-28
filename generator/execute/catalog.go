@@ -28,6 +28,8 @@ const (
 	fullPageResponse          = "capability.htmx_form.full_page_response"
 	htmxPartialResponse       = "capability.htmx_form.htmx_partial_response"
 	formHandlerTests          = "capability.htmx_form.form_handler_tests"
+	documentationContent      = "archetype.server_rendered_crud.documentation_content"
+	documentationNavigation   = "archetype.server_rendered_crud.documentation_navigation"
 )
 
 var migrationNamePattern = regexp.MustCompile(`^(\d+)[-_]`)
@@ -41,6 +43,8 @@ type targetSpec struct {
 	operations      []string
 	create          bool
 	requiresCommand string
+	postconditions  []Condition
+	dependsOn       []string
 }
 
 func canonicalTargetSpecs(value plan.Plan, inventory project.Inventory) ([]targetSpec, error) {
@@ -48,21 +52,117 @@ func canonicalTargetSpecs(value plan.Plan, inventory project.Inventory) ([]targe
 		return nil, executionError("execution_archetype_unsupported", "archetype", "archetype %q has no execution recipes", value.Archetype)
 	}
 
+	if value.Intent == intent.OperationDocumentFeature {
+		return documentationTargetSpecs(value)
+	}
+
 	layout, err := resolveLayout(value, inventory)
 	if err != nil {
 		return nil, err
 	}
 
+	var result []targetSpec
+
 	switch value.Intent {
 	case intent.OperationCreateFeature:
-		return createFeatureTargets(value, layout), nil
+		result = createFeatureTargets(value, layout)
 	case intent.OperationAddField:
-		return addFieldTargets(value, layout), nil
+		result = addFieldTargets(value, layout)
 	case intent.OperationAddValidation:
-		return addValidationTargets(value, layout), nil
+		result = addValidationTargets(value, layout)
 	default:
 		return nil, executionError("execution_intent_invalid", "intent", "intent %q has no execution recipes", value.Intent)
 	}
+
+	if value.Documentation != intent.DocumentationNotRequested {
+		documentation, documentationErr := documentationTargetSpecs(value)
+		if documentationErr != nil {
+			return nil, documentationErr
+		}
+
+		result = append(result, documentation...)
+	}
+
+	return result, nil
+}
+
+func documentationTargetSpecs(value plan.Plan) ([]targetSpec, error) {
+	if value.DocumentationPlan == nil {
+		return nil, executionError("execution_documentation_plan_missing", "documentation_plan", "active documentation requires planned effects")
+	}
+
+	result := make([]targetSpec, 0, len(value.DocumentationPlan.Targets)+len(value.DocumentationPlan.Indexes))
+	targetIDs := make(map[string]string, len(value.DocumentationPlan.Targets))
+	allTargetIDs := make([]string, 0, len(value.DocumentationPlan.Targets))
+
+	for _, target := range value.DocumentationPlan.Targets {
+		id := "documentation.target." + string(target.Quadrant) + "." + target.Subject
+		spec := documentationTargetSpec(
+			id,
+			target.Path,
+			"server_rendered_crud.documentation."+string(target.Quadrant),
+			target.Snapshot.Exists,
+			[]string{documentationContent},
+		)
+		spec.postconditions = []Condition{
+			{Kind: ConditionContentContains, Value: "<!-- hatmax:generated:start -->"},
+			{Kind: ConditionContentContains, Value: "<!-- hatmax:generated:end -->"},
+			{Kind: ConditionContentContains, Value: target.Title},
+		}
+		result = append(result, spec)
+		targetIDs[target.Path] = id
+		allTargetIDs = append(allTargetIDs, id)
+	}
+
+	rootIndexID := "documentation.index.root"
+
+	for _, index := range value.DocumentationPlan.Indexes {
+		id := "documentation.index." + index.Kind
+		if index.Quadrant != "" {
+			id += "." + string(index.Quadrant)
+		}
+
+		spec := documentationTargetSpec(
+			id,
+			index.Path,
+			"server_rendered_crud.documentation.index",
+			index.Snapshot.Exists,
+			[]string{documentationNavigation},
+		)
+
+		spec.postconditions = []Condition{
+			{Kind: ConditionContentContains, Value: "<!-- hatmax:generated:start -->"},
+			{Kind: ConditionContentContains, Value: "<!-- hatmax:generated:end -->"},
+			{Kind: ConditionContentContains, Value: index.Title},
+		}
+		for _, link := range index.RequiredLinks {
+			spec.postconditions = append(spec.postconditions, Condition{Kind: ConditionContentContains, Value: link.Relative})
+		}
+
+		if index.Kind == "root" {
+			spec.dependsOn = append(spec.dependsOn, allTargetIDs...)
+		} else {
+			spec.dependsOn = append(spec.dependsOn, rootIndexID)
+
+			for _, link := range index.RequiredLinks {
+				if targetID := targetIDs[link.Target]; targetID != "" {
+					spec.dependsOn = append(spec.dependsOn, targetID)
+				}
+			}
+		}
+
+		result = append(result, spec)
+	}
+
+	return result, nil
+}
+
+func documentationTargetSpec(id, target, recipe string, exists bool, operations []string) targetSpec {
+	if exists {
+		return updateTarget(id, EditUpdateMarkdown, "documentation", target, recipe, operations)
+	}
+
+	return createTarget(id, "documentation", target, recipe, operations, "")
 }
 
 type resolvedLayout struct {

@@ -12,7 +12,7 @@ import (
 
 // CurrentSchemaVersion is the execution manifest schema understood by this
 // package.
-const CurrentSchemaVersion = 1
+const CurrentSchemaVersion = 2
 
 // EditKind identifies one structured project mutation family.
 type EditKind string
@@ -30,6 +30,8 @@ const (
 	EditUpdateConfiguration EditKind = "update_configuration"
 	// EditUpdateTest updates a test owned by the planned behavior.
 	EditUpdateTest EditKind = "update_test"
+	// EditUpdateMarkdown updates one Hatmax-managed Markdown section.
+	EditUpdateMarkdown EditKind = "update_markdown"
 )
 
 // ConditionKind identifies one verifiable edit condition.

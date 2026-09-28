@@ -195,6 +195,68 @@ func TestExpandCombinesImplementationAndDocumentationObligations(t *testing.T) {
 	if len(result.AllowedEffects.Dependencies) != 1 {
 		t.Errorf("Allowed dependency effects = %#v, want implementation dependency", result.AllowedEffects.Dependencies)
 	}
+
+	if result.DocumentationPlan == nil || len(result.DocumentationPlan.Targets) != 1 || len(result.DocumentationPlan.Indexes) != 2 {
+		t.Fatalf("DocumentationPlan = %#v, want one target and its index chain", result.DocumentationPlan)
+	}
+
+	target := result.DocumentationPlan.Targets[0]
+	if target.Path != "docs/how-to/property-summary/index.md" || target.Title != "How to Use Property Summary" || target.Snapshot.Exists {
+		t.Errorf("documentation target = %#v, want canonical absent how-to target", target)
+	}
+
+	if result.DocumentationPlan.Indexes[0].Path != "docs/index.md" || result.DocumentationPlan.Indexes[1].Path != "docs/how-to/index.md" {
+		t.Errorf("documentation indexes = %#v, want root and how-to chain", result.DocumentationPlan.Indexes)
+	}
+}
+
+func TestExpandRejectsUnmanagedDocumentationConflict(t *testing.T) {
+	admission, context := admittedExpansion(t, intent.OperationDocumentFeature, []string{"postgres_persistence"})
+	context.Inventory.Documentation.Files = []project.DocumentationFile{{
+		Path: "docs/reference/invoice/index.md", Quadrant: "reference", Subject: "invoice", ManagedState: project.DocumentationUnmanaged,
+	}}
+
+	_, err := Expand(admission, context)
+	requirePlanCode(t, err, "plan_documentation_conflict")
+}
+
+func TestExpandRejectsProtectedDocumentationTarget(t *testing.T) {
+	admission, context := admittedExpansion(t, intent.OperationDocumentFeature, []string{"postgres_persistence"})
+	context.Inventory.Documentation.ProtectedPaths = []project.ProtectedPath{{Path: "docs/reference", Reason: "repository policy"}}
+
+	_, err := Expand(admission, context)
+	requirePlanCode(t, err, "plan_documentation_target_protected")
+}
+
+func TestExpandPlansAllDocumentationQuadrants(t *testing.T) {
+	admission, context := admittedExpansion(t, intent.OperationDocumentFeature, []string{"postgres_persistence"})
+	admission.Intent.DocumentationTargets = []intent.DocumentationTarget{
+		{Quadrant: intent.DocumentationTutorial, Subject: "invoice_basics", ReaderGoal: "Learn the invoice workflow."},
+		{Quadrant: intent.DocumentationHowTo, Subject: "invoice_due_date", ReaderGoal: "Set an invoice due date."},
+		{Quadrant: intent.DocumentationReference, Subject: "invoice", ReaderGoal: "Find invoice contracts."},
+		{Quadrant: intent.DocumentationExplanation, Subject: "invoice_ownership", ReaderGoal: "Understand invoice ownership."},
+	}
+
+	result, err := Expand(admission, context)
+	if err != nil {
+		t.Fatalf("Expand() error = %v", err)
+	}
+
+	if result.DocumentationPlan == nil || len(result.DocumentationPlan.Targets) != 4 || len(result.DocumentationPlan.Indexes) != 5 {
+		t.Fatalf("DocumentationPlan = %#v, want four targets and five indexes", result.DocumentationPlan)
+	}
+
+	wantPaths := []string{
+		"docs/tutorials/invoice-basics/index.md",
+		"docs/how-to/invoice-due-date/index.md",
+		"docs/reference/invoice/index.md",
+		"docs/explanation/invoice-ownership/index.md",
+	}
+	for index, want := range wantPaths {
+		if result.DocumentationPlan.Targets[index].Path != want {
+			t.Errorf("target %d path = %q, want %q", index, result.DocumentationPlan.Targets[index].Path, want)
+		}
+	}
 }
 
 func TestExpandRejectsDocumentationEvidenceOutsideFingerprint(t *testing.T) {

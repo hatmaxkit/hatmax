@@ -10,7 +10,7 @@ import (
 )
 
 // CurrentSchemaVersion is the plan schema understood by this package.
-const CurrentSchemaVersion = 4
+const CurrentSchemaVersion = 5
 
 // OwnerKind identifies the Book entry that owns one logical operation.
 type OwnerKind string
@@ -97,6 +97,61 @@ type ValidationObligation struct {
 	Surfaces    []string   `json:"surfaces,omitempty" yaml:"surfaces,omitempty"`
 }
 
+// DocumentationSnapshot binds one planned Markdown target to inspected state.
+type DocumentationSnapshot struct {
+	Path         string                            `json:"path" yaml:"path"`
+	Exists       bool                              `json:"exists" yaml:"exists"`
+	Digest       string                            `json:"digest,omitempty" yaml:"digest,omitempty"`
+	ManagedState project.DocumentationManagedState `json:"managed_state,omitempty" yaml:"managed_state,omitempty"`
+}
+
+// DocumentationLinkEffect is one canonical navigation link required after
+// execution.
+type DocumentationLinkEffect struct {
+	Title    string `json:"title" yaml:"title"`
+	Target   string `json:"target" yaml:"target"`
+	Relative string `json:"relative" yaml:"relative"`
+}
+
+// DocumentationTargetEffect records one exact Diataxis document derived from
+// typed reader intent.
+type DocumentationTargetEffect struct {
+	Quadrant   intent.DocumentationQuadrant `json:"quadrant" yaml:"quadrant"`
+	Subject    string                       `json:"subject" yaml:"subject"`
+	ReaderGoal string                       `json:"reader_goal" yaml:"reader_goal"`
+	Slug       string                       `json:"slug" yaml:"slug"`
+	Title      string                       `json:"title" yaml:"title"`
+	Path       string                       `json:"path" yaml:"path"`
+	Snapshot   DocumentationSnapshot        `json:"snapshot" yaml:"snapshot"`
+}
+
+// DocumentationIndexEffect records one managed navigation section and its
+// required links.
+type DocumentationIndexEffect struct {
+	Kind          string                       `json:"kind" yaml:"kind"`
+	Quadrant      intent.DocumentationQuadrant `json:"quadrant,omitempty" yaml:"quadrant,omitempty"`
+	Title         string                       `json:"title" yaml:"title"`
+	Path          string                       `json:"path" yaml:"path"`
+	RequiredLinks []DocumentationLinkEffect    `json:"required_links" yaml:"required_links"`
+	Snapshot      DocumentationSnapshot        `json:"snapshot" yaml:"snapshot"`
+}
+
+// DocumentationCommand records one inspected repository documentation gate.
+type DocumentationCommand struct {
+	Name   string              `json:"name" yaml:"name"`
+	Args   []string            `json:"args" yaml:"args"`
+	Source string              `json:"source" yaml:"source"`
+	Kind   project.CommandKind `json:"kind" yaml:"kind"`
+}
+
+// DocumentationPlan is the exact bounded documentation surface authorized by
+// a sealed plan.
+type DocumentationPlan struct {
+	Targets            []DocumentationTargetEffect `json:"targets" yaml:"targets"`
+	Indexes            []DocumentationIndexEffect  `json:"indexes" yaml:"indexes"`
+	ValidationCommands []DocumentationCommand      `json:"validation_commands" yaml:"validation_commands"`
+}
+
 // Plan is the complete deterministic planning artifact. It remains ephemeral
 // and does not authorize project mutation by itself.
 type Plan struct {
@@ -110,6 +165,7 @@ type Plan struct {
 	Documentation         intent.Documentation         `json:"documentation" yaml:"documentation"`
 	DocumentationTargets  []intent.DocumentationTarget `json:"documentation_targets" yaml:"documentation_targets"`
 	DocumentationEvidence *project.FeatureEvidence     `json:"documentation_evidence,omitempty" yaml:"documentation_evidence,omitempty"`
+	DocumentationPlan     *DocumentationPlan           `json:"documentation_plan,omitempty" yaml:"documentation_plan,omitempty"`
 	HatmaxVersion         string                       `json:"hatmax_version" yaml:"hatmax_version"`
 	BookVersion           int                          `json:"book_version" yaml:"book_version"`
 	ProjectFingerprint    string                       `json:"project_fingerprint" yaml:"project_fingerprint"`

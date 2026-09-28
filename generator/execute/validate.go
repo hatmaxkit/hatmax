@@ -27,7 +27,7 @@ func Validate(value Manifest) error {
 		return executionError("execution_identity_invalid", "identity", "plan digest and project fingerprint must use sha256:<hex>")
 	}
 
-	if value.Intent != intent.OperationCreateFeature && value.Intent != intent.OperationAddField && value.Intent != intent.OperationAddValidation {
+	if value.Intent != intent.OperationCreateFeature && value.Intent != intent.OperationAddField && value.Intent != intent.OperationAddValidation && value.Intent != intent.OperationDocumentFeature {
 		return executionError("execution_intent_invalid", "intent", "unknown intent %q", value.Intent)
 	}
 
@@ -285,7 +285,7 @@ func validateUniqueStrings(path string, values []string, required bool) error {
 }
 
 func validEditKind(value EditKind) bool {
-	return value == EditCreateFile || value == EditUpdateGo || value == EditUpdateSQL || value == EditUpdateTemplate || value == EditUpdateConfiguration || value == EditUpdateTest
+	return value == EditCreateFile || value == EditUpdateGo || value == EditUpdateSQL || value == EditUpdateTemplate || value == EditUpdateConfiguration || value == EditUpdateTest || value == EditUpdateMarkdown
 }
 
 func validConditionKind(value ConditionKind) bool {

@@ -1,12 +1,14 @@
 package plan
 
 import (
+	"path"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"hatmax.adrianpk.com/generator/book"
 	"hatmax.adrianpk.com/generator/intent"
+	"hatmax.adrianpk.com/generator/project"
 )
 
 var (
@@ -170,6 +172,10 @@ func validateDocumentationEffects(value Plan) error {
 			return planError("plan_documentation_evidence_invalid", "documentation_evidence", "documentation evidence requires explicit documentation intent")
 		}
 
+		if value.DocumentationPlan != nil {
+			return planError("plan_documentation_effects_invalid", "documentation_plan", "documentation effects require explicit documentation intent")
+		}
+
 		if hasDocumentation {
 			return planError("plan_documentation_scope_invalid", "affected_surfaces", "documentation surface requires explicit documentation intent")
 		}
@@ -186,6 +192,11 @@ func validateDocumentationEffects(value Plan) error {
 		return err
 	}
 
+	err = validateDocumentationPlan(value)
+	if err != nil {
+		return err
+	}
+
 	if value.Intent != intent.OperationDocumentFeature {
 		return nil
 	}
@@ -196,6 +207,172 @@ func validateDocumentationEffects(value Plan) error {
 
 	if len(value.AllowedEffects.Dependencies) != 0 {
 		return planError("plan_documentation_scope_invalid", "allowed_effects.dependencies", "document_feature cannot add runtime dependencies")
+	}
+
+	return nil
+}
+
+func validateDocumentationPlan(value Plan) error {
+	documentationPlan := value.DocumentationPlan
+	if documentationPlan == nil || len(documentationPlan.Targets) != len(value.DocumentationTargets) || len(documentationPlan.Indexes) < 2 {
+		return planError("plan_documentation_effects_invalid", "documentation_plan", "active documentation requires exact target and index effects")
+	}
+
+	intentTargets := make(map[string]intent.DocumentationTarget, len(value.DocumentationTargets))
+	for _, target := range value.DocumentationTargets {
+		intentTargets[string(target.Quadrant)+"\x00"+target.Subject] = target
+	}
+
+	targetPaths := make(map[string]struct{}, len(documentationPlan.Targets)+len(documentationPlan.Indexes))
+	expectedQuadrantLinks := make(map[intent.DocumentationQuadrant]map[string]DocumentationLinkEffect)
+
+	for index, target := range documentationPlan.Targets {
+		contract, exists := intentTargets[string(target.Quadrant)+"\x00"+target.Subject]
+		layout, validQuadrant := documentationQuadrants[target.Quadrant]
+		expectedSlug := strings.ReplaceAll(target.Subject, "_", "-")
+		expectedPath := path.Join("docs", layout.directory, expectedSlug, "index.md")
+
+		if !exists || !validQuadrant || target.ReaderGoal != contract.ReaderGoal || target.Slug != expectedSlug || target.Path != expectedPath || target.Title != documentationTargetTitle(target.Quadrant, target.Subject) {
+			return planError("plan_documentation_effects_invalid", indexedPath("documentation_plan.targets", index), "target does not match typed documentation intent")
+		}
+
+		if _, duplicate := targetPaths[target.Path]; duplicate {
+			return planError("plan_documentation_target_overlap", indexedPath("documentation_plan.targets", index)+".path", "duplicate target %q", target.Path)
+		}
+
+		err := validateDocumentationSnapshot(target.Snapshot, target.Path, value.ExpectedObservations)
+		if err != nil {
+			return err
+		}
+
+		if expectedQuadrantLinks[target.Quadrant] == nil {
+			expectedQuadrantLinks[target.Quadrant] = make(map[string]DocumentationLinkEffect)
+		}
+
+		expectedQuadrantLinks[target.Quadrant][target.Path] = DocumentationLinkEffect{
+			Title: target.Title, Target: target.Path, Relative: path.Join(target.Slug, "index.md"),
+		}
+		targetPaths[target.Path] = struct{}{}
+	}
+
+	seenIndexes := make(map[string]struct{}, len(documentationPlan.Indexes))
+	for index, effect := range documentationPlan.Indexes {
+		if _, duplicate := targetPaths[effect.Path]; duplicate {
+			return planError("plan_documentation_target_overlap", indexedPath("documentation_plan.indexes", index)+".path", "overlapping target %q", effect.Path)
+		}
+
+		if _, duplicate := seenIndexes[effect.Path]; duplicate {
+			return planError("plan_documentation_target_overlap", indexedPath("documentation_plan.indexes", index)+".path", "duplicate index %q", effect.Path)
+		}
+
+		err := validateDocumentationIndex(effect, expectedQuadrantLinks)
+		if err != nil {
+			return err
+		}
+
+		err = validateDocumentationSnapshot(effect.Snapshot, effect.Path, value.ExpectedObservations)
+		if err != nil {
+			return err
+		}
+
+		seenIndexes[effect.Path] = struct{}{}
+		targetPaths[effect.Path] = struct{}{}
+	}
+
+	if _, root := seenIndexes["docs/index.md"]; !root || len(seenIndexes) != len(expectedQuadrantLinks)+1 {
+		return planError("plan_documentation_effects_invalid", "documentation_plan.indexes", "index effects must contain one root and one index per selected quadrant")
+	}
+
+	return validateDocumentationCommands(documentationPlan.ValidationCommands)
+}
+
+func validateDocumentationIndex(
+	effect DocumentationIndexEffect,
+	expectedQuadrantLinks map[intent.DocumentationQuadrant]map[string]DocumentationLinkEffect,
+) error {
+	expectedLinks := make(map[string]DocumentationLinkEffect)
+
+	if effect.Kind == documentationIndexRoot {
+		if effect.Path != "docs/index.md" || effect.Quadrant != "" || effect.Title != "Documentation" {
+			return planError("plan_documentation_effects_invalid", "documentation_plan.indexes", "root index identity is invalid")
+		}
+
+		for quadrant := range expectedQuadrantLinks {
+			layout := documentationQuadrants[quadrant]
+			target := path.Join("docs", layout.directory, "index.md")
+			expectedLinks[target] = DocumentationLinkEffect{Title: layout.title, Target: target, Relative: path.Join(layout.directory, "index.md")}
+		}
+	} else if effect.Kind == documentationIndexQuadrant {
+		layout, exists := documentationQuadrants[effect.Quadrant]
+		if !exists || effect.Path != path.Join("docs", layout.directory, "index.md") || effect.Title != layout.title {
+			return planError("plan_documentation_effects_invalid", "documentation_plan.indexes", "quadrant index identity is invalid")
+		}
+
+		expectedLinks = expectedQuadrantLinks[effect.Quadrant]
+	} else {
+		return planError("plan_documentation_effects_invalid", "documentation_plan.indexes", "unknown index kind %q", effect.Kind)
+	}
+
+	if len(effect.RequiredLinks) != len(expectedLinks) {
+		return planError("plan_documentation_effects_invalid", "documentation_plan.indexes.required_links", "index links are incomplete")
+	}
+
+	seen := make(map[string]struct{}, len(effect.RequiredLinks))
+	for _, link := range effect.RequiredLinks {
+		expected, exists := expectedLinks[link.Target]
+		if !exists || link != expected {
+			return planError("plan_documentation_effects_invalid", "documentation_plan.indexes.required_links", "index link is not derived from a selected target")
+		}
+
+		if _, duplicate := seen[link.Target]; duplicate {
+			return planError("plan_duplicate_value", "documentation_plan.indexes.required_links", "duplicate link target %q", link.Target)
+		}
+
+		seen[link.Target] = struct{}{}
+	}
+
+	return nil
+}
+
+func validateDocumentationSnapshot(snapshot DocumentationSnapshot, expectedPath string, observations []project.Observation) error {
+	if snapshot.Path != expectedPath {
+		return planError("plan_documentation_snapshot_invalid", expectedPath, "snapshot path does not match its effect")
+	}
+
+	if !snapshot.Exists {
+		if snapshot.Digest != "" || snapshot.ManagedState != "" {
+			return planError("plan_documentation_snapshot_invalid", expectedPath, "absent snapshot cannot contain file state")
+		}
+
+		return nil
+	}
+
+	if !fingerprintPattern.MatchString(snapshot.Digest) || snapshot.ManagedState != project.DocumentationManaged {
+		return planError("plan_documentation_snapshot_invalid", expectedPath, "existing snapshot must be managed and digest-bound")
+	}
+
+	for _, observation := range observations {
+		if observation.Path == expectedPath && observation.Digest == snapshot.Digest {
+			return nil
+		}
+	}
+
+	return planError("plan_documentation_snapshot_invalid", expectedPath, "snapshot is not bound to the project fingerprint")
+}
+
+func validateDocumentationCommands(values []DocumentationCommand) error {
+	seen := make(map[string]struct{}, len(values))
+	for index, command := range values {
+		commandPath := indexedPath("documentation_plan.validation_commands", index)
+		if command.Kind != project.CommandValidation || strings.TrimSpace(command.Name) == "" || strings.TrimSpace(command.Source) == "" || len(command.Args) == 0 {
+			return planError("plan_documentation_command_invalid", commandPath, "validation command name, source, and arguments are required")
+		}
+
+		if _, duplicate := seen[command.Name]; duplicate {
+			return planError("plan_duplicate_value", commandPath+".name", "duplicate documentation command %q", command.Name)
+		}
+
+		seen[command.Name] = struct{}{}
 	}
 
 	return nil

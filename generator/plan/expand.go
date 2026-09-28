@@ -85,6 +85,11 @@ func Expand(admission intent.Result, context ExpansionContext) (Plan, error) {
 		return Plan{}, err
 	}
 
+	documentationPlan, err := expandDocumentationPlan(value, context.Inventory)
+	if err != nil {
+		return Plan{}, err
+	}
+
 	result := Plan{
 		SchemaVersion:         CurrentSchemaVersion,
 		Intent:                value.Operation,
@@ -96,6 +101,7 @@ func Expand(admission intent.Result, context ExpansionContext) (Plan, error) {
 		Documentation:         value.Documentation,
 		DocumentationTargets:  cloneDocumentationTargets(value.DocumentationTargets),
 		DocumentationEvidence: documentationEvidence,
+		DocumentationPlan:     documentationPlan,
 		HatmaxVersion:         value.HatmaxVersion,
 		BookVersion:           value.BookVersion,
 		ProjectFingerprint:    value.ProjectFingerprint,
