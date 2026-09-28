@@ -1,0 +1,87 @@
+# Interactive Generator Product Surface Tracker
+
+Status: Planned
+Delivery set: interactive-generator-product-surface
+Plan: `ops/default/plan/interactive-generator-product-surface.md`
+Umbrella spec: `ops/default/spec/interactive-hatmax-generator.md`
+Specs:
+
+- `ops/default/spec/hatmax-book.md`
+- `ops/default/spec/intent-and-planning.md`
+- `ops/default/spec/server-rendered-crud.md`
+- `ops/default/spec/execution-and-conformance.md`
+- `ops/default/spec/interactive-product-surface.md`
+
+Base branch: `dev`
+Planning base: `ec16a4df27c6bb3ee6004d6303195f4717da73de`
+Active slice: Slice 1
+Active tasks: T1.1-T1.3
+Execution gate: satisfied by this approved planning commit on `dev`
+
+## Slice Status
+
+| Slice | Short Name | Status | Branch | PR Title | PR | Report |
+| --- | --- | --- | --- | --- | --- | --- |
+| Slice 1 | Interpreter contracts | planned | `feat/generator-interpreter-contracts` | `feat(slice-1): define interactive interpreter contracts` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-1-interpreter-contracts.md` |
+| Slice 2 | Codex App Server runtime | planned | `feat/generator-codex-app-server` | `feat(slice-2): connect the Codex App Server runtime` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-2-codex-app-server-runtime.md` |
+| Slice 3 | Codex interpreter | planned | `feat/generator-codex-interpreter` | `feat(slice-3): interpret Hatmax requests with Codex` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-3-codex-interpreter.md` |
+| Slice 4 | Interaction coordinator | planned | `feat/generator-interaction-coordinator` | `feat(slice-4): coordinate interactive generation` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-4-interaction-coordinator.md` |
+| Slice 5 | Terminal product surface | planned | `feat/generator-terminal-surface` | `feat(slice-5): expose the Hatmax generator command` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-5-terminal-product-surface.md` |
+
+## Slice 1 Tasks
+
+| Task | Status | Expected Commit | Commit | Validation |
+| --- | --- | --- | --- | --- |
+| T1.1 | planned | `feat(generator): define interactive interpreter contracts` | pending | pending |
+| T1.2 | planned | `feat(generator): constrain interpreter output` | pending | pending |
+| T1.3 | planned | `test(generator): cover interactive interpretation contracts` | pending | pending |
+
+## Slice 2 Tasks
+
+| Task | Status | Expected Commit | Commit | Validation |
+| --- | --- | --- | --- | --- |
+| T2.1 | planned | `feat(generator): manage the Codex runtime` | pending | pending |
+| T2.2 | planned | `feat(generator): speak the Codex App Server protocol` | pending | pending |
+| T2.3 | planned | `feat(generator): manage isolated Codex threads` | pending | pending |
+
+## Slice 3 Tasks
+
+| Task | Status | Expected Commit | Commit | Validation |
+| --- | --- | --- | --- | --- |
+| T3.1 | planned | `feat(generator): compile bounded Codex interpretation` | pending | pending |
+| T3.2 | planned | `feat(generator): add the Codex interpreter` | pending | pending |
+| T3.3 | planned | `test(generator): exercise Codex interpretation` | pending | pending |
+
+## Slice 4 Tasks
+
+| Task | Status | Expected Commit | Commit | Validation |
+| --- | --- | --- | --- | --- |
+| T4.1 | planned | `feat(generator): define interactive generation lifecycle` | pending | pending |
+| T4.2 | planned | `feat(generator): coordinate intent and approval` | pending | pending |
+| T4.3 | planned | `feat(generator): coordinate validated execution` | pending | pending |
+
+## Slice 5 Tasks
+
+| Task | Status | Expected Commit | Commit | Validation |
+| --- | --- | --- | --- | --- |
+| T5.1 | planned | `feat(generator): add the Hatmax generate command` | pending | pending |
+| T5.2 | planned | `feat(generator): report interactive generation results` | pending | pending |
+| T5.3 | planned | `test(generator): validate the terminal product surface` | pending | pending |
+
+## Completion Gates
+
+- [x] Umbrella and prerequisite subordinate specifications are approved.
+- [x] The interactive product-surface specification is approved on `dev`.
+- [x] Plan and tracker are approved and committed on `dev`.
+- [ ] Slice 1 is delivered through its branch, report, pull request, and merge.
+- [ ] Slice 2 is delivered through its branch, report, pull request, and merge.
+- [ ] Slice 3 is delivered through its branch, report, pull request, and merge.
+- [ ] Slice 4 is delivered through its branch, report, pull request, and merge.
+- [ ] Slice 5 is delivered through its branch, report, pull request, and merge.
+- [ ] The exact integrated `dev` candidate passes the deterministic, full
+  repository, thread-reuse, project-isolation, and authenticated Codex gates.
+
+## Current Gate
+
+The planning gate is satisfied. Slice 1, Interpreter contracts, is active and
+may begin from the approved planning commit on `dev`.

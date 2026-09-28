@@ -194,9 +194,12 @@ The adapter must:
 - start or resume one isolated thread for the project and compatible Book;
 - issue one `turn/start` request for each interpretation attempt;
 - constrain every turn with the versioned Hatmax interpretation output schema;
-- grant read-only access only to an isolated Hatmax-owned context directory;
-- deny target-project writes, shell commands, network access, dynamic tools,
-  MCP servers, and permission escalation;
+- use an isolated Hatmax-owned context directory as the thread working
+  directory and withhold the target-project path and contents;
+- select the read-only sandbox, disable every tool and external context source
+  exposed by the compatible protocol, and grant no dynamic tools;
+- deny target-project writes, shell commands, network access, MCP servers, and
+  permission escalation;
 - reject App Server requests for commands, file access, tools, or permissions;
 - interrupt the active turn on cancellation or timeout;
 - bound retained events and error payloads;
@@ -208,6 +211,12 @@ and generated schema material. The initial adapter does not grant Codex access
 to the target project and does not ask Codex to inspect or implement the
 requested change. Hatmax performs inspection and execution; Codex performs
 natural-language interpretation only.
+
+The adapter treats any tool activity as a protocol violation and interrupts
+the turn. This boundary prevents Hatmax from disclosing or authorizing access
+to the target project. A shared App Server still runs as the logged-in user and
+is not claimed as an operating-system confidentiality boundary for unrelated
+host files.
 
 The adapter records non-secret provenance needed to interpret an evaluation:
 
@@ -340,8 +349,9 @@ or execution behavior.
   regardless of the number of affected project surfaces.
 - Codex uses the user's existing ChatGPT-managed CLI authentication without an
   application API key.
-- Codex receives only bounded project and Book context and cannot edit the
-  target project.
+- Codex receives only bounded project and Book context; Hatmax withholds the
+  target-project path, grants no tools, and cannot edit the project through the
+  adapter.
 - Every Codex result conforms to the versioned interpretation schema and is
   independently validated by Hatmax.
 - Clarification answers continue the bounded project thread while Hatmax
@@ -361,10 +371,13 @@ or execution behavior.
 - A future Pi adapter can implement the same backend-neutral boundary without
   changing the interaction lifecycle.
 
-## Open Questions
+## Initial Configuration Decisions
 
-- Should the initial command require an explicit Codex model, or use the
-  backend default and record that choice as `backend_default`?
-- What timeout should the first Codex interpretation attempt use?
-- Should post-commit conformance or repository-validation failure retain the
-  bounded source changes for inspection, or restore every declared mutation?
+- The initial command uses the backend default model and records both
+  `backend_default` and the effective model reported by App Server.
+- Each interpretation turn has a two-minute default timeout. User cancellation
+  interrupts the active turn immediately.
+- A structural application failure uses the existing atomic rollback. A
+  conformance or repository-validation failure after a successful source
+  commit retains the bounded changes for inspection and reports every change
+  and failed check. Hatmax does not create a Git commit.
