@@ -195,6 +195,17 @@ func executionPlan(
 	domain intent.Domain,
 	capabilities []string,
 ) (plan.Plan, project.Inventory, *book.Book) {
+	return executionPlanForFeature(t, root, featureForOperation(operation), operation, domain, capabilities)
+}
+
+func executionPlanForFeature(
+	t *testing.T,
+	root string,
+	feature string,
+	operation intent.Operation,
+	domain intent.Domain,
+	capabilities []string,
+) (plan.Plan, project.Inventory, *book.Book) {
 	t.Helper()
 
 	selectedBook, err := book.LoadDefault()
@@ -223,7 +234,7 @@ func executionPlan(
 		HatmaxVersion:      inventory.Module.Hatmax.Version,
 		BookVersion:        selectedBook.Manifest().BookVersion,
 		Archetype:          "server_rendered_crud",
-		Feature:            featureForOperation(operation),
+		Feature:            feature,
 		Domain:             domain,
 		Capabilities:       capabilities,
 		Documentation:      intent.DocumentationNotRequested,
