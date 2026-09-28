@@ -194,6 +194,23 @@ func (interpreter *Interpreter) runTurn(ctx context.Context, client AppServerCli
 		return nil, backendError(eval.BackendProtocolViolation, "turn_start", "Codex App Server returned no turn identifier")
 	}
 
+	switch response.Turn.Status {
+	case "completed":
+		message := lastAgentMessage(response.Turn.Items)
+		if strings.TrimSpace(message) == "" {
+			return nil, backendError(eval.BackendOutputInvalid, "turn_start", "Codex turn returned no final agent message")
+		}
+
+		return []byte(message), nil
+	case "failed":
+		return nil, backendError(eval.BackendTurnFailed, "turn_start", "Codex turn failed")
+	case "interrupted":
+		return nil, backendError(eval.BackendCancelled, "turn_start", "Codex turn was interrupted")
+	case "inProgress":
+	default:
+		return nil, backendError(eval.BackendProtocolViolation, "turn_start", "Codex turn started with an invalid status")
+	}
+
 	return waitForTurn(turnContext, client, compiled.ThreadID, response.Turn.ID, response.Turn.Items)
 }
 

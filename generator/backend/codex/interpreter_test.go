@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"reflect"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -125,6 +126,68 @@ func TestInterpreterRequiresChatGPTAuthentication(t *testing.T) {
 
 	if client.turnStarts != 0 {
 		t.Fatalf("turn starts = %d, want 0", client.turnStarts)
+	}
+}
+
+func TestInterpreterInterruptsCancelledTurn(t *testing.T) {
+	// User cancellation interrupts the active turn and remains distinct from a
+	// deadline failure.
+	client := newInterpreterFakeClient()
+	interpreter := newTestInterpreter(t, client, time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := interpreter.Interpret(ctx, promptTestRequest())
+	assertBackendCode(t, err, eval.BackendCancelled)
+}
+
+func TestInterpreterBoundsConsumedTurnEvents(t *testing.T) {
+	// Consuming notifications cannot turn the transport buffer into an
+	// unbounded event stream.
+	client := newInterpreterFakeClient()
+
+	client.notifications = make(chan Notification, maximumTurnEvents+1)
+
+	for index := 0; index <= maximumTurnEvents; index++ {
+		client.notifications <- notification("thread/status/changed", map[string]any{})
+	}
+
+	interpreter := newTestInterpreter(t, client, time.Second)
+
+	_, err := interpreter.Interpret(context.Background(), promptTestRequest())
+	assertBackendCode(t, err, eval.BackendProtocolViolation)
+
+	if client.interrupts != 1 {
+		t.Fatalf("interrupts = %d, want 1", client.interrupts)
+	}
+}
+
+func TestInterpreterContinuesClarificationOnReusedThread(t *testing.T) {
+	// Clarification answers are resent as authoritative state while the project
+	// thread provides discardable conversation context.
+	client := newInterpreterFakeClient()
+
+	client.threadReused = true
+	client.notifications <- agentMessageNotification("thread-1", "turn-1", validUnsupportedOutput())
+
+	client.notifications <- completedTurnNotification("thread-1", "turn-1", "completed")
+
+	request := promptTestRequest()
+	request.Clarifications = []eval.ClarificationExchange{{
+		Field:    "feature",
+		Question: "Which feature?",
+		Answer:   "invoice",
+	}}
+
+	interpreter := newTestInterpreter(t, client, time.Second)
+
+	_, err := interpreter.Interpret(context.Background(), request)
+	if err != nil {
+		t.Fatalf("Interpret() error = %v", err)
+	}
+
+	if len(client.turnPrompts) != 1 || !strings.Contains(client.turnPrompts[0], `"answer":"invoice"`) {
+		t.Fatalf("turn prompts = %#v", client.turnPrompts)
 	}
 }
 
@@ -286,4 +349,3 @@ func fmtTurnID(index int) string {
 }
 
 var _ io.Closer = (*interpreterFakeClient)(nil)
-var _ = errors.Is

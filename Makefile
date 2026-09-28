@@ -16,6 +16,7 @@ help:
 	@echo "  test                  - Run all tests"
 	@echo "  test-v                - Run tests with verbose output"
 	@echo "  test-short            - Run tests in short mode"
+	@echo "  generator-live-smoke  - Run the opt-in authenticated Codex generator smoke"
 	@echo "  test-coverage         - Run tests with coverage report"
 	@echo "  test-coverage-profile - Generate coverage profile"
 	@echo "  test-coverage-html    - Generate HTML coverage report"
@@ -87,6 +88,9 @@ test-v:
 # Run tests in short mode
 test-short:
 	@go test -short ./...
+
+generator-live-smoke:
+	@HATMAX_CODEX_LIVE_SMOKE=1 go test -v -run '^TestAuthenticatedLiveSmoke$$' ./generator/backend/codex
 
 # Run tests with coverage
 test-coverage:
