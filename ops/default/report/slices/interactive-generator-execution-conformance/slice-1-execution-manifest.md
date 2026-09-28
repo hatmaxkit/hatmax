@@ -1,11 +1,11 @@
 # Slice 1: Execution Manifest
 
-Status: reviewing
+Status: delivered
 Delivery set: interactive-generator-execution-conformance
 Plan: `ops/default/plan/interactive-generator-execution-conformance.md`
 Tracker: `ops/default/tracker/interactive-generator-execution-conformance.md`
 Branch: `feat/generator-execution-manifest`
-PR: `#27` (open)
+PR: `#27` (merged)
 
 ## Purpose
 

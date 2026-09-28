@@ -13,16 +13,16 @@ Specs:
 
 Base branch: `dev`
 Planning base: `9b7e0d9e71da8297665e42695459e5eb33c739e0`
-Active slice: Slice 1
-Active tasks: none
-Execution gate: Slice 1 pull request #27 open for review
+Active slice: Slice 2
+Active tasks: T2.1-T2.3
+Execution gate: Slice 1 merged as `d84d7cc`; Slice 2 ready to start
 
 ## Slice Status
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Execution manifest | reviewing | `feat/generator-execution-manifest` | `feat(slice-1): define generator execution manifests` | #27 | `ops/default/report/slices/interactive-generator-execution-conformance/slice-1-execution-manifest.md` |
-| Slice 2 | Atomic application | pending | `feat/generator-atomic-application` | `feat(slice-2): apply generator edits atomically` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-2-atomic-application.md` |
+| Slice 1 | Execution manifest | delivered | `feat/generator-execution-manifest` | `feat(slice-1): define generator execution manifests` | #27 (merged) | `ops/default/report/slices/interactive-generator-execution-conformance/slice-1-execution-manifest.md` |
+| Slice 2 | Atomic application | active | `feat/generator-atomic-application` | `feat(slice-2): apply generator edits atomically` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-2-atomic-application.md` |
 | Slice 3 | CRUD generation | pending | `feat/generator-crud-generation` | `feat(slice-3): generate canonical Hatmax CRUD features` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-3-crud-generation.md` |
 | Slice 4 | Incremental mutations | pending | `feat/generator-incremental-mutations` | `feat(slice-4): mutate canonical Hatmax features` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-4-incremental-mutations.md` |
 | Slice 5 | Execution conformance | pending | `test/generator-execution-conformance` | `test(slice-5): validate generator execution conformance` | pending | `ops/default/report/slices/interactive-generator-execution-conformance/slice-5-execution-conformance.md` |
@@ -71,7 +71,7 @@ Execution gate: Slice 1 pull request #27 open for review
 
 - [x] Umbrella and subordinate specifications are approved.
 - [x] Plan and tracker are committed on `dev`.
-- [ ] Slice 1 is delivered through its branch, report, pull request, and merge.
+- [x] Slice 1 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 2 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 3 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 4 is delivered through its branch, report, pull request, and merge.
@@ -80,6 +80,6 @@ Execution gate: Slice 1 pull request #27 open for review
 
 ## Current Gate
 
-Slice 1 implementation and validation are complete on
-`feat/generator-execution-manifest`. Pull request #27 is open against `dev`.
-Slice 2 remains blocked until Slice 1 is reviewed and merged.
+Slice 1 was merged through pull request #27 as exact integrated candidate
+`d84d7cc`. Slice 2 may begin from that `dev` state on
+`feat/generator-atomic-application`.
