@@ -1,6 +1,6 @@
 # Interactive Generator Product Surface Tracker
 
-Status: Planned
+Status: Approved
 Delivery set: interactive-generator-product-surface
 Plan: `ops/default/plan/interactive-generator-product-surface.md`
 Umbrella spec: `ops/default/spec/interactive-hatmax-generator.md`
@@ -15,26 +15,26 @@ Specs:
 Base branch: `dev`
 Planning base: `ec16a4df27c6bb3ee6004d6303195f4717da73de`
 Active slice: Slice 1
-Active tasks: T1.1-T1.3
-Execution gate: satisfied by this approved planning commit on `dev`
+Active tasks: none
+Execution gate: Slice 1 tasks complete, pull request pending
 
 ## Slice Status
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Interpreter contracts | planned | `feat/generator-interpreter-contracts` | `feat(slice-1): define interactive interpreter contracts` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-1-interpreter-contracts.md` |
-| Slice 2 | Codex App Server runtime | planned | `feat/generator-codex-app-server` | `feat(slice-2): connect the Codex App Server runtime` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-2-codex-app-server-runtime.md` |
-| Slice 3 | Codex interpreter | planned | `feat/generator-codex-interpreter` | `feat(slice-3): interpret Hatmax requests with Codex` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-3-codex-interpreter.md` |
-| Slice 4 | Interaction coordinator | planned | `feat/generator-interaction-coordinator` | `feat(slice-4): coordinate interactive generation` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-4-interaction-coordinator.md` |
-| Slice 5 | Terminal product surface | planned | `feat/generator-terminal-surface` | `feat(slice-5): expose the Hatmax generator command` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-5-terminal-product-surface.md` |
+| Slice 1 | Interpreter contracts | active | `feat/generator-interpreter-contracts` | `feat(slice-1): define interactive interpreter contracts` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-1-interpreter-contracts.md` |
+| Slice 2 | Codex App Server runtime | pending | `feat/generator-codex-app-server` | `feat(slice-2): connect the Codex App Server runtime` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-2-codex-app-server-runtime.md` |
+| Slice 3 | Codex interpreter | pending | `feat/generator-codex-interpreter` | `feat(slice-3): interpret Hatmax requests with Codex` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-3-codex-interpreter.md` |
+| Slice 4 | Interaction coordinator | pending | `feat/generator-interaction-coordinator` | `feat(slice-4): coordinate interactive generation` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-4-interaction-coordinator.md` |
+| Slice 5 | Terminal product surface | pending | `feat/generator-terminal-surface` | `feat(slice-5): expose the Hatmax generator command` | pending | `ops/default/report/slices/interactive-generator-product-surface/slice-5-terminal-product-surface.md` |
 
 ## Slice 1 Tasks
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T1.1 | planned | `feat(generator): define interactive interpreter contracts` | pending | pending |
-| T1.2 | planned | `feat(generator): constrain interpreter output` | pending | pending |
-| T1.3 | planned | `test(generator): cover interactive interpretation contracts` | pending | pending |
+| T1.1 | complete | `feat(generator): define interactive interpreter contracts` | `cf8707c` | `go test ./generator/eval/...`; `go test -race ./generator/eval/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T1.2 | complete | `feat(generator): constrain interpreter output` | `2b38354` | `go test ./generator/eval/... ./generator/intent/...`; `go test -race ./generator/eval/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
+| T1.3 | complete | `test(generator): cover interactive interpretation contracts` | `a7df81f` | `go test ./generator/eval/... ./generator/intent/... ./generator/plan/...`; `go test -race ./generator/eval/...`; `go test ./generator/...`; `make vet`; `make lint-strict`; `git diff --check` passed |
 
 ## Slice 2 Tasks
 
@@ -83,5 +83,7 @@ Execution gate: satisfied by this approved planning commit on `dev`
 
 ## Current Gate
 
-The planning gate is satisfied. Slice 1, Interpreter contracts, is active and
-may begin from the approved planning commit on `dev`.
+Slice 1 implementation and validation are complete on
+`feat/generator-interpreter-contracts`. Its report is ready and the pull
+request is pending. Slice 2 remains blocked until Slice 1 is reviewed and
+merged into `dev`.
