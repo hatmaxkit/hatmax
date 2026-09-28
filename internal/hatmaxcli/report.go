@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"hatmax.adrianpk.com/generator/execute"
+	"hatmax.adrianpk.com/generator/intent"
 	"hatmax.adrianpk.com/generator/interaction"
 )
 
@@ -41,6 +42,39 @@ func writePlanSummary(report *strings.Builder, result interaction.Result) {
 	fmt.Fprintf(report, "  Hatmax version: %s\n", result.Plan.HatmaxVersion)
 	fmt.Fprintf(report, "  Book version: %d\n", result.Plan.BookVersion)
 	fmt.Fprintf(report, "  Affected surfaces: %s\n", stringList(result.Plan.AffectedSurfaces))
+	fmt.Fprintf(report, "  Documentation: %s\n", result.Plan.Documentation)
+
+	if result.Plan.Documentation == intent.DocumentationNotRequested || result.Plan.DocumentationPlan == nil {
+		return
+	}
+
+	fmt.Fprintln(report, "  Documentation targets:")
+
+	for _, target := range result.Plan.DocumentationPlan.Targets {
+		fmt.Fprintf(
+			report,
+			"    %s: subject=%s path=%s goal=%s\n",
+			target.Quadrant,
+			target.Subject,
+			target.Path,
+			target.ReaderGoal,
+		)
+	}
+
+	fmt.Fprintln(report, "  Documentation indexes:")
+
+	for _, index := range result.Plan.DocumentationPlan.Indexes {
+		fmt.Fprintf(report, "    %s: path=%s links=%d\n", index.Kind, index.Path, len(index.RequiredLinks))
+	}
+
+	if result.Plan.DocumentationEvidence != nil {
+		fmt.Fprintf(
+			report,
+			"  Documentation evidence: basis=%s sources=%d\n",
+			result.Plan.DocumentationEvidence.Basis,
+			len(result.Plan.DocumentationEvidence.Sources),
+		)
+	}
 }
 
 func writeProvenance(report *strings.Builder, result interaction.Result) {
@@ -109,6 +143,68 @@ func writeExecution(report *strings.Builder, result interaction.Result) {
 	changed, unchanged := surfaceDisposition(result.Manifest, result.Execution)
 	fmt.Fprintf(report, "  Changed surfaces: %s\n", stringList(changed))
 	fmt.Fprintf(report, "  Unchanged surfaces: %s\n", stringList(unchanged))
+	writeDocumentationExecution(report, result)
+}
+
+func writeDocumentationExecution(report *strings.Builder, result interaction.Result) {
+	if result.Manifest == nil || result.Execution == nil {
+		return
+	}
+
+	changes := make(map[string]execute.Change, len(result.Execution.Changes))
+	for _, change := range result.Execution.Changes {
+		changes[change.EditID] = change
+	}
+
+	wroteHeading := false
+
+	for _, edit := range result.Manifest.Edits {
+		if edit.Surface != "documentation" {
+			continue
+		}
+
+		change, exists := changes[edit.ID]
+		if !exists {
+			continue
+		}
+
+		if !wroteHeading {
+			fmt.Fprintln(report, "  Documentation paths:")
+
+			wroteHeading = true
+		}
+
+		disposition := documentationDisposition(edit, change)
+
+		ownership := "managed_section_created"
+		if hasCondition(edit.Postconditions, execute.ConditionManagedOutsideDigest) {
+			ownership = "outside_content_preserved"
+		}
+
+		fmt.Fprintf(report, "    %s: %s ownership=%s\n", edit.Target, disposition, ownership)
+	}
+}
+
+func documentationDisposition(edit execute.Edit, change execute.Change) string {
+	if change.Status == execute.ChangeAlreadySatisfied {
+		return "unchanged"
+	}
+
+	if edit.Kind == execute.EditCreateFile {
+		return "created"
+	}
+
+	return "updated"
+}
+
+func hasCondition(values []execute.Condition, expected execute.ConditionKind) bool {
+	for _, value := range values {
+		if value.Kind == expected {
+			return true
+		}
+	}
+
+	return false
 }
 
 func writeValidation(report *strings.Builder, result interaction.Result) {

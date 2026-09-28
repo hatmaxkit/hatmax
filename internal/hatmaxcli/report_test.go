@@ -134,3 +134,57 @@ func TestWriteResultReportsClarificationAndProjectDrift(t *testing.T) {
 		}
 	}
 }
+
+func TestWriteResultReportsDocumentationPlanAndOwnership(t *testing.T) {
+	result := interaction.Result{
+		Outcome: interaction.OutcomeCompleted,
+		Plan: &plan.Plan{
+			Intent:        intent.OperationDocumentFeature,
+			Feature:       "invoice",
+			Documentation: intent.DocumentationExisting,
+			DocumentationPlan: &plan.DocumentationPlan{
+				Targets: []plan.DocumentationTargetEffect{{
+					Quadrant: intent.DocumentationReference,
+					Subject:  "invoice", ReaderGoal: "Find the invoice contract.",
+					Path: "docs/reference/invoice/index.md",
+				}},
+				Indexes: []plan.DocumentationIndexEffect{{
+					Kind: "root", Path: "docs/index.md",
+					RequiredLinks: []plan.DocumentationLinkEffect{{Target: "docs/reference/index.md"}},
+				}},
+			},
+			DocumentationEvidence: &project.FeatureEvidence{Basis: "existing"},
+		},
+		Manifest: &execute.Manifest{
+			AllowedSurfaces: []string{"documentation"},
+			Edits: []execute.Edit{
+				{ID: "documentation.reference.invoice", Kind: execute.EditUpdateMarkdown, Surface: "documentation", Target: "docs/reference/invoice/index.md", Postconditions: []execute.Condition{{Kind: execute.ConditionManagedOutsideDigest}}},
+				{ID: "documentation.index.root", Kind: execute.EditCreateFile, Surface: "documentation", Target: "docs/index.md"},
+			},
+		},
+		Execution: &execute.Result{Changes: []execute.Change{
+			{EditID: "documentation.reference.invoice", Status: execute.ChangeApplied},
+			{EditID: "documentation.index.root", Status: execute.ChangeApplied},
+		}},
+	}
+
+	var output bytes.Buffer
+
+	err := writeResult(&output, result)
+	if err != nil {
+		t.Fatalf("writeResult() error = %v", err)
+	}
+
+	for _, expected := range []string{
+		"Documentation: document_existing_behavior",
+		"reference: subject=invoice path=docs/reference/invoice/index.md goal=Find the invoice contract.",
+		"root: path=docs/index.md links=1",
+		"Documentation evidence: basis=existing sources=0",
+		"docs/reference/invoice/index.md: updated ownership=outside_content_preserved",
+		"docs/index.md: created ownership=managed_section_created",
+	} {
+		if !strings.Contains(output.String(), expected) {
+			t.Errorf("output does not contain %q:\n%s", expected, output.String())
+		}
+	}
+}

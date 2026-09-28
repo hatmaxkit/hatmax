@@ -41,6 +41,17 @@ func TestCompileTurnContainsOnlyBoundedRequestAndSchema(t *testing.T) {
 	if turn.Schema["type"] != "object" {
 		t.Fatalf("schema type = %#v", turn.Schema["type"])
 	}
+
+	for _, expected := range []string{
+		"document_feature with document_existing_behavior",
+		"keep the implementation operation and use document_planned_change",
+		"tutorial, how_to, reference, or explanation",
+		"ask one focused clarification instead of selecting every quadrant",
+	} {
+		if !strings.Contains(turn.Prompt, expected) {
+			t.Errorf("prompt does not contain documentation rule %q", expected)
+		}
+	}
 }
 
 func TestCompileTurnIncludesClarificationHistory(t *testing.T) {
