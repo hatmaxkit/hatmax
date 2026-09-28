@@ -80,6 +80,14 @@ type AllowedEffects struct {
 	Dependencies []DependencyEffect `json:"dependencies" yaml:"dependencies"`
 }
 
+// FingerprintInputs records the bounded project observations selected when the
+// plan fingerprint was computed so execution can reproduce it exactly.
+type FingerprintInputs struct {
+	SelectedPaths        []string `json:"selected_paths" yaml:"selected_paths"`
+	SelectedDependencies []string `json:"selected_dependencies" yaml:"selected_dependencies"`
+	PlannedSurfaces      []string `json:"planned_surfaces" yaml:"planned_surfaces"`
+}
+
 // ValidationObligation describes one selected Book rule that conformance must
 // evaluate after execution.
 type ValidationObligation struct {
@@ -103,6 +111,7 @@ type Plan struct {
 	HatmaxVersion        string                 `json:"hatmax_version" yaml:"hatmax_version"`
 	BookVersion          int                    `json:"book_version" yaml:"book_version"`
 	ProjectFingerprint   string                 `json:"project_fingerprint" yaml:"project_fingerprint"`
+	FingerprintInputs    FingerprintInputs      `json:"fingerprint_inputs" yaml:"fingerprint_inputs"`
 	Rules                []RuleRef              `json:"rules" yaml:"rules"`
 	Operations           []Operation            `json:"operations" yaml:"operations"`
 	Preconditions        []Precondition         `json:"preconditions" yaml:"preconditions"`

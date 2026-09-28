@@ -213,7 +213,8 @@ func inspectAndFingerprint(t *testing.T, root string, bookVersion int) (project.
 	}
 
 	fingerprint, err := inventory.Fingerprint(project.FingerprintRequest{
-		BookVersion: bookVersion,
+		BookVersion:          bookVersion,
+		SelectedDependencies: []string{"github.com/sqlc-dev/sqlc/cmd/sqlc"},
 		PlannedSurfaces: []string{
 			"migration",
 			"model",

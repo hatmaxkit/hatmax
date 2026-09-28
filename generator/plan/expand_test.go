@@ -230,8 +230,10 @@ func admittedExpansion(
 	}
 
 	fingerprint := project.Fingerprint{
-		Value:       testFingerprint,
-		BookVersion: 1,
+		Value:                testFingerprint,
+		BookVersion:          1,
+		SelectedDependencies: []string{"github.com/sqlc-dev/sqlc/cmd/sqlc"},
+		PlannedSurfaces:      []string{"migration", "model", "store", "service", "handler", "templates", "wiring", "tests"},
 		Observations: []project.Observation{
 			{
 				Key:    "module:configuration",

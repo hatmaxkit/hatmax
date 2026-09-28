@@ -112,6 +112,15 @@ type ProtectedPath struct {
 	Reason string
 }
 
+// File describes bounded file metadata captured during project inspection.
+// It does not expose file content.
+type File struct {
+	Path      string
+	Size      int64
+	Generated bool
+	Surfaces  []string
+}
+
 // RepositoryRules identifies instruction files and protected paths.
 type RepositoryRules struct {
 	Instructions   []string

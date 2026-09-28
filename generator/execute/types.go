@@ -74,16 +74,22 @@ type ImplementationSlot struct {
 	Source string `json:"source" yaml:"source"`
 }
 
+// Obligation binds one edit to a selected logical plan operation and its
+// Book-owned rules. One file edit may satisfy several obligations.
+type Obligation struct {
+	Operation string     `json:"operation" yaml:"operation"`
+	Owner     plan.Owner `json:"owner" yaml:"owner"`
+	Rules     []string   `json:"rules" yaml:"rules"`
+}
+
 // Edit is one ordered, Book-owned project mutation.
 type Edit struct {
 	ID             string               `json:"id" yaml:"id"`
-	Operation      string               `json:"operation" yaml:"operation"`
-	Owner          plan.Owner           `json:"owner" yaml:"owner"`
 	Kind           EditKind             `json:"kind" yaml:"kind"`
 	Surface        string               `json:"surface" yaml:"surface"`
 	Target         string               `json:"target" yaml:"target"`
 	Recipe         string               `json:"recipe" yaml:"recipe"`
-	Rules          []string             `json:"rules" yaml:"rules"`
+	Obligations    []Obligation         `json:"obligations" yaml:"obligations"`
 	DependsOn      []string             `json:"depends_on,omitempty" yaml:"depends_on,omitempty"`
 	Preconditions  []Condition          `json:"preconditions" yaml:"preconditions"`
 	Postconditions []Condition          `json:"postconditions" yaml:"postconditions"`

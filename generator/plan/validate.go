@@ -84,7 +84,45 @@ func Validate(value Plan) error {
 		return err
 	}
 
+	err = validateFingerprintInputs(value.FingerprintInputs, value.AffectedSurfaces, value.AllowedEffects.Dependencies)
+	if err != nil {
+		return err
+	}
+
 	return validateValidationObligations(value.Validation, value.AffectedSurfaces, value.Rules, rules)
+}
+
+func validateFingerprintInputs(value FingerprintInputs, affectedSurfaces []string, dependencies []DependencyEffect) error {
+	err := validateUniqueStrings("fingerprint_inputs.selected_paths", value.SelectedPaths, false)
+	if err != nil {
+		return err
+	}
+
+	err = validateUniqueStrings("fingerprint_inputs.selected_dependencies", value.SelectedDependencies, false)
+	if err != nil {
+		return err
+	}
+
+	err = validateUniqueStrings("fingerprint_inputs.planned_surfaces", value.PlannedSurfaces, true)
+	if err != nil {
+		return err
+	}
+
+	selectedSurfaces := stringSet(value.PlannedSurfaces)
+	for _, surface := range affectedSurfaces {
+		if _, exists := selectedSurfaces[surface]; !exists {
+			return planError("plan_fingerprint_incomplete", "fingerprint_inputs.planned_surfaces", "affected surface %q is not fingerprinted", surface)
+		}
+	}
+
+	selectedDependencies := stringSet(value.SelectedDependencies)
+	for _, dependency := range dependencies {
+		if _, exists := selectedDependencies[dependency.Module]; !exists {
+			return planError("plan_fingerprint_incomplete", "fingerprint_inputs.selected_dependencies", "allowed dependency %q is not fingerprinted", dependency.Module)
+		}
+	}
+
+	return nil
 }
 
 func validateDomain(value Plan) error {

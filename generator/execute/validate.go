@@ -68,16 +68,8 @@ func validateEdits(values []Edit, allowedSurfaces []string) error {
 
 	for index, value := range values {
 		prefix := indexedPath("edits", index)
-		if !stableIDPattern.MatchString(value.ID) || !stableIDPattern.MatchString(value.Operation) {
-			return executionError("execution_edit_invalid", prefix, "edit and operation IDs must be stable")
-		}
-
-		if value.Owner.Kind != plan.OwnerArchetype && value.Owner.Kind != plan.OwnerCapability {
-			return executionError("execution_owner_invalid", prefix+".owner.kind", "unknown owner kind %q", value.Owner.Kind)
-		}
-
-		if !stableIDPattern.MatchString(value.Owner.ID) {
-			return executionError("execution_owner_invalid", prefix+".owner.id", "owner ID must be stable")
+		if !stableIDPattern.MatchString(value.ID) {
+			return executionError("execution_edit_invalid", prefix+".id", "edit ID must be stable")
 		}
 
 		if !validEditKind(value.Kind) {
@@ -105,7 +97,7 @@ func validateEdits(values []Edit, allowedSurfaces []string) error {
 			return executionError("execution_target_overlap", prefix+".target", "multiple edits target %q", value.Target)
 		}
 
-		err = validateUniqueStrings(prefix+".rules", value.Rules, true)
+		err = validateObligations(prefix+".obligations", value.Obligations)
 		if err != nil {
 			return err
 		}
@@ -132,6 +124,41 @@ func validateEdits(values []Edit, allowedSurfaces []string) error {
 
 		seenIDs[value.ID] = struct{}{}
 		seenTargets[value.Target] = struct{}{}
+	}
+
+	return nil
+}
+
+func validateObligations(path string, values []Obligation) error {
+	if len(values) == 0 {
+		return executionError("execution_required_field", path, "at least one obligation is required")
+	}
+
+	seen := make(map[string]struct{}, len(values))
+	for index, value := range values {
+		prefix := indexedPath(path, index)
+		if !stableIDPattern.MatchString(value.Operation) {
+			return executionError("execution_obligation_invalid", prefix+".operation", "operation ID must be stable")
+		}
+
+		if value.Owner.Kind != plan.OwnerArchetype && value.Owner.Kind != plan.OwnerCapability {
+			return executionError("execution_owner_invalid", prefix+".owner.kind", "unknown owner kind %q", value.Owner.Kind)
+		}
+
+		if !stableIDPattern.MatchString(value.Owner.ID) {
+			return executionError("execution_owner_invalid", prefix+".owner.id", "owner ID must be stable")
+		}
+
+		err := validateUniqueStrings(prefix+".rules", value.Rules, true)
+		if err != nil {
+			return err
+		}
+
+		if _, exists := seen[value.Operation]; exists {
+			return executionError("execution_duplicate_value", prefix+".operation", "duplicate obligation %q", value.Operation)
+		}
+
+		seen[value.Operation] = struct{}{}
 	}
 
 	return nil

@@ -126,8 +126,12 @@ func classifySurfaces(path string) []string {
 		seen["templates"] = struct{}{}
 	}
 
-	if extension == ".sql" && (containsSegment(segments, "migrations") || strings.Contains(base, "migration")) {
+	if extension == ".sql" && (containsSegment(segments, "migration") || containsSegment(segments, "migrations") || strings.Contains(base, "migration")) {
 		seen["migration"] = struct{}{}
+	}
+
+	if extension == ".sql" && containsSegment(segments, "queries") {
+		seen["store"] = struct{}{}
 	}
 
 	if strings.HasSuffix(base, "_test.go") {
@@ -145,6 +149,10 @@ func classifySurfaces(path string) []string {
 		seen["store"] = struct{}{}
 	case "main.go":
 		seen["wiring"] = struct{}{}
+	}
+
+	if strings.HasSuffix(base, "_store.go") {
+		seen["store"] = struct{}{}
 	}
 
 	if containsSegment(segments, "model") {
@@ -168,6 +176,7 @@ func collectLayouts(path string, record fileRecord, directories map[string]map[s
 	addLayoutDirectory(directories, "assets", directoryThroughSegment(segments, "assets", 0))
 	addLayoutDirectory(directories, "assets", directoryThroughSegment(segments, "static", 0))
 	addLayoutDirectory(directories, "migrations", directoryThroughSegment(segments, "migrations", 0))
+	addLayoutDirectory(directories, "migrations", directoryThroughSegment(segments, "migration", 1))
 	addLayoutDirectory(directories, "templates", directoryThroughSegment(segments, "templates", 0))
 	addLayoutDirectory(directories, "queries", directoryThroughSegment(segments, "queries", 0))
 

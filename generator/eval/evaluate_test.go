@@ -229,8 +229,10 @@ func syntheticEvaluationContext(t *testing.T) Context {
 			Layout: project.Layout{Features: []string{"internal/feat/property"}},
 		},
 		Fingerprint: project.Fingerprint{
-			Value:       "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-			BookVersion: 1,
+			Value:                "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+			BookVersion:          1,
+			SelectedDependencies: []string{"github.com/sqlc-dev/sqlc/cmd/sqlc"},
+			PlannedSurfaces:      []string{"migration", "model", "store", "service", "handler", "templates", "wiring", "tests"},
 		},
 		Book: selectedBook,
 	}

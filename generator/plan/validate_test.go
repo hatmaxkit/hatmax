@@ -20,6 +20,7 @@ func TestValidateRejectsInvalidPlanStructure(t *testing.T) {
 		{name: "intent", mutate: func(value *Plan) { value.Intent = "remove_feature" }, code: "plan_intent_invalid"},
 		{name: "domain incomplete", mutate: func(value *Plan) { value.Domain.Entity = "" }, code: "plan_domain_incomplete"},
 		{name: "domain invalid", mutate: func(value *Plan) { value.Domain.Fields[0].Type = "json" }, code: "plan_domain_invalid"},
+		{name: "fingerprint surfaces", mutate: func(value *Plan) { value.FingerprintInputs.PlannedSurfaces = []string{"model"} }, code: "plan_fingerprint_incomplete"},
 		{name: "documentation", mutate: func(value *Plan) { value.Documentation = "always" }, code: "plan_documentation_invalid"},
 		{name: "versions", mutate: func(value *Plan) { value.BookVersion = 0 }, code: "plan_required_field"},
 		{name: "fingerprint", mutate: func(value *Plan) { value.ProjectFingerprint = "invalid" }, code: "plan_fingerprint_invalid"},

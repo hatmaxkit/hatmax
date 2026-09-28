@@ -30,6 +30,11 @@ func validTestPlan() Plan {
 		HatmaxVersion:      "v0.4.0",
 		BookVersion:        1,
 		ProjectFingerprint: testFingerprint,
+		FingerprintInputs: FingerprintInputs{
+			SelectedPaths:        []string{},
+			SelectedDependencies: []string{},
+			PlannedSurfaces:      []string{"model", "tests"},
+		},
 		Rules: []RuleRef{
 			{ID: "hatmax.feature.cohesive_package", Level: book.LevelRequired},
 			{ID: "hatmax.testing.required_boundaries", Level: book.LevelRequired},
