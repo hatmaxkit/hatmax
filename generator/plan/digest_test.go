@@ -72,3 +72,22 @@ func TestExpandedPlansAreSealed(t *testing.T) {
 		t.Errorf("VerifyDigest(expanded plan) error = %v", err)
 	}
 }
+
+func TestPlanDigestIncludesDomainInput(t *testing.T) {
+	first, err := Seal(validTestPlan())
+	if err != nil {
+		t.Fatalf("Seal() error = %v", err)
+	}
+
+	changed := validTestPlan()
+	changed.Domain.Fields[0].Name = "reference"
+
+	second, err := Seal(changed)
+	if err != nil {
+		t.Fatalf("Seal(changed) error = %v", err)
+	}
+
+	if first.Digest == second.Digest {
+		t.Errorf("digest = %q after domain input changed", first.Digest)
+	}
+}

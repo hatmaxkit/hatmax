@@ -25,10 +25,11 @@ func TestMarshalYAMLIsStableAndOrdered(t *testing.T) {
 
 	text := string(first)
 	identityIndex := strings.Index(text, "intent: create_feature")
+	domainIndex := strings.Index(text, "domain:")
 	operationsIndex := strings.Index(text, "operations:")
 
 	validationIndex := strings.Index(text, "validation:")
-	if identityIndex < 0 || operationsIndex <= identityIndex || validationIndex <= operationsIndex {
+	if identityIndex < 0 || domainIndex <= identityIndex || operationsIndex <= domainIndex || validationIndex <= operationsIndex {
 		t.Errorf("MarshalYAML() fields are not in contract order:\n%s", text)
 	}
 }

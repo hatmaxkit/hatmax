@@ -10,7 +10,7 @@ import (
 )
 
 // CurrentSchemaVersion is the plan schema understood by this package.
-const CurrentSchemaVersion = 1
+const CurrentSchemaVersion = 2
 
 // OwnerKind identifies the Book entry that owns one logical operation.
 type OwnerKind string
@@ -96,6 +96,7 @@ type Plan struct {
 	Intent               intent.Operation       `json:"intent" yaml:"intent"`
 	Archetype            string                 `json:"archetype" yaml:"archetype"`
 	Feature              string                 `json:"feature" yaml:"feature"`
+	Domain               intent.Domain          `json:"domain" yaml:"domain"`
 	Capabilities         []string               `json:"capabilities" yaml:"capabilities"`
 	AffectedSurfaces     []string               `json:"affected_surfaces" yaml:"affected_surfaces"`
 	Documentation        intent.Documentation   `json:"documentation" yaml:"documentation"`

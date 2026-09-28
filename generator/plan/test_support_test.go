@@ -15,10 +15,15 @@ func validTestPlan() Plan {
 	featurePackage := "archetype.server_rendered_crud.feature_package"
 
 	return Plan{
-		SchemaVersion:      CurrentSchemaVersion,
-		Intent:             intent.OperationCreateFeature,
-		Archetype:          "server_rendered_crud",
-		Feature:            "invoice",
+		SchemaVersion: CurrentSchemaVersion,
+		Intent:        intent.OperationCreateFeature,
+		Archetype:     "server_rendered_crud",
+		Feature:       "invoice",
+		Domain: intent.Domain{
+			Entity: "Invoice",
+			Route:  "/invoices",
+			Fields: []intent.Field{{Name: "number", Type: "string"}},
+		},
 		Capabilities:       []string{"postgres_persistence"},
 		AffectedSurfaces:   []string{"model", "tests"},
 		Documentation:      intent.DocumentationNotRequested,

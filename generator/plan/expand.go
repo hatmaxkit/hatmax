@@ -81,6 +81,7 @@ func Expand(admission intent.Result, context ExpansionContext) (Plan, error) {
 		Intent:               value.Operation,
 		Archetype:            value.Archetype,
 		Feature:              value.Feature,
+		Domain:               cloneDomain(value.Domain),
 		Capabilities:         selectedCapabilityIDs(selection.Capabilities),
 		AffectedSurfaces:     surfaces,
 		Documentation:        value.Documentation,
@@ -326,6 +327,23 @@ func cloneObservations(values []project.Observation) []project.Observation {
 
 func cloneExceptions(values []intent.Exception) []intent.Exception {
 	return append([]intent.Exception{}, values...)
+}
+
+func cloneDomain(value intent.Domain) intent.Domain {
+	result := value
+	result.Fields = append([]intent.Field{}, value.Fields...)
+	result.Rules = append([]intent.BusinessRule{}, value.Rules...)
+	if value.Field != nil {
+		field := *value.Field
+		result.Field = &field
+	}
+
+	if value.Validation != nil {
+		validation := *value.Validation
+		result.Validation = &validation
+	}
+
+	return result
 }
 
 func cloneStrings(values []string) []string {

@@ -129,6 +129,10 @@ func TestExpandCarriesIntentAndProjectContext(t *testing.T) {
 		t.Errorf("expanded identity = %#v, want admitted intent and fingerprint", result)
 	}
 
+	if result.Domain.Field == nil || result.Domain.Field.Name != "notes" {
+		t.Errorf("Domain = %#v, want admitted field input", result.Domain)
+	}
+
 	if len(result.ExpectedObservations) != 1 || result.ExpectedObservations[0].Key != "module:configuration" {
 		t.Errorf("ExpectedObservations = %#v, want detached project observations", result.ExpectedObservations)
 	}
@@ -136,6 +140,11 @@ func TestExpandCarriesIntentAndProjectContext(t *testing.T) {
 	context.Fingerprint.Observations[0].Key = "changed"
 	if result.ExpectedObservations[0].Key != "module:configuration" {
 		t.Error("Expand() exposed fingerprint observation storage")
+	}
+
+	admission.Intent.Domain.Field.Name = "changed"
+	if result.Domain.Field.Name != "notes" {
+		t.Error("Expand() exposed intent domain storage")
 	}
 }
 
@@ -188,6 +197,7 @@ func TestExpandRejectsInvalidAdmissionContext(t *testing.T) {
 		{name: "selection invalid", mutate: func(result *intent.Result, _ *ExpansionContext) { result.Intent.Archetype = "missing" }, code: "plan_selection_invalid"},
 		{name: "operation capability missing", mutate: func(result *intent.Result, _ *ExpansionContext) {
 			result.Intent.Operation = intent.OperationAddValidation
+			result.Intent.Domain = testDomain(intent.OperationAddValidation)
 		}, code: "plan_capability_missing"},
 	}
 
@@ -239,6 +249,7 @@ func admittedExpansion(
 		BookVersion:        1,
 		Archetype:          "server_rendered_crud",
 		Feature:            "invoice",
+		Domain:             testDomain(operation),
 		Capabilities:       append([]string{}, capabilities...),
 		Documentation:      intent.DocumentationNotRequested,
 		Exceptions:         []intent.Exception{},
@@ -251,6 +262,27 @@ func admittedExpansion(
 	}, ExpansionContext{
 		Book:        selectedBook,
 		Fingerprint: fingerprint,
+	}
+}
+
+func testDomain(operation intent.Operation) intent.Domain {
+	switch operation {
+	case intent.OperationCreateFeature:
+		return intent.Domain{
+			Entity: "Invoice",
+			Route:  "/invoices",
+			Fields: []intent.Field{{Name: "number", Type: "string"}},
+		}
+	case intent.OperationAddField:
+		return intent.Domain{Field: &intent.Field{Name: "notes", Type: "text"}}
+	case intent.OperationAddValidation:
+		return intent.Domain{Validation: &intent.ValidationRule{
+			Field: "number",
+			Kind:  "required",
+			Scope: intent.ValidationDurable,
+		}}
+	default:
+		return intent.Domain{}
 	}
 }
 

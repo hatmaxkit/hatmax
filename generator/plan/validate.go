@@ -59,6 +59,11 @@ func Validate(value Plan) error {
 		return err
 	}
 
+	err = validateDomain(value)
+	if err != nil {
+		return err
+	}
+
 	rules, err := validateRules(value.Rules)
 	if err != nil {
 		return err
@@ -80,6 +85,38 @@ func Validate(value Plan) error {
 	}
 
 	return validateValidationObligations(value.Validation, value.AffectedSurfaces, value.Rules, rules)
+}
+
+func validateDomain(value Plan) error {
+	intentValue := intent.Intent{
+		SchemaVersion:      intent.CurrentSchemaVersion,
+		Operation:          value.Intent,
+		ProjectFingerprint: value.ProjectFingerprint,
+		HatmaxVersion:      value.HatmaxVersion,
+		BookVersion:        value.BookVersion,
+		Archetype:          value.Archetype,
+		Feature:            value.Feature,
+		Domain:             value.Domain,
+		Capabilities:       value.Capabilities,
+		Documentation:      value.Documentation,
+		Exceptions:         value.Exceptions,
+	}
+
+	err := intent.ValidateSchema(intentValue)
+	if err != nil {
+		return planError("plan_domain_invalid", "domain", "%v", err)
+	}
+
+	diagnostics, clarifications := intent.ValidateDomainDecisions(intentValue)
+	if len(diagnostics) > 0 {
+		return planError("plan_domain_invalid", diagnostics[0].Field, "%s", diagnostics[0].Message)
+	}
+
+	if len(clarifications) > 0 {
+		return planError("plan_domain_incomplete", clarifications[0].Field, "%s", clarifications[0].Question)
+	}
+
+	return nil
 }
 
 func validateRules(values []RuleRef) (map[string]struct{}, error) {

@@ -38,7 +38,6 @@ var admittedValidationKinds = map[string]struct{}{
 
 func validateDomain(value Intent, inventory project.Inventory) ([]Diagnostic, []Clarification) {
 	diagnostics := make([]Diagnostic, 0)
-	clarifications := make([]Clarification, 0)
 
 	if !featureNamePattern.MatchString(value.Feature) {
 		diagnostics = append(diagnostics, Diagnostic{
@@ -49,32 +48,43 @@ func validateDomain(value Intent, inventory project.Inventory) ([]Diagnostic, []
 	}
 
 	exists := featureExists(inventory, value.Feature)
+	if value.Operation == OperationCreateFeature && exists {
+		diagnostics = append(diagnostics, Diagnostic{
+			Code:    "HMGEN-FEATURE-EXISTS",
+			Field:   "feature",
+			Message: fmt.Sprintf("feature %q already exists", value.Feature),
+		})
+	}
+
+	if value.Operation != OperationCreateFeature && !exists {
+		diagnostics = append(diagnostics, missingFeatureDiagnostic(value.Feature))
+	}
+
+	domainDiagnostics, clarifications := ValidateDomainDecisions(value)
+	diagnostics = append(diagnostics, domainDiagnostics...)
+
+	return diagnostics, clarifications
+}
+
+// ValidateDomainDecisions checks whether the application-specific decisions
+// required by an intent are complete and supported without inspecting a
+// project or selecting implementation obligations.
+func ValidateDomainDecisions(value Intent) ([]Diagnostic, []Clarification) {
+	diagnostics := make([]Diagnostic, 0)
+	clarifications := make([]Clarification, 0)
+
 	switch value.Operation {
 	case OperationCreateFeature:
-		if exists {
-			diagnostics = append(diagnostics, Diagnostic{
-				Code:    "HMGEN-FEATURE-EXISTS",
-				Field:   "feature",
-				Message: fmt.Sprintf("feature %q already exists", value.Feature),
-			})
-		}
-
 		validateCreateFeature(value, &diagnostics, &clarifications)
 	case OperationAddField:
-		if !exists {
-			diagnostics = append(diagnostics, missingFeatureDiagnostic(value.Feature))
-		}
-
 		validateAddField(value, &diagnostics, &clarifications)
 	case OperationAddValidation:
-		if !exists {
-			diagnostics = append(diagnostics, missingFeatureDiagnostic(value.Feature))
-		}
-
 		validateAddValidation(value, &diagnostics, &clarifications)
 	}
 
 	validateBusinessRules(value.Domain.Rules, &diagnostics, &clarifications)
+	sortDiagnostics(diagnostics)
+	sortClarifications(clarifications)
 
 	return diagnostics, clarifications
 }
