@@ -15,7 +15,7 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | journey foundation | reviewing | `docs/user-guide-journey-foundation` | `docs(slice-1): establish the User Guide journey` | pending | `ops/default/report/slices/user-guide-technical-journey/slice-1-journey-foundation.md` |
+| Slice 1 | journey foundation | reviewing | `docs/user-guide-journey-foundation` | `docs(slice-1): establish the User Guide journey` | #48 | `ops/default/report/slices/user-guide-technical-journey/slice-1-journey-foundation.md` |
 | Slice 2 | web interaction | planned | `docs/user-guide-web-interaction` | `docs(slice-2): explain the Hatmax web interaction model` |  | `ops/default/report/slices/user-guide-technical-journey/slice-2-web-interaction.md` |
 | Slice 3 | feature anatomy | planned | `docs/user-guide-feature-anatomy` | `docs(slice-3): establish canonical feature anatomy` |  | `ops/default/report/slices/user-guide-technical-journey/slice-3-feature-anatomy.md` |
 | Slice 4 | data lifecycle | planned | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` |  | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |

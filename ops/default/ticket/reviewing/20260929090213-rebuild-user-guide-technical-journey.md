@@ -13,8 +13,8 @@ ready_at: 2026-09-29T09:41:45Z
 started_at: 2026-09-29T09:43:43Z
 reviewed_at: 2026-09-29T09:48:26Z
 branch: docs/user-guide-journey-foundation
-pr: pending
-commits: 9605605e8f0a, b8fecef2c8dd, 92e7ee648f89, 4dcd0c653e14
+pr: 48
+commits: 9605605e8f0a, b8fecef2c8dd, 92e7ee648f89, 4dcd0c653e14, c13e44e43c4d
 ---
 
 ## Observed Behavior
