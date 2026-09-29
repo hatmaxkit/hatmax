@@ -5,7 +5,7 @@ Delivery set: user-guide-technical-journey
 Plan: [User Guide Technical Journey Plan](../../../plan/user-guide-technical-journey.md)
 Tracker: [User Guide Technical Journey Tracker](../../../tracker/user-guide-technical-journey.md)
 Branch: `docs/user-guide-feature-anatomy`
-PR: pending
+PR: #50
 
 ## Purpose
 
