@@ -95,28 +95,28 @@ Generated artifacts use only these roots:
 
 ```text
 docs/
-├── index.md
+├── README.md
 ├── tutorials/
-│   ├── index.md
-│   └── <subject>/index.md
+│   ├── README.md
+│   └── <subject>/README.md
 ├── how-to/
-│   ├── index.md
-│   └── <subject>/index.md
+│   ├── README.md
+│   └── <subject>/README.md
 ├── reference/
-│   ├── index.md
-│   └── <subject>/index.md
+│   ├── README.md
+│   └── <subject>/README.md
 └── explanation/
-    ├── index.md
-    └── <subject>/index.md
+    ├── README.md
+    └── <subject>/README.md
 ```
 
-Only requested quadrants and the index chain needed to reach them are created
-or changed. Hatmax does not create empty quadrant directories or placeholder
-documents.
+Only requested quadrants and the README entrypoint chain needed to reach them
+are created or changed. Hatmax does not create empty quadrant directories or
+placeholder documents.
 
 Existing project conventions may supply a compatible title or navigation
 wrapper, but they cannot relocate a document outside its Diataxis quadrant or
-replace the canonical index chain.
+replace the canonical README entrypoint chain.
 
 ## Diataxis Semantics
 
@@ -151,9 +151,10 @@ the managed section and preserves all other content byte-for-byte. If the
 target exists without a valid managed section, Hatmax reports a conflict and
 does not overwrite it.
 
-Canonical indexes use the same bounded-section rule for generated navigation
-entries. Hatmax may create a missing root or quadrant index, but it does not
-reorder or rewrite user-authored navigation outside the managed section.
+Canonical README entrypoints use the same bounded-section rule for generated
+navigation entries. Hatmax may create a missing root or quadrant entrypoint,
+but it does not reorder or rewrite user-authored navigation outside the
+managed section.
 
 Markers identify mutation ownership only. They do not store intent, project
 state, or authority and are not required by the application at runtime.
@@ -165,7 +166,7 @@ plan records:
 
 - authorization mode and typed reader goals;
 - selected quadrant and derived target path;
-- required root and quadrant index links;
+- required root and quadrant entrypoint links;
 - inspected evidence and fingerprints;
 - the `documentation` affected surface;
 - documentation conformance rules and repository validation commands.
@@ -206,15 +207,15 @@ Documentation conformance checks:
 - one primary Diataxis intent per document;
 - balanced managed-section markers;
 - preservation of content outside managed sections;
-- complete root and quadrant index reachability;
+- complete root and quadrant entrypoint reachability;
 - valid local links and no links to missing generated targets;
 - agreement between documented contracts and inspected or executed behavior;
 - absence of undeclared non-documentation effects.
 
 Stable diagnostics distinguish invalid intent, ambiguous quadrant, missing
-feature evidence, unmanaged target conflict, index conflict, stale evidence,
-rendering failure, conformance failure, and repository documentation-gate
-failure.
+feature evidence, unmanaged target conflict, entrypoint conflict, stale
+evidence, rendering failure, conformance failure, and repository
+documentation-gate failure.
 
 Any conflict discovered before commit leaves the project unchanged. A
 repository documentation-gate failure after an atomic documentation commit

@@ -1,12 +1,12 @@
 id: hatmax.documentation.index_reachability
 level: required
-title: Keep generated documentation reachable through canonical indexes
+title: Keep generated documentation reachable through canonical entrypoints
 rationale: A boxed document is useful only when readers can reach it through the project documentation hierarchy.
 applies_when:
   - documentation is explicitly requested
 requires:
-  - every generated target is linked from its quadrant index
-  - every generated quadrant index is linked from docs/index.md
+  - every generated target is linked from its quadrant README.md
+  - every generated quadrant README.md is linked from docs/README.md
   - generated local links resolve to known targets
 prohibits:
   - empty quadrant placeholders

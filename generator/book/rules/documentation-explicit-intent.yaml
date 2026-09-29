@@ -7,7 +7,7 @@ applies_when:
 requires:
   - documentation intent is represented explicitly
   - active documentation declares one to four typed reader targets
-  - requested documents use the canonical Diataxis quadrant and index
+  - requested documents use the canonical Diataxis quadrant and README.md entrypoint
 prohibits:
   - documentation edits when documentation is not_requested
   - documentation targets when documentation is not_requested

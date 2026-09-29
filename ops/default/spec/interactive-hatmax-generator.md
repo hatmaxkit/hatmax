@@ -368,7 +368,8 @@ by the documentation request and does not mechanically create one document in
 every quadrant.
 
 Documentation must be reconciled with the implemented code, linked from the
-appropriate indexes, and validated with the project documentation gate.
+appropriate README entrypoints, and validated with the project documentation
+gate.
 
 Documentation intent is represented explicitly as one of:
 
