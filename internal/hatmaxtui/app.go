@@ -25,6 +25,7 @@ func Run(ctx context.Context, config Config) error {
 	if config.Input == nil || config.Output == nil || config.ErrorOutput == nil {
 		return errors.New("terminal input, output, and error output are required")
 	}
+
 	if config.Root == "" || config.Sessions == nil {
 		return errors.New("project root and conversation session factory are required")
 	}
@@ -40,6 +41,7 @@ func Run(ctx context.Context, config Config) error {
 	if value, ok := final.(model); ok {
 		value.close()
 	}
+
 	if err == nil || errors.Is(err, tea.ErrInterrupted) || errors.Is(err, context.Canceled) {
 		return nil
 	}

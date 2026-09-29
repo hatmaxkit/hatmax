@@ -224,6 +224,7 @@ func (app *App) runConversation(ctx context.Context, root string, command parsed
 	defer session.Close()
 
 	value := session.Current()
+
 	_, err = fmt.Fprintf(app.output, "Conversation: %s\nStatus: %s\n", value.ID, value.Status)
 	if err != nil {
 		_, _ = fmt.Fprintf(app.errorOutput, "%s: write conversation: %v\n", app.commandName, err)

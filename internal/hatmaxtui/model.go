@@ -190,6 +190,7 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case resetFinishedMsg:
 		m.busy = false
+
 		m.cancel = nil
 		if message.err != nil {
 			m.status = "Reset failed"
@@ -201,6 +202,7 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			m.detail = ""
 			m.status = "New conversation"
 		}
+
 		m.refreshViewport()
 
 		return m, nil
@@ -234,6 +236,7 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	var command tea.Cmd
+
 	m.composer, command = m.composer.Update(message)
 	commands = append(commands, command)
 	m.viewport, command = m.viewport.Update(message)
@@ -374,6 +377,7 @@ func (m *model) cancelWork() {
 
 func (m model) close() {
 	m.cancelWork()
+
 	if m.session != nil {
 		_ = m.session.Close()
 	}
@@ -401,10 +405,12 @@ func (m *model) refreshViewport() {
 func (m model) View() tea.View {
 	heading := lipgloss.NewStyle().Bold(true).Render("Hatmax")
 	status := lipgloss.NewStyle().Faint(true).Render("Status: " + m.status)
+
 	parts := []string{heading, m.viewport.View(), m.composer.View(), status}
 	if m.busy {
 		parts = append(parts, m.progress.ViewAs(0.55))
 	}
+
 	parts = append(parts, m.help.View(m.keys))
 
 	view := tea.NewView(lipgloss.JoinVertical(lipgloss.Left, parts...))
@@ -466,10 +472,12 @@ func outcomeStatus(outcome interaction.Outcome) string {
 
 func resultDetail(result conversation.SessionResult) string {
 	var detail strings.Builder
+
 	interactionResult := result.Interaction
 
 	if len(interactionResult.PlanYAML) > 0 {
 		fmt.Fprintf(&detail, "Plan\n%s", interactionResult.PlanYAML)
+
 		if !strings.HasSuffix(detail.String(), "\n") {
 			detail.WriteByte('\n')
 		}
@@ -489,6 +497,7 @@ func resultDetail(result conversation.SessionResult) string {
 
 	if interactionResult.Report != nil {
 		fmt.Fprintf(&detail, "Conformance: %t\n", interactionResult.Report.Conformance.Passed)
+
 		for _, command := range interactionResult.Report.Commands {
 			fmt.Fprintf(&detail, "Validation %s: exit %d\n", command.Name, command.ExitCode)
 		}

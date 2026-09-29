@@ -139,6 +139,7 @@ func TestConversationCommandsControlOnlyLocalSelection(t *testing.T) {
 			contains:  "Conversation: conversation-new\nStatus: active\n",
 			assert: func(t *testing.T, options conversation.SessionOptions) {
 				t.Helper()
+
 				if !options.Fresh || options.ConversationID != "" {
 					t.Fatalf("new options = %#v", options)
 				}
@@ -149,6 +150,7 @@ func TestConversationCommandsControlOnlyLocalSelection(t *testing.T) {
 			contains:  "Conversation: conversation-new\nStatus: active\n",
 			assert: func(t *testing.T, options conversation.SessionOptions) {
 				t.Helper()
+
 				if options.Fresh || options.ConversationID != "conversation-old" {
 					t.Fatalf("resume options = %#v", options)
 				}
@@ -158,22 +160,27 @@ func TestConversationCommandsControlOnlyLocalSelection(t *testing.T) {
 
 	for _, testCase := range tests {
 		var output, errorOutput bytes.Buffer
+
 		app := newConversationTestApp(t, &output, &errorOutput, manager)
 
 		if exit := app.Run(context.Background(), testCase.arguments); exit != ExitSuccess {
 			t.Fatalf("Run(%v) exit = %d", testCase.arguments, exit)
 		}
+
 		if output.String() != testCase.contains || errorOutput.Len() != 0 {
 			t.Fatalf("Run(%v) output = %q / %q", testCase.arguments, output.String(), errorOutput.String())
 		}
+
 		testCase.assert(t, manager.openOptions)
 	}
 
 	var output, errorOutput bytes.Buffer
+
 	app := newConversationTestApp(t, &output, &errorOutput, manager)
 	if exit := app.Run(context.Background(), []string{"conversation", "list"}); exit != ExitSuccess {
 		t.Fatalf("conversation list exit = %d", exit)
 	}
+
 	if output.String() != "conversation-new\tactive\t2026-09-29T21:00:00Z\n" || errorOutput.Len() != 0 {
 		t.Fatalf("conversation list output = %q / %q", output.String(), errorOutput.String())
 	}
@@ -188,6 +195,7 @@ func TestHmAndHatmaxGenerateUseTheSameHeadlessKernel(t *testing.T) {
 
 	run := func(commandName string) (int, string, string) {
 		var output, errorOutput bytes.Buffer
+
 		app, err := New(Config{
 			Input: strings.NewReader(""), Output: &output, ErrorOutput: &errorOutput,
 			WorkingDirectory:   func() (string, error) { return "/project", nil },
@@ -201,6 +209,7 @@ func TestHmAndHatmaxGenerateUseTheSameHeadlessKernel(t *testing.T) {
 	}
 
 	hmExit, hmOutput, hmError := run("hm")
+
 	hatmaxExit, hatmaxOutput, hatmaxError := run("hatmax")
 	if hmExit != hatmaxExit || hmOutput != hatmaxOutput || hmError != hatmaxError {
 		t.Fatalf(
