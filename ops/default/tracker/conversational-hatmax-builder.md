@@ -1,6 +1,6 @@
 # Conversational Hatmax Builder Tracker
 
-Status: Proposed
+Status: Approved
 Delivery set: conversational-hatmax-builder
 Plan: `ops/default/plan/conversational-hatmax-builder.md`
 Umbrella spec: `ops/default/spec/interactive-hatmax-generator.md`
@@ -13,16 +13,15 @@ Draft specs:
 
 Base branch: `dev`
 Planning base: `510a856419a97d64959387099c48a81f867fb09a`
-Active slice: none
-Active tasks: none
-Execution gate: requires explicit maintainer approval and a committed Slice 1
-activation on `dev`
+Active slice: Slice 1
+Active tasks: T1.1, T1.2, T1.3
+Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Slice Status
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Builder contracts | planned | `docs/hatmax-builder-contracts` | `docs(slice-1): define Hatmax builder contracts` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-1-builder-contracts.md` |
+| Slice 1 | Builder contracts | active | `docs/hatmax-builder-contracts` | `docs(slice-1): define Hatmax builder contracts` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-1-builder-contracts.md` |
 | Slice 2 | Application planning kernel | planned | `feat/application-scaffold-kernel` | `feat(slice-2): plan canonical Hatmax applications` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-2-application-planning-kernel.md` |
 | Slice 3 | Scaffold execution | planned | `feat/application-scaffold-rendering` | `feat(slice-3): render canonical Hatmax applications` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-3-scaffold-execution.md` |
 | Slice 4 | Application bootstrap product | planned | `feat/application-scaffold-product` | `feat(slice-4): deliver Hatmax application bootstrap` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-4-application-bootstrap-product.md` |
@@ -97,7 +96,7 @@ activation on `dev`
 
 ## Completion Gates
 
-- [ ] The maintainer approves the plan and tracker.
+- [x] The maintainer approves the plan and tracker.
 - [ ] Slice 1 promotes one reconciled non-conflicting specification set.
 - [ ] Slice 1 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 2 is delivered through its branch, report, pull request, and merge.
@@ -111,5 +110,5 @@ activation on `dev`
 
 ## Current Gate
 
-The plan and tracker are proposed. Runtime implementation is blocked until the
-maintainer approves this slicing and Slice 1 activation is committed on `dev`.
+Slice 1 is approved for execution. Branch creation is permitted after this
+activation is committed and pushed to `dev`.

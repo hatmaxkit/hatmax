@@ -1,6 +1,6 @@
 # Conversational Hatmax Builder Delivery Plan
 
-Status: Proposed
+Status: Approved
 Delivery set: conversational-hatmax-builder
 Slice strategy: layered
 Reason: application bootstrap and the conversational TUI cross existing Book,
@@ -19,9 +19,8 @@ Draft specs:
 Tracker: `ops/default/tracker/conversational-hatmax-builder.md`
 Base branch: `dev`
 Planning base: `510a856419a97d64959387099c48a81f867fb09a`
-Active slice: none
-Execution gate: requires explicit maintainer approval and a committed Slice 1
-activation on `dev`
+Active slice: Slice 1
+Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Objective
 
