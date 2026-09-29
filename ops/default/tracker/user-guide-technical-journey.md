@@ -16,7 +16,7 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | journey foundation | delivered | `docs/user-guide-journey-foundation` | `docs(slice-1): establish the User Guide journey` | #48 | `ops/default/report/slices/user-guide-technical-journey/slice-1-journey-foundation.md` |
-| Slice 2 | web interaction | reviewing | `docs/user-guide-web-interaction` | `docs(slice-2): explain the Hatmax web interaction model` |  | `ops/default/report/slices/user-guide-technical-journey/slice-2-web-interaction.md` |
+| Slice 2 | web interaction | reviewing | `docs/user-guide-web-interaction` | `docs(slice-2): explain the Hatmax web interaction model` | #49 | `ops/default/report/slices/user-guide-technical-journey/slice-2-web-interaction.md` |
 | Slice 3 | feature anatomy | planned | `docs/user-guide-feature-anatomy` | `docs(slice-3): establish canonical feature anatomy` |  | `ops/default/report/slices/user-guide-technical-journey/slice-3-feature-anatomy.md` |
 | Slice 4 | data lifecycle | planned | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` |  | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |
 | Slice 5 | identity and runtime | planned | `docs/user-guide-identity-runtime` | `docs(slice-5): explain identity and runtime configuration` |  | `ops/default/report/slices/user-guide-technical-journey/slice-5-identity-runtime.md` |
@@ -104,5 +104,5 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Current Gate
 
-Slice 2 content and focused validation are complete. Its report is in
-reviewing state; the recorded pull request must be opened against `dev`.
+Slice 2 content and focused validation are complete. Pull request #49 is open
+against `dev` for review.
