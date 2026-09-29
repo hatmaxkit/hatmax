@@ -3,7 +3,7 @@
 Status: Approved
 Delivery set: user-guide-technical-journey
 Plan: `ops/default/plan/user-guide-technical-journey.md`
-Ticket: `ops/default/ticket/ready/20260929090213-rebuild-user-guide-technical-journey.md`
+Ticket: `ops/default/ticket/reviewing/20260929090213-rebuild-user-guide-technical-journey.md`
 Spec: none
 Base branch: `dev`
 Planning base: `4f783c75d9e9417d35ce4cc2e8a4118a10a89c19`
@@ -15,7 +15,7 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | journey foundation | ready | `docs/user-guide-journey-foundation` | `docs(slice-1): establish the User Guide journey` |  | `ops/default/report/slices/user-guide-technical-journey/slice-1-journey-foundation.md` |
+| Slice 1 | journey foundation | reviewing | `docs/user-guide-journey-foundation` | `docs(slice-1): establish the User Guide journey` | pending | `ops/default/report/slices/user-guide-technical-journey/slice-1-journey-foundation.md` |
 | Slice 2 | web interaction | planned | `docs/user-guide-web-interaction` | `docs(slice-2): explain the Hatmax web interaction model` |  | `ops/default/report/slices/user-guide-technical-journey/slice-2-web-interaction.md` |
 | Slice 3 | feature anatomy | planned | `docs/user-guide-feature-anatomy` | `docs(slice-3): establish canonical feature anatomy` |  | `ops/default/report/slices/user-guide-technical-journey/slice-3-feature-anatomy.md` |
 | Slice 4 | data lifecycle | planned | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` |  | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |
@@ -27,10 +27,10 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T1.1 | pending | `docs(guide): define the technical journey` |  |  |
-| T1.2 | pending | `docs(guide): explain application anatomy` |  |  |
-| T1.3 | pending | `docs(guide): integrate lifecycle and wiring` |  |  |
-| T1.4 | pending | `docs(guide): retire superseded foundation pages` |  |  |
+| T1.1 | complete | `docs(guide): define the technical journey` | `9605605` | `make docs-check` passed |
+| T1.2 | complete | `docs(guide): explain application anatomy` | `b8fecef` | `make docs-check` passed |
+| T1.3 | complete | `docs(guide): integrate lifecycle and wiring` | `92e7ee6` | `make docs-check` passed |
+| T1.4 | complete | `docs(guide): retire superseded foundation pages` | `4dcd0c6` | link audit and `make docs-check` passed |
 
 ## Slice 2 Tasks
 
@@ -104,5 +104,5 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Current Gate
 
-The documentation layout prerequisite is delivered. Slice 1 is ready to start
-from current `dev` on `docs/user-guide-journey-foundation`.
+Slice 1 content and focused validation are complete. The report is in
+reviewing state; the recorded pull request must be opened against `dev`.

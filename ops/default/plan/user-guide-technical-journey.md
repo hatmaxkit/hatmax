@@ -7,7 +7,7 @@ Reason: each slice replaces one consecutive part of the reader's journey with
 a coherent, independently useful section. The guide remains navigable after
 every merge, while the central application model expands from foundation to
 web behavior, data, identity, supporting services, and operation.
-Ticket: `ops/default/ticket/ready/20260929090213-rebuild-user-guide-technical-journey.md`
+Ticket: `ops/default/ticket/reviewing/20260929090213-rebuild-user-guide-technical-journey.md`
 Spec: none
 Tracker: `ops/default/tracker/user-guide-technical-journey.md`
 Base branch: `dev`
