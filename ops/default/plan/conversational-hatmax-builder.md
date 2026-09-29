@@ -19,7 +19,7 @@ Approved specs:
 Tracker: `ops/default/tracker/conversational-hatmax-builder.md`
 Base branch: `dev`
 Planning base: `510a856419a97d64959387099c48a81f867fb09a`
-Active slice: Slice 6
+Active slice: Slice 7
 Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Objective
