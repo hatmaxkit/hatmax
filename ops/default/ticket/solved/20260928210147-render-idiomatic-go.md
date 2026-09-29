@@ -1,7 +1,7 @@
 ---
 id: TKT-20260928210147
 title: Render canonical idiomatic Go source
-status: reviewing
+status: solved
 kind: bug
 severity: high
 priority: normal
@@ -12,8 +12,10 @@ reported_at: 2026-09-28T21:01:47Z
 ready_at: 2026-09-29T07:02:59Z
 started_at: 2026-09-29T07:04:24Z
 reviewed_at: 2026-09-29T07:11:00Z
+closed_at: 2026-09-29T07:11:25Z
+resolution: fixed
 branch: dev
-commits:
+commits: def040e7a4090c91e51fa5d546541139ce80aa55
 ---
 
 ## Observed Behavior
