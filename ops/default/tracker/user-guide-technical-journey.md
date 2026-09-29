@@ -18,7 +18,7 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 | Slice 1 | journey foundation | delivered | `docs/user-guide-journey-foundation` | `docs(slice-1): establish the User Guide journey` | #48 | `ops/default/report/slices/user-guide-technical-journey/slice-1-journey-foundation.md` |
 | Slice 2 | web interaction | delivered | `docs/user-guide-web-interaction` | `docs(slice-2): explain the Hatmax web interaction model` | #49 | `ops/default/report/slices/user-guide-technical-journey/slice-2-web-interaction.md` |
 | Slice 3 | feature anatomy | delivered | `docs/user-guide-feature-anatomy` | `docs(slice-3): establish canonical feature anatomy` | #50 | `ops/default/report/slices/user-guide-technical-journey/slice-3-feature-anatomy.md` |
-| Slice 4 | data lifecycle | active | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` |  | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |
+| Slice 4 | data lifecycle | reviewing | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` |  | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |
 | Slice 5 | identity and runtime | planned | `docs/user-guide-identity-runtime` | `docs(slice-5): explain identity and runtime configuration` |  | `ops/default/report/slices/user-guide-technical-journey/slice-5-identity-runtime.md` |
 | Slice 6 | application services | planned | `docs/user-guide-application-services` | `docs(slice-6): explain Hatmax application services` |  | `ops/default/report/slices/user-guide-technical-journey/slice-6-application-services.md` |
 | Slice 7 | testing and evolution | planned | `docs/user-guide-testing-evolution` | `docs(slice-7): complete the User Guide journey` |  | `ops/default/report/slices/user-guide-technical-journey/slice-7-testing-evolution.md` |
@@ -53,9 +53,9 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T4.1 | pending | `docs(guide): explain persistence and migrations` |  |  |
-| T4.2 | pending | `docs(guide): explain models and data flow` |  |  |
-| T4.3 | pending | `docs(guide): retire superseded data pages` |  |  |
+| T4.1 | complete | `docs(guide): explain persistence and migrations` | `efe9828` | `make docs-check` passed |
+| T4.2 | complete | `docs(guide): explain models and data flow` | `a7a8a4b` | `make docs-check` passed |
+| T4.3 | complete | `docs(guide): retire superseded data pages` | `214cf19` | link audit and `make docs-check` passed |
 
 ## Slice 5 Tasks
 
@@ -104,6 +104,5 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Current Gate
 
-Slice 3 merged through pull request #50 at
-`a06310f3a725eee88b326b57f7f622673485017a`. Slice 4 is active and may begin
-from that integrated `dev` state.
+Slice 4 content and focused validation are complete. Its report is in
+reviewing state; the recorded pull request must be opened against `dev`.
