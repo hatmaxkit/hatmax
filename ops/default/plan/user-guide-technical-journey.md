@@ -12,7 +12,7 @@ Spec: none
 Tracker: `ops/default/tracker/user-guide-technical-journey.md`
 Base branch: `dev`
 Planning base: `4f783c75d9e9417d35ce4cc2e8a4118a10a89c19`
-Active slice: Slice 2
+Active slice: Slice 3
 Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Objective

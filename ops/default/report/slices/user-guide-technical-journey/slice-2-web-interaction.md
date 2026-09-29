@@ -1,6 +1,6 @@
 # Slice 2: Web Interaction
 
-Status: reviewing
+Status: delivered
 Delivery set: user-guide-technical-journey
 Plan: [User Guide Technical Journey Plan](../../../plan/user-guide-technical-journey.md)
 Tracker: [User Guide Technical Journey Tracker](../../../tracker/user-guide-technical-journey.md)
@@ -73,6 +73,8 @@ sequence.
   `i18n`.
 - Superseded `pages.md` and `forms.md` link audit passed.
 - `git diff --check` passed.
+- Pull request #49 merged into `dev` at
+  `cf61fe0a024e68c73b91a4ea6c17a24c626f14ec`.
 
 ## Risks and Follow-ups
 
