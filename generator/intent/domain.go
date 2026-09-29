@@ -10,9 +10,10 @@ import (
 )
 
 var (
-	featureNamePattern = regexp.MustCompile(`^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$`)
-	entityNamePattern  = regexp.MustCompile(`^[A-Z][A-Za-z0-9]*$`)
-	routePattern       = regexp.MustCompile(`^/[a-z0-9]+(?:-[a-z0-9]+)*(?:/[a-z0-9]+(?:-[a-z0-9]+)*)*$`)
+	featureNamePattern  = regexp.MustCompile(`^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$`)
+	featureKebabPattern = regexp.MustCompile(`^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$`)
+	entityNamePattern   = regexp.MustCompile(`^[A-Z][A-Za-z0-9]*$`)
+	routePattern        = regexp.MustCompile(`^/[a-z0-9]+(?:-[a-z0-9]+)*(?:/[a-z0-9]+(?:-[a-z0-9]+)*)*$`)
 )
 
 var admittedFieldTypes = map[string]struct{}{
@@ -74,6 +75,8 @@ func ValidateDomainDecisions(value Intent) ([]Diagnostic, []Clarification) {
 	clarifications := make([]Clarification, 0)
 
 	switch value.Operation {
+	case OperationCreateApplication:
+		// Application creation validates its initial feature units separately.
 	case OperationCreateFeature:
 		validateCreateFeature(value, &diagnostics, &clarifications)
 	case OperationAddField:

@@ -113,7 +113,7 @@ func TestValidateSchemaRejectsInvalidEnvelopeFields(t *testing.T) {
 		mutate func(*Intent)
 		code   string
 	}{
-		{name: "schema version", mutate: func(value *Intent) { value.SchemaVersion = CurrentSchemaVersion + 1 }, code: "intent_schema_unsupported"},
+		{name: "schema version", mutate: func(value *Intent) { value.SchemaVersion = ApplicationSchemaVersion + 1 }, code: "intent_schema_unsupported"},
 		{name: "operation", mutate: func(value *Intent) { value.Operation = "remove_feature" }, code: "intent_operation_invalid"},
 		{name: "project fingerprint", mutate: func(value *Intent) { value.ProjectFingerprint = "" }, code: "intent_required_field"},
 		{name: "Hatmax version", mutate: func(value *Intent) { value.HatmaxVersion = " " }, code: "intent_required_field"},

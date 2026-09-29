@@ -1,0 +1,31 @@
+schema_version: 3
+operation: create_application
+source_fingerprint: sha256:0000000000000000000000000000000000000000000000000000000000000000
+hatmax_version: 0.5.0
+book_version: 2
+archetype: server_rendered_hatmax_application
+feature: ""
+domain: {}
+capabilities: []
+documentation: not_requested
+documentation_targets: []
+exceptions: []
+application:
+  display_name: Real Estate
+  project_slug: real-estate
+  module_path: example.com/alex/real-estate
+  description: Manage a property portfolio.
+  niche: Real estate
+target:
+  base: session_directory
+  directory: real-estate
+initial_features:
+  - feature: Invoice
+    domain:
+      entity: Invoice
+      route: /invoices
+      label: Invoices
+      fields:
+        - name: Number
+          type: string
+          required: true

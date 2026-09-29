@@ -9,6 +9,8 @@ func normalizeSemanticNames(value *Intent) {
 	}
 
 	switch value.Operation {
+	case OperationCreateApplication:
+		// Application identity and initial features normalize separately.
 	case OperationCreateFeature:
 		normalizeCreateFeatureNames(value, featureWords, featureValid)
 	case OperationAddField:
@@ -24,6 +26,58 @@ func normalizeSemanticNames(value *Intent) {
 	for index := range value.Domain.Rules {
 		value.Domain.Rules[index].Name = canonicalSnakeName(value.Domain.Rules[index].Name)
 	}
+}
+
+func normalizeApplication(value *Intent) {
+	if value.Operation != OperationCreateApplication || value.Application == nil {
+		return
+	}
+
+	value.Application.DisplayName = strings.TrimSpace(value.Application.DisplayName)
+	value.Application.ModulePath = strings.TrimSpace(value.Application.ModulePath)
+	value.Application.Description = strings.TrimSpace(value.Application.Description)
+	value.Application.Niche = strings.TrimSpace(value.Application.Niche)
+
+	words, valid := semanticNameWords(value.Application.DisplayName)
+	if strings.TrimSpace(value.Application.ProjectSlug) == "" && valid {
+		value.Application.ProjectSlug = strings.Join(words, "-")
+	} else {
+		value.Application.ProjectSlug = canonicalKebabName(value.Application.ProjectSlug)
+	}
+
+	if value.Target != nil {
+		if strings.TrimSpace(value.Target.Base) == "" {
+			value.Target.Base = "session_directory"
+		}
+
+		if strings.TrimSpace(value.Target.Directory) == "" {
+			value.Target.Directory = value.Application.ProjectSlug
+		} else {
+			value.Target.Directory = canonicalKebabName(value.Target.Directory)
+		}
+	}
+
+	for index := range value.InitialFeatures {
+		featureIntent := Intent{
+			Operation: OperationCreateFeature,
+			Feature:   value.InitialFeatures[index].Feature,
+			Domain:    value.InitialFeatures[index].Domain,
+		}
+		normalizeSemanticNames(&featureIntent)
+		value.InitialFeatures[index].Feature = featureIntent.Feature
+		value.InitialFeatures[index].Domain = featureIntent.Domain
+	}
+
+	sortInitialFeatures(value.InitialFeatures)
+}
+
+func canonicalKebabName(value string) string {
+	words, valid := semanticNameWords(value)
+	if !valid {
+		return strings.TrimSpace(value)
+	}
+
+	return strings.Join(words, "-")
 }
 
 func normalizeCreateFeatureNames(value *Intent, featureWords []string, featureValid bool) {

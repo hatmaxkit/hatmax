@@ -15,6 +15,7 @@ import (
 // fingerprint, and validated Book.
 type ValidationContext struct {
 	Inventory   project.Inventory
+	Target      *project.TargetInventory
 	Fingerprint project.Fingerprint
 	Book        *book.Book
 }
@@ -23,6 +24,7 @@ type ValidationContext struct {
 // modifying the project.
 func Validate(value Intent, context ValidationContext) Result {
 	normalize(&value)
+	normalizeApplicationContext(&value, context.Target)
 
 	result := Result{Intent: value}
 
@@ -48,12 +50,12 @@ func Validate(value Intent, context ValidationContext) Result {
 		)
 	}
 
-	if value.ProjectFingerprint != context.Fingerprint.Value {
+	if intentFingerprint(value) != context.Fingerprint.Value {
 		return incompatibleResult(
 			value,
-			"HMGEN-PROJECT-FINGERPRINT",
-			"project_fingerprint",
-			"project fingerprint does not match the inspected relevant state",
+			fingerprintDiagnosticCode(value),
+			fingerprintField(value),
+			"source fingerprint does not match the inspected relevant state",
 		)
 	}
 
@@ -91,7 +93,13 @@ func Validate(value Intent, context ValidationContext) Result {
 		return *capabilityResult
 	}
 
-	diagnostics, clarifications := validateDomain(value, context.Inventory)
+	var diagnostics []Diagnostic
+	var clarifications []Clarification
+	if value.Operation == OperationCreateApplication {
+		diagnostics, clarifications = validateApplication(value, context.Target)
+	} else {
+		diagnostics, clarifications = validateDomain(value, context.Inventory)
+	}
 	if len(diagnostics) > 0 {
 		sortDiagnostics(diagnostics)
 
@@ -165,6 +173,17 @@ func validateHatmaxVersion(value Intent, context ValidationContext) *Diagnostic 
 		}
 	}
 
+	if value.Operation == OperationCreateApplication {
+		supported, err := context.Book.SupportsHatmax(intentVersion)
+		if err != nil || !supported {
+			return &Diagnostic{
+				Code: "HMGEN-BOOK-INCOMPATIBLE", Field: "hatmax_version", Message: fmt.Sprintf("selected Book does not support Hatmax %q", value.HatmaxVersion),
+			}
+		}
+
+		return nil
+	}
+
 	projectVersion := canonicalVersion(context.Inventory.Module.Hatmax.Version)
 	if projectVersion == "" {
 		return &Diagnostic{
@@ -200,6 +219,30 @@ func validateHatmaxVersion(value Intent, context ValidationContext) *Diagnostic 
 	}
 
 	return nil
+}
+
+func intentFingerprint(value Intent) string {
+	if value.SchemaVersion == ApplicationSchemaVersion {
+		return value.SourceFingerprint
+	}
+
+	return value.ProjectFingerprint
+}
+
+func fingerprintField(value Intent) string {
+	if value.SchemaVersion == ApplicationSchemaVersion {
+		return "source_fingerprint"
+	}
+
+	return "project_fingerprint"
+}
+
+func fingerprintDiagnosticCode(value Intent) string {
+	if value.SchemaVersion == ApplicationSchemaVersion {
+		return "HMGEN-SOURCE-FINGERPRINT"
+	}
+
+	return "HMGEN-PROJECT-FINGERPRINT"
 }
 
 func canonicalVersion(value string) string {

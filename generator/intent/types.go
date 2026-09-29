@@ -6,6 +6,16 @@ import "fmt"
 // CurrentSchemaVersion is the intent schema understood by this package.
 const CurrentSchemaVersion = 2
 
+// ApplicationSchemaVersion adds canonical application creation without
+// changing the delivered schema used by existing-project operations.
+const ApplicationSchemaVersion = 3
+
+// MaximumInitialFeatures bounds one composite application bootstrap.
+const MaximumInitialFeatures = 8
+
+// MaximumApplicationTextBytes bounds optional application enrichment.
+const MaximumApplicationTextBytes = 4 << 10
+
 // MaximumDocumentationTargets bounds one documentation request to the four
 // canonical Diataxis quadrants.
 const MaximumDocumentationTargets = 4
@@ -17,6 +27,8 @@ const MaximumDocumentationReaderGoalBytes = 4 << 10
 type Operation string
 
 const (
+	// OperationCreateApplication creates one canonical Hatmax application.
+	OperationCreateApplication Operation = "create_application"
 	// OperationCreateFeature creates one complete canonical feature.
 	OperationCreateFeature Operation = "create_feature"
 	// OperationAddField adds one field across every required representation.
@@ -76,6 +88,7 @@ type Intent struct {
 	SchemaVersion        int                   `json:"schema_version" yaml:"schema_version"`
 	Operation            Operation             `json:"operation" yaml:"operation"`
 	ProjectFingerprint   string                `json:"project_fingerprint" yaml:"project_fingerprint"`
+	SourceFingerprint    string                `json:"source_fingerprint,omitempty" yaml:"source_fingerprint,omitempty"`
 	HatmaxVersion        string                `json:"hatmax_version" yaml:"hatmax_version"`
 	BookVersion          int                   `json:"book_version" yaml:"book_version"`
 	Archetype            string                `json:"archetype" yaml:"archetype"`
@@ -85,6 +98,33 @@ type Intent struct {
 	Documentation        Documentation         `json:"documentation,omitempty" yaml:"documentation,omitempty"`
 	DocumentationTargets []DocumentationTarget `json:"documentation_targets,omitempty" yaml:"documentation_targets,omitempty"`
 	Exceptions           []Exception           `json:"exceptions,omitempty" yaml:"exceptions,omitempty"`
+	Application          *ApplicationIdentity  `json:"application,omitempty" yaml:"application,omitempty"`
+	Target               *ApplicationTarget    `json:"target,omitempty" yaml:"target,omitempty"`
+	InitialFeatures      []InitialFeature      `json:"initial_features,omitempty" yaml:"initial_features,omitempty"`
+}
+
+// ApplicationIdentity contains product identity without Book-owned file or
+// package layout decisions.
+type ApplicationIdentity struct {
+	DisplayName string `json:"display_name" yaml:"display_name"`
+	ProjectSlug string `json:"project_slug,omitempty" yaml:"project_slug,omitempty"`
+	ModulePath  string `json:"module_path,omitempty" yaml:"module_path,omitempty"`
+	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+	Niche       string `json:"niche,omitempty" yaml:"niche,omitempty"`
+}
+
+// ApplicationTarget selects the authorized session directory and one child
+// directory without exposing scaffold-owned paths.
+type ApplicationTarget struct {
+	Base      string `json:"base" yaml:"base"`
+	Directory string `json:"directory,omitempty" yaml:"directory,omitempty"`
+}
+
+// InitialFeature is one product-level feature unit requested with application
+// creation. Its architecture and capabilities remain Book-owned.
+type InitialFeature struct {
+	Feature string `json:"feature" yaml:"feature"`
+	Domain  Domain `json:"domain" yaml:"domain"`
 }
 
 // Domain contains only application-specific decisions admitted by the

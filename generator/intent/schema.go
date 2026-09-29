@@ -11,7 +11,7 @@ var fingerprintPattern = regexp.MustCompile(`^sha256:[a-f0-9]{64}$`)
 // ValidateSchema validates fields whose meaning does not depend on a project
 // inventory or Hatmax Book.
 func ValidateSchema(value Intent) error {
-	if value.SchemaVersion != CurrentSchemaVersion {
+	if value.SchemaVersion != CurrentSchemaVersion && value.SchemaVersion != ApplicationSchemaVersion {
 		return schemaError(
 			"intent_schema_unsupported",
 			"schema_version",
@@ -20,16 +20,12 @@ func ValidateSchema(value Intent) error {
 		)
 	}
 
-	if !validOperation(value.Operation) {
+	if !validOperation(value.SchemaVersion, value.Operation) {
 		return schemaError("intent_operation_invalid", "operation", "unknown operation %q", value.Operation)
 	}
 
-	if value.ProjectFingerprint == "" {
-		return schemaError("intent_required_field", "project_fingerprint", "project fingerprint is required")
-	}
-
-	if !fingerprintPattern.MatchString(value.ProjectFingerprint) {
-		return schemaError("intent_fingerprint_invalid", "project_fingerprint", "fingerprint must use sha256:<hex>")
+	if err := validateFingerprintShape(value); err != nil {
+		return err
 	}
 
 	if strings.TrimSpace(value.HatmaxVersion) == "" {
@@ -44,7 +40,7 @@ func ValidateSchema(value Intent) error {
 		return schemaError("intent_required_field", "archetype", "archetype is required")
 	}
 
-	if strings.TrimSpace(value.Feature) == "" {
+	if value.Operation != OperationCreateApplication && strings.TrimSpace(value.Feature) == "" {
 		return schemaError("intent_required_field", "feature", "feature is required")
 	}
 
@@ -62,11 +58,51 @@ func ValidateSchema(value Intent) error {
 		return err
 	}
 
-	return validateOperationShape(value)
+	if err = validateOperationShape(value); err != nil {
+		return err
+	}
+
+	return validateApplicationShape(value)
 }
 
-func validOperation(operation Operation) bool {
+func validOperation(schemaVersion int, operation Operation) bool {
+	if schemaVersion == ApplicationSchemaVersion {
+		return operation == OperationCreateApplication
+	}
+
 	return operation == OperationCreateFeature || operation == OperationAddField || operation == OperationAddValidation || operation == OperationDocumentFeature
+}
+
+func validateFingerprintShape(value Intent) error {
+	if value.SchemaVersion == ApplicationSchemaVersion {
+		if value.ProjectFingerprint != "" {
+			return schemaError("intent_fingerprint_unexpected", "project_fingerprint", "schema version 3 uses source_fingerprint")
+		}
+
+		if value.SourceFingerprint == "" {
+			return schemaError("intent_required_field", "source_fingerprint", "source fingerprint is required")
+		}
+
+		if !fingerprintPattern.MatchString(value.SourceFingerprint) {
+			return schemaError("intent_fingerprint_invalid", "source_fingerprint", "fingerprint must use sha256:<hex>")
+		}
+
+		return nil
+	}
+
+	if value.SourceFingerprint != "" {
+		return schemaError("intent_fingerprint_unexpected", "source_fingerprint", "schema version 2 uses project_fingerprint")
+	}
+
+	if value.ProjectFingerprint == "" {
+		return schemaError("intent_required_field", "project_fingerprint", "project fingerprint is required")
+	}
+
+	if !fingerprintPattern.MatchString(value.ProjectFingerprint) {
+		return schemaError("intent_fingerprint_invalid", "project_fingerprint", "fingerprint must use sha256:<hex>")
+	}
+
+	return nil
 }
 
 func validateDocumentationShape(value Intent) error {
@@ -156,6 +192,10 @@ func validateUniqueCapabilities(capabilities []string) error {
 
 func validateOperationShape(value Intent) error {
 	switch value.Operation {
+	case OperationCreateApplication:
+		if value.Feature != "" || !domainEmpty(value.Domain) {
+			return schemaError("intent_domain_shape_invalid", "domain", "create_application uses initial_features, not feature or domain")
+		}
 	case OperationCreateFeature:
 		if value.Domain.Field != nil || value.Domain.Validation != nil {
 			return schemaError("intent_domain_shape_invalid", "domain", "create_feature uses fields, not field or validation")
@@ -175,4 +215,41 @@ func validateOperationShape(value Intent) error {
 	}
 
 	return nil
+}
+
+func validateApplicationShape(value Intent) error {
+	if value.Operation != OperationCreateApplication {
+		if value.Application != nil || value.Target != nil || len(value.InitialFeatures) > 0 {
+			return schemaError("intent_application_shape_invalid", "application", "application fields require create_application")
+		}
+
+		return nil
+	}
+
+	if value.Application == nil {
+		return schemaError("intent_required_field", "application", "application identity is required")
+	}
+
+	if value.Target == nil {
+		return schemaError("intent_required_field", "target", "application target is required")
+	}
+
+	if len(value.InitialFeatures) > MaximumInitialFeatures {
+		return schemaError("intent_initial_features_limit", "initial_features", "application supports at most %d initial features", MaximumInitialFeatures)
+	}
+
+	if len(value.Application.Description) > MaximumApplicationTextBytes {
+		return schemaError("intent_application_text_too_large", "application.description", "description exceeds %d bytes", MaximumApplicationTextBytes)
+	}
+
+	if len(value.Application.Niche) > MaximumApplicationTextBytes {
+		return schemaError("intent_application_text_too_large", "application.niche", "niche exceeds %d bytes", MaximumApplicationTextBytes)
+	}
+
+	return nil
+}
+
+func domainEmpty(value Domain) bool {
+	return value.Entity == "" && value.Route == "" && value.Label == "" && value.Ownership == "" &&
+		len(value.Fields) == 0 && value.Field == nil && value.Validation == nil && len(value.Rules) == 0
 }

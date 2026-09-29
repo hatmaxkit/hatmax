@@ -44,6 +44,7 @@ func DecodeYAML(data []byte) (Intent, error) {
 
 func normalize(value *Intent) {
 	normalizeSemanticNames(value)
+	normalizeApplication(value)
 
 	if version := canonicalVersion(value.HatmaxVersion); version != "" {
 		value.HatmaxVersion = version
@@ -89,6 +90,10 @@ func normalize(value *Intent) {
 
 	if value.Domain.Rules == nil {
 		value.Domain.Rules = []BusinessRule{}
+	}
+
+	if value.InitialFeatures == nil {
+		value.InitialFeatures = []InitialFeature{}
 	}
 }
 

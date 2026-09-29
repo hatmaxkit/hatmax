@@ -59,6 +59,10 @@ func validateCapabilities(
 
 	required = append(required, operation.RequiredCapabilities...)
 	for _, capability := range required {
+		if value.Operation == OperationCreateApplication {
+			continue
+		}
+
 		if _, exists := requested[capability]; !exists {
 			return book.Selection{}, incompatibleCapabilityFailure(
 				value,
