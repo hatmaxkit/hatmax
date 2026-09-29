@@ -1,6 +1,6 @@
 # Slice 7: Testing and Evolution
 
-Status: reviewing
+Status: delivered
 Delivery set: user-guide-technical-journey
 Plan: [User Guide Technical Journey Plan](../../../plan/user-guide-technical-journey.md)
 Tracker: [User Guide Technical Journey Tracker](../../../tracker/user-guide-technical-journey.md)
@@ -50,9 +50,15 @@ every public Hatmax package and adapter family.
 
 ## Validation
 
-- `make docs-check` passed.
-- All sixteen chapter titles and index links were audited.
-- Every package in the public Package Map is covered or deliberately linked.
+- Pull request #54 merged into `dev` at
+  `09246fedaee1a8c00f36b74dfe6eb5f7850edf04`.
+- `make docs-check` passed on that exact integrated commit.
+- A front-to-back editorial read covered all sixteen chapters and their
+  transitions.
+- All sixteen chapter titles, index links, and previous/next links were
+  audited.
+- Every package and adapter family in the public Package Map is covered or
+  deliberately linked.
 - Superseded User Guide page and inbound-link audit passed.
 - Generator claims were checked against the current generator reference.
 - `git diff --check` passed.

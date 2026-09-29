@@ -1,19 +1,19 @@
 # User Guide Technical Journey Delivery Plan
 
-Status: Approved
+Status: Delivered
 Delivery set: user-guide-technical-journey
 Slice strategy: behavior-first
 Reason: each slice replaces one consecutive part of the reader's journey with
 a coherent, independently useful section. The guide remains navigable after
 every merge, while the central application model expands from foundation to
 web behavior, data, identity, supporting services, and operation.
-Ticket: `ops/default/ticket/reviewing/20260929090213-rebuild-user-guide-technical-journey.md`
+Ticket: `ops/default/ticket/solved/20260929090213-rebuild-user-guide-technical-journey.md`
 Spec: none
 Tracker: `ops/default/tracker/user-guide-technical-journey.md`
 Base branch: `dev`
 Planning base: `4f783c75d9e9417d35ce4cc2e8a4118a10a89c19`
-Active slice: Slice 7
-Execution gate: satisfied when this approved activation is committed to `dev`
+Active slice: none
+Execution gate: delivered on `dev` at `09246fedaee1a8c00f36b74dfe6eb5f7850edf04`
 
 ## Objective
 

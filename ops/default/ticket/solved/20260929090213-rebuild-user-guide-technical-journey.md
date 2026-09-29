@@ -1,7 +1,7 @@
 ---
 id: TKT-20260929090213
 title: Rebuild the User Guide as a Hatmax application journey
-status: reviewing
+status: solved
 kind: task
 severity: unclassified
 priority: unclassified
@@ -12,9 +12,10 @@ reported_at: 2026-09-29T09:02:13Z
 ready_at: 2026-09-29T09:41:45Z
 started_at: 2026-09-29T09:43:43Z
 reviewed_at: 2026-09-29T09:48:26Z
-branch: docs/user-guide-journey-foundation
-pr: 48
-commits: 9605605e8f0a, b8fecef2c8dd, 92e7ee648f89, 4dcd0c653e14, c13e44e43c4d
+closed_at: 2026-09-29T10:44:35Z
+resolution: fixed
+branch: dev
+commits: 9605605e8f0a, b8fecef2c8dd, 92e7ee648f89, 4dcd0c653e14, c13e44e43c4d, 24bae79, 0500f9d, 949bef8, ea89fa9, ebcfa57, f7317d4, 9d142e7, efe9828, a7a8a4b, 214cf19, e2702dd, ff3072a, b40e6e7, d313be8, 3859877, 588547e, 3460cca, 49e7dec, 6cf4ce8
 ---
 
 ## Observed Behavior
