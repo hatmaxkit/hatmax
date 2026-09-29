@@ -21,7 +21,7 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 | Slice 4 | data lifecycle | delivered | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` | #51 | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |
 | Slice 5 | identity and runtime | delivered | `docs/user-guide-identity-runtime` | `docs(slice-5): explain identity and runtime configuration` | #52 | `ops/default/report/slices/user-guide-technical-journey/slice-5-identity-runtime.md` |
 | Slice 6 | application services | delivered | `docs/user-guide-application-services` | `docs(slice-6): explain Hatmax application services` | #53 | `ops/default/report/slices/user-guide-technical-journey/slice-6-application-services.md` |
-| Slice 7 | testing and evolution | active | `docs/user-guide-testing-evolution` | `docs(slice-7): complete the User Guide journey` |  | `ops/default/report/slices/user-guide-technical-journey/slice-7-testing-evolution.md` |
+| Slice 7 | testing and evolution | reviewing | `docs/user-guide-testing-evolution` | `docs(slice-7): complete the User Guide journey` |  | `ops/default/report/slices/user-guide-technical-journey/slice-7-testing-evolution.md` |
 
 ## Slice 1 Tasks
 
@@ -77,9 +77,9 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T7.1 | pending | `docs(guide): explain testing and evolution` |  |  |
-| T7.2 | pending | `docs(guide): frame experimental generation` |  |  |
-| T7.3 | pending | `docs(guide): close the technical journey` |  |  |
+| T7.1 | complete | `docs(guide): explain testing and evolution` | `3460cca` | `make docs-check` passed |
+| T7.2 | complete | `docs(guide): frame experimental generation` | `49e7dec` | boundary and link audit passed |
+| T7.3 | complete | `docs(guide): close the technical journey` | `6cf4ce8` | primitive coverage and navigation audit passed |
 
 ## Completion Gates
 
@@ -104,6 +104,5 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Current Gate
 
-Slice 6 merged through pull request #53 at
-`b2f9246988c8c565298b12213ed5b4b8f085dd5f`. Slice 7 is active and may begin
-from that integrated `dev` state.
+Slice 7 content and focused validation are complete. Its report is in
+reviewing state; the recorded pull request must be opened against `dev`.
