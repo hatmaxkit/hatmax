@@ -29,13 +29,14 @@ designed:
    application components, features, infrastructure, templates, and tests.
 3. [Lifecycle and Wiring](lifecycle-and-wiring.md) explains how dependencies
    become an ordered, running process.
-4. **The Request Boundary** follows an HTTP request through middleware and
-   routing.
-5. **Pages and Partials** connects templates, rendering, and HTMX responses.
-6. **Forms and Validation** places request, field, domain, and persistence
-   validation at their correct boundaries.
-7. **Presentation Primitives** covers UI helpers, modals, formatting,
-   pagination, and internationalization.
+4. [The Request Boundary](request-boundary.md) follows an HTTP request through
+   middleware and routing.
+5. [Pages and Partials](pages-and-partials.md) connects templates, rendering,
+   and HTMX responses.
+6. [Forms and Validation](forms-and-validation.md) places request, field,
+   domain, and persistence validation at their correct boundaries.
+7. [Presentation Primitives](presentation-primitives.md) covers UI helpers,
+   modals, formatting, pagination, and internationalization.
 8. **Feature Anatomy** connects model, store, service, handler, templates,
    wiring, and tests as one canonical feature.
 9. **Persistence and Migrations** explains the Postgres lifecycle and schema
@@ -59,8 +60,6 @@ These chapters contain verified Hatmax behavior that is being incorporated
 into the technical journey:
 
 - [Add Postgres](postgres.md)
-- [Serve a Page](pages.md)
-- [Accept a Form](forms.md)
 - [Sign In](sign-in.md)
 - [Save a Record](records.md)
 - [Work Outside the Request](background-work.md)

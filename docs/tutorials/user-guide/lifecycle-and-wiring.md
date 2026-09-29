@@ -137,4 +137,5 @@ For the rationale behind this contract, read
 ---
 
 [Previous: Application Anatomy](application-anatomy.md) ·
-[User Guide](README.md)
+[User Guide](README.md) ·
+[Next: The Request Boundary](request-boundary.md)
