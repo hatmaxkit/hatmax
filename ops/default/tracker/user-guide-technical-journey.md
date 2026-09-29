@@ -7,16 +7,16 @@ Ticket: `ops/default/ticket/reviewing/20260929090213-rebuild-user-guide-technica
 Spec: none
 Base branch: `dev`
 Planning base: `4f783c75d9e9417d35ce4cc2e8a4118a10a89c19`
-Active slice: Slice 1
-Active tasks: T1.1, T1.2, T1.3, T1.4
+Active slice: Slice 2
+Active tasks: T2.1, T2.2, T2.3, T2.4
 Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Slice Status
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | journey foundation | reviewing | `docs/user-guide-journey-foundation` | `docs(slice-1): establish the User Guide journey` | #48 | `ops/default/report/slices/user-guide-technical-journey/slice-1-journey-foundation.md` |
-| Slice 2 | web interaction | planned | `docs/user-guide-web-interaction` | `docs(slice-2): explain the Hatmax web interaction model` |  | `ops/default/report/slices/user-guide-technical-journey/slice-2-web-interaction.md` |
+| Slice 1 | journey foundation | delivered | `docs/user-guide-journey-foundation` | `docs(slice-1): establish the User Guide journey` | #48 | `ops/default/report/slices/user-guide-technical-journey/slice-1-journey-foundation.md` |
+| Slice 2 | web interaction | active | `docs/user-guide-web-interaction` | `docs(slice-2): explain the Hatmax web interaction model` |  | `ops/default/report/slices/user-guide-technical-journey/slice-2-web-interaction.md` |
 | Slice 3 | feature anatomy | planned | `docs/user-guide-feature-anatomy` | `docs(slice-3): establish canonical feature anatomy` |  | `ops/default/report/slices/user-guide-technical-journey/slice-3-feature-anatomy.md` |
 | Slice 4 | data lifecycle | planned | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` |  | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |
 | Slice 5 | identity and runtime | planned | `docs/user-guide-identity-runtime` | `docs(slice-5): explain identity and runtime configuration` |  | `ops/default/report/slices/user-guide-technical-journey/slice-5-identity-runtime.md` |
@@ -84,7 +84,7 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 ## Completion Gates
 
 - [x] The maintainer approves the plan and tracker.
-- [ ] Slice 1 is delivered through its recorded branch, report, pull request,
+- [x] Slice 1 is delivered through its recorded branch, report, pull request,
   review, and merge.
 - [ ] Slice 2 is delivered through its recorded branch, report, pull request,
   review, and merge.
@@ -104,5 +104,6 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Current Gate
 
-Slice 1 content and focused validation are complete. The report is in
-reviewing state; the recorded pull request must be opened against `dev`.
+Slice 1 merged through pull request #48 at
+`cd60d6afd735b33c9a0ab201076eb2628e7cd4ab`. Slice 2 is active and may begin
+from that integrated `dev` state.

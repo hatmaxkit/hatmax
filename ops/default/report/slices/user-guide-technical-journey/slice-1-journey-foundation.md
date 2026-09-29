@@ -1,6 +1,6 @@
 # Slice 1: Journey Foundation
 
-Status: reviewing
+Status: delivered
 Delivery set: user-guide-technical-journey
 Plan: [User Guide Technical Journey Plan](../../../plan/user-guide-technical-journey.md)
 Tracker: [User Guide Technical Journey Tracker](../../../tracker/user-guide-technical-journey.md)
@@ -65,6 +65,8 @@ after every independently reviewable slice.
 - Foundation heading and reading-order audit passed.
 - Superseded foundation-link audit passed.
 - `git diff --check` passed.
+- Pull request #48 merged into `dev` at
+  `cd60d6afd735b33c9a0ab201076eb2628e7cd4ab`.
 
 ## Risks and Follow-ups
 
