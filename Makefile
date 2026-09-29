@@ -93,7 +93,7 @@ test-short:
 	@go test -short ./...
 
 generator-live-smoke:
-	@HATMAX_CODEX_LIVE_SMOKE=1 go test -v -run '^TestAuthenticatedLiveSmoke$$' ./generator/backend/codex
+	@HATMAX_CODEX_LIVE_SMOKE=1 go test -v -count=1 -run '^TestAuthenticatedLiveSmoke$$' ./generator/backend/codex
 
 generator-project-acceptance:
 	@command -v sqlc >/dev/null || { echo "sqlc is required"; exit 1; }
