@@ -1,6 +1,6 @@
 # Slice 6: Application Services
 
-Status: reviewing
+Status: delivered
 Delivery set: user-guide-technical-journey
 Plan: [User Guide Technical Journey Plan](../../../plan/user-guide-technical-journey.md)
 Tracker: [User Guide Technical Journey Tracker](../../../tracker/user-guide-technical-journey.md)
@@ -34,6 +34,8 @@ subscriber identity, restart, and idempotency material was incorporated.
 - Current backend guarantees and limitations were checked against reference.
 - Superseded `background-work.md` link audit passed.
 - `git diff --check` passed.
+- Pull request #53 merged into `dev` at
+  `b2f9246988c8c565298b12213ed5b4b8f085dd5f`.
 
 ## Risks and Follow-ups
 

@@ -7,8 +7,8 @@ Ticket: `ops/default/ticket/reviewing/20260929090213-rebuild-user-guide-technica
 Spec: none
 Base branch: `dev`
 Planning base: `4f783c75d9e9417d35ce4cc2e8a4118a10a89c19`
-Active slice: Slice 6
-Active tasks: T6.1, T6.2, T6.3
+Active slice: Slice 7
+Active tasks: T7.1, T7.2, T7.3
 Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Slice Status
@@ -20,8 +20,8 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 | Slice 3 | feature anatomy | delivered | `docs/user-guide-feature-anatomy` | `docs(slice-3): establish canonical feature anatomy` | #50 | `ops/default/report/slices/user-guide-technical-journey/slice-3-feature-anatomy.md` |
 | Slice 4 | data lifecycle | delivered | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` | #51 | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |
 | Slice 5 | identity and runtime | delivered | `docs/user-guide-identity-runtime` | `docs(slice-5): explain identity and runtime configuration` | #52 | `ops/default/report/slices/user-guide-technical-journey/slice-5-identity-runtime.md` |
-| Slice 6 | application services | reviewing | `docs/user-guide-application-services` | `docs(slice-6): explain Hatmax application services` | #53 | `ops/default/report/slices/user-guide-technical-journey/slice-6-application-services.md` |
-| Slice 7 | testing and evolution | planned | `docs/user-guide-testing-evolution` | `docs(slice-7): complete the User Guide journey` |  | `ops/default/report/slices/user-guide-technical-journey/slice-7-testing-evolution.md` |
+| Slice 6 | application services | delivered | `docs/user-guide-application-services` | `docs(slice-6): explain Hatmax application services` | #53 | `ops/default/report/slices/user-guide-technical-journey/slice-6-application-services.md` |
+| Slice 7 | testing and evolution | active | `docs/user-guide-testing-evolution` | `docs(slice-7): complete the User Guide journey` |  | `ops/default/report/slices/user-guide-technical-journey/slice-7-testing-evolution.md` |
 
 ## Slice 1 Tasks
 
@@ -94,7 +94,7 @@ Execution gate: satisfied when this approved activation is committed to `dev`
   review, and merge.
 - [x] Slice 5 is delivered through its recorded branch, report, pull request,
   review, and merge.
-- [ ] Slice 6 is delivered through its recorded branch, report, pull request,
+- [x] Slice 6 is delivered through its recorded branch, report, pull request,
   review, and merge.
 - [ ] Slice 7 is delivered through its recorded branch, report, pull request,
   review, and merge.
@@ -104,5 +104,6 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Current Gate
 
-Slice 6 content and focused validation are complete. Pull request #53 is open
-against `dev` for review.
+Slice 6 merged through pull request #53 at
+`b2f9246988c8c565298b12213ed5b4b8f085dd5f`. Slice 7 is active and may begin
+from that integrated `dev` state.
