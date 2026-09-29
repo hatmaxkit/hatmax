@@ -1,6 +1,6 @@
 # Slice 1: Canonical README Layout
 
-Status: reviewing
+Status: delivered
 Delivery set: documentation-layout-normalization
 Plan: [Documentation Layout Normalization Plan](../../../plan/documentation-layout-normalization.md)
 Tracker: [Documentation Layout Normalization Tracker](../../../tracker/documentation-layout-normalization.md)
@@ -68,8 +68,11 @@ its editorial replacement.
   audits passed.
 - `git diff --check` passed.
 
-The full repository gate is deferred until the exact slice commit is merged
-into `dev`, as required by the delivery-set plan.
+- `make check` passed on integrated `dev` commit
+  `e168d282a632accb9a45ba7a3f2701cc4236f00a` with 82.4% total coverage and
+  zero lint issues.
+- Forgejo rendered `docs/README.md` and `docs/reference/README.md` as directory
+  landing pages.
 
 ## Risks and Follow-ups
 

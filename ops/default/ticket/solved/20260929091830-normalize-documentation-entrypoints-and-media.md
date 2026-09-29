@@ -1,7 +1,7 @@
 ---
 id: TKT-20260929091830
 title: Normalize documentation entrypoints and image assets
-status: reviewing
+status: solved
 kind: task
 severity: unclassified
 priority: unclassified
@@ -12,6 +12,8 @@ reported_at: 2026-09-29T09:18:30Z
 ready_at: 2026-09-29T09:27:33Z
 started_at: 2026-09-29T09:29:13Z
 reviewed_at: 2026-09-29T09:32:53Z
+closed_at: 2026-09-29T09:40:43Z
+resolution: fixed
 branch: feat/documentation-readme-layout
 pr: 47
 commits: a854c2750876, 92320c0fab6c, 6ba9c6be5185, b6225d7ef17f

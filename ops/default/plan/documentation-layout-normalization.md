@@ -1,20 +1,19 @@
 # Documentation Layout Normalization Delivery Plan
 
-Status: Approved
+Status: Delivered
 Delivery set: documentation-layout-normalization
 Slice strategy: behavior-first
 Reason: the repository and generator must expose one documentation layout at
 the same time. A single end-to-end slice keeps checked-in documentation,
 validation, specifications, planning, rendering, conformance, and tests on the
 same `README.md` contract without a transitional dual-layout state.
-Ticket: `ops/default/ticket/reviewing/20260929091830-normalize-documentation-entrypoints-and-media.md`
+Ticket: `ops/default/ticket/solved/20260929091830-normalize-documentation-entrypoints-and-media.md`
 Spec: `ops/default/spec/boxed-diataxis-documentation.md`
 Tracker: `ops/default/tracker/documentation-layout-normalization.md`
 Base branch: `dev`
 Planning base: `73fcc8c076b30259b522da8fbb056bf6ae123da1`
-Active slice: Slice 1
-Execution gate: satisfied when this approved plan and tracker are committed to
-`dev`
+Active slice: none
+Execution gate: delivered on `dev` at `e168d282a632accb9a45ba7a3f2701cc4236f00a`
 
 ## Objective
 
