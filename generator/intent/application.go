@@ -77,10 +77,13 @@ func validateApplicationIdentity(
 		*clarifications = append(*clarifications, Clarification{
 			Field: "application.module_path", Question: "What Go module path should the application use?",
 		})
-	} else if err := module.CheckPath(identity.ModulePath); err != nil {
-		*diagnostics = append(*diagnostics, Diagnostic{
-			Code: "HMGEN-MODULE-PATH", Field: "application.module_path", Message: fmt.Sprintf("module path %q is invalid", identity.ModulePath),
-		})
+	} else {
+		err := module.CheckPath(identity.ModulePath)
+		if err != nil {
+			*diagnostics = append(*diagnostics, Diagnostic{
+				Code: "HMGEN-MODULE-PATH", Field: "application.module_path", Message: fmt.Sprintf("module path %q is invalid", identity.ModulePath),
+			})
+		}
 	}
 }
 
@@ -148,17 +151,20 @@ func validateInitialFeatures(features []InitialFeature, diagnostics *[]Diagnosti
 				Code: "HMGEN-FEATURE-DUPLICATE", Field: prefix + ".feature", Message: fmt.Sprintf("feature %q is duplicated", feature.Feature),
 			})
 		}
+
 		seen[feature.Feature] = struct{}{}
 
 		candidate := Intent{Operation: OperationCreateFeature, Feature: feature.Feature, Domain: feature.Domain}
 		if hasRequiredField(feature.Domain.Fields) {
 			candidate.Capabilities = []string{"runtime_validation"}
 		}
+
 		featureDiagnostics, featureClarifications := ValidateDomainDecisions(candidate)
 		for _, diagnostic := range featureDiagnostics {
 			diagnostic.Field = prefix + "." + diagnostic.Field
 			*diagnostics = append(*diagnostics, diagnostic)
 		}
+
 		for _, clarification := range featureClarifications {
 			clarification.Field = prefix + "." + clarification.Field
 			*clarifications = append(*clarifications, clarification)

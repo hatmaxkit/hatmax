@@ -1,0 +1,166 @@
+id: server_rendered_hatmax_application
+operations:
+  - id: create_application
+    required_capabilities:
+      - postgres_persistence
+    obligations:
+      - root_module
+      - root_metadata
+      - process_entry
+      - configuration
+      - logging
+      - database
+      - application_composition
+      - neutral_web
+      - scaffold_tests
+required_capabilities:
+  - postgres_persistence
+surfaces:
+  - module
+  - metadata
+  - configuration
+  - logging
+  - database
+  - router
+  - templates
+  - assets
+  - landing_page
+  - wiring
+  - commands
+  - tests
+obligations:
+  - id: root_module
+    surfaces:
+      - module
+    rules:
+      - hatmax.application.module_identity
+      - hatmax.dependencies.use_owned_primitive
+    files:
+      - path: go.mod
+        mode: create
+      - path: go.sum
+        mode: create
+  - id: root_metadata
+    surfaces:
+      - metadata
+      - commands
+    rules:
+      - hatmax.application.root_metadata
+    depends_on:
+      - root_module
+    files:
+      - path: .gitignore
+        mode: create
+      - path: Makefile
+        mode: create
+  - id: process_entry
+    surfaces:
+      - wiring
+    rules:
+      - hatmax.application.thin_main
+    depends_on:
+      - root_module
+    files:
+      - path: main.go
+        mode: create
+  - id: configuration
+    surfaces:
+      - configuration
+    rules:
+      - hatmax.application.explicit_composition
+    depends_on:
+      - root_module
+    files:
+      - path: config.yaml
+        mode: create
+      - path: internal/application/config.go
+        mode: create
+  - id: logging
+    surfaces:
+      - logging
+    rules:
+      - hatmax.dependencies.use_owned_primitive
+      - hatmax.application.explicit_composition
+    depends_on:
+      - configuration
+    files:
+      - path: internal/application/logging.go
+        mode: create
+  - id: database
+    surfaces:
+      - database
+      - wiring
+    rules:
+      - hatmax.persistence.postgres_sqlc
+      - hatmax.lifecycle.explicit_wiring
+      - hatmax.application.no_bootstrap_migration
+    depends_on:
+      - configuration
+      - logging
+    files:
+      - path: internal/application/database.go
+        mode: create
+  - id: application_composition
+    surfaces:
+      - wiring
+    rules:
+      - hatmax.application.explicit_composition
+      - hatmax.application.thin_main
+      - hatmax.lifecycle.explicit_wiring
+    depends_on:
+      - process_entry
+      - database
+    files:
+      - path: internal/application/application.go
+        mode: create
+  - id: neutral_web
+    surfaces:
+      - router
+      - templates
+      - assets
+      - landing_page
+      - wiring
+    rules:
+      - hatmax.application.neutral_web
+      - hatmax.web.server_rendered_htmx
+      - hatmax.dependencies.use_owned_primitive
+    depends_on:
+      - application_composition
+    files:
+      - path: internal/application/web.go
+        mode: create
+      - path: internal/application/assets/templates/layouts/base.html
+        mode: create
+      - path: internal/application/assets/templates/pages/home.html
+        mode: create
+      - path: internal/application/assets/static/app.css
+        mode: create
+  - id: scaffold_tests
+    surfaces:
+      - tests
+    rules:
+      - hatmax.testing.required_boundaries
+      - hatmax.application.explicit_composition
+    depends_on:
+      - application_composition
+      - neutral_web
+    files:
+      - path: internal/application/application_test.go
+        mode: create
+      - path: internal/application/web_test.go
+        mode: create
+implementation_slots:
+  - product identity and neutral user-facing copy
+  - Book-declared initial feature units
+rules:
+  - hatmax.application.module_identity
+  - hatmax.application.root_metadata
+  - hatmax.application.thin_main
+  - hatmax.application.explicit_composition
+  - hatmax.application.neutral_web
+  - hatmax.application.no_bootstrap_migration
+  - hatmax.dependencies.use_owned_primitive
+  - hatmax.lifecycle.explicit_wiring
+  - hatmax.persistence.postgres_sqlc
+  - hatmax.web.server_rendered_htmx
+  - hatmax.testing.required_boundaries

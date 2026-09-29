@@ -55,7 +55,7 @@ func TestValidateRejectsInvalidPlanStructure(t *testing.T) {
 		mutate func(*Plan)
 		code   string
 	}{
-		{name: "schema", mutate: func(value *Plan) { value.SchemaVersion = CurrentSchemaVersion + 1 }, code: "plan_schema_unsupported"},
+		{name: "schema", mutate: func(value *Plan) { value.SchemaVersion = ApplicationSchemaVersion + 1 }, code: "plan_schema_unsupported"},
 		{name: "identity", mutate: func(value *Plan) { value.Feature = "" }, code: "plan_required_field"},
 		{name: "intent", mutate: func(value *Plan) { value.Intent = "remove_feature" }, code: "plan_intent_invalid"},
 		{name: "domain incomplete", mutate: func(value *Plan) { value.Domain.Entity = "" }, code: "plan_domain_incomplete"},

@@ -1,0 +1,14 @@
+id: hatmax.application.root_metadata
+level: required
+title: Bounded root metadata
+rationale: Application bootstrap should create only metadata required to build, validate, and run the canonical scaffold.
+applies_when:
+  - the application archetype is selected
+requires:
+  - go.mod, go.sum, config.yaml, Makefile, and .gitignore are planned
+prohibits:
+  - implicit README, license, CI, Git initialization, or documentation trees
+diagnostics:
+  - HMGEN-APPLICATION-METADATA
+archetypes:
+  - server_rendered_hatmax_application

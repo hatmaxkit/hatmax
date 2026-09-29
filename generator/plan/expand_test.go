@@ -170,6 +170,22 @@ func TestExpandCarriesIntentAndProjectContext(t *testing.T) {
 	}
 }
 
+func TestExpandAcceptsSchemaThreeExistingProjectIntent(t *testing.T) {
+	admission, contextValue := admittedExpansion(t, intent.OperationAddField, []string{"postgres_persistence"})
+	admission.Intent.SchemaVersion = intent.ApplicationSchemaVersion
+	admission.Intent.SourceFingerprint = admission.Intent.ProjectFingerprint
+	admission.Intent.ProjectFingerprint = ""
+
+	result, err := Expand(admission, contextValue)
+	if err != nil {
+		t.Fatalf("Expand() error = %v", err)
+	}
+
+	if result.SchemaVersion != CurrentSchemaVersion || result.ProjectFingerprint != contextValue.Fingerprint.Value || result.SourceFingerprint != "" {
+		t.Errorf("existing-project plan identity = schema %d project %q source %q", result.SchemaVersion, result.ProjectFingerprint, result.SourceFingerprint)
+	}
+}
+
 func TestExpandCombinesImplementationAndDocumentationObligations(t *testing.T) {
 	admission, context := admittedExpansion(t, intent.OperationAddField, []string{"postgres_persistence"})
 	admission.Intent.Documentation = intent.DocumentationPlanned

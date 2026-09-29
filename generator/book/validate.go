@@ -46,6 +46,11 @@ func (b *Book) validate() error {
 		return err
 	}
 
+	err = b.validateScopedOperations()
+	if err != nil {
+		return err
+	}
+
 	err = b.validateRules()
 	if err != nil {
 		return err
@@ -67,6 +72,71 @@ func (b *Book) validate() error {
 	}
 
 	return b.validateCapabilityCycles()
+}
+
+func (b *Book) validateScopedOperations() error {
+	known := make(map[string]struct{})
+
+	for _, id := range b.archetypeOrder {
+		archetype := b.archetypes[id]
+		for _, operation := range archetype.Operations {
+			known[operation.ID] = struct{}{}
+		}
+	}
+
+	for _, id := range b.capabilityOrder {
+		capability := b.capabilities[id]
+		for index, dependency := range capability.Dependencies {
+			err := validateReferences(fmt.Sprintf("capabilities.%s.dependencies[%d].operations", capability.ID, index), dependency.Operations, known)
+			if err != nil {
+				return err
+			}
+		}
+
+		for obligationIndex, obligation := range capability.Obligations {
+			prefix := fmt.Sprintf("capabilities.%s.obligations[%d]", capability.ID, obligationIndex)
+
+			err := validateReferences(prefix+".operations", obligation.Operations, known)
+			if err != nil {
+				return err
+			}
+
+			err = validateFileOperationReferences(prefix, obligation.Files, known)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	for _, id := range b.archetypeOrder {
+		archetype := b.archetypes[id]
+		for obligationIndex, obligation := range archetype.Obligations {
+			prefix := fmt.Sprintf("archetypes.%s.obligations[%d]", archetype.ID, obligationIndex)
+
+			err := validateReferences(prefix+".operations", obligation.Operations, known)
+			if err != nil {
+				return err
+			}
+
+			err = validateFileOperationReferences(prefix, obligation.Files, known)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func validateFileOperationReferences(prefix string, files []FileEffect, known map[string]struct{}) error {
+	for index, file := range files {
+		err := validateReferences(fmt.Sprintf("%s.files[%d].operations", prefix, index), file.Operations, known)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (b *Book) validateManifest() error {
@@ -194,6 +264,11 @@ func (b *Book) validateCapabilities() error {
 					dependencyPath,
 					"kind, module, and purpose are required",
 				)
+			}
+
+			err = validateOperationIDs(dependencyPath+".operations", dependency.Operations)
+			if err != nil {
+				return err
 			}
 		}
 	}
@@ -475,6 +550,16 @@ func validateObligations(path string, values []Obligation, rules map[string]Rule
 		if err != nil {
 			return err
 		}
+
+		err = validateOperationIDs(obligationPath+".operations", obligation.Operations)
+		if err != nil {
+			return err
+		}
+
+		err = validateFileEffects(obligationPath+".files", obligation.Files)
+		if err != nil {
+			return err
+		}
 	}
 
 	err := validateUniqueStrings(path, ids, true)
@@ -492,6 +577,53 @@ func validateObligations(path string, values []Obligation, rules map[string]Rule
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func validateOperationIDs(path string, values []string) error {
+	err := validateUniqueStrings(path, values, false)
+	if err != nil {
+		return err
+	}
+
+	for _, value := range values {
+		err = validateStableID(path, value)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateFileEffects(path string, values []FileEffect) error {
+	seen := make(map[string]struct{}, len(values))
+	for index, value := range values {
+		effectPath := fmt.Sprintf("%s[%d]", path, index)
+		if value.Mode != FileEffectCreate && value.Mode != FileEffectUpdate && value.Mode != FileEffectEnsure {
+			return validationError("book_file_effect_invalid", effectPath+".mode", "unknown file effect mode %q", value.Mode)
+		}
+
+		err := validateOperationIDs(effectPath+".operations", value.Operations)
+		if err != nil {
+			return err
+		}
+
+		normalized := strings.ReplaceAll(value.Path, "{feature}", "feature")
+
+		normalized = strings.ReplaceAll(normalized, "{sequence}", "0001")
+		if strings.ContainsAny(normalized, "{}") || strings.Contains(normalized, "\\") || !fs.ValidPath(normalized) || strings.HasSuffix(normalized, "/") {
+			return validationError("book_invalid_path", effectPath+".path", "invalid file effect path %q", value.Path)
+		}
+
+		identity := value.Path + "\x00" + strings.Join(value.Operations, "\x00")
+		if _, exists := seen[identity]; exists {
+			return validationError("book_duplicate_path", path, "duplicate file effect path %q for the same operations", value.Path)
+		}
+
+		seen[identity] = struct{}{}
 	}
 
 	return nil

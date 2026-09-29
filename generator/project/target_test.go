@@ -34,7 +34,9 @@ func TestInspectTargetClassifiesCreationTargets(t *testing.T) {
 			name: "empty",
 			prepare: func(t *testing.T, _ string, target string) {
 				t.Helper()
-				if err := os.Mkdir(target, 0o755); err != nil {
+
+				err := os.Mkdir(target, 0o755)
+				if err != nil {
 					t.Fatalf("create target: %v", err)
 				}
 			},
@@ -61,6 +63,15 @@ func TestInspectTargetClassifiesCreationTargets(t *testing.T) {
 			collision: "main.go",
 		},
 		{
+			name: "unversioned existing files",
+			prepare: func(t *testing.T, _ string, target string) {
+				t.Helper()
+				writeProjectFile(t, target, "NOTICE", "not a repository\n")
+			},
+			admission: TargetIncompatible,
+			collision: ".",
+		},
+		{
 			name: "other Go module",
 			prepare: func(t *testing.T, _ string, target string) {
 				t.Helper()
@@ -74,6 +85,7 @@ func TestInspectTargetClassifiesCreationTargets(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			parent := t.TempDir()
+
 			target := filepath.Join(parent, "real-estate")
 			if test.prepare != nil {
 				test.prepare(t, parent, target)
@@ -125,6 +137,7 @@ func TestInspectTargetDerivesCredentialFreeRemoteModule(t *testing.T) {
 	runTestGit(t, parent, "remote", "add", "origin", "https://token@example.com/alex/projects.git")
 
 	target := filepath.Join(parent, "real-estate")
+
 	inventory, err := InspectTarget(context.Background(), TargetRequest{
 		Parent: parent, Target: target, PlannedPaths: scaffoldPaths, Book: loadTargetBook(t),
 	})
@@ -187,7 +200,9 @@ func TestInspectTargetRejectsUnsafeTargets(t *testing.T) {
 	requireProjectError(t, err, "target_path_invalid")
 
 	target := filepath.Join(parent, "linked")
-	if err = os.Symlink(t.TempDir(), target); err != nil {
+
+	err = os.Symlink(t.TempDir(), target)
+	if err != nil {
 		t.Fatalf("create target symlink: %v", err)
 	}
 

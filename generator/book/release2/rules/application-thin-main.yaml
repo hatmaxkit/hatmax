@@ -1,0 +1,15 @@
+id: hatmax.application.thin_main
+level: required
+title: Thin main entrypoint
+rationale: Construction and lifecycle assembly belong to the visible application composition package rather than the process entrypoint.
+applies_when:
+  - the application archetype is selected
+requires:
+  - main.go contains only package imports and the main function
+  - main delegates process execution to internal/application
+prohibits:
+  - builders, component declarations, route registration, or helper functions in main.go
+diagnostics:
+  - HMGEN-APPLICATION-THIN-MAIN
+archetypes:
+  - server_rendered_hatmax_application

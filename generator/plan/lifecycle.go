@@ -130,16 +130,37 @@ func unavailableTransition(state LifecycleState) TransitionResult {
 
 func clonePlan(value Plan) Plan {
 	result := value
+	result.Domain = cloneDomain(value.Domain)
 	result.Capabilities = cloneStrings(value.Capabilities)
 	result.AffectedSurfaces = cloneStrings(value.AffectedSurfaces)
+	result.DocumentationTargets = cloneDocumentationTargets(value.DocumentationTargets)
 	result.Rules = append([]RuleRef{}, value.Rules...)
 	result.Operations = cloneOperations(value.Operations)
 	result.Preconditions = append([]Precondition{}, value.Preconditions...)
 	result.ExpectedObservations = cloneObservations(value.ExpectedObservations)
+	result.FingerprintInputs = FingerprintInputs{
+		SelectedPaths:        cloneStrings(value.FingerprintInputs.SelectedPaths),
+		SelectedDependencies: cloneStrings(value.FingerprintInputs.SelectedDependencies),
+		PlannedSurfaces:      cloneStrings(value.FingerprintInputs.PlannedSurfaces),
+	}
+
 	result.AllowedEffects = AllowedEffects{
 		Surfaces:     cloneStrings(value.AllowedEffects.Surfaces),
 		Dependencies: append([]DependencyEffect{}, value.AllowedEffects.Dependencies...),
+		Files:        append([]FileEffect{}, value.AllowedEffects.Files...),
 	}
+	if value.Application != nil {
+		application := *value.Application
+		result.Application = &application
+	}
+
+	if value.Target != nil {
+		target := *value.Target
+		target.Preserved = cloneTargetEntries(value.Target.Preserved)
+		result.Target = &target
+	}
+
+	result.Units = cloneUnits(value.Units)
 	result.Validation = cloneValidation(value.Validation)
 	result.Exceptions = cloneExceptions(value.Exceptions)
 
@@ -153,6 +174,22 @@ func cloneOperations(values []Operation) []Operation {
 		result[index].Surfaces = cloneStrings(value.Surfaces)
 		result[index].Rules = cloneStrings(value.Rules)
 		result[index].DependsOn = cloneStrings(value.DependsOn)
+		result[index].Files = append([]FileEffect{}, value.Files...)
+	}
+
+	return result
+}
+
+func cloneUnits(values []Unit) []Unit {
+	result := make([]Unit, len(values))
+	for index, value := range values {
+		result[index] = value
+		result[index].Domain = cloneDomain(value.Domain)
+		result[index].Capabilities = cloneStrings(value.Capabilities)
+		result[index].AffectedSurfaces = cloneStrings(value.AffectedSurfaces)
+		result[index].Operations = cloneStrings(value.Operations)
+		result[index].DependsOn = cloneStrings(value.DependsOn)
+		result[index].Effects = append([]FileEffect{}, value.Effects...)
 	}
 
 	return result

@@ -1,0 +1,15 @@
+id: hatmax.application.module_identity
+level: required
+title: Explicit application module identity
+rationale: A generated application must use the admitted module path and compatible Hatmax release without invented hosting identity.
+applies_when:
+  - the application archetype is selected
+requires:
+  - go.mod declares the admitted module path
+  - the Hatmax dependency uses the selected compatible version
+prohibits:
+  - invented hosting providers or account owners
+diagnostics:
+  - HMGEN-APPLICATION-MODULE
+archetypes:
+  - server_rendered_hatmax_application

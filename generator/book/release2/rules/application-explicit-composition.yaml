@@ -1,0 +1,15 @@
+id: hatmax.application.explicit_composition
+level: required
+title: Explicit application composition
+rationale: Hatmax application construction must remain inspectable, ordered, and ordinary Go source.
+applies_when:
+  - the application archetype is selected
+requires:
+  - internal/application owns configuration, construction, lifecycle, serving, shutdown, and exit classification
+  - dependencies are assembled in explicit canonical order
+prohibits:
+  - reflection, hidden runtime registries, or a persistent project DSL
+diagnostics:
+  - HMGEN-APPLICATION-COMPOSITION
+archetypes:
+  - server_rendered_hatmax_application

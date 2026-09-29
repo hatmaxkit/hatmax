@@ -1,0 +1,222 @@
+id: server_rendered_crud
+operations:
+  - id: create_feature
+    required_capabilities:
+      - postgres_persistence
+      - runtime_validation
+      - htmx_form
+    obligations:
+      - feature_package
+      - service_boundary
+      - feature_handler
+      - feature_templates
+      - explicit_wiring
+      - feature_tests
+  - id: add_field
+    required_capabilities:
+      - postgres_persistence
+    obligations:
+      - feature_package
+      - service_boundary
+      - feature_handler
+      - feature_templates
+      - feature_tests
+  - id: add_validation
+    required_capabilities:
+      - runtime_validation
+    obligations:
+      - feature_package
+      - feature_handler
+      - feature_templates
+      - feature_tests
+  - id: document_feature
+    obligations:
+      - documentation_content
+      - documentation_navigation
+required_capabilities:
+  - postgres_persistence
+optional_capabilities:
+  - runtime_validation
+  - htmx_form
+surfaces:
+  - migration
+  - model
+  - store
+  - service
+  - handler
+  - templates
+  - wiring
+  - tests
+  - documentation
+obligations:
+  - id: feature_package
+    surfaces:
+      - model
+      - store
+    rules:
+      - hatmax.feature.cohesive_package
+      - hatmax.dependencies.use_owned_primitive
+    files:
+      - path: internal/feat/{feature}/model.go
+        mode: create
+        operations:
+          - create_feature
+      - path: internal/feat/{feature}/store.go
+        mode: create
+        operations:
+          - create_feature
+      - path: internal/feat/{feature}/model.go
+        mode: update
+        operations:
+          - add_field
+          - add_validation
+      - path: internal/feat/{feature}/store.go
+        mode: update
+        operations:
+          - add_field
+  - id: service_boundary
+    surfaces:
+      - service
+    rules:
+      - hatmax.feature.cohesive_package
+    depends_on:
+      - feature_package
+    files:
+      - path: internal/feat/{feature}/service.go
+        mode: create
+        operations:
+          - create_feature
+      - path: internal/feat/{feature}/service.go
+        mode: update
+        operations:
+          - add_field
+  - id: feature_handler
+    surfaces:
+      - handler
+    rules:
+      - hatmax.http.feature_owned_handler
+    depends_on:
+      - service_boundary
+    files:
+      - path: internal/feat/{feature}/handler.go
+        mode: create
+        operations:
+          - create_feature
+      - path: internal/feat/{feature}/handler.go
+        mode: update
+        operations:
+          - add_field
+          - add_validation
+  - id: feature_templates
+    surfaces:
+      - templates
+    rules:
+      - hatmax.web.server_rendered_htmx
+    depends_on:
+      - feature_handler
+    files:
+      - path: internal/application/assets/templates/{feature}/page.html
+        mode: create
+        operations:
+          - create_feature
+      - path: internal/application/assets/templates/{feature}/form.html
+        mode: create
+        operations:
+          - create_feature
+      - path: internal/application/assets/templates/{feature}/row.html
+        mode: create
+        operations:
+          - create_feature
+      - path: internal/application/assets/templates/{feature}/form.html
+        mode: update
+        operations:
+          - add_field
+          - add_validation
+      - path: internal/application/assets/templates/{feature}/row.html
+        mode: update
+        operations:
+          - add_field
+          - add_validation
+  - id: explicit_wiring
+    surfaces:
+      - wiring
+    rules:
+      - hatmax.lifecycle.explicit_wiring
+    depends_on:
+      - feature_handler
+    files:
+      - path: internal/application/application.go
+        mode: update
+        operations:
+          - create_feature
+  - id: feature_tests
+    surfaces:
+      - tests
+    rules:
+      - hatmax.testing.required_boundaries
+    depends_on:
+      - feature_package
+      - service_boundary
+      - feature_handler
+      - feature_templates
+      - explicit_wiring
+    files:
+      - path: internal/feat/{feature}/model_test.go
+        mode: create
+        operations:
+          - create_feature
+      - path: internal/feat/{feature}/service_test.go
+        mode: create
+        operations:
+          - create_feature
+      - path: internal/feat/{feature}/handler_test.go
+        mode: create
+        operations:
+          - create_feature
+      - path: internal/feat/{feature}/model_test.go
+        mode: update
+        operations:
+          - add_field
+          - add_validation
+      - path: internal/feat/{feature}/service_test.go
+        mode: update
+        operations:
+          - add_field
+      - path: internal/feat/{feature}/handler_test.go
+        mode: update
+        operations:
+          - add_field
+          - add_validation
+  - id: documentation_content
+    surfaces:
+      - documentation
+    rules:
+      - hatmax.documentation.explicit_intent
+      - hatmax.documentation.diataxis
+      - hatmax.documentation.managed_sections
+  - id: documentation_navigation
+    surfaces:
+      - documentation
+    rules:
+      - hatmax.documentation.managed_sections
+      - hatmax.documentation.index_reachability
+    depends_on:
+      - documentation_content
+implementation_slots:
+  - domain names and fields
+  - admitted business rules
+  - user-facing copy
+  - Book-declared integration adapters
+rules:
+  - hatmax.dependencies.use_owned_primitive
+  - hatmax.feature.cohesive_package
+  - hatmax.http.feature_owned_handler
+  - hatmax.lifecycle.explicit_wiring
+  - hatmax.persistence.postgres_sqlc
+  - hatmax.web.server_rendered_htmx
+  - hatmax.validation.layered
+  - hatmax.testing.required_boundaries
+  - hatmax.documentation.explicit_intent
+  - hatmax.documentation.diataxis
+  - hatmax.documentation.managed_sections
+  - hatmax.documentation.index_reachability

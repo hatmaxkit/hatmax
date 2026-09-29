@@ -19,6 +19,10 @@ var (
 // Validate checks the structural plan contract without inspecting a project or
 // recomputing its digest.
 func Validate(value Plan) error {
+	if value.SchemaVersion == ApplicationSchemaVersion {
+		return validateApplicationPlan(value)
+	}
+
 	if value.SchemaVersion != CurrentSchemaVersion {
 		return planError("plan_schema_unsupported", "schema_version", "schema version %d is not supported", value.SchemaVersion)
 	}
@@ -533,7 +537,7 @@ func validatePreconditions(values []Precondition, plan Plan) error {
 			return planError("plan_precondition_invalid", path, "precondition ID and expected value are required")
 		}
 
-		if value.Kind != PreconditionProjectFingerprint && value.Kind != PreconditionHatmaxVersion && value.Kind != PreconditionBookVersion {
+		if value.Kind != PreconditionProjectFingerprint && value.Kind != PreconditionSourceFingerprint && value.Kind != PreconditionHatmaxVersion && value.Kind != PreconditionBookVersion {
 			return planError("plan_precondition_invalid", path+".kind", "unknown precondition kind %q", value.Kind)
 		}
 
@@ -550,10 +554,18 @@ func validatePreconditions(values []Precondition, plan Plan) error {
 		kinds[value.Kind] = value.Expected
 	}
 
+	fingerprintKind := PreconditionProjectFingerprint
+
+	fingerprint := plan.ProjectFingerprint
+	if plan.SchemaVersion == ApplicationSchemaVersion {
+		fingerprintKind = PreconditionSourceFingerprint
+		fingerprint = plan.SourceFingerprint
+	}
+
 	expected := map[PreconditionKind]string{
-		PreconditionProjectFingerprint: plan.ProjectFingerprint,
-		PreconditionHatmaxVersion:      plan.HatmaxVersion,
-		PreconditionBookVersion:        strconv.Itoa(plan.BookVersion),
+		fingerprintKind:           fingerprint,
+		PreconditionHatmaxVersion: plan.HatmaxVersion,
+		PreconditionBookVersion:   strconv.Itoa(plan.BookVersion),
 	}
 	for kind, want := range expected {
 		if kinds[kind] != want {

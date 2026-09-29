@@ -12,6 +12,10 @@ import (
 // CurrentSchemaVersion is the plan schema understood by this package.
 const CurrentSchemaVersion = 5
 
+// ApplicationSchemaVersion adds target-bound application and composite unit
+// planning without changing delivered existing-project plans.
+const ApplicationSchemaVersion = 6
+
 // OwnerKind identifies the Book entry that owns one logical operation.
 type OwnerKind string
 
@@ -29,6 +33,8 @@ type PreconditionKind string
 const (
 	// PreconditionProjectFingerprint binds the plan to relevant project state.
 	PreconditionProjectFingerprint PreconditionKind = "project_fingerprint"
+	// PreconditionSourceFingerprint binds a scaffold plan to target state.
+	PreconditionSourceFingerprint PreconditionKind = "source_fingerprint"
 	// PreconditionHatmaxVersion binds the plan to the selected Hatmax release.
 	PreconditionHatmaxVersion PreconditionKind = "hatmax_version"
 	// PreconditionBookVersion binds the plan to the selected Book release.
@@ -50,12 +56,13 @@ type Owner struct {
 // Operation is one ordered logical unit of work derived from a Book
 // obligation. It does not contain executable source or shell text.
 type Operation struct {
-	ID         string   `json:"id" yaml:"id"`
-	Owner      Owner    `json:"owner" yaml:"owner"`
-	Obligation string   `json:"obligation" yaml:"obligation"`
-	Surfaces   []string `json:"surfaces" yaml:"surfaces"`
-	Rules      []string `json:"rules" yaml:"rules"`
-	DependsOn  []string `json:"depends_on,omitempty" yaml:"depends_on,omitempty"`
+	ID         string       `json:"id" yaml:"id"`
+	Owner      Owner        `json:"owner" yaml:"owner"`
+	Obligation string       `json:"obligation" yaml:"obligation"`
+	Surfaces   []string     `json:"surfaces" yaml:"surfaces"`
+	Rules      []string     `json:"rules" yaml:"rules"`
+	DependsOn  []string     `json:"depends_on,omitempty" yaml:"depends_on,omitempty"`
+	Files      []FileEffect `json:"files,omitempty" yaml:"files,omitempty"`
 }
 
 // Precondition records an expected planning input in user-inspectable form.
@@ -73,11 +80,53 @@ type DependencyEffect struct {
 	Purpose    string `json:"purpose" yaml:"purpose"`
 }
 
+// FileEffectKind identifies one exact target-path mutation.
+type FileEffectKind string
+
+const (
+	// FileEffectCreate creates a path that must be absent.
+	FileEffectCreate FileEffectKind = "create"
+	// FileEffectUpdate changes a path produced or admitted earlier.
+	FileEffectUpdate FileEffectKind = "update"
+)
+
+// FileEffect records one exact target-relative path mutation.
+type FileEffect struct {
+	Path   string         `json:"path" yaml:"path"`
+	Effect FileEffectKind `json:"effect" yaml:"effect"`
+}
+
 // AllowedEffects bounds the project surfaces and external dependencies that a
 // later executor may affect.
 type AllowedEffects struct {
 	Surfaces     []string           `json:"surfaces" yaml:"surfaces"`
 	Dependencies []DependencyEffect `json:"dependencies" yaml:"dependencies"`
+	Files        []FileEffect       `json:"files,omitempty" yaml:"files,omitempty"`
+}
+
+// ApplicationTarget binds a scaffold to the inspected child target and the
+// existing files that execution must preserve.
+type ApplicationTarget struct {
+	Base      string                  `json:"base" yaml:"base"`
+	Directory string                  `json:"directory" yaml:"directory"`
+	Parent    string                  `json:"parent" yaml:"parent"`
+	Path      string                  `json:"path" yaml:"path"`
+	Admission project.TargetAdmission `json:"admission" yaml:"admission"`
+	Preserved []project.TargetEntry   `json:"preserved" yaml:"preserved"`
+}
+
+// Unit is one visible, ordered operation in an application bootstrap.
+type Unit struct {
+	ID               string           `json:"id" yaml:"id"`
+	Intent           intent.Operation `json:"intent" yaml:"intent"`
+	Archetype        string           `json:"archetype" yaml:"archetype"`
+	Feature          string           `json:"feature,omitempty" yaml:"feature,omitempty"`
+	Domain           intent.Domain    `json:"domain,omitempty" yaml:"domain,omitempty"`
+	Capabilities     []string         `json:"capabilities" yaml:"capabilities"`
+	AffectedSurfaces []string         `json:"affected_surfaces" yaml:"affected_surfaces"`
+	Operations       []string         `json:"operations" yaml:"operations"`
+	DependsOn        []string         `json:"depends_on,omitempty" yaml:"depends_on,omitempty"`
+	Effects          []FileEffect     `json:"effects" yaml:"effects"`
 }
 
 // FingerprintInputs records the bounded project observations selected when the
@@ -168,7 +217,11 @@ type Plan struct {
 	DocumentationPlan     *DocumentationPlan           `json:"documentation_plan,omitempty" yaml:"documentation_plan,omitempty"`
 	HatmaxVersion         string                       `json:"hatmax_version" yaml:"hatmax_version"`
 	BookVersion           int                          `json:"book_version" yaml:"book_version"`
-	ProjectFingerprint    string                       `json:"project_fingerprint" yaml:"project_fingerprint"`
+	ProjectFingerprint    string                       `json:"project_fingerprint,omitempty" yaml:"project_fingerprint,omitempty"`
+	SourceFingerprint     string                       `json:"source_fingerprint,omitempty" yaml:"source_fingerprint,omitempty"`
+	Application           *intent.ApplicationIdentity  `json:"application,omitempty" yaml:"application,omitempty"`
+	Target                *ApplicationTarget           `json:"target,omitempty" yaml:"target,omitempty"`
+	Units                 []Unit                       `json:"units,omitempty" yaml:"units,omitempty"`
 	FingerprintInputs     FingerprintInputs            `json:"fingerprint_inputs" yaml:"fingerprint_inputs"`
 	Rules                 []RuleRef                    `json:"rules" yaml:"rules"`
 	Operations            []Operation                  `json:"operations" yaml:"operations"`

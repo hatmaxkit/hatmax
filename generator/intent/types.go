@@ -87,7 +87,7 @@ const (
 type Intent struct {
 	SchemaVersion        int                   `json:"schema_version" yaml:"schema_version"`
 	Operation            Operation             `json:"operation" yaml:"operation"`
-	ProjectFingerprint   string                `json:"project_fingerprint" yaml:"project_fingerprint"`
+	ProjectFingerprint   string                `json:"project_fingerprint,omitempty" yaml:"project_fingerprint,omitempty"`
 	SourceFingerprint    string                `json:"source_fingerprint,omitempty" yaml:"source_fingerprint,omitempty"`
 	HatmaxVersion        string                `json:"hatmax_version" yaml:"hatmax_version"`
 	BookVersion          int                   `json:"book_version" yaml:"book_version"`

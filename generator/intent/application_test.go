@@ -118,8 +118,13 @@ func TestApplicationSchemaIsVersionBound(t *testing.T) {
 	feature := loadIntentFixture(t, "valid", "create-feature.yaml")
 	feature.SchemaVersion = ApplicationSchemaVersion
 	feature.SourceFingerprint = feature.ProjectFingerprint
+
 	feature.ProjectFingerprint = ""
-	requireSchemaCode(t, ValidateSchema(feature), "intent_operation_invalid")
+
+	err := ValidateSchema(feature)
+	if err != nil {
+		t.Errorf("ValidateSchema(schema 3 feature) error = %v", err)
+	}
 }
 
 func TestApplicationSchemaBoundsInitialFeatures(t *testing.T) {
@@ -135,6 +140,7 @@ func applicationValidationContext(t *testing.T, directory string) ValidationCont
 	selectedBook := loadApplicationBook(t)
 	parent := t.TempDir()
 	targetPath := filepath.Join(parent, directory)
+
 	target, err := project.InspectTarget(context.Background(), project.TargetRequest{
 		Parent: parent,
 		Target: targetPath,

@@ -16,6 +16,7 @@ type ExpansionContext struct {
 	Book                  *book.Book
 	Fingerprint           project.Fingerprint
 	Inventory             project.Inventory
+	Target                *project.TargetInventory
 	DocumentationEvidence *project.FeatureEvidence
 }
 
@@ -46,13 +47,17 @@ func Expand(admission intent.Result, context ExpansionContext) (Plan, error) {
 		return Plan{}, planError("plan_book_version_mismatch", "book_version", "intent, fingerprint, and Book versions must match")
 	}
 
-	if value.ProjectFingerprint != context.Fingerprint.Value {
-		return Plan{}, planError("plan_fingerprint_mismatch", "project_fingerprint", "intent fingerprint does not match expansion context")
+	if intentFingerprint(value) != context.Fingerprint.Value {
+		return Plan{}, planError("plan_fingerprint_mismatch", intentFingerprintField(value), "intent fingerprint does not match expansion context")
 	}
 
 	supported, err := context.Book.SupportsHatmax(value.HatmaxVersion)
 	if err != nil || !supported {
 		return Plan{}, planError("plan_hatmax_incompatible", "hatmax_version", "selected Book does not support Hatmax %q", value.HatmaxVersion)
+	}
+
+	if value.Operation == intent.OperationCreateApplication {
+		return expandApplication(value, context)
 	}
 
 	selection, err := context.Book.Select(value.Archetype, value.Capabilities)
@@ -104,7 +109,7 @@ func Expand(admission intent.Result, context ExpansionContext) (Plan, error) {
 		DocumentationPlan:     documentationPlan,
 		HatmaxVersion:         value.HatmaxVersion,
 		BookVersion:           value.BookVersion,
-		ProjectFingerprint:    value.ProjectFingerprint,
+		ProjectFingerprint:    intentFingerprint(value),
 		FingerprintInputs: FingerprintInputs{
 			SelectedPaths:        cloneStrings(context.Fingerprint.SelectedPaths),
 			SelectedDependencies: cloneStrings(context.Fingerprint.SelectedDependencies),
@@ -116,7 +121,7 @@ func Expand(admission intent.Result, context ExpansionContext) (Plan, error) {
 		ExpectedObservations: cloneObservations(context.Fingerprint.Observations),
 		AllowedEffects: AllowedEffects{
 			Surfaces:     cloneStrings(surfaces),
-			Dependencies: expandDependencies(selection.Capabilities, value.Operation != intent.OperationDocumentFeature),
+			Dependencies: expandDependencies(selection.Capabilities, value.Operation, value.Operation != intent.OperationDocumentFeature),
 		},
 		Validation: expandValidation(selection.Rules, operations, surfaces),
 		Exceptions: cloneExceptions(value.Exceptions),
@@ -267,7 +272,7 @@ func expandOperations(selection book.Selection, selectedOperation book.Operation
 		}
 
 		candidates = append(candidates, operationCandidate{
-			operation: operationFromBook(OwnerArchetype, selection.Archetype.ID, obligation, selectedArchetypeObligations),
+			operation: operationFromBook(OwnerArchetype, selection.Archetype.ID, obligation, selectedArchetypeObligations, selectedOperation.ID),
 		})
 	}
 
@@ -282,12 +287,20 @@ func expandOperations(selection book.Selection, selectedOperation book.Operation
 	for _, capability := range selection.Capabilities {
 		selected := make(map[string]struct{}, len(capability.Obligations))
 		for _, obligation := range capability.Obligations {
+			if !appliesToOperation(obligation.Operations, selectedOperation.ID) {
+				continue
+			}
+
 			selected[obligation.ID] = struct{}{}
 		}
 
 		for _, obligation := range capability.Obligations {
+			if !appliesToOperation(obligation.Operations, selectedOperation.ID) {
+				continue
+			}
+
 			candidates = append(candidates, operationCandidate{
-				operation: operationFromBook(OwnerCapability, capability.ID, obligation, selected),
+				operation: operationFromBook(OwnerCapability, capability.ID, obligation, selected, selectedOperation.ID),
 			})
 		}
 	}
@@ -295,12 +308,27 @@ func expandOperations(selection book.Selection, selectedOperation book.Operation
 	return orderOperations(candidates)
 }
 
-func operationFromBook(kind OwnerKind, ownerID string, obligation book.Obligation, selected map[string]struct{}) Operation {
+func operationFromBook(
+	kind OwnerKind,
+	ownerID string,
+	obligation book.Obligation,
+	selected map[string]struct{},
+	selectedOperation string,
+) Operation {
 	dependencies := make([]string, 0, len(obligation.DependsOn))
 	for _, dependency := range obligation.DependsOn {
 		if _, exists := selected[dependency]; exists {
 			dependencies = append(dependencies, operationID(kind, ownerID, dependency))
 		}
+	}
+
+	files := make([]FileEffect, 0, len(obligation.Files))
+	for _, effect := range obligation.Files {
+		if !appliesToOperation(effect.Operations, selectedOperation) {
+			continue
+		}
+
+		files = append(files, FileEffect{Path: effect.Path, Effect: FileEffectKind(effect.Mode)})
 	}
 
 	return Operation{
@@ -310,7 +338,12 @@ func operationFromBook(kind OwnerKind, ownerID string, obligation book.Obligatio
 		Surfaces:   cloneStrings(obligation.Surfaces),
 		Rules:      cloneStrings(obligation.Rules),
 		DependsOn:  dependencies,
+		Files:      files,
 	}
+}
+
+func appliesToOperation(operations []string, selected string) bool {
+	return len(operations) == 0 || containsString(operations, selected)
 }
 
 func orderOperations(candidates []operationCandidate) ([]Operation, error) {
@@ -408,13 +441,13 @@ func selectedCapabilityIDs(capabilities []book.Capability) []string {
 
 func expandPreconditions(value intent.Intent) []Precondition {
 	return []Precondition{
-		{ID: "project_fingerprint", Kind: PreconditionProjectFingerprint, Expected: value.ProjectFingerprint},
+		{ID: "project_fingerprint", Kind: PreconditionProjectFingerprint, Expected: intentFingerprint(value)},
 		{ID: "hatmax_version", Kind: PreconditionHatmaxVersion, Expected: value.HatmaxVersion},
 		{ID: "book_version", Kind: PreconditionBookVersion, Expected: strconv.Itoa(value.BookVersion)},
 	}
 }
 
-func expandDependencies(capabilities []book.Capability, include bool) []DependencyEffect {
+func expandDependencies(capabilities []book.Capability, operation intent.Operation, include bool) []DependencyEffect {
 	result := make([]DependencyEffect, 0)
 	if !include {
 		return result
@@ -422,6 +455,10 @@ func expandDependencies(capabilities []book.Capability, include bool) []Dependen
 
 	for _, capability := range capabilities {
 		for _, dependency := range capability.Dependencies {
+			if !appliesToOperation(dependency.Operations, string(operation)) {
+				continue
+			}
+
 			result = append(result, DependencyEffect{
 				Capability: capability.ID,
 				Kind:       dependency.Kind,

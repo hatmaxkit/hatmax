@@ -24,7 +24,8 @@ func ValidateSchema(value Intent) error {
 		return schemaError("intent_operation_invalid", "operation", "unknown operation %q", value.Operation)
 	}
 
-	if err := validateFingerprintShape(value); err != nil {
+	err := validateFingerprintShape(value)
+	if err != nil {
 		return err
 	}
 
@@ -48,7 +49,7 @@ func ValidateSchema(value Intent) error {
 		return schemaError("intent_documentation_invalid", "documentation", "unknown documentation intent %q", value.Documentation)
 	}
 
-	err := validateDocumentationShape(value)
+	err = validateDocumentationShape(value)
 	if err != nil {
 		return err
 	}
@@ -58,7 +59,8 @@ func ValidateSchema(value Intent) error {
 		return err
 	}
 
-	if err = validateOperationShape(value); err != nil {
+	err = validateOperationShape(value)
+	if err != nil {
 		return err
 	}
 
@@ -66,8 +68,8 @@ func ValidateSchema(value Intent) error {
 }
 
 func validOperation(schemaVersion int, operation Operation) bool {
-	if schemaVersion == ApplicationSchemaVersion {
-		return operation == OperationCreateApplication
+	if operation == OperationCreateApplication {
+		return schemaVersion == ApplicationSchemaVersion
 	}
 
 	return operation == OperationCreateFeature || operation == OperationAddField || operation == OperationAddValidation || operation == OperationDocumentFeature

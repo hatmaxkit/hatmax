@@ -1,0 +1,17 @@
+id: hatmax.application.no_bootstrap_migration
+level: required
+title: No ownerless bootstrap migration
+rationale: Persistent schema must have a real domain owner instead of existing only to exercise migration wiring.
+applies_when:
+  - an application is created without an initial persistent feature
+requires:
+  - Postgres database lifecycle wiring is present
+  - the first persistent feature activates the migrator with its real migration
+prohibits:
+  - no-op migrations, application tables, or migrator registration without a real migration
+diagnostics:
+  - HMGEN-APPLICATION-BOOTSTRAP-MIGRATION
+capabilities:
+  - postgres_persistence
+archetypes:
+  - server_rendered_hatmax_application

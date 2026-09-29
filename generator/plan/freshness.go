@@ -25,7 +25,15 @@ func CheckFingerprint(value Plan, current project.Fingerprint) (Freshness, error
 		return Freshness{}, err
 	}
 
-	if current.Value == value.ProjectFingerprint && current.BookVersion == value.BookVersion {
+	expectedFingerprint := value.ProjectFingerprint
+	fingerprintField := "project_fingerprint"
+
+	if value.SchemaVersion == ApplicationSchemaVersion {
+		expectedFingerprint = value.SourceFingerprint
+		fingerprintField = "source_fingerprint"
+	}
+
+	if current.Value == expectedFingerprint && current.BookVersion == value.BookVersion {
 		return Freshness{
 			Changes:     []project.Change{},
 			Diagnostics: []Diagnostic{},
@@ -33,7 +41,7 @@ func CheckFingerprint(value Plan, current project.Fingerprint) (Freshness, error
 	}
 
 	planned := project.Fingerprint{
-		Value:        value.ProjectFingerprint,
+		Value:        expectedFingerprint,
 		BookVersion:  value.BookVersion,
 		Observations: cloneObservations(value.ExpectedObservations),
 	}
@@ -44,7 +52,7 @@ func CheckFingerprint(value Plan, current project.Fingerprint) (Freshness, error
 		Changes: changes,
 		Diagnostics: []Diagnostic{{
 			Code:    "HMGEN-PLAN-STALE",
-			Field:   "project_fingerprint",
+			Field:   fingerprintField,
 			Message: "relevant project state changed after the plan was produced",
 		}},
 	}, nil

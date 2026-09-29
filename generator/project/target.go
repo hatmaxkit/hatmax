@@ -183,12 +183,14 @@ func normalizeTarget(parent, target string) (string, string, error) {
 	}
 
 	normalizedTarget = filepath.Clean(normalizedTarget)
+
 	relative, err := filepath.Rel(normalizedParent, normalizedTarget)
 	if err != nil || relative == "." || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
 		return "", "", projectError("target_path_invalid", target, "target must be below the authorized parent")
 	}
 
-	if info, statErr := os.Lstat(normalizedTarget); statErr == nil && info.Mode()&os.ModeSymlink == 0 {
+	info, statErr := os.Lstat(normalizedTarget)
+	if statErr == nil && info.Mode()&os.ModeSymlink == 0 {
 		resolved, resolveErr := filepath.EvalSymlinks(normalizedTarget)
 		if resolveErr != nil {
 			return "", "", projectError("target_path_invalid", target, "%v", resolveErr)
@@ -329,8 +331,15 @@ func classifyTarget(inventory *TargetInventory, selectedBook *book.Book, ctx con
 		return
 	}
 
+	if !inventory.Repository.Available || filepath.Clean(inventory.Repository.Root) != inventory.Target {
+		inventory.Collisions = append(inventory.Collisions, TargetCollision{
+			Path: ".", Reason: "non-empty target is not the root of an existing Git repository",
+		})
+	}
+
 	if _, hasModule := targetEntry(inventory.Entries, "go.mod"); hasModule {
 		inspectExistingTarget(inventory, selectedBook, ctx)
+
 		if inventory.Admission == TargetCompatibleProject {
 			return
 		}

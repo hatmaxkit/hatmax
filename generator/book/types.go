@@ -38,17 +38,40 @@ type Manifest struct {
 
 // Obligation describes work and rules introduced by a capability or archetype.
 type Obligation struct {
-	ID        string   `yaml:"id"`
-	Surfaces  []string `yaml:"surfaces"`
-	Rules     []string `yaml:"rules"`
-	DependsOn []string `yaml:"depends_on,omitempty"`
+	ID         string       `yaml:"id"`
+	Surfaces   []string     `yaml:"surfaces"`
+	Rules      []string     `yaml:"rules"`
+	DependsOn  []string     `yaml:"depends_on,omitempty"`
+	Operations []string     `yaml:"operations,omitempty"`
+	Files      []FileEffect `yaml:"files,omitempty"`
+}
+
+// FileEffectMode describes how an obligation affects one Book-owned path.
+type FileEffectMode string
+
+const (
+	// FileEffectCreate requires a previously absent path.
+	FileEffectCreate FileEffectMode = "create"
+	// FileEffectUpdate requires a path produced by an earlier unit.
+	FileEffectUpdate FileEffectMode = "update"
+	// FileEffectEnsure creates the path once and updates it in later units.
+	FileEffectEnsure FileEffectMode = "ensure"
+)
+
+// FileEffect is one static or product-name-templated path owned by a Book
+// obligation. Only {feature} and {sequence} placeholders are admitted.
+type FileEffect struct {
+	Path       string         `yaml:"path"`
+	Mode       FileEffectMode `yaml:"mode"`
+	Operations []string       `yaml:"operations,omitempty"`
 }
 
 // Dependency admits one non-Hatmax module or tool for a bounded purpose.
 type Dependency struct {
-	Kind    string `yaml:"kind"`
-	Module  string `yaml:"module"`
-	Purpose string `yaml:"purpose"`
+	Kind       string   `yaml:"kind"`
+	Module     string   `yaml:"module"`
+	Purpose    string   `yaml:"purpose"`
+	Operations []string `yaml:"operations,omitempty"`
 }
 
 // Capability describes one supported technical behavior.
@@ -194,6 +217,12 @@ func cloneObligations(values []Obligation) []Obligation {
 		result[index].Surfaces = cloneStrings(value.Surfaces)
 		result[index].Rules = cloneStrings(value.Rules)
 		result[index].DependsOn = cloneStrings(value.DependsOn)
+		result[index].Operations = cloneStrings(value.Operations)
+
+		result[index].Files = append([]FileEffect(nil), value.Files...)
+		for fileIndex := range result[index].Files {
+			result[index].Files[fileIndex].Operations = cloneStrings(value.Files[fileIndex].Operations)
+		}
 	}
 
 	return result
@@ -204,7 +233,12 @@ func cloneCapability(value Capability) Capability {
 	value.IncompatibleWith = cloneStrings(value.IncompatibleWith)
 	value.Surfaces = cloneStrings(value.Surfaces)
 	value.Packages = cloneStrings(value.Packages)
+
 	value.Dependencies = append([]Dependency(nil), value.Dependencies...)
+	for index := range value.Dependencies {
+		value.Dependencies[index].Operations = cloneStrings(value.Dependencies[index].Operations)
+	}
+
 	value.Obligations = cloneObligations(value.Obligations)
 	value.Rules = cloneStrings(value.Rules)
 	value.Extensions = cloneStrings(value.Extensions)

@@ -93,13 +93,16 @@ func Validate(value Intent, context ValidationContext) Result {
 		return *capabilityResult
 	}
 
-	var diagnostics []Diagnostic
-	var clarifications []Clarification
+	var (
+		diagnostics    []Diagnostic
+		clarifications []Clarification
+	)
 	if value.Operation == OperationCreateApplication {
 		diagnostics, clarifications = validateApplication(value, context.Target)
 	} else {
 		diagnostics, clarifications = validateDomain(value, context.Inventory)
 	}
+
 	if len(diagnostics) > 0 {
 		sortDiagnostics(diagnostics)
 

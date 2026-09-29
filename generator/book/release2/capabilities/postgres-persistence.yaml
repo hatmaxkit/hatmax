@@ -1,0 +1,74 @@
+id: postgres_persistence
+intent: Persist feature state in PostgreSQL through the canonical Hatmax database lifecycle.
+surfaces:
+  - migration
+  - model
+  - store
+  - wiring
+  - tests
+packages:
+  - hatmax.adrianpk.com/db
+  - hatmax.adrianpk.com/model
+  - hatmax.adrianpk.com/testhelper
+dependencies:
+  - kind: tool
+    module: github.com/sqlc-dev/sqlc/cmd/sqlc
+    purpose: Generate type-safe PostgreSQL query adapters.
+    operations:
+      - create_feature
+      - add_field
+obligations:
+  - id: migration
+    surfaces:
+      - migration
+      - wiring
+    rules:
+      - hatmax.persistence.postgres_sqlc
+      - hatmax.lifecycle.explicit_wiring
+    operations:
+      - create_feature
+      - add_field
+    files:
+      - path: assets/migration/postgres/{sequence}-{feature}.sql
+        mode: create
+      - path: internal/application/application.go
+        mode: update
+  - id: query_adapter
+    surfaces:
+      - store
+    rules:
+      - hatmax.persistence.postgres_sqlc
+      - hatmax.dependencies.use_owned_primitive
+    depends_on:
+      - migration
+    operations:
+      - create_feature
+      - add_field
+    files:
+      - path: sqlc.yaml
+        mode: ensure
+      - path: db/queries/{feature}.sql
+        mode: create
+      - path: internal/feat/{feature}/postgres_store.go
+        mode: create
+  - id: postgres_integration_tests
+    surfaces:
+      - tests
+    rules:
+      - hatmax.testing.required_boundaries
+    depends_on:
+      - query_adapter
+    operations:
+      - create_feature
+      - add_field
+    files:
+      - path: internal/feat/{feature}/postgres_store_test.go
+        mode: create
+rules:
+  - hatmax.persistence.postgres_sqlc
+  - hatmax.lifecycle.explicit_wiring
+  - hatmax.testing.required_boundaries
+unsupported:
+  - alternate SQL databases
+  - ORM-backed persistence
+  - handler-owned SQL
