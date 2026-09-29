@@ -27,8 +27,8 @@ designed:
    supports and the boundary between Hatmax and application-owned behavior.
 2. [Application Anatomy](application-anatomy.md) maps the entrypoint,
    application components, features, infrastructure, templates, and tests.
-3. **Lifecycle and Wiring** explains how dependencies become an ordered,
-   running process.
+3. [Lifecycle and Wiring](lifecycle-and-wiring.md) explains how dependencies
+   become an ordered, running process.
 4. **The Request Boundary** follows an HTTP request through middleware and
    routing.
 5. **Pages and Partials** connects templates, rendering, and HTMX responses.

@@ -118,4 +118,5 @@ configuration, or framework conventions as hidden control flow.
 
 ---
 
-[Previous: Orientation](orientation.md) · [User Guide](README.md)
+[Previous: Orientation](orientation.md) · [User Guide](README.md) ·
+[Next: Lifecycle and Wiring](lifecycle-and-wiring.md)
