@@ -32,16 +32,26 @@ func compileRequest(prompt string, clarifications []ClarificationExchange, conte
 		ContractVersion: CurrentContractVersion,
 		Prompt:          prompt,
 		Clarifications:  cloneClarificationExchanges(clarifications),
-		Project: ProjectContext{
-			Fingerprint:      context.Fingerprint.Value,
-			HatmaxVersion:    context.Inventory.Module.Hatmax.Version,
-			ExistingFeatures: existingFeatures(context),
-		},
 		Book: BookContext{
 			Version:      manifest.BookVersion,
 			Archetypes:   archetypeContexts(context),
 			Capabilities: capabilityContexts(context),
 		},
+	}
+
+	if context.Target == nil {
+		result.Project = ProjectContext{
+			Fingerprint:      context.Fingerprint.Value,
+			HatmaxVersion:    context.Inventory.Module.Hatmax.Version,
+			ExistingFeatures: existingFeatures(context),
+		}
+	} else {
+		result.Target = &TargetContext{
+			SourceFingerprint: context.Fingerprint.Value,
+			HatmaxVersion:     manifest.Hatmax.Minimum,
+			Admission:         context.Target.Admission,
+			RemoteModulePath:  context.Target.RemoteModulePath,
+		}
 	}
 
 	err := validateRequest(result)
@@ -55,6 +65,18 @@ func compileRequest(prompt string, clarifications []ClarificationExchange, conte
 func validateRequest(value Request) error {
 	if value.ContractVersion != CurrentContractVersion {
 		return evaluationError("evaluation_contract_unsupported", "contract_version", "contract version %d is not supported", value.ContractVersion)
+	}
+
+	hasProject := strings.TrimSpace(value.Project.Fingerprint) != ""
+	hasTarget := value.Target != nil
+	if hasProject == hasTarget {
+		return evaluationError("evaluation_source_invalid", "project", "exactly one project or target context is required")
+	}
+
+	if hasTarget {
+		if strings.TrimSpace(value.Target.SourceFingerprint) == "" || strings.TrimSpace(value.Target.HatmaxVersion) == "" || strings.TrimSpace(string(value.Target.Admission)) == "" {
+			return evaluationError("evaluation_target_invalid", "target", "target fingerprint, Hatmax version, and admission are required")
+		}
 	}
 
 	if len(value.Clarifications) > MaximumClarificationExchanges {

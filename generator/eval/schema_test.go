@@ -77,9 +77,9 @@ func TestDecodeInterpretationAcceptsEachResultVariant(t *testing.T) {
 		name  string
 		value Interpretation
 	}{
-		{name: "intent", value: Interpretation{SchemaVersion: 1, Kind: InterpretationIntent, Intent: &value}},
-		{name: "clarification", value: Interpretation{SchemaVersion: 1, Kind: InterpretationClarification, Clarifications: []intent.Clarification{{Field: "domain.validation.kind", Question: "Which validation?"}}}},
-		{name: "unsupported", value: Interpretation{SchemaVersion: 1, Kind: InterpretationUnsupported, Diagnostics: []intent.Diagnostic{{Code: "HMGEN-REQUEST-UNSUPPORTED", Field: "prompt", Message: "outside the Book"}}}},
+		{name: "intent", value: Interpretation{SchemaVersion: CurrentInterpretationSchemaVersion, Kind: InterpretationIntent, Intent: &value}},
+		{name: "clarification", value: Interpretation{SchemaVersion: CurrentInterpretationSchemaVersion, Kind: InterpretationClarification, Clarifications: []intent.Clarification{{Field: "domain.validation.kind", Question: "Which validation?"}}}},
+		{name: "unsupported", value: Interpretation{SchemaVersion: CurrentInterpretationSchemaVersion, Kind: InterpretationUnsupported, Diagnostics: []intent.Diagnostic{{Code: "HMGEN-REQUEST-UNSUPPORTED", Field: "prompt", Message: "outside the Book"}}}},
 	}
 
 	for _, test := range tests {
@@ -94,7 +94,7 @@ func TestDecodeInterpretationAcceptsEachResultVariant(t *testing.T) {
 				t.Fatalf("DecodeInterpretation() error = %v", err)
 			}
 
-			if result.SchemaVersion != 1 || result.Kind != test.value.Kind {
+			if result.SchemaVersion != CurrentInterpretationSchemaVersion || result.Kind != test.value.Kind {
 				t.Errorf("DecodeInterpretation() = %#v, want kind %q", result, test.value.Kind)
 			}
 		})
@@ -116,12 +116,12 @@ func TestDecodeInterpretationRejectsInvalidModelOutput(t *testing.T) {
 	}{
 		{name: "empty", data: nil, code: "evaluation_output_invalid"},
 		{name: "oversized", data: bytes.Repeat([]byte(" "), MaximumInterpretationBytes+1), code: "evaluation_output_too_large"},
-		{name: "unknown top-level field", data: []byte(`{"schema_version":1,"kind":"unsupported","diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}],"plan":{}}`), code: "evaluation_output_invalid"},
-		{name: "unknown intent field", data: []byte(`{"schema_version":1,"kind":"intent","intent":{"schema_version":2,"operation":"create_feature","project_fingerprint":"sha256:0000000000000000000000000000000000000000000000000000000000000000","hatmax_version":"v0.4.0","book_version":1,"archetype":"server_rendered_crud","feature":"invoice","domain":{"fields":[]},"capabilities":[],"documentation":"not_requested","documentation_targets":[],"exceptions":[],"path":"main.go"}}`), code: "evaluation_output_invalid"},
-		{name: "multiple values", data: []byte(`{"schema_version":1,"kind":"unsupported","diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}]} {}`), code: "evaluation_output_invalid"},
-		{name: "unsupported schema", data: []byte(`{"schema_version":2,"kind":"unsupported","diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}]}`), code: "evaluation_output_schema_unsupported"},
-		{name: "contradictory variant", data: []byte(`{"schema_version":1,"kind":"intent","intent":` + string(intentData) + `,"diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}]}`), code: "evaluation_result_invalid"},
-		{name: "free-form result", data: []byte(`{"schema_version":1,"kind":"free_form"}`), code: "evaluation_kind_invalid"},
+		{name: "unknown top-level field", data: []byte(`{"schema_version":2,"kind":"unsupported","diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}],"plan":{}}`), code: "evaluation_output_invalid"},
+		{name: "unknown intent field", data: []byte(`{"schema_version":2,"kind":"intent","intent":{"schema_version":2,"operation":"create_feature","project_fingerprint":"sha256:0000000000000000000000000000000000000000000000000000000000000000","hatmax_version":"v0.4.0","book_version":1,"archetype":"server_rendered_crud","feature":"invoice","domain":{"fields":[]},"capabilities":[],"documentation":"not_requested","documentation_targets":[],"exceptions":[],"path":"main.go"}}`), code: "evaluation_output_invalid"},
+		{name: "multiple values", data: []byte(`{"schema_version":2,"kind":"unsupported","diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}]} {}`), code: "evaluation_output_invalid"},
+		{name: "unsupported schema", data: []byte(`{"schema_version":3,"kind":"unsupported","diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}]}`), code: "evaluation_output_schema_unsupported"},
+		{name: "contradictory variant", data: []byte(`{"schema_version":2,"kind":"intent","intent":` + string(intentData) + `,"diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}]}`), code: "evaluation_result_invalid"},
+		{name: "free-form result", data: []byte(`{"schema_version":2,"kind":"free_form"}`), code: "evaluation_kind_invalid"},
 	}
 
 	for _, test := range tests {

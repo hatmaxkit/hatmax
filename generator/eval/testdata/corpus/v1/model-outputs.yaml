@@ -2,17 +2,17 @@ schema_version: 1
 cases:
   - id: executable_plan_rejected
     output: >-
-      {"schema_version":1,"kind":"unsupported","diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}],"plan":{"intent":"create_feature"}}
+      {"schema_version":2,"kind":"unsupported","diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}],"plan":{"intent":"create_feature"}}
     expected_error: evaluation_output_invalid
   - id: target_path_rejected
     output: >-
-      {"schema_version":1,"kind":"intent","intent":{"schema_version":2,"operation":"create_feature","project_fingerprint":"sha256:0000000000000000000000000000000000000000000000000000000000000000","hatmax_version":"v0.4.0","book_version":1,"archetype":"server_rendered_crud","feature":"invoice","domain":{"fields":[]},"capabilities":[],"documentation":"not_requested","documentation_targets":[],"exceptions":[],"path":"main.go"}}
+      {"schema_version":2,"kind":"intent","intent":{"schema_version":2,"operation":"create_feature","project_fingerprint":"sha256:0000000000000000000000000000000000000000000000000000000000000000","hatmax_version":"v0.4.0","book_version":1,"archetype":"server_rendered_crud","feature":"invoice","domain":{"fields":[]},"capabilities":[],"documentation":"not_requested","documentation_targets":[],"exceptions":[],"path":"main.go"}}
     expected_error: evaluation_output_invalid
   - id: contradictory_variant_rejected
     output: >-
-      {"schema_version":1,"kind":"clarification_required","clarifications":[{"field":"domain.field","question":"Which field?"}],"diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}]}
+      {"schema_version":2,"kind":"clarification_required","clarifications":[{"field":"domain.field","question":"Which field?"}],"diagnostics":[{"code":"HMGEN-REQUEST-UNSUPPORTED","field":"prompt","message":"unsupported"}]}
     expected_error: evaluation_result_invalid
   - id: free_form_rejected
     output: >-
-      {"schema_version":1,"kind":"free_form","message":"I would use another framework."}
+      {"schema_version":2,"kind":"free_form","message":"I would use another framework."}
     expected_error: evaluation_output_invalid

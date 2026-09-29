@@ -84,6 +84,7 @@ func EvaluateConversation(
 func evaluateIntent(value intent.Intent, provenance Provenance, context Context) (Result, error) {
 	validation := intent.Validate(value, intent.ValidationContext{
 		Inventory:   context.Inventory,
+		Target:      context.Target,
 		Fingerprint: context.Fingerprint,
 		Book:        context.Book,
 	})
@@ -103,6 +104,7 @@ func evaluateIntent(value intent.Intent, provenance Provenance, context Context)
 		Book:                  context.Book,
 		Fingerprint:           context.Fingerprint,
 		Inventory:             context.Inventory,
+		Target:                context.Target,
 		DocumentationEvidence: context.DocumentationEvidence,
 	})
 	if err != nil {
@@ -223,6 +225,22 @@ func cloneIntent(value intent.Intent) *intent.Intent {
 	result.Exceptions = append([]intent.Exception{}, value.Exceptions...)
 	result.Domain.Fields = append([]intent.Field{}, value.Domain.Fields...)
 	result.Domain.Rules = append([]intent.BusinessRule{}, value.Domain.Rules...)
+	result.InitialFeatures = make([]intent.InitialFeature, len(value.InitialFeatures))
+	for index, feature := range value.InitialFeatures {
+		result.InitialFeatures[index] = feature
+		result.InitialFeatures[index].Domain.Fields = append([]intent.Field{}, feature.Domain.Fields...)
+		result.InitialFeatures[index].Domain.Rules = append([]intent.BusinessRule{}, feature.Domain.Rules...)
+	}
+
+	if value.Application != nil {
+		application := *value.Application
+		result.Application = &application
+	}
+
+	if value.Target != nil {
+		target := *value.Target
+		result.Target = &target
+	}
 
 	if value.Domain.Field != nil {
 		field := *value.Domain.Field

@@ -13,6 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"hatmax.adrianpk.com/generator/book"
 	"hatmax.adrianpk.com/generator/intent"
+	"hatmax.adrianpk.com/generator/plan"
 	"hatmax.adrianpk.com/generator/project"
 )
 
@@ -160,6 +161,85 @@ func TestEvaluateAcceptsDirectClarification(t *testing.T) {
 
 	if result.Status != intent.StatusClarificationRequired || len(result.Clarifications) != 1 {
 		t.Errorf("Evaluate() = %#v, want direct clarification", result)
+	}
+}
+
+func TestEvaluateApplicationCreationAgainstBoundedTarget(t *testing.T) {
+	selectedBook, err := book.LoadRelease(2)
+	if err != nil {
+		t.Fatalf("LoadRelease(2) error = %v", err)
+	}
+
+	application := intent.Intent{
+		SchemaVersion: intent.ApplicationSchemaVersion,
+		Operation:     intent.OperationCreateApplication,
+		HatmaxVersion: "0.5.0",
+		BookVersion:   2,
+		Archetype:     "server_rendered_hatmax_application",
+		Capabilities:  []string{},
+		Documentation: intent.DocumentationNotRequested,
+		Application: &intent.ApplicationIdentity{
+			DisplayName: "Real Estate",
+			ModulePath:  "example.com/alex/real-estate",
+			Niche:       "property management",
+		},
+		Target: &intent.ApplicationTarget{Base: "session_directory"},
+		InitialFeatures: []intent.InitialFeature{{
+			Feature: "invoice",
+			Domain: intent.Domain{Fields: []intent.Field{{
+				Name: "number", Type: "string", Required: true,
+			}}},
+		}},
+	}
+
+	plannedPaths, err := plan.ApplicationTargetPaths(application, selectedBook)
+	if err != nil {
+		t.Fatalf("ApplicationTargetPaths() error = %v", err)
+	}
+
+	parent := t.TempDir()
+	target, err := project.InspectTarget(context.Background(), project.TargetRequest{
+		Parent: parent, Target: "real-estate", PlannedPaths: plannedPaths, Book: selectedBook,
+	})
+	if err != nil {
+		t.Fatalf("InspectTarget() error = %v", err)
+	}
+
+	fingerprint, err := target.Fingerprint(2)
+	if err != nil {
+		t.Fatalf("Fingerprint() error = %v", err)
+	}
+
+	application.SourceFingerprint = fingerprint.Value
+	interpreter := &fixtureInterpreter{outputs: map[string]Interpretation{
+		"Create Real Estate for property management with an invoice number.": {
+			Kind: InterpretationIntent, Intent: &application,
+		},
+	}}
+
+	result, err := Evaluate(context.Background(), interpreter, "Create Real Estate for property management with an invoice number.", Context{
+		Target: &target, Fingerprint: fingerprint, Book: selectedBook,
+	})
+	if err != nil {
+		t.Fatalf("Evaluate() error = %v", err)
+	}
+
+	if result.Status != intent.StatusAdmitted || result.Plan == nil || len(result.Plan.Units) != 2 {
+		t.Fatalf("Evaluate() = %#v, want admitted two-unit application plan", result)
+	}
+
+	request := interpreter.requests[0]
+	if request.Target == nil || request.Target.Admission != project.TargetAbsent || request.Project.Fingerprint != "" {
+		t.Errorf("Request source context = project %#v target %#v", request.Project, request.Target)
+	}
+
+	if request.Target.SourceFingerprint != fingerprint.Value || request.Target.HatmaxVersion != "0.5.0" {
+		t.Errorf("Request.Target = %#v, want exact bounded target identity", request.Target)
+	}
+
+	encoded := fmt.Sprintf("%#v", request)
+	if strings.Contains(encoded, parent) || strings.Contains(encoded, target.Target) {
+		t.Errorf("bounded request exposed a local path: %s", encoded)
 	}
 }
 

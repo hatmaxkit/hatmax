@@ -19,7 +19,7 @@ import (
 const (
 	// CurrentContractVersion is the interactive interpreter contract understood
 	// by this package.
-	CurrentContractVersion = 1
+	CurrentContractVersion = 2
 	// MaximumPromptBytes bounds one natural-language request.
 	MaximumPromptBytes = 32 << 10
 	// MaximumClarificationExchanges bounds one explicit clarification history.
@@ -28,7 +28,7 @@ const (
 	// answer.
 	MaximumClarificationTextBytes = 4 << 10
 	// CurrentInterpretationSchemaVersion is the model-output schema version.
-	CurrentInterpretationSchemaVersion = 1
+	CurrentInterpretationSchemaVersion = 2
 	// MaximumInterpretationBytes bounds one complete model output.
 	MaximumInterpretationBytes = 64 << 10
 	// MaximumInterpretationDiagnostics bounds one unsupported result.
@@ -54,6 +54,15 @@ type ProjectContext struct {
 	Fingerprint      string   `json:"fingerprint" yaml:"fingerprint"`
 	HatmaxVersion    string   `json:"hatmax_version" yaml:"hatmax_version"`
 	ExistingFeatures []string `json:"existing_features" yaml:"existing_features"`
+}
+
+// TargetContext is the bounded pre-project evidence exposed to an
+// interpreter. It deliberately omits local paths and target entries.
+type TargetContext struct {
+	SourceFingerprint string                  `json:"source_fingerprint" yaml:"source_fingerprint"`
+	HatmaxVersion     string                  `json:"hatmax_version" yaml:"hatmax_version"`
+	Admission         project.TargetAdmission `json:"admission" yaml:"admission"`
+	RemoteModulePath  string                  `json:"remote_module_path" yaml:"remote_module_path"`
 }
 
 // ArchetypeContext describes supported operations and capability choices
@@ -95,6 +104,7 @@ type Request struct {
 	Prompt          string                  `json:"prompt" yaml:"prompt"`
 	Clarifications  []ClarificationExchange `json:"clarifications" yaml:"clarifications"`
 	Project         ProjectContext          `json:"project" yaml:"project"`
+	Target          *TargetContext          `json:"target" yaml:"target"`
 	Book            BookContext             `json:"book" yaml:"book"`
 }
 
@@ -166,6 +176,7 @@ type Interpreter interface {
 // Context binds evaluation to one inspected project, fingerprint, and Book.
 type Context struct {
 	Inventory             project.Inventory
+	Target                *project.TargetInventory
 	Fingerprint           project.Fingerprint
 	Book                  *book.Book
 	DocumentationEvidence *project.FeatureEvidence

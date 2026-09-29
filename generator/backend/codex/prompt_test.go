@@ -49,6 +49,9 @@ func TestCompileTurnContainsOnlyBoundedRequestAndSchema(t *testing.T) {
 		"keep the implementation operation and use document_planned_change",
 		"tutorial, how_to, reference, or explanation",
 		"ask one focused clarification instead of selecting every quadrant",
+		"use intent schema version 3",
+		"PostgreSQL is implicit",
+		"initial features are optional",
 	} {
 		if !strings.Contains(turn.Prompt, expected) {
 			t.Errorf("prompt does not contain documentation rule %q", expected)
