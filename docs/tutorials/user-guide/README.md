@@ -56,6 +56,18 @@ designed:
 16. [Assisted Generation](assisted-generation.md) introduces the experimental
     generator after the manual application model is clear.
 
+## Journey Outcome
+
+After this journey, you should be able to read a Hatmax composition root,
+locate feature and infrastructure ownership, follow a request and its data
+through every boundary, place new behavior in the canonical vertical slice,
+and select tests that prove the resulting contracts.
+
+The guide establishes that application model before assisted generation on
+purpose. Generated changes remain reviewable ordinary Go, SQL, templates, and
+explicit wiring; the same architectural understanding applies whether a
+change is written manually or proposed by Hatmax.
+
 ## Supporting Documentation
 
 - Use the [How-to Guides](../../how-to/README.md) for focused procedures.

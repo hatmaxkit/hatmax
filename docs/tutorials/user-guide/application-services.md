@@ -32,9 +32,10 @@ the standard processor in `main`, then passes those interfaces to its feature
 service. A complete upload workflow validates input, stores bytes, persists
 metadata, creates requested variants, and compensates for partial failure.
 
-Local storage is one-process infrastructure; S3-compatible storage supports a
-separate object service. Neither adapter grants authorization to a URL or
-decides which user may read an image.
+`image/local` provides one-process filesystem storage, `image/s3` provides
+S3-compatible object storage, and `image/stdprocessor` provides standard
+decoding and resizing. None of those adapters grants authorization to a URL
+or decides which user may read an image.
 
 ## Observe Without Owning Product Behavior
 

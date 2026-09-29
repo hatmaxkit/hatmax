@@ -107,9 +107,9 @@ hatmax generate "Create a property feature with a required name."
 
 Hatmax asks Codex to interpret the request, presents the complete typed plan,
 and waits for approval before applying deterministic Book-owned changes. See
-[Generate a Feature](docs/tutorials/user-guide/generation.md) for the guided
-workflow and [Generator](docs/reference/generator/README.md) for the exact
-contract and prerequisites.
+[Assisted Generation](docs/tutorials/user-guide/assisted-generation.md) for the
+guided workflow and [Generator](docs/reference/generator/README.md) for the
+exact contract and prerequisites.
 
 ## Package Map
 
