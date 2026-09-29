@@ -170,7 +170,7 @@ func renderDocumentationTutorial(
 	result.WriteString("4. Confirm that the created record appears in the feature list.\n\n")
 	writeDocumentationCommand(&result, commands)
 	result.WriteString("## Continue\n\n")
-	fmt.Fprintf(&result, "[Back to %s](../index.md)\n", documentationQuadrantLabel(target.Quadrant))
+	fmt.Fprintf(&result, "[Back to %s](../README.md)\n", documentationQuadrantLabel(target.Quadrant))
 
 	return []byte(result.String())
 }
@@ -192,7 +192,7 @@ func renderDocumentationHowTo(
 	result.WriteString("4. Verify the updated row in the server-rendered list.\n\n")
 	writeDocumentationCommand(&result, commands)
 	result.WriteString("## Related Documentation\n\n")
-	fmt.Fprintf(&result, "[Back to %s](../index.md)\n", documentationQuadrantLabel(target.Quadrant))
+	fmt.Fprintf(&result, "[Back to %s](../README.md)\n", documentationQuadrantLabel(target.Quadrant))
 
 	return []byte(result.String())
 }
@@ -244,7 +244,7 @@ func renderDocumentationReference(target plan.DocumentationTargetEffect, evidenc
 	fmt.Fprintf(&result, "- Runtime validation: %s\n", documentationBoolean(evidence.RuntimeValidation))
 	fmt.Fprintf(&result, "- Composition-root wiring: %s\n", documentationBoolean(evidence.Wired))
 	fmt.Fprintf(&result, "- Canonical boundary tests: %s\n\n", documentationBoolean(evidence.Tested))
-	fmt.Fprintf(&result, "[Back to %s](../index.md)\n", documentationQuadrantLabel(target.Quadrant))
+	fmt.Fprintf(&result, "[Back to %s](../README.md)\n", documentationQuadrantLabel(target.Quadrant))
 
 	return []byte(result.String())
 }
@@ -264,7 +264,7 @@ func renderDocumentationExplanation(target plan.DocumentationTargetEffect, evide
 	result.WriteString("This structure keeps feature behavior cohesive and wiring visible. It favors one canonical implementation path over interchangeable libraries or implicit runtime assembly.\n\n")
 	result.WriteString("## Relationship to the Application\n\n")
 	fmt.Fprintf(&result, "The `%s` table persists the feature state, while `%s` remains the user-facing route.\n\n", markdownCode(evidence.Table), markdownCode(evidence.Route))
-	fmt.Fprintf(&result, "[Back to %s](../index.md)\n", documentationQuadrantLabel(target.Quadrant))
+	fmt.Fprintf(&result, "[Back to %s](../README.md)\n", documentationQuadrantLabel(target.Quadrant))
 
 	return []byte(result.String())
 }

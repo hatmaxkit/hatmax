@@ -202,10 +202,10 @@ func TestTerminalSurfaceGeneratesBoxedDocumentation(t *testing.T) {
 	}
 
 	for _, target := range []string{
-		"docs/tutorials/invoice-basics/index.md",
-		"docs/how-to/invoice-workflow/index.md",
-		"docs/reference/invoice/index.md",
-		"docs/explanation/invoice-ownership/index.md",
+		"docs/tutorials/invoice-basics/README.md",
+		"docs/how-to/invoice-workflow/README.md",
+		"docs/reference/invoice/README.md",
+		"docs/explanation/invoice-ownership/README.md",
 	} {
 		_, err = os.Stat(filepath.Join(root, filepath.FromSlash(target)))
 		if err != nil {
@@ -226,7 +226,7 @@ func TestTerminalSurfaceGeneratesBoxedDocumentation(t *testing.T) {
 		}
 	}
 
-	referencePath := filepath.Join(root, "docs", "reference", "invoice", "index.md")
+	referencePath := filepath.Join(root, "docs", "reference", "invoice", "README.md")
 
 	reference, err := os.ReadFile(referencePath)
 	if err != nil {
@@ -255,7 +255,7 @@ func TestTerminalSurfaceGeneratesBoxedDocumentation(t *testing.T) {
 		t.Fatalf("regeneration did not preserve user-owned bytes: %q", regeneratedReference)
 	}
 
-	if !strings.Contains(output, "docs/reference/invoice/index.md: unchanged ownership=outside_content_preserved") {
+	if !strings.Contains(output, "docs/reference/invoice/README.md: unchanged ownership=outside_content_preserved") {
 		t.Errorf("regeneration output omitted preservation evidence:\n%s", output)
 	}
 
@@ -304,7 +304,7 @@ func TestTerminalSurfaceGeneratesCombinedDocumentationAndReportsGateFailure(t *t
 
 		for _, target := range []string{
 			"internal/feat/invoice/model.go",
-			"docs/reference/invoice/index.md",
+			"docs/reference/invoice/README.md",
 		} {
 			_, err := os.Stat(filepath.Join(root, filepath.FromSlash(target)))
 			if err != nil {
@@ -342,7 +342,7 @@ func TestTerminalSurfaceGeneratesCombinedDocumentationAndReportsGateFailure(t *t
 			t.Errorf("documentation gate failure omitted command evidence:\n%s", output)
 		}
 
-		_, err := os.Stat(filepath.Join(root, "docs", "reference", "invoice", "index.md"))
+		_, err := os.Stat(filepath.Join(root, "docs", "reference", "invoice", "README.md"))
 		if err != nil {
 			t.Errorf("documentation gate failure removed retained documentation: %v", err)
 		}

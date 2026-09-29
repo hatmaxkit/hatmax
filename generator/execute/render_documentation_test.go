@@ -38,11 +38,11 @@ func TestRenderDocumentationProducesDistinctDiataxisDocuments(t *testing.T) {
 	}
 
 	contents := documentationMutationContents(t, manifest, mutations)
-	assertDocumentationContains(t, contents["docs/tutorials/invoice-basics/index.md"], "## Outcome", "## Guided Steps", "make docs-check", "[Back to Tutorials](../index.md)")
-	assertDocumentationContains(t, contents["docs/how-to/invoice-workflow/index.md"], "## Goal", "## Procedure", "make docs-check", "[Back to How-to Guides](../index.md)")
-	assertDocumentationContains(t, contents["docs/reference/invoice/index.md"], "## Contract", "## Fields", "`number`", "`/invoices`")
-	assertDocumentationContains(t, contents["docs/explanation/invoice-ownership/index.md"], "## Context", "## Ownership", "## Tradeoffs", "canonical implementation path")
-	assertDocumentationContains(t, contents["docs/index.md"], "tutorials/index.md", "how-to/index.md", "reference/index.md", "explanation/index.md")
+	assertDocumentationContains(t, contents["docs/tutorials/invoice-basics/README.md"], "## Outcome", "## Guided Steps", "make docs-check", "[Back to Tutorials](../README.md)")
+	assertDocumentationContains(t, contents["docs/how-to/invoice-workflow/README.md"], "## Goal", "## Procedure", "make docs-check", "[Back to How-to Guides](../README.md)")
+	assertDocumentationContains(t, contents["docs/reference/invoice/README.md"], "## Contract", "## Fields", "`number`", "`/invoices`")
+	assertDocumentationContains(t, contents["docs/explanation/invoice-ownership/README.md"], "## Context", "## Ownership", "## Tradeoffs", "canonical implementation path")
+	assertDocumentationContains(t, contents["docs/README.md"], "tutorials/README.md", "how-to/README.md", "reference/README.md", "explanation/README.md")
 
 	for target, content := range contents {
 		if strings.Contains(content, "TODO") || strings.Count(content, string(managedMarkdownStart)) != 1 || strings.Count(content, string(managedMarkdownEnd)) != 1 {
@@ -83,7 +83,7 @@ func TestRenderDocumentationUsesPlannedChangeEvidence(t *testing.T) {
 	}
 
 	contents := documentationMutationContents(t, manifest, mutations)
-	assertDocumentationContains(t, contents["docs/reference/invoice/index.md"], "`due_on`", "`date`", "Due on")
+	assertDocumentationContains(t, contents["docs/reference/invoice/README.md"], "`due_on`", "`date`", "Due on")
 }
 
 func TestRenderDocumentationAppliesThroughAtomicWorkspace(t *testing.T) {
@@ -134,7 +134,7 @@ func TestRenderDocumentationAppliesThroughAtomicWorkspace(t *testing.T) {
 		t.Fatalf("project.Inspect() error = %v", err)
 	}
 
-	file, exists := current.DocumentationFile("docs/reference/invoice/index.md")
+	file, exists := current.DocumentationFile("docs/reference/invoice/README.md")
 	if !exists || file.ManagedState != project.DocumentationManaged {
 		t.Errorf("generated reference = %#v, %v", file, exists)
 	}

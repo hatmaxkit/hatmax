@@ -25,7 +25,7 @@ func TestDocumentationConformanceAcceptsRenderedSurface(t *testing.T) {
 		t.Errorf("CheckConformance() = %#v, want passed", result)
 	}
 
-	for _, target := range []string{"docs/index.md", "docs/reference/index.md", "docs/reference/invoice/index.md"} {
+	for _, target := range []string{"docs/README.md", "docs/reference/README.md", "docs/reference/invoice/README.md"} {
 		_, err = os.Stat(filepath.Join(root, filepath.FromSlash(target)))
 		if err != nil {
 			t.Errorf("generated target %q: %v", target, err)
@@ -35,10 +35,10 @@ func TestDocumentationConformanceAcceptsRenderedSurface(t *testing.T) {
 
 func TestDocumentationConformanceRejectsMixedIntentBrokenLinkAndEvidenceDrift(t *testing.T) {
 	root, value, manifest, _ := appliedDocumentationProject(t)
-	target := "docs/reference/invoice/index.md"
+	target := "docs/reference/invoice/README.md"
 	replaceExecutionText(t, root, target, "## Contract", "## Guided Steps")
 	replaceExecutionText(t, root, target, "`/invoices`", "`/alternate`")
-	replaceExecutionText(t, root, target, "../index.md", "../missing/index.md")
+	replaceExecutionText(t, root, target, "../README.md", "../missing/README.md")
 
 	inventory, err := project.Inspect(context.Background(), root)
 	if err != nil {
@@ -59,7 +59,7 @@ func TestDocumentationConformanceRejectsMixedIntentBrokenLinkAndEvidenceDrift(t 
 
 func TestDocumentationConformanceDetectsUserContentReplacement(t *testing.T) {
 	root := generatedInvoiceProject(t)
-	writeExecutionFile(t, root, "docs/reference/invoice/index.md", "User prefix.\n\n"+managedExecutionDocumentation("Old reference.")+"\nUser suffix.\n")
+	writeExecutionFile(t, root, "docs/reference/invoice/README.md", "User prefix.\n\n"+managedExecutionDocumentation("Old reference.")+"\nUser suffix.\n")
 	value, inventory, selectedBook := documentationExecutionPlan(
 		t,
 		root,
@@ -92,12 +92,12 @@ func TestDocumentationConformanceDetectsUserContentReplacement(t *testing.T) {
 		t.Fatalf("Commit() error = %v", err)
 	}
 
-	content := readDocumentationFile(t, root, "docs/reference/invoice/index.md")
+	content := readDocumentationFile(t, root, "docs/reference/invoice/README.md")
 	if !strings.HasPrefix(content, "User prefix.\n\n# Wrapper\n\n") || !strings.HasSuffix(content, "\n\nUser suffix.\n") {
 		t.Errorf("user-owned content was not preserved: %q", content)
 	}
 
-	replaceExecutionText(t, root, "docs/reference/invoice/index.md", "User prefix.", "Changed prefix.")
+	replaceExecutionText(t, root, "docs/reference/invoice/README.md", "User prefix.", "Changed prefix.")
 
 	current, err := project.Inspect(context.Background(), root)
 	if err != nil {
@@ -184,7 +184,7 @@ func TestDocumentationGateFailureRetainsDeclaredChanges(t *testing.T) {
 		t.Errorf("ExecutionReport = %#v, want passed conformance and failed documentation gate evidence", report)
 	}
 
-	_, statErr := os.Stat(filepath.Join(root, "docs", "reference", "invoice", "index.md"))
+	_, statErr := os.Stat(filepath.Join(root, "docs", "reference", "invoice", "README.md"))
 	if statErr != nil {
 		t.Errorf("documentation gate failure removed committed target: %v", statErr)
 	}

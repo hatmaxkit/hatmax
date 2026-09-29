@@ -124,7 +124,7 @@ func inspectDocumentationFile(
 
 func classifyDocumentationPath(filePath string) (string, string, bool, bool) {
 	segments := strings.Split(filePath, "/")
-	if len(segments) == 2 && segments[0] == documentationRoot && segments[1] == "index.md" {
+	if len(segments) == 2 && segments[0] == documentationRoot && segments[1] == "README.md" {
 		return "", "", true, true
 	}
 
@@ -133,7 +133,7 @@ func classifyDocumentationPath(filePath string) (string, string, bool, bool) {
 	}
 
 	quadrant, admitted := documentationQuadrant(segments[1])
-	if !admitted || segments[len(segments)-1] != "index.md" {
+	if !admitted || segments[len(segments)-1] != "README.md" {
 		return "", "", false, false
 	}
 
@@ -221,10 +221,10 @@ func resolveDocumentationLink(source, raw string) (string, bool) {
 
 	resolved := path.Clean(path.Join(path.Dir(source), target))
 	if strings.HasSuffix(target, "/") || path.Ext(resolved) == "" {
-		resolved = path.Join(resolved, "index.md")
+		resolved = path.Join(resolved, "README.md")
 	}
 
-	if resolved != documentationRoot+"/index.md" && !strings.HasPrefix(resolved, documentationRoot+"/") {
+	if resolved != documentationRoot+"/README.md" && !strings.HasPrefix(resolved, documentationRoot+"/") {
 		return "", false
 	}
 

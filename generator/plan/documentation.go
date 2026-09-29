@@ -40,7 +40,7 @@ func expandDocumentationPlan(value intent.Intent, inventory project.Inventory) (
 	for _, target := range value.DocumentationTargets {
 		layout := documentationQuadrants[target.Quadrant]
 		slug := strings.ReplaceAll(target.Subject, "_", "-")
-		targetPath := path.Join("docs", layout.directory, slug, "index.md")
+		targetPath := path.Join("docs", layout.directory, slug, "README.md")
 
 		if _, exists := seenPaths[targetPath]; exists {
 			return nil, planError("plan_documentation_target_overlap", "documentation_plan.targets", "multiple documentation targets resolve to %q", targetPath)
@@ -64,7 +64,7 @@ func expandDocumentationPlan(value intent.Intent, inventory project.Inventory) (
 		quadrantTargets[target.Quadrant] = append(quadrantTargets[target.Quadrant], DocumentationLinkEffect{
 			Title:    title,
 			Target:   targetPath,
-			Relative: path.Join(slug, "index.md"),
+			Relative: path.Join(slug, "README.md"),
 		})
 		seenPaths[targetPath] = struct{}{}
 	}
@@ -108,7 +108,7 @@ func documentationIndexes(
 		return documentationQuadrants[quadrants[left]].rank < documentationQuadrants[quadrants[right]].rank
 	})
 
-	rootSnapshot, err := documentationSnapshot(inventory, "docs/index.md")
+	rootSnapshot, err := documentationSnapshot(inventory, "docs/README.md")
 	if err != nil {
 		return nil, err
 	}
@@ -117,17 +117,17 @@ func documentationIndexes(
 	for _, quadrant := range quadrants {
 		layout := documentationQuadrants[quadrant]
 		rootLinks = append(rootLinks, DocumentationLinkEffect{
-			Title: layout.title, Target: path.Join("docs", layout.directory, "index.md"), Relative: path.Join(layout.directory, "index.md"),
+			Title: layout.title, Target: path.Join("docs", layout.directory, "README.md"), Relative: path.Join(layout.directory, "README.md"),
 		})
 	}
 
 	result := []DocumentationIndexEffect{{
-		Kind: documentationIndexRoot, Title: "Documentation", Path: "docs/index.md", RequiredLinks: rootLinks, Snapshot: rootSnapshot,
+		Kind: documentationIndexRoot, Title: "Documentation", Path: "docs/README.md", RequiredLinks: rootLinks, Snapshot: rootSnapshot,
 	}}
 
 	for _, quadrant := range quadrants {
 		layout := documentationQuadrants[quadrant]
-		indexPath := path.Join("docs", layout.directory, "index.md")
+		indexPath := path.Join("docs", layout.directory, "README.md")
 
 		snapshot, snapshotErr := documentationSnapshot(inventory, indexPath)
 		if snapshotErr != nil {

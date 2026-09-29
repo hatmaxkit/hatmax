@@ -9,11 +9,11 @@ import (
 func TestInspectDocumentationRecordsCanonicalStructureOnly(t *testing.T) {
 	root := copyFixture(t, "supported")
 	appendProjectFile(t, root, "Makefile", "\ndocs-check:\n\t@echo docs\n")
-	writeProjectFile(t, root, "docs/index.md", managedDocumentation("[Reference](reference/index.md)"))
-	writeProjectFile(t, root, "docs/reference/index.md", managedDocumentation("[Property](property/)\n[Missing](missing/)"))
-	writeProjectFile(t, root, "docs/reference/property/index.md", managedDocumentation("Property contracts."))
-	writeProjectFile(t, root, "docs/how-to/index.md", "# User-owned how-to index\n")
-	writeProjectFile(t, root, "docs/tutorials/property/index.md", "<!-- hatmax:generated:start -->\nIncomplete\n")
+	writeProjectFile(t, root, "docs/README.md", managedDocumentation("[Reference](reference/README.md)"))
+	writeProjectFile(t, root, "docs/reference/README.md", managedDocumentation("[Property](property/)\n[Missing](missing/)"))
+	writeProjectFile(t, root, "docs/reference/property/README.md", managedDocumentation("Property contracts."))
+	writeProjectFile(t, root, "docs/how-to/README.md", "# User-owned how-to index\n")
+	writeProjectFile(t, root, "docs/tutorials/property/README.md", "<!-- hatmax:generated:start -->\nIncomplete\n")
 	writeProjectFile(t, root, "docs/notes.md", "# Unstructured notes\n")
 
 	inventory, err := Inspect(context.Background(), root)
@@ -25,22 +25,22 @@ func TestInspectDocumentationRecordsCanonicalStructureOnly(t *testing.T) {
 		t.Fatalf("Documentation = %#v, want five canonical files", inventory.Documentation)
 	}
 
-	property, exists := inventory.DocumentationFile("docs/reference/property/index.md")
+	property, exists := inventory.DocumentationFile("docs/reference/property/README.md")
 	if !exists || property.Quadrant != "reference" || property.Subject != "property" || property.Index || property.ManagedState != DocumentationManaged || property.Digest == "" {
 		t.Errorf("property documentation = %#v, %v", property, exists)
 	}
 
-	reference, exists := inventory.DocumentationFile("docs/reference/index.md")
+	reference, exists := inventory.DocumentationFile("docs/reference/README.md")
 	if !exists || len(reference.LocalLinks) != 2 || !reference.LocalLinks[0].Exists || reference.LocalLinks[1].Exists {
 		t.Errorf("reference links = %#v, want existing property and missing target", reference.LocalLinks)
 	}
 
-	howTo, exists := inventory.DocumentationFile("docs/how-to/index.md")
+	howTo, exists := inventory.DocumentationFile("docs/how-to/README.md")
 	if !exists || howTo.ManagedState != DocumentationUnmanaged {
 		t.Errorf("how-to index = %#v, want unmanaged", howTo)
 	}
 
-	tutorial, exists := inventory.DocumentationFile("docs/tutorials/property/index.md")
+	tutorial, exists := inventory.DocumentationFile("docs/tutorials/property/README.md")
 	if !exists || tutorial.ManagedState != DocumentationMarkersInvalid {
 		t.Errorf("tutorial target = %#v, want invalid markers", tutorial)
 	}
@@ -55,7 +55,7 @@ func TestInspectDocumentationRecordsCanonicalStructureOnly(t *testing.T) {
 
 	reference.LocalLinks[0].Target = "changed"
 
-	stored, _ := inventory.DocumentationFile("docs/reference/index.md")
+	stored, _ := inventory.DocumentationFile("docs/reference/README.md")
 	if stored.LocalLinks[0].Target == "changed" {
 		t.Error("DocumentationFile() exposed inventory storage")
 	}
@@ -63,14 +63,14 @@ func TestInspectDocumentationRecordsCanonicalStructureOnly(t *testing.T) {
 
 func TestInspectDocumentationBoundsCanonicalMarkdown(t *testing.T) {
 	root := copyFixture(t, "supported")
-	writeProjectFile(t, root, "docs/reference/property/index.md", strings.Repeat("x", 128))
+	writeProjectFile(t, root, "docs/reference/property/README.md", strings.Repeat("x", 128))
 
 	inventory, err := InspectWithOptions(context.Background(), root, Options{MaximumFileSize: 64})
 	if err != nil {
 		t.Fatalf("InspectWithOptions() error = %v", err)
 	}
 
-	property, exists := inventory.DocumentationFile("docs/reference/property/index.md")
+	property, exists := inventory.DocumentationFile("docs/reference/property/README.md")
 	if !exists || property.ManagedState != DocumentationUnreadable || property.Digest != "" || len(property.LocalLinks) != 0 {
 		t.Errorf("bounded property documentation = %#v, %v", property, exists)
 	}

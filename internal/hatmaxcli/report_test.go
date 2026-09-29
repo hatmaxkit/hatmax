@@ -146,11 +146,11 @@ func TestWriteResultReportsDocumentationPlanAndOwnership(t *testing.T) {
 				Targets: []plan.DocumentationTargetEffect{{
 					Quadrant: intent.DocumentationReference,
 					Subject:  "invoice", ReaderGoal: "Find the invoice contract.",
-					Path: "docs/reference/invoice/index.md",
+					Path: "docs/reference/invoice/README.md",
 				}},
 				Indexes: []plan.DocumentationIndexEffect{{
-					Kind: "root", Path: "docs/index.md",
-					RequiredLinks: []plan.DocumentationLinkEffect{{Target: "docs/reference/index.md"}},
+					Kind: "root", Path: "docs/README.md",
+					RequiredLinks: []plan.DocumentationLinkEffect{{Target: "docs/reference/README.md"}},
 				}},
 			},
 			DocumentationEvidence: &project.FeatureEvidence{Basis: "existing"},
@@ -158,8 +158,8 @@ func TestWriteResultReportsDocumentationPlanAndOwnership(t *testing.T) {
 		Manifest: &execute.Manifest{
 			AllowedSurfaces: []string{"documentation"},
 			Edits: []execute.Edit{
-				{ID: "documentation.reference.invoice", Kind: execute.EditUpdateMarkdown, Surface: "documentation", Target: "docs/reference/invoice/index.md", Postconditions: []execute.Condition{{Kind: execute.ConditionManagedOutsideDigest}}},
-				{ID: "documentation.index.root", Kind: execute.EditCreateFile, Surface: "documentation", Target: "docs/index.md"},
+				{ID: "documentation.reference.invoice", Kind: execute.EditUpdateMarkdown, Surface: "documentation", Target: "docs/reference/invoice/README.md", Postconditions: []execute.Condition{{Kind: execute.ConditionManagedOutsideDigest}}},
+				{ID: "documentation.index.root", Kind: execute.EditCreateFile, Surface: "documentation", Target: "docs/README.md"},
 			},
 		},
 		Execution: &execute.Result{Changes: []execute.Change{
@@ -177,11 +177,11 @@ func TestWriteResultReportsDocumentationPlanAndOwnership(t *testing.T) {
 
 	for _, expected := range []string{
 		"Documentation: document_existing_behavior",
-		"reference: subject=invoice path=docs/reference/invoice/index.md goal=Find the invoice contract.",
-		"root: path=docs/index.md links=1",
+		"reference: subject=invoice path=docs/reference/invoice/README.md goal=Find the invoice contract.",
+		"root: path=docs/README.md links=1",
 		"Documentation evidence: basis=existing sources=0",
-		"docs/reference/invoice/index.md: updated ownership=outside_content_preserved",
-		"docs/index.md: created ownership=managed_section_created",
+		"docs/reference/invoice/README.md: updated ownership=outside_content_preserved",
+		"docs/README.md: created ownership=managed_section_created",
 	} {
 		if !strings.Contains(output.String(), expected) {
 			t.Errorf("output does not contain %q:\n%s", expected, output.String())

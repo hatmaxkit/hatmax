@@ -42,9 +42,9 @@ func TestPrepareDocumentationOnlyManifest(t *testing.T) {
 		}
 	}
 
-	assertEditTarget(t, manifest.Edits, "documentation.target.reference.invoice", "docs/reference/invoice/index.md")
-	assertEditTarget(t, manifest.Edits, "documentation.index.root", "docs/index.md")
-	assertEditTarget(t, manifest.Edits, "documentation.index.quadrant.reference", "docs/reference/index.md")
+	assertEditTarget(t, manifest.Edits, "documentation.target.reference.invoice", "docs/reference/invoice/README.md")
+	assertEditTarget(t, manifest.Edits, "documentation.index.root", "docs/README.md")
+	assertEditTarget(t, manifest.Edits, "documentation.index.quadrant.reference", "docs/reference/README.md")
 
 	rootIndex, _ := manifestEdit(manifest.Edits, "documentation.index.root")
 	quadrantIndex, _ := manifestEdit(manifest.Edits, "documentation.index.quadrant.reference")
@@ -57,9 +57,9 @@ func TestPrepareDocumentationOnlyManifest(t *testing.T) {
 		t.Errorf("Commands = %#v, want only the repository documentation gate", manifest.Commands)
 	}
 
-	_, statErr := os.Stat(filepath.Join(root, "docs", "index.md"))
+	_, statErr := os.Stat(filepath.Join(root, "docs", "README.md"))
 	if !errors.Is(statErr, os.ErrNotExist) {
-		t.Errorf("Prepare() changed docs/index.md: %v", statErr)
+		t.Errorf("Prepare() changed docs/README.md: %v", statErr)
 	}
 }
 
@@ -84,12 +84,12 @@ func TestPrepareCombinedManifestIncludesDocumentationEffects(t *testing.T) {
 		t.Errorf("Edits = %d across %v, want implementation plus three documentation effects", len(manifest.Edits), manifest.AllowedSurfaces)
 	}
 
-	assertEditTarget(t, manifest.Edits, "documentation.target.how_to.invoice_due_on", "docs/how-to/invoice-due-on/index.md")
+	assertEditTarget(t, manifest.Edits, "documentation.target.how_to.invoice_due_on", "docs/how-to/invoice-due-on/README.md")
 }
 
 func TestPrepareManagedDocumentationUpdateUsesSnapshot(t *testing.T) {
 	root := generatedInvoiceProject(t)
-	writeExecutionFile(t, root, "docs/reference/invoice/index.md", managedExecutionDocumentation("Existing generated reference."))
+	writeExecutionFile(t, root, "docs/reference/invoice/README.md", managedExecutionDocumentation("Existing generated reference."))
 
 	value, inventory, selectedBook := documentationExecutionPlan(
 		t,
@@ -114,7 +114,7 @@ func TestPrepareManagedDocumentationUpdateUsesSnapshot(t *testing.T) {
 
 func TestPrepareRejectsDocumentationDrift(t *testing.T) {
 	root := generatedInvoiceProject(t)
-	writeExecutionFile(t, root, "docs/reference/invoice/index.md", managedExecutionDocumentation("Existing generated reference."))
+	writeExecutionFile(t, root, "docs/reference/invoice/README.md", managedExecutionDocumentation("Existing generated reference."))
 
 	value, _, selectedBook := documentationExecutionPlan(
 		t,
@@ -125,7 +125,7 @@ func TestPrepareRejectsDocumentationDrift(t *testing.T) {
 			Quadrant: intent.DocumentationReference, Subject: "invoice", ReaderGoal: "Find the exact invoice contract.",
 		}},
 	)
-	appendExecutionFile(t, root, "docs/reference/invoice/index.md", "\nExternal drift.\n")
+	appendExecutionFile(t, root, "docs/reference/invoice/README.md", "\nExternal drift.\n")
 
 	current, err := project.Inspect(context.Background(), root)
 	if err != nil {

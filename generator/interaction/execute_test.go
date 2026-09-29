@@ -92,7 +92,7 @@ func TestCoordinatorRunsPureDocumentationWithoutImplementationEffects(t *testing
 		}
 	}
 
-	for _, target := range []string{"docs/index.md", "docs/reference/index.md", "docs/reference/invoice/index.md"} {
+	for _, target := range []string{"docs/README.md", "docs/reference/README.md", "docs/reference/invoice/README.md"} {
 		_, err := os.Stat(filepath.Join(root, filepath.FromSlash(target)))
 		if err != nil {
 			t.Errorf("documentation target %q: %v", target, err)
@@ -135,7 +135,7 @@ func TestCoordinatorRunsCombinedImplementationAndDocumentationUnderOneApproval(t
 		t.Errorf("generated implementation: %v", err)
 	}
 
-	_, err = os.Stat(filepath.Join(root, "docs", "reference", "invoice", "index.md"))
+	_, err = os.Stat(filepath.Join(root, "docs", "reference", "invoice", "README.md"))
 	if err != nil {
 		t.Errorf("generated documentation: %v", err)
 	}

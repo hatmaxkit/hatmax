@@ -265,7 +265,7 @@ func checkDocumentationTargetStructure(
 		}
 	}
 
-	backlink := "[Back to " + documentationQuadrantLabel(target.Quadrant) + "](../index.md)"
+	backlink := "[Back to " + documentationQuadrantLabel(target.Quadrant) + "](../README.md)"
 	if !bytes.Contains(managed, []byte(backlink)) {
 		addConformanceDiagnostic(diagnostics, "HMGEN-DOCUMENTATION-INDEX", documentationNavigationRule, "documentation", target.Path, "quadrant backlink is missing", backlink)
 	}

@@ -201,11 +201,11 @@ func TestExpandCombinesImplementationAndDocumentationObligations(t *testing.T) {
 	}
 
 	target := result.DocumentationPlan.Targets[0]
-	if target.Path != "docs/how-to/property-summary/index.md" || target.Title != "How to Use Property Summary" || target.Snapshot.Exists {
+	if target.Path != "docs/how-to/property-summary/README.md" || target.Title != "How to Use Property Summary" || target.Snapshot.Exists {
 		t.Errorf("documentation target = %#v, want canonical absent how-to target", target)
 	}
 
-	if result.DocumentationPlan.Indexes[0].Path != "docs/index.md" || result.DocumentationPlan.Indexes[1].Path != "docs/how-to/index.md" {
+	if result.DocumentationPlan.Indexes[0].Path != "docs/README.md" || result.DocumentationPlan.Indexes[1].Path != "docs/how-to/README.md" {
 		t.Errorf("documentation indexes = %#v, want root and how-to chain", result.DocumentationPlan.Indexes)
 	}
 }
@@ -213,7 +213,7 @@ func TestExpandCombinesImplementationAndDocumentationObligations(t *testing.T) {
 func TestExpandRejectsUnmanagedDocumentationConflict(t *testing.T) {
 	admission, context := admittedExpansion(t, intent.OperationDocumentFeature, []string{"postgres_persistence"})
 	context.Inventory.Documentation.Files = []project.DocumentationFile{{
-		Path: "docs/reference/invoice/index.md", Quadrant: "reference", Subject: "invoice", ManagedState: project.DocumentationUnmanaged,
+		Path: "docs/reference/invoice/README.md", Quadrant: "reference", Subject: "invoice", ManagedState: project.DocumentationUnmanaged,
 	}}
 
 	_, err := Expand(admission, context)
@@ -247,10 +247,10 @@ func TestExpandPlansAllDocumentationQuadrants(t *testing.T) {
 	}
 
 	wantPaths := []string{
-		"docs/tutorials/invoice-basics/index.md",
-		"docs/how-to/invoice-due-date/index.md",
-		"docs/reference/invoice/index.md",
-		"docs/explanation/invoice-ownership/index.md",
+		"docs/tutorials/invoice-basics/README.md",
+		"docs/how-to/invoice-due-date/README.md",
+		"docs/reference/invoice/README.md",
+		"docs/explanation/invoice-ownership/README.md",
 	}
 	for index, want := range wantPaths {
 		if result.DocumentationPlan.Targets[index].Path != want {

@@ -230,7 +230,7 @@ func validateDocumentationPlan(value Plan) error {
 		contract, exists := intentTargets[string(target.Quadrant)+"\x00"+target.Subject]
 		layout, validQuadrant := documentationQuadrants[target.Quadrant]
 		expectedSlug := strings.ReplaceAll(target.Subject, "_", "-")
-		expectedPath := path.Join("docs", layout.directory, expectedSlug, "index.md")
+		expectedPath := path.Join("docs", layout.directory, expectedSlug, "README.md")
 
 		if !exists || !validQuadrant || target.ReaderGoal != contract.ReaderGoal || target.Slug != expectedSlug || target.Path != expectedPath || target.Title != documentationTargetTitle(target.Quadrant, target.Subject) {
 			return planError("plan_documentation_effects_invalid", indexedPath("documentation_plan.targets", index), "target does not match typed documentation intent")
@@ -250,7 +250,7 @@ func validateDocumentationPlan(value Plan) error {
 		}
 
 		expectedQuadrantLinks[target.Quadrant][target.Path] = DocumentationLinkEffect{
-			Title: target.Title, Target: target.Path, Relative: path.Join(target.Slug, "index.md"),
+			Title: target.Title, Target: target.Path, Relative: path.Join(target.Slug, "README.md"),
 		}
 		targetPaths[target.Path] = struct{}{}
 	}
@@ -279,7 +279,7 @@ func validateDocumentationPlan(value Plan) error {
 		targetPaths[effect.Path] = struct{}{}
 	}
 
-	if _, root := seenIndexes["docs/index.md"]; !root || len(seenIndexes) != len(expectedQuadrantLinks)+1 {
+	if _, root := seenIndexes["docs/README.md"]; !root || len(seenIndexes) != len(expectedQuadrantLinks)+1 {
 		return planError("plan_documentation_effects_invalid", "documentation_plan.indexes", "index effects must contain one root and one index per selected quadrant")
 	}
 
@@ -293,18 +293,18 @@ func validateDocumentationIndex(
 	expectedLinks := make(map[string]DocumentationLinkEffect)
 
 	if effect.Kind == documentationIndexRoot {
-		if effect.Path != "docs/index.md" || effect.Quadrant != "" || effect.Title != "Documentation" {
+		if effect.Path != "docs/README.md" || effect.Quadrant != "" || effect.Title != "Documentation" {
 			return planError("plan_documentation_effects_invalid", "documentation_plan.indexes", "root index identity is invalid")
 		}
 
 		for quadrant := range expectedQuadrantLinks {
 			layout := documentationQuadrants[quadrant]
-			target := path.Join("docs", layout.directory, "index.md")
-			expectedLinks[target] = DocumentationLinkEffect{Title: layout.title, Target: target, Relative: path.Join(layout.directory, "index.md")}
+			target := path.Join("docs", layout.directory, "README.md")
+			expectedLinks[target] = DocumentationLinkEffect{Title: layout.title, Target: target, Relative: path.Join(layout.directory, "README.md")}
 		}
 	} else if effect.Kind == documentationIndexQuadrant {
 		layout, exists := documentationQuadrants[effect.Quadrant]
-		if !exists || effect.Path != path.Join("docs", layout.directory, "index.md") || effect.Title != layout.title {
+		if !exists || effect.Path != path.Join("docs", layout.directory, "README.md") || effect.Title != layout.title {
 			return planError("plan_documentation_effects_invalid", "documentation_plan.indexes", "quadrant index identity is invalid")
 		}
 
