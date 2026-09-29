@@ -185,6 +185,8 @@ type OpenRequest struct {
 	Scope           Scope
 	BookContract    BookContract
 	BackendIdentity BackendIdentity
+	ConversationID  string
+	Fresh           bool
 }
 
 // Store opens one lock-owning mutable scope session and supports read-only
