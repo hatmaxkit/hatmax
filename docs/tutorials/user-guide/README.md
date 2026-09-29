@@ -43,10 +43,10 @@ designed:
    Postgres lifecycle and schema ownership.
 10. [Models and Data Flow](models-and-data-flow.md) follows application data
     across feature layers.
-11. **Identity and Sessions** adds authentication, authorization, and
-    cryptographic support.
-12. **Configuration and Runtime Settings** separates startup configuration,
-    logging, and mutable settings.
+11. [Identity and Sessions](identity-and-sessions.md) adds authentication,
+    authorization, and cryptographic support.
+12. [Configuration and Runtime Settings](configuration-and-runtime-settings.md)
+    separates startup configuration, logging, and mutable settings.
 13. **Events and Background Work** introduces pubsub and scheduled work.
 14. **Application Services** places mail, images, telemetry, and replaceable
     adapters.
@@ -60,9 +60,7 @@ designed:
 These chapters contain verified Hatmax behavior that is being incorporated
 into the technical journey:
 
-- [Sign In](sign-in.md)
 - [Work Outside the Request](background-work.md)
-- [Change Settings at Runtime](settings.md)
 - [Generate a Feature](generation.md)
 
 ## Supporting Documentation

@@ -216,4 +216,5 @@ complete vertical slice.
 ---
 
 [Previous: Persistence and Migrations](persistence-and-migrations.md) ·
-[User Guide](README.md)
+[User Guide](README.md) ·
+[Next: Identity and Sessions](identity-and-sessions.md)
