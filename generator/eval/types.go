@@ -186,6 +186,7 @@ const (
 // Provenance records bounded, non-secret backend facts for one interpretation.
 type Provenance struct {
 	Adapter         string         `json:"adapter" yaml:"adapter"`
+	ThreadID        string         `json:"thread_id,omitempty" yaml:"thread_id,omitempty"`
 	ContractVersion int            `json:"contract_version" yaml:"contract_version"`
 	BackendVersion  string         `json:"backend_version,omitempty" yaml:"backend_version,omitempty"`
 	ProtocolVersion string         `json:"protocol_version,omitempty" yaml:"protocol_version,omitempty"`

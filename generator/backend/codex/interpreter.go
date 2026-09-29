@@ -147,6 +147,7 @@ func (interpreter *Interpreter) Interpret(ctx context.Context, request eval.Requ
 		Interpretation: interpretation,
 		Provenance: eval.Provenance{
 			Adapter:         "codex-app-server",
+			ThreadID:        session.ID,
 			ContractVersion: eval.CurrentContractVersion,
 			BackendVersion:  runtimeInfo.ServerVersion,
 			ProtocolVersion: ProtocolVersion,

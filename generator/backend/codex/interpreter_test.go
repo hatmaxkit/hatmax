@@ -37,6 +37,7 @@ func TestInterpreterReturnsStrictResultAndProvenance(t *testing.T) {
 
 	want := eval.Provenance{
 		Adapter:         "codex-app-server",
+		ThreadID:        "thread-1",
 		ContractVersion: eval.CurrentContractVersion,
 		BackendVersion:  "0.153.0",
 		ProtocolVersion: ProtocolVersion,

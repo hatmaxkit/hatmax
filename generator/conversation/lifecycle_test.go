@@ -116,7 +116,10 @@ func TestClarifyingOperationRetainsExplicitDecisions(t *testing.T) {
 	decisions := []Decision{{
 		Field: "domain.route", Question: "Which route should expose invoices?", Answer: "/invoices",
 	}}
-	err = value.SetClarifyingOperation("operation-1", decisions, now.Add(2*time.Minute))
+
+	err = value.SetClarifyingOperation("operation-1", []intent.Clarification{{
+		Field: "domain.fields", Question: "Which fields belong to invoices?",
+	}}, decisions, now.Add(2*time.Minute))
 	if err != nil {
 		t.Fatalf("SetClarifyingOperation() error = %v", err)
 	}
@@ -154,12 +157,14 @@ func TestConversationResetAndRebindReplaceAuthority(t *testing.T) {
 		t.Fatalf("ResolveScope() error = %v", err)
 	}
 
-	err = value.Rebind(projectScope, now.Add(3*time.Minute))
+	projectContract := BookContract{BookVersion: 1, InterpreterVersion: 3}
+
+	err = value.Rebind(projectScope, projectContract, now.Add(3*time.Minute))
 	if err != nil {
 		t.Fatalf("Rebind() error = %v", err)
 	}
 
-	if value.Scope != projectScope || value.BackendThreadID != "" || value.Operations[0].Status != OperationStale {
+	if value.Scope != projectScope || value.BookContract != projectContract || value.BackendThreadID != "" || value.Operations[0].Status != OperationStale {
 		t.Fatalf("rebound conversation = %#v", value)
 	}
 

@@ -155,18 +155,19 @@ const (
 // ProposedOperation is historical and resumable context, never current
 // execution authority. Approval is deliberately absent.
 type ProposedOperation struct {
-	ID                string          `json:"id"`
-	ConversationID    string          `json:"conversation_id"`
-	Status            OperationStatus `json:"status"`
-	RequestSummary    string          `json:"request_summary"`
-	IntentContract    int             `json:"intent_contract,omitempty"`
-	Intent            *intent.Intent  `json:"intent,omitempty"`
-	Decisions         []Decision      `json:"decisions,omitempty"`
-	PlanDigest        string          `json:"plan_digest,omitempty"`
-	SourceFingerprint string          `json:"source_fingerprint,omitempty"`
-	ResultSummary     string          `json:"result_summary,omitempty"`
-	CreatedAt         time.Time       `json:"created_at"`
-	UpdatedAt         time.Time       `json:"updated_at"`
+	ID                string                 `json:"id"`
+	ConversationID    string                 `json:"conversation_id"`
+	Status            OperationStatus        `json:"status"`
+	RequestSummary    string                 `json:"request_summary"`
+	IntentContract    int                    `json:"intent_contract,omitempty"`
+	Intent            *intent.Intent         `json:"intent,omitempty"`
+	Pending           []intent.Clarification `json:"pending_clarifications,omitempty"`
+	Decisions         []Decision             `json:"decisions,omitempty"`
+	PlanDigest        string                 `json:"plan_digest,omitempty"`
+	SourceFingerprint string                 `json:"source_fingerprint,omitempty"`
+	ResultSummary     string                 `json:"result_summary,omitempty"`
+	CreatedAt         time.Time              `json:"created_at"`
+	UpdatedAt         time.Time              `json:"updated_at"`
 }
 
 // Conversation is one versioned, bounded durable snapshot.
@@ -215,7 +216,7 @@ type Session interface {
 	Current() Conversation
 	Replace(context.Context, Conversation) error
 	Reset(context.Context, string, time.Time) (Conversation, error)
-	Rebind(context.Context, Scope, time.Time) error
+	Rebind(context.Context, Scope, BookContract, time.Time) error
 	Close() error
 }
 

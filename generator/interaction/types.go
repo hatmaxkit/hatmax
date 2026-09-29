@@ -181,6 +181,7 @@ type Result struct {
 	Transitions      []State
 	Outcome          Outcome
 	Response         *eval.ConversationResponse
+	Intent           *intent.Intent
 	Plan             *plan.Plan
 	PlanYAML         []byte
 	Provenance       Provenance

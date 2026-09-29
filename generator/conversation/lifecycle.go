@@ -90,7 +90,12 @@ func (c *Conversation) AddOperation(id, requestSummary string, now time.Time) er
 
 // SetClarifyingOperation retains the explicit decisions collected for one
 // candidate without treating them as a plan or approval.
-func (c *Conversation) SetClarifyingOperation(id string, decisions []Decision, now time.Time) error {
+func (c *Conversation) SetClarifyingOperation(
+	id string,
+	pending []intent.Clarification,
+	decisions []Decision,
+	now time.Time,
+) error {
 	next := clone(*c)
 
 	index := operationIndex(next.Operations, id)
@@ -104,6 +109,8 @@ func (c *Conversation) SetClarifyingOperation(id string, decisions []Decision, n
 	}
 
 	operation.Status = OperationClarifying
+
+	operation.Pending = append([]intent.Clarification{}, pending...)
 	operation.Decisions = append([]Decision{}, decisions...)
 	operation.UpdatedAt = now
 	next.Operations[index] = operation
@@ -179,6 +186,7 @@ func (c *Conversation) SetPlannedOperation(
 	operation.Status = OperationPlanned
 	operation.IntentContract = intentContract
 	operation.Intent = cloneIntent(value)
+	operation.Pending = nil
 	operation.PlanDigest = planDigest
 	operation.SourceFingerprint = sourceFingerprint
 	operation.UpdatedAt = now
@@ -249,7 +257,7 @@ func (c Conversation) Reset(id string, now time.Time) (Conversation, Conversatio
 // Rebind moves a pre-project conversation to an exact proposed target or the
 // created project scope and clears backend thread identity. Planned operations
 // become stale.
-func (c *Conversation) Rebind(scope Scope, now time.Time) error {
+func (c *Conversation) Rebind(scope Scope, contract BookContract, now time.Time) error {
 	if c.Scope.Kind != ScopePreProject || (scope.Kind != ScopePreProject && scope.Kind != ScopeProject) {
 		return modelError("conversation_rebind_invalid", "scope.kind", "rebind requires a pre_project source and pre_project or project target")
 	}
@@ -259,8 +267,13 @@ func (c *Conversation) Rebind(scope Scope, now time.Time) error {
 		return err
 	}
 
+	if contract.BookVersion < 1 || contract.InterpreterVersion < 1 {
+		return modelError("conversation_contract_invalid", "book_contract", "Book and interpreter versions must be positive")
+	}
+
 	next := clone(*c)
 	next.Scope = scope
+	next.BookContract = contract
 	next.BackendThreadID = ""
 	next.UpdatedAt = now
 
@@ -469,6 +482,8 @@ func Clone(value Conversation) Conversation {
 
 func cloneOperation(value ProposedOperation) ProposedOperation {
 	result := value
+	result.Pending = append([]intent.Clarification{}, value.Pending...)
+
 	result.Decisions = append([]Decision{}, value.Decisions...)
 	if value.Intent != nil {
 		result.Intent = cloneIntent(*value.Intent)

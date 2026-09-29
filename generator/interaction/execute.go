@@ -59,7 +59,6 @@ func (c *Coordinator) RunApprovedTurn(ctx context.Context, root string, request 
 }
 
 func (c *Coordinator) executePrepared(ctx context.Context, prepared preparedInteraction) Result {
-
 	result := prepared.result
 
 	result.State = StateExecuting

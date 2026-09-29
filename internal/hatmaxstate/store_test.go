@@ -326,7 +326,7 @@ func TestStoreRebindsScopeAndReplacesBackendThreadWithoutLosingContext(t *testin
 		t.Fatalf("ResolveScope() error = %v", err)
 	}
 
-	err = session.Rebind(context.Background(), projectScope, clock.next())
+	err = session.Rebind(context.Background(), projectScope, request.BookContract, clock.next())
 	if err != nil {
 		t.Fatalf("Rebind() error = %v", err)
 	}

@@ -94,6 +94,17 @@ func New(config Config) (*Coordinator, error) {
 	}, nil
 }
 
+// ProjectFingerprint reinspects one existing project using the same complete
+// Book projection used before conversational planning.
+func (c *Coordinator) ProjectFingerprint(ctx context.Context, root string) (project.Fingerprint, error) {
+	inventory, err := project.InspectWithOptions(ctx, root, c.inspectionOptions)
+	if err != nil {
+		return project.Fingerprint{}, err
+	}
+
+	return inventory.Fingerprint(bookFingerprintRequest(c.selectedBook))
+}
+
 func (c *Coordinator) prepareApproved(ctx context.Context, root, prompt string) (preparedInteraction, *Result) {
 	return c.prepare(ctx, root, prompt, preparationOptions{})
 }
@@ -149,6 +160,7 @@ func (c *Coordinator) prepare(
 
 		baseResult.Clarifications = cloneIntentClarifications(evaluation.Clarifications)
 		baseResult.Transitions = append(baseResult.Transitions, StateCandidateChange, StateClarifying)
+
 		if c.clarifier == nil {
 			if options.preview {
 				baseResult.State = StateClarifying
@@ -218,6 +230,7 @@ func (c *Coordinator) prepareApplication(
 
 	currentTarget := provisional
 	targetResolved := false
+
 	clarifications := append([]eval.ClarificationExchange{}, options.clarifications...)
 	baseResult.State = StateInterpreting
 	baseResult.Transitions = append(baseResult.Transitions, StateInterpreting)
@@ -250,6 +263,7 @@ func (c *Coordinator) prepareApplication(
 
 		baseResult.Clarifications = cloneIntentClarifications(evaluation.Clarifications)
 		baseResult.Transitions = append(baseResult.Transitions, StateCandidateChange, StateClarifying)
+
 		if c.clarifier == nil {
 			if options.preview {
 				baseResult.State = StateClarifying
@@ -363,6 +377,7 @@ func (c *Coordinator) finishPlanning(
 	}
 
 	sealedPlan := *evaluation.Plan
+
 	baseResult.Transitions = append(baseResult.Transitions, StateCandidateChange)
 
 	serialized, err := plan.MarshalYAML(sealedPlan)
@@ -387,8 +402,10 @@ func (c *Coordinator) finishPlanning(
 
 	baseResult.State = StateAwaitingApproval
 	baseResult.Plan = &sealedPlan
+	baseResult.Intent = evaluation.Intent
 
 	baseResult.PlanYAML = append([]byte{}, serialized...)
+
 	baseResult.Clarifications = []intent.Clarification{}
 	if options.preview {
 		baseResult.State = StatePlanReady

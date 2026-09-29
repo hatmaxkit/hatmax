@@ -154,6 +154,28 @@ func validateOperations(value Conversation) error {
 			return modelError("state_limit_exceeded", field+".decisions", "operation exceeds %d decisions", MaximumOperationDecisions)
 		}
 
+		if len(operation.Pending)+len(operation.Decisions) > MaximumOperationDecisions {
+			return modelError("state_limit_exceeded", field+".pending_clarifications", "operation exceeds %d clarification exchanges", MaximumOperationDecisions)
+		}
+
+		pendingFields := make(map[string]struct{}, len(operation.Pending))
+		for pendingIndex, clarification := range operation.Pending {
+			pendingField := indexedField(field+".pending_clarifications", pendingIndex)
+			if strings.TrimSpace(clarification.Field) == "" || strings.TrimSpace(clarification.Question) == "" {
+				return modelError("conversation_operation_invalid", pendingField, "field and question are required")
+			}
+
+			if len(clarification.Field) > MaximumDecisionBytes || len(clarification.Question) > MaximumDecisionBytes {
+				return modelError("state_limit_exceeded", pendingField, "clarification exceeds its retention limit")
+			}
+
+			if _, exists := pendingFields[clarification.Field]; exists {
+				return modelError("conversation_operation_invalid", pendingField+".field", "clarification field %q is duplicated", clarification.Field)
+			}
+
+			pendingFields[clarification.Field] = struct{}{}
+		}
+
 		decisionFields := make(map[string]struct{}, len(operation.Decisions))
 		for decisionIndex, decision := range operation.Decisions {
 			decisionField := indexedField(field+".decisions", decisionIndex)
@@ -167,6 +189,10 @@ func validateOperations(value Conversation) error {
 
 			if _, exists := decisionFields[decision.Field]; exists {
 				return modelError("conversation_operation_invalid", decisionField+".field", "decision field %q is duplicated", decision.Field)
+			}
+
+			if _, exists := pendingFields[decision.Field]; exists {
+				return modelError("conversation_operation_invalid", decisionField+".field", "decision field %q is still pending", decision.Field)
 			}
 
 			decisionFields[decision.Field] = struct{}{}

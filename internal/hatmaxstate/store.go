@@ -567,7 +567,12 @@ func (s *session) Reset(ctx context.Context, id string, now time.Time) (conversa
 	return conversation.Clone(next), nil
 }
 
-func (s *session) Rebind(ctx context.Context, scope conversation.Scope, now time.Time) error {
+func (s *session) Rebind(
+	ctx context.Context,
+	scope conversation.Scope,
+	contract conversation.BookContract,
+	now time.Time,
+) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -583,7 +588,7 @@ func (s *session) Rebind(ctx context.Context, scope conversation.Scope, now time
 
 	value := conversation.Clone(s.current)
 
-	err = value.Rebind(scope, now.UTC())
+	err = value.Rebind(scope, contract, now.UTC())
 	if err != nil {
 		return err
 	}
