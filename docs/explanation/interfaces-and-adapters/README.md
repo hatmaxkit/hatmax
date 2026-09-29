@@ -17,5 +17,6 @@ This arrangement has three consequences:
 
 Interfaces do not remove lifecycle responsibilities. A Postgres adapter may
 still need `Start` and `Stop`, and its position in `app.Setup` must follow its
-dependencies. The [Wiring appendix](../../tutorials/user-guide/wiring.md)
-shows the common ordering.
+dependencies.
+[Lifecycle and Wiring](../../tutorials/user-guide/lifecycle-and-wiring.md)
+places those edges in the application composition flow.

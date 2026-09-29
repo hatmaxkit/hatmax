@@ -58,7 +58,6 @@ designed:
 These chapters contain verified Hatmax behavior that is being incorporated
 into the technical journey:
 
-- [Run the First Process](getting-started.md)
 - [Add Postgres](postgres.md)
 - [Serve a Page](pages.md)
 - [Accept a Form](forms.md)
@@ -67,7 +66,6 @@ into the technical journey:
 - [Work Outside the Request](background-work.md)
 - [Change Settings at Runtime](settings.md)
 - [Generate a Feature](generation.md)
-- [Wiring](wiring.md)
 
 ## Supporting Documentation
 

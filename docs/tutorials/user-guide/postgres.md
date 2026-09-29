@@ -5,7 +5,7 @@ the end, startup creates the required tables and the page can list notes.
 
 ## Before You Begin
 
-Complete [Run the First Process](getting-started.md). A Postgres server must
+Read [Lifecycle and Wiring](lifecycle-and-wiring.md). A Postgres server must
 accept the values in `examples/guide/config.yaml`.
 
 Create the default database when necessary:
@@ -57,5 +57,6 @@ Continue with [Serve a Page](pages.md).
 
 ---
 
-[Previous: Run the First Process](getting-started.md) · [User Guide](README.md) ·
+[Previous: Lifecycle and Wiring](lifecycle-and-wiring.md) ·
+[User Guide](README.md) ·
 [Next: Serve a Page](pages.md)
