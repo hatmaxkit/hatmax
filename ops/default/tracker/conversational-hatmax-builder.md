@@ -14,14 +14,14 @@ Approved specs:
 Base branch: `dev`
 Planning base: `510a856419a97d64959387099c48a81f867fb09a`
 Active slice: Slice 1
-Active tasks: T1.1, T1.2, T1.3
+Active tasks: none; slice review pending
 Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Slice Status
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Builder contracts | active | `docs/hatmax-builder-contracts` | `docs(slice-1): define Hatmax builder contracts` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-1-builder-contracts.md` |
+| Slice 1 | Builder contracts | reviewing | `docs/hatmax-builder-contracts` | `docs(slice-1): define Hatmax builder contracts` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-1-builder-contracts.md` |
 | Slice 2 | Application planning kernel | planned | `feat/application-scaffold-kernel` | `feat(slice-2): plan canonical Hatmax applications` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-2-application-planning-kernel.md` |
 | Slice 3 | Scaffold execution | planned | `feat/application-scaffold-rendering` | `feat(slice-3): render canonical Hatmax applications` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-3-scaffold-execution.md` |
 | Slice 4 | Application bootstrap product | planned | `feat/application-scaffold-product` | `feat(slice-4): deliver Hatmax application bootstrap` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-4-application-bootstrap-product.md` |
@@ -36,7 +36,7 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 | --- | --- | --- | --- | --- |
 | T1.1 | complete | `docs(spec): reconcile application scaffold contracts` | `0d2748bcffcc7f9334dc8e322444610cdb21efe8` | `make docs-check`; `git diff --check` passed |
 | T1.2 | complete | `docs(spec): reconcile conversational surface contracts` | `d6a5b6a9db9376bd8bcacf08ddce92bbbcfb26e7` | `make docs-check`; `git diff --check` passed |
-| T1.3 | pending | `docs(spec): approve the conversational Hatmax builder` | pending | `make docs-check`; `git diff --check` |
+| T1.3 | complete | `docs(spec): approve the conversational Hatmax builder` | `d040d281781bdef13b42c320d2c8b1a3871aa379` | `make docs-check`; `git diff --check` passed |
 
 ## Slice 2 Tasks
 
@@ -97,7 +97,7 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 ## Completion Gates
 
 - [x] The maintainer approves the plan and tracker.
-- [ ] Slice 1 promotes one reconciled non-conflicting specification set.
+- [x] Slice 1 promotes one reconciled non-conflicting specification set.
 - [ ] Slice 1 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 2 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 3 is delivered through its branch, report, pull request, and merge.
@@ -110,5 +110,6 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Current Gate
 
-Slice 1 is executing on `docs/hatmax-builder-contracts`. T1.1 and T1.2 are
-complete; T1.3 promotion and slice review remain active.
+Slice 1 implementation and validation are complete on
+`docs/hatmax-builder-contracts`. Pull-request review and maintainer-controlled
+merge remain pending.
