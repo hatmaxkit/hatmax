@@ -576,17 +576,26 @@ func writeCLICompositionRoot(t *testing.T, root string) {
 
 import (
 	"context"
+	"embed"
 
 	"hatmax.adrianpk.com/app"
+	"hatmax.adrianpk.com/config"
+	"hatmax.adrianpk.com/db"
+	"hatmax.adrianpk.com/log"
+	"hatmax.adrianpk.com/web"
 )
 
 func main() {
-	logger := buildLogger()
-	database := buildDatabase()
-	migrator := buildMigrator()
-	tmplMgr := buildTemplates()
+	var assets embed.FS
+
+	configuration := &config.Config{}
+	logger := log.NewNoopLogger()
+	database := db.New(assets, db.Postgres, configuration, logger)
+	migrator := db.NewMigrator(database, assets, db.Postgres, logger)
+	tmplMgr := web.NewTemplateManager(assets, logger)
+	router := app.NewRouter(logger)
 	deps := []any{database, migrator, tmplMgr}
-	app.Setup(context.Background(), nil, deps...)
+	app.Setup(context.Background(), router, deps...)
 }
 `
 

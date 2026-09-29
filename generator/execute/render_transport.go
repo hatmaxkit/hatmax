@@ -161,7 +161,7 @@ func renderDeleteHandler(source *strings.Builder, context renderContext) {
 }
 
 func renderInputParser(source *strings.Builder, context renderContext) {
-	fmt.Fprintf(source, "func parseInput(request *http.Request) (%sInput, FormView) {\n\tform := emptyForm()\n\tvalues, err := web.ParseForm(request)\n\tif err != nil {\n\t\tform.Errors = web.NewFormErrors(\"The form could not be read.\")\n\n\t\treturn %sInput{}, form\n\t}\n\n", context.entity, context.entity)
+	fmt.Fprintf(source, "func parseInput(request *http.Request) (%sInput, FormView) {\n\tform := emptyForm()\n\n\tvalues, err := web.ParseForm(request)\n\tif err != nil {\n\t\tform.Errors = web.NewFormErrors(\"The form could not be read.\")\n\n\t\treturn %sInput{}, form\n\t}\n\n", context.entity, context.entity)
 	fmt.Fprintf(source, "\tinput := %sInput{}\n", context.entity)
 
 	for _, field := range context.fields {
@@ -190,7 +190,7 @@ func renderParsedField(source *strings.Builder, field renderField) {
 
 func renderHandlerHelpers(source *strings.Builder, context renderContext) {
 	source.WriteString("func emptyForm() FormView {\n\treturn FormView{Values: make(map[string]string), Errors: web.NewFormErrors(\"\")}\n}\n\n")
-	source.WriteString("func (handler *Handler) renderInvalid(response http.ResponseWriter, request *http.Request, form FormView) {\n\tresponse.WriteHeader(http.StatusUnprocessableEntity)\n\tif htmx.IsHTMXRequest(request) {\n")
+	source.WriteString("func (handler *Handler) renderInvalid(response http.ResponseWriter, request *http.Request, form FormView) {\n\tresponse.WriteHeader(http.StatusUnprocessableEntity)\n\n\tif htmx.IsHTMXRequest(request) {\n")
 	fmt.Fprintf(source, "\t\thandler.templates.RenderPartial(response, %q, \"form\", form)\n\n\t\treturn\n\t}\n\n\tvalues, err := handler.service.List(request.Context())\n\tif err != nil {\n\t\thandler.log.Errorf(\"list records after invalid form: %%v\", err)\n\t}\n\n\thandler.templates.Render(response, %q, \"page\", PageView{Title: %q, Values: values, Form: form})\n}\n\n", context.feature, context.feature, context.label)
 	source.WriteString("func (handler *Handler) internalError(response http.ResponseWriter, operation string, err error) {\n\thandler.log.Errorf(\"%s: %v\", operation, err)\n\thttp.Error(response, \"The request could not be completed.\", http.StatusInternalServerError)\n}\n")
 }
@@ -298,8 +298,10 @@ func TestHandlerMapsValidationErrors(t *testing.T) {
 	request := httptest.NewRequest(http.MethodPost, %q, strings.NewReader(%q))
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	request.Header.Set("HX-Request", "true")
+
 	response := httptest.NewRecorder()
 	router.ServeHTTP(response, request)
+
 	if response.Code != http.StatusUnprocessableEntity || renderer.name != "form" || !renderer.partial {
 		t.Fatalf("validation response = %%d, %%#v", response.Code, renderer)
 	}
@@ -369,6 +371,7 @@ func TestHandlerRendersPageAndHTMXCreate(t *testing.T) {
 
 	page := httptest.NewRecorder()
 	router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, %q, nil))
+
 	if page.Code != http.StatusOK || renderer.name != "page" || renderer.partial {
 		t.Fatalf("page response = %%d, %%#v", page.Code, renderer)
 	}
@@ -376,8 +379,10 @@ func TestHandlerRendersPageAndHTMXCreate(t *testing.T) {
 	request := httptest.NewRequest(http.MethodPost, %q, strings.NewReader(%q))
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	request.Header.Set("HX-Request", "true")
+
 	created := httptest.NewRecorder()
 	router.ServeHTTP(created, request)
+
 	if created.Code != http.StatusOK || !service.created || renderer.name != "row" || !renderer.partial {
 		t.Fatalf("create response = %%d, %%#v", created.Code, renderer)
 	}

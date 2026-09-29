@@ -434,6 +434,7 @@ func (store *recordingStore) Delete(context.Context, string) error {
 func TestServiceCreateValidatesBeforePersistence(t *testing.T) {
 	store := &recordingStore{}
 	service := NewService(store)
+
 	_, err := service.Create(context.Background(), %sInput{%s})
 	if err != nil {
 		t.Fatalf("Create() error = %%v", err)
@@ -475,6 +476,7 @@ func (provider testDBProvider) GetDB() *sql.DB {
 
 func TestPostgresStoreRequiresStartedDatabase(t *testing.T) {
 	store := NewPostgresStore(testDBProvider{})
+
 	err := store.Start(context.Background())
 	if err == nil {
 		t.Fatal("Start() error = nil, want unavailable database")
@@ -491,6 +493,7 @@ func TestPostgresStoreCRUD(t *testing.T) {
 	}
 
 	store := NewPostgresStore(testDBProvider{database: database})
+
 	err = store.Start(context.Background())
 	if err != nil {
 		t.Fatalf("Start() error = %%v", err)

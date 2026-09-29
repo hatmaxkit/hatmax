@@ -14,17 +14,26 @@ const canonicalCompositionRoot = `package main
 
 import (
 	"context"
+	"embed"
 
 	"hatmax.adrianpk.com/app"
+	"hatmax.adrianpk.com/config"
+	"hatmax.adrianpk.com/db"
+	"hatmax.adrianpk.com/log"
+	"hatmax.adrianpk.com/web"
 )
 
 func main() {
-	logger := buildLogger()
-	database := buildDatabase()
-	migrator := buildMigrator()
-	tmplMgr := buildTemplates()
+	var assets embed.FS
+
+	configuration := &config.Config{}
+	logger := log.NewNoopLogger()
+	database := db.New(assets, db.Postgres, configuration, logger)
+	migrator := db.NewMigrator(database, assets, db.Postgres, logger)
+	tmplMgr := web.NewTemplateManager(assets, logger)
+	router := app.NewRouter(logger)
 	deps := []any{database, migrator, tmplMgr}
-	app.Setup(context.Background(), nil, deps...)
+	app.Setup(context.Background(), router, deps...)
 }
 `
 
@@ -84,7 +93,7 @@ func TestRenderCreateFeatureRendersAndAppliesCompleteManifest(t *testing.T) {
 	}
 
 	wired := string(mainSource)
-	if !strings.Contains(wired, "\t\"context\"\n\n\tinvoicefeat") {
+	if !strings.Contains(wired, "\t\"embed\"\n\n\tinvoicefeat") {
 		t.Errorf("main.go import groups are not canonical:\n%s", wired)
 	}
 
