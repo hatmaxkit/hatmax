@@ -88,6 +88,37 @@ func (c *Conversation) AddOperation(id, requestSummary string, now time.Time) er
 	return nil
 }
 
+// SetClarifyingOperation retains the explicit decisions collected for one
+// candidate without treating them as a plan or approval.
+func (c *Conversation) SetClarifyingOperation(id string, decisions []Decision, now time.Time) error {
+	next := clone(*c)
+
+	index := operationIndex(next.Operations, id)
+	if index < 0 {
+		return modelError("conversation_operation_missing", "operation.id", "operation %q is not retained", id)
+	}
+
+	operation := next.Operations[index]
+	if !allowedTransition(operation.Status, OperationClarifying) {
+		return modelError("conversation_operation_transition_invalid", "operation.status", "cannot transition %q to %q", operation.Status, OperationClarifying)
+	}
+
+	operation.Status = OperationClarifying
+	operation.Decisions = append([]Decision{}, decisions...)
+	operation.UpdatedAt = now
+	next.Operations[index] = operation
+	next.UpdatedAt = now
+
+	err := Validate(next)
+	if err != nil {
+		return err
+	}
+
+	*c = next
+
+	return nil
+}
+
 // TransitionOperation applies one valid status transition and bounded summary.
 func (c *Conversation) TransitionOperation(
 	id string,
@@ -438,6 +469,7 @@ func Clone(value Conversation) Conversation {
 
 func cloneOperation(value ProposedOperation) ProposedOperation {
 	result := value
+	result.Decisions = append([]Decision{}, value.Decisions...)
 	if value.Intent != nil {
 		result.Intent = cloneIntent(*value.Intent)
 	}

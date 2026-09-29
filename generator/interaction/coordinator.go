@@ -47,6 +47,13 @@ type preparedInteraction struct {
 	result    Result
 }
 
+type preparationOptions struct {
+	dialogue           []eval.DialogueTurn
+	clarifications     []eval.ClarificationExchange
+	preview            bool
+	approvedPlanDigest string
+}
+
 // New constructs a coordinator without connecting to an interpreter or
 // inspecting a project.
 func New(config Config) (*Coordinator, error) {
@@ -88,8 +95,18 @@ func New(config Config) (*Coordinator, error) {
 }
 
 func (c *Coordinator) prepareApproved(ctx context.Context, root, prompt string) (preparedInteraction, *Result) {
+	return c.prepare(ctx, root, prompt, preparationOptions{})
+}
+
+func (c *Coordinator) prepare(
+	ctx context.Context,
+	root string,
+	prompt string,
+	options preparationOptions,
+) (preparedInteraction, *Result) {
 	baseResult := Result{
 		State:       StateInspecting,
+		Transitions: []State{StateInspecting},
 		Diagnostics: []Diagnostic{},
 	}
 
@@ -97,7 +114,7 @@ func (c *Coordinator) prepareApproved(ctx context.Context, root, prompt string) 
 	if err != nil {
 		_, moduleErr := os.Stat(filepath.Join(root, "go.mod"))
 		if errors.Is(moduleErr, os.ErrNotExist) {
-			return c.prepareApplicationApproved(ctx, root, prompt, baseResult)
+			return c.prepareApplication(ctx, root, prompt, baseResult, options)
 		}
 
 		return preparedInteraction{}, terminalFailure(baseResult, OutcomeFailed, PhaseInspection, "HMGEN-INSPECTION-FAILED", err)
@@ -111,10 +128,11 @@ func (c *Coordinator) prepareApproved(ctx context.Context, root, prompt string) 
 	}
 
 	baseResult.State = StateInterpreting
-	clarifications := make([]eval.ClarificationExchange, 0)
+	baseResult.Transitions = append(baseResult.Transitions, StateInterpreting)
+	clarifications := append([]eval.ClarificationExchange{}, options.clarifications...)
 
 	for round := 0; ; round++ {
-		evaluation, evaluationErr := eval.EvaluateConversation(ctx, c.interpreter, prompt, clarifications, eval.Context{
+		evaluation, evaluationErr := eval.EvaluateDialogue(ctx, c.interpreter, prompt, options.dialogue, clarifications, eval.Context{
 			Inventory:   inventory,
 			Fingerprint: fingerprint,
 			Book:        c.selectedBook,
@@ -125,12 +143,19 @@ func (c *Coordinator) prepareApproved(ctx context.Context, root, prompt string) 
 
 		baseResult.Provenance.Interpretations = append(baseResult.Provenance.Interpretations, evaluation.Provenance)
 
-		if evaluation.Status != intent.StatusClarificationRequired {
-			return c.finishPlanning(ctx, inventory, nil, c.selectedBook, evaluation, baseResult)
+		if evaluation.Response != nil || evaluation.Status != intent.StatusClarificationRequired {
+			return c.finishPlanning(ctx, inventory, nil, c.selectedBook, evaluation, baseResult, options)
 		}
 
 		baseResult.Clarifications = cloneIntentClarifications(evaluation.Clarifications)
+		baseResult.Transitions = append(baseResult.Transitions, StateCandidateChange, StateClarifying)
 		if c.clarifier == nil {
+			if options.preview {
+				baseResult.State = StateClarifying
+
+				return preparedInteraction{}, outcomeResult(baseResult, OutcomeClarificationRequired)
+			}
+
 			return preparedInteraction{}, terminalResult(baseResult, OutcomeClarificationRequired)
 		}
 
@@ -170,11 +195,12 @@ func (c *Coordinator) prepareApproved(ctx context.Context, root, prompt string) 
 	}
 }
 
-func (c *Coordinator) prepareApplicationApproved(
+func (c *Coordinator) prepareApplication(
 	ctx context.Context,
 	root string,
 	prompt string,
 	baseResult Result,
+	options preparationOptions,
 ) (preparedInteraction, *Result) {
 	selectedBook := c.applicationBook
 
@@ -192,11 +218,12 @@ func (c *Coordinator) prepareApplicationApproved(
 
 	currentTarget := provisional
 	targetResolved := false
-	clarifications := make([]eval.ClarificationExchange, 0)
+	clarifications := append([]eval.ClarificationExchange{}, options.clarifications...)
 	baseResult.State = StateInterpreting
+	baseResult.Transitions = append(baseResult.Transitions, StateInterpreting)
 
 	for round := 0; ; round++ {
-		evaluation, evaluationErr := eval.EvaluateConversation(ctx, c.interpreter, prompt, clarifications, eval.Context{
+		evaluation, evaluationErr := eval.EvaluateDialogue(ctx, c.interpreter, prompt, options.dialogue, clarifications, eval.Context{
 			Target: &currentTarget, TargetResolved: targetResolved, Fingerprint: fingerprint, Book: selectedBook,
 		})
 		if evaluationErr != nil {
@@ -217,12 +244,19 @@ func (c *Coordinator) prepareApplicationApproved(
 			targetResolved = true
 		}
 
-		if evaluation.Status != intent.StatusClarificationRequired {
-			return c.finishPlanning(ctx, project.Inventory{}, &currentTarget, selectedBook, evaluation, baseResult)
+		if evaluation.Response != nil || evaluation.Status != intent.StatusClarificationRequired {
+			return c.finishPlanning(ctx, project.Inventory{}, &currentTarget, selectedBook, evaluation, baseResult, options)
 		}
 
 		baseResult.Clarifications = cloneIntentClarifications(evaluation.Clarifications)
+		baseResult.Transitions = append(baseResult.Transitions, StateCandidateChange, StateClarifying)
 		if c.clarifier == nil {
+			if options.preview {
+				baseResult.State = StateClarifying
+
+				return preparedInteraction{}, outcomeResult(baseResult, OutcomeClarificationRequired)
+			}
+
 			return preparedInteraction{}, terminalResult(baseResult, OutcomeClarificationRequired)
 		}
 
@@ -306,8 +340,18 @@ func (c *Coordinator) finishPlanning(
 	selectedBook *book.Book,
 	evaluation eval.Result,
 	baseResult Result,
+	options preparationOptions,
 ) (preparedInteraction, *Result) {
+	if evaluation.Response != nil {
+		baseResult.State = StateConversation
+		baseResult.Transitions = append(baseResult.Transitions, StateConversation)
+		baseResult.Response = &eval.ConversationResponse{Content: evaluation.Response.Content}
+
+		return preparedInteraction{}, outcomeResult(baseResult, OutcomeConversationResponse)
+	}
+
 	if evaluation.Status != intent.StatusAdmitted || evaluation.Plan == nil {
+		baseResult.Transitions = append(baseResult.Transitions, StateCandidateChange)
 		baseResult.Diagnostics = intentDiagnostics(evaluation.Diagnostics)
 
 		outcome := OutcomeIntentRejected
@@ -319,6 +363,7 @@ func (c *Coordinator) finishPlanning(
 	}
 
 	sealedPlan := *evaluation.Plan
+	baseResult.Transitions = append(baseResult.Transitions, StateCandidateChange)
 
 	serialized, err := plan.MarshalYAML(sealedPlan)
 	if err != nil {
@@ -345,31 +390,49 @@ func (c *Coordinator) finishPlanning(
 
 	baseResult.PlanYAML = append([]byte{}, serialized...)
 	baseResult.Clarifications = []intent.Clarification{}
+	if options.preview {
+		baseResult.State = StatePlanReady
+		baseResult.Transitions = append(baseResult.Transitions, StatePlanReady)
 
-	decision, err := c.approver.Approve(ctx, ApprovalRequest{
-		PlanDigest:         sealedPlan.Digest,
-		ProjectFingerprint: sealedPlan.ProjectFingerprint,
-		SourceFingerprint:  sealedPlan.SourceFingerprint,
-		PlanYAML:           append([]byte{}, serialized...),
-	})
-	if err != nil {
-		return preparedInteraction{}, terminalFailure(baseResult, cancelledOutcome(ctx), PhaseApproval, "HMGEN-APPROVAL-FAILED", err)
+		return preparedInteraction{}, outcomeResult(baseResult, OutcomePlanReady)
 	}
 
-	if decision == ApprovalRejected {
-		lifecycle.Reject()
+	if options.approvedPlanDigest != "" {
+		if options.approvedPlanDigest != sealedPlan.Digest {
+			return preparedInteraction{}, terminalFailure(
+				baseResult,
+				OutcomePlanStale,
+				PhaseApproval,
+				"HMGEN-APPROVAL-DIGEST-MISMATCH",
+				fmt.Errorf("approved plan digest does not match the current sealed plan"),
+			)
+		}
+	} else {
+		decision, approvalErr := c.approver.Approve(ctx, ApprovalRequest{
+			PlanDigest:         sealedPlan.Digest,
+			ProjectFingerprint: sealedPlan.ProjectFingerprint,
+			SourceFingerprint:  sealedPlan.SourceFingerprint,
+			PlanYAML:           append([]byte{}, serialized...),
+		})
+		if approvalErr != nil {
+			return preparedInteraction{}, terminalFailure(baseResult, cancelledOutcome(ctx), PhaseApproval, "HMGEN-APPROVAL-FAILED", approvalErr)
+		}
 
-		return preparedInteraction{}, terminalResult(baseResult, OutcomeCancelled)
-	}
+		if decision == ApprovalRejected {
+			lifecycle.Reject()
 
-	if decision != ApprovalGranted {
-		return preparedInteraction{}, terminalFailure(
-			baseResult,
-			OutcomeFailed,
-			PhaseApproval,
-			"HMGEN-APPROVAL-INVALID",
-			fmt.Errorf("unknown approval decision %q", decision),
-		)
+			return preparedInteraction{}, terminalResult(baseResult, OutcomeCancelled)
+		}
+
+		if decision != ApprovalGranted {
+			return preparedInteraction{}, terminalFailure(
+				baseResult,
+				OutcomeFailed,
+				PhaseApproval,
+				"HMGEN-APPROVAL-INVALID",
+				fmt.Errorf("unknown approval decision %q", decision),
+			)
+		}
 	}
 
 	if target != nil {
@@ -571,6 +634,12 @@ func terminalFailure(base Result, outcome Outcome, phase Phase, fallbackCode str
 	base.Diagnostics = append(base.Diagnostics, diagnosticFromError(phase, fallbackCode, err))
 
 	return terminalResult(base, outcome)
+}
+
+func outcomeResult(base Result, outcome Outcome) *Result {
+	base.Outcome = outcome
+
+	return &base
 }
 
 func terminalResult(base Result, outcome Outcome) *Result {

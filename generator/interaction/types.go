@@ -28,12 +28,19 @@ const (
 type State string
 
 const (
+	// StateConversation means a turn produced dialogue without mutation authority.
+	StateConversation State = "conversation"
+	// StateCandidateChange means a turn has been recognized as possible Hatmax work.
+	StateCandidateChange State = "candidate_change"
 	// StateInspecting means Hatmax is reading bounded project metadata.
 	StateInspecting State = "inspecting"
 	// StateInterpreting means the backend is resolving natural-language intent.
 	StateInterpreting State = "interpreting"
 	// StateClarifying means Hatmax is obtaining explicit product decisions.
 	StateClarifying State = "clarifying"
+	// StatePlanReady means a sealed plan is available for inspection but has not
+	// been approved.
+	StatePlanReady State = "plan_ready"
 	// StateAwaitingApproval means a sealed plan has been presented without edits.
 	StateAwaitingApproval State = "awaiting_approval"
 	// StateExecuting means canonical renderers and the atomic workspace are active.
@@ -48,6 +55,10 @@ const (
 type Outcome string
 
 const (
+	// OutcomeConversationResponse means the turn produced bounded dialogue only.
+	OutcomeConversationResponse Outcome = "conversation_response"
+	// OutcomePlanReady means a sealed plan is available for explicit approval.
+	OutcomePlanReady Outcome = "plan_ready"
 	// OutcomeCompleted means execution and validation succeeded.
 	OutcomeCompleted Outcome = "completed"
 	// OutcomeCancelled means the user declined approval or clarification.
@@ -65,6 +76,16 @@ const (
 	// OutcomeFailed means the interaction could not reach a domain outcome.
 	OutcomeFailed Outcome = "failed"
 )
+
+// TurnRequest contains the bounded visible context for one conversational
+// interpretation. ApprovalPlanDigest authorizes only the newly recomputed plan
+// with that exact digest; an empty digest requests preview only.
+type TurnRequest struct {
+	Prompt             string
+	Conversation       []eval.DialogueTurn
+	Clarifications     []eval.ClarificationExchange
+	ApprovalPlanDigest string
+}
 
 // Phase identifies the lifecycle boundary that produced a diagnostic.
 type Phase string
@@ -157,7 +178,9 @@ type Provenance struct {
 // post-commit validation retains Execution.Changes and the partial Report.
 type Result struct {
 	State            State
+	Transitions      []State
 	Outcome          Outcome
+	Response         *eval.ConversationResponse
 	Plan             *plan.Plan
 	PlanYAML         []byte
 	Provenance       Provenance

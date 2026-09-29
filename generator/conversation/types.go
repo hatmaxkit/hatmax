@@ -32,7 +32,19 @@ const (
 	// MaximumArchivedConversations bounds archives retained beside one active
 	// conversation.
 	MaximumArchivedConversations = 9
+	// MaximumOperationDecisions bounds focused answers retained for one proposal.
+	MaximumOperationDecisions = 8
+	// MaximumDecisionBytes bounds each retained decision component.
+	MaximumDecisionBytes = 4 << 10
 )
+
+// Decision retains one explicit user-visible clarification answer. It carries
+// context for replanning but no mutation or approval authority.
+type Decision struct {
+	Field    string `json:"field"`
+	Question string `json:"question"`
+	Answer   string `json:"answer"`
+}
 
 // ScopeKind distinguishes an existing project from a parent or proposed
 // application target.
@@ -149,6 +161,7 @@ type ProposedOperation struct {
 	RequestSummary    string          `json:"request_summary"`
 	IntentContract    int             `json:"intent_contract,omitempty"`
 	Intent            *intent.Intent  `json:"intent,omitempty"`
+	Decisions         []Decision      `json:"decisions,omitempty"`
 	PlanDigest        string          `json:"plan_digest,omitempty"`
 	SourceFingerprint string          `json:"source_fingerprint,omitempty"`
 	ResultSummary     string          `json:"result_summary,omitempty"`

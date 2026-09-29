@@ -150,6 +150,28 @@ func validateOperations(value Conversation) error {
 			return modelError("state_limit_exceeded", field, "operation summary exceeds its retention limit")
 		}
 
+		if len(operation.Decisions) > MaximumOperationDecisions {
+			return modelError("state_limit_exceeded", field+".decisions", "operation exceeds %d decisions", MaximumOperationDecisions)
+		}
+
+		decisionFields := make(map[string]struct{}, len(operation.Decisions))
+		for decisionIndex, decision := range operation.Decisions {
+			decisionField := indexedField(field+".decisions", decisionIndex)
+			if strings.TrimSpace(decision.Field) == "" || strings.TrimSpace(decision.Question) == "" || strings.TrimSpace(decision.Answer) == "" {
+				return modelError("conversation_operation_invalid", decisionField, "field, question, and answer are required")
+			}
+
+			if len(decision.Field) > MaximumDecisionBytes || len(decision.Question) > MaximumDecisionBytes || len(decision.Answer) > MaximumDecisionBytes {
+				return modelError("state_limit_exceeded", decisionField, "decision exceeds its retention limit")
+			}
+
+			if _, exists := decisionFields[decision.Field]; exists {
+				return modelError("conversation_operation_invalid", decisionField+".field", "decision field %q is duplicated", decision.Field)
+			}
+
+			decisionFields[decision.Field] = struct{}{}
+		}
+
 		if operation.CreatedAt.IsZero() || operation.UpdatedAt.IsZero() || operation.UpdatedAt.Before(operation.CreatedAt) {
 			return modelError("conversation_operation_invalid", field+".updated_at", "valid ordered timestamps are required")
 		}

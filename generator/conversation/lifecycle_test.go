@@ -104,6 +104,34 @@ func TestConversationLifecycleRetainsNoApprovalAuthority(t *testing.T) {
 	}
 }
 
+func TestClarifyingOperationRetainsExplicitDecisions(t *testing.T) {
+	now := time.Date(2026, time.September, 29, 19, 0, 0, 0, time.UTC)
+	value := testConversation(t, "conversation-1", ScopeProject, now)
+
+	err := value.AddOperation("operation-1", "Add invoices", now.Add(time.Minute))
+	if err != nil {
+		t.Fatalf("AddOperation() error = %v", err)
+	}
+
+	decisions := []Decision{{
+		Field: "domain.route", Question: "Which route should expose invoices?", Answer: "/invoices",
+	}}
+	err = value.SetClarifyingOperation("operation-1", decisions, now.Add(2*time.Minute))
+	if err != nil {
+		t.Fatalf("SetClarifyingOperation() error = %v", err)
+	}
+
+	operation := value.Operations[0]
+	if operation.Status != OperationClarifying || len(operation.Decisions) != 1 || operation.Decisions[0].Answer != "/invoices" {
+		t.Fatalf("operation = %#v, want retained clarification decision", operation)
+	}
+
+	decisions[0].Answer = "/changed"
+	if operation.Decisions[0].Answer != "/invoices" {
+		t.Fatal("operation decisions alias caller storage")
+	}
+}
+
 func TestConversationResetAndRebindReplaceAuthority(t *testing.T) {
 	now := time.Date(2026, time.September, 29, 19, 0, 0, 0, time.UTC)
 	value := testConversation(t, "conversation-1", ScopePreProject, now)

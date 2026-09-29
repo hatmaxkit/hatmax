@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"hatmax.adrianpk.com/generator/eval"
 	"hatmax.adrianpk.com/generator/execute"
 	"hatmax.adrianpk.com/generator/intent"
 	"hatmax.adrianpk.com/generator/plan"
@@ -18,6 +19,46 @@ func (c *Coordinator) Run(ctx context.Context, root, prompt string) Result {
 	if terminal != nil {
 		return *terminal
 	}
+
+	return c.executePrepared(ctx, prepared)
+}
+
+// PreviewTurn interprets one conversational turn and returns dialogue,
+// clarification, unsupported, rejected, or plan-ready state without invoking
+// approval or changing the project.
+func (c *Coordinator) PreviewTurn(ctx context.Context, root string, request TurnRequest) Result {
+	_, terminal := c.prepare(ctx, root, request.Prompt, preparationOptions{
+		dialogue:       append([]eval.DialogueTurn{}, request.Conversation...),
+		clarifications: append([]eval.ClarificationExchange{}, request.Clarifications...),
+		preview:        true,
+	})
+	if terminal == nil {
+		return *terminalFailure(Result{}, OutcomeFailed, PhaseApproval, "HMGEN-PREVIEW-INCOMPLETE", errors.New("preview unexpectedly produced executable work"))
+	}
+
+	return *terminal
+}
+
+// RunApprovedTurn recomputes one conversational plan from live source and
+// executes it only when its digest matches the explicit approval action.
+func (c *Coordinator) RunApprovedTurn(ctx context.Context, root string, request TurnRequest) Result {
+	if request.ApprovalPlanDigest == "" {
+		return *terminalFailure(Result{}, OutcomeFailed, PhaseApproval, "HMGEN-APPROVAL-DIGEST-REQUIRED", errors.New("approved plan digest is required"))
+	}
+
+	prepared, terminal := c.prepare(ctx, root, request.Prompt, preparationOptions{
+		dialogue:           append([]eval.DialogueTurn{}, request.Conversation...),
+		clarifications:     append([]eval.ClarificationExchange{}, request.Clarifications...),
+		approvedPlanDigest: request.ApprovalPlanDigest,
+	})
+	if terminal != nil {
+		return *terminal
+	}
+
+	return c.executePrepared(ctx, prepared)
+}
+
+func (c *Coordinator) executePrepared(ctx context.Context, prepared preparedInteraction) Result {
 
 	result := prepared.result
 
