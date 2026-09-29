@@ -7,8 +7,8 @@ Ticket: `ops/default/ticket/reviewing/20260929090213-rebuild-user-guide-technica
 Spec: none
 Base branch: `dev`
 Planning base: `4f783c75d9e9417d35ce4cc2e8a4118a10a89c19`
-Active slice: Slice 4
-Active tasks: T4.1, T4.2, T4.3
+Active slice: Slice 5
+Active tasks: T5.1, T5.2, T5.3
 Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Slice Status
@@ -18,8 +18,8 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 | Slice 1 | journey foundation | delivered | `docs/user-guide-journey-foundation` | `docs(slice-1): establish the User Guide journey` | #48 | `ops/default/report/slices/user-guide-technical-journey/slice-1-journey-foundation.md` |
 | Slice 2 | web interaction | delivered | `docs/user-guide-web-interaction` | `docs(slice-2): explain the Hatmax web interaction model` | #49 | `ops/default/report/slices/user-guide-technical-journey/slice-2-web-interaction.md` |
 | Slice 3 | feature anatomy | delivered | `docs/user-guide-feature-anatomy` | `docs(slice-3): establish canonical feature anatomy` | #50 | `ops/default/report/slices/user-guide-technical-journey/slice-3-feature-anatomy.md` |
-| Slice 4 | data lifecycle | reviewing | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` | #51 | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |
-| Slice 5 | identity and runtime | planned | `docs/user-guide-identity-runtime` | `docs(slice-5): explain identity and runtime configuration` |  | `ops/default/report/slices/user-guide-technical-journey/slice-5-identity-runtime.md` |
+| Slice 4 | data lifecycle | delivered | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` | #51 | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |
+| Slice 5 | identity and runtime | active | `docs/user-guide-identity-runtime` | `docs(slice-5): explain identity and runtime configuration` |  | `ops/default/report/slices/user-guide-technical-journey/slice-5-identity-runtime.md` |
 | Slice 6 | application services | planned | `docs/user-guide-application-services` | `docs(slice-6): explain Hatmax application services` |  | `ops/default/report/slices/user-guide-technical-journey/slice-6-application-services.md` |
 | Slice 7 | testing and evolution | planned | `docs/user-guide-testing-evolution` | `docs(slice-7): complete the User Guide journey` |  | `ops/default/report/slices/user-guide-technical-journey/slice-7-testing-evolution.md` |
 
@@ -90,7 +90,7 @@ Execution gate: satisfied when this approved activation is committed to `dev`
   review, and merge.
 - [x] Slice 3 is delivered through its recorded branch, report, pull request,
   review, and merge.
-- [ ] Slice 4 is delivered through its recorded branch, report, pull request,
+- [x] Slice 4 is delivered through its recorded branch, report, pull request,
   review, and merge.
 - [ ] Slice 5 is delivered through its recorded branch, report, pull request,
   review, and merge.
@@ -104,5 +104,6 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Current Gate
 
-Slice 4 content and focused validation are complete. Pull request #51 is open
-against `dev` for review.
+Slice 4 merged through pull request #51 at
+`0e1bfd3e2220ea52f3b9f6e9f8e4127d1897ee7e`. Slice 5 is active and may begin
+from that integrated `dev` state.

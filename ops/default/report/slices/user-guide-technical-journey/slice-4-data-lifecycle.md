@@ -1,6 +1,6 @@
 # Slice 4: Data Lifecycle
 
-Status: reviewing
+Status: delivered
 Delivery set: user-guide-technical-journey
 Plan: [User Guide Technical Journey Plan](../../../plan/user-guide-technical-journey.md)
 Tracker: [User Guide Technical Journey Tracker](../../../tracker/user-guide-technical-journey.md)
@@ -72,6 +72,8 @@ seeders.
   package implementations and reference contracts.
 - Superseded `postgres.md` and `records.md` link audit passed.
 - `git diff --check` passed.
+- Pull request #51 merged into `dev` at
+  `0e1bfd3e2220ea52f3b9f6e9f8e4127d1897ee7e`.
 
 ## Risks and Follow-ups
 
