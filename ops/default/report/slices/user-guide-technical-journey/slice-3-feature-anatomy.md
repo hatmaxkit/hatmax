@@ -1,6 +1,6 @@
 # Slice 3: Feature Anatomy
 
-Status: reviewing
+Status: delivered
 Delivery set: user-guide-technical-journey
 Plan: [User Guide Technical Journey Plan](../../../plan/user-guide-technical-journey.md)
 Tracker: [User Guide Technical Journey Tracker](../../../tracker/user-guide-technical-journey.md)
@@ -75,6 +75,8 @@ documentation.
   internals.
 - `main.go` is documented only as the entrypoint and visible assembly root.
 - `git diff --check` passed.
+- Pull request #50 merged into `dev` at
+  `a06310f3a725eee88b326b57f7f622673485017a`.
 
 ## Risks and Follow-ups
 
