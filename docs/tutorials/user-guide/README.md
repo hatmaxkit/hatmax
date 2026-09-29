@@ -1,61 +1,80 @@
 # User Guide
 
-The User Guide follows the current Hatmax repository API. It takes a reader
-from the first running process through web interaction, persistence,
-authentication, background work, runtime settings, and canonical project
-generation.
+The User Guide explains how a Hatmax web application is composed. Read it in
+order to build a working mental model of the application before consulting
+individual package contracts or focused procedures.
 
-## Before You Begin
+This guide is not a step-by-step project tutorial. It uses small, connected
+examples to explain responsibilities and assembly. A separate tutorial will
+later build a complete Todo application.
 
-Use Go 1.24 or later and a checkout of this repository. Chapters that use
-Postgres require a reachable Postgres server and the `psql` client. Run all
-commands from the repository root unless a chapter changes directory.
+## Audience
 
-The small `examples/guide` application is the cumulative companion for most
-chapters. `examples/ticked` demonstrates the complete authentication and
-application structure.
+The guide assumes familiarity with Go, HTTP, HTML, and relational databases.
+It does not assume previous Hatmax experience.
 
-## Start Here
+Hatmax is intended for server-rendered Go applications that use explicit
+dependency wiring, HTMX for targeted interaction, and Postgres-first
+infrastructure. The guide treats those choices as one application model, not
+as a menu of interchangeable frameworks.
 
-Begin with [Run the First Process](getting-started.md). It requires no database
-and produces both a health response and an HTML page.
+## Technical Journey
 
-## Learning Path
+The journey follows the order in which an application is understood and
+designed:
 
-### Foundation
+1. **Orientation** defines the kind of application Hatmax supports and the
+   boundary between Hatmax and application-owned behavior.
+2. **Application Anatomy** maps the entrypoint, application components,
+   features, infrastructure, templates, and tests.
+3. **Lifecycle and Wiring** explains how dependencies become an ordered,
+   running process.
+4. **The Request Boundary** follows an HTTP request through middleware and
+   routing.
+5. **Pages and Partials** connects templates, rendering, and HTMX responses.
+6. **Forms and Validation** places request, field, domain, and persistence
+   validation at their correct boundaries.
+7. **Presentation Primitives** covers UI helpers, modals, formatting,
+   pagination, and internationalization.
+8. **Feature Anatomy** connects model, store, service, handler, templates,
+   wiring, and tests as one canonical feature.
+9. **Persistence and Migrations** explains the Postgres lifecycle and schema
+   ownership.
+10. **Models and Data Flow** follows application data across feature layers.
+11. **Identity and Sessions** adds authentication, authorization, and
+    cryptographic support.
+12. **Configuration and Runtime Settings** separates startup configuration,
+    logging, and mutable settings.
+13. **Events and Background Work** introduces pubsub and scheduled work.
+14. **Application Services** places mail, images, telemetry, and replaceable
+    adapters.
+15. **Testing and Evolution** explains how to validate and safely extend the
+    assembled application.
+16. **Assisted Generation** introduces the experimental generator after the
+    manual application model is clear.
 
-1. [Run the First Process](getting-started.md) starts the companion application
-   without infrastructure.
-2. [Add Postgres](postgres.md) enables the database-backed components and
-   verifies startup ordering.
-3. [Serve a Page](pages.md) traces embedded templates and an HTMX partial.
-4. [Accept a Form](forms.md) adds same-origin protection and validation.
+## Current Capability Walkthroughs
 
-### Application Workflows
+These chapters contain verified Hatmax behavior that is being incorporated
+into the technical journey:
 
-5. [Sign In](sign-in.md) runs the Ticked example and follows the session
-   boundary.
-6. [Save a Record](records.md) verifies durable todo-list state.
-7. [Work Outside the Request](background-work.md) follows an event from a
-   request to the durable audit subscriber.
-8. [Change Settings at Runtime](settings.md) changes a schema-checked setting
-   without reloading static configuration.
-9. [Generate a Feature](generation.md) turns a product request into an
-   inspectable plan and canonical Hatmax changes.
+- [Run the First Process](getting-started.md)
+- [Add Postgres](postgres.md)
+- [Serve a Page](pages.md)
+- [Accept a Form](forms.md)
+- [Sign In](sign-in.md)
+- [Save a Record](records.md)
+- [Work Outside the Request](background-work.md)
+- [Change Settings at Runtime](settings.md)
+- [Generate a Feature](generation.md)
+- [Wiring](wiring.md)
 
-## Direct Routes
+## Supporting Documentation
 
-- To start a separate module, use
-  [Bootstrap a Hatmax Application](../../how-to/bootstrap-application/README.md).
-- To add one known capability, use the
-  [How-to Guides](../../how-to/README.md).
-- To inspect exact behavior, use the
-  [Reference](../../reference/README.md).
-- To understand package boundaries and tradeoffs, use
-  [Explanation](../../explanation/README.md).
-- To inspect component order and swappable boundaries, use
-  [Wiring](wiring.md).
-
-The [Package Map](../../reference/package-map/README.md) lists capabilities
-that are not required chapters, including image storage, mail delivery,
-telemetry, crypto primitives, and test helpers.
+- Use the [How-to Guides](../../how-to/README.md) for focused procedures.
+- Use the [Reference](../../reference/README.md) for exact APIs, configuration,
+  limits, and behavior.
+- Use [Explanation](../../explanation/README.md) for design rationale and
+  tradeoffs.
+- Use the [Package Map](../../reference/package-map/README.md) to locate a
+  specific Hatmax capability.
