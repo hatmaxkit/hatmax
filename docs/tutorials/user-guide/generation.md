@@ -86,5 +86,5 @@ acceptance check.
 
 ---
 
-[Previous: Change Settings at Runtime](settings.md) ·
+[Previous: Configuration and Runtime Settings](configuration-and-runtime-settings.md) ·
 [User Guide](README.md)

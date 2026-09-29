@@ -51,9 +51,9 @@ See [Pubsub](../../reference/pubsub/README.md), the focused
 [pubsub how-to](../../how-to/use-pubsub/README.md), and
 [Postgres-first Infrastructure](../../explanation/postgres-first/README.md).
 
-Continue with [Change Settings at Runtime](settings.md).
+Continue with [Configuration and Runtime Settings](configuration-and-runtime-settings.md).
 
 ---
 
 [Previous: Models and Data Flow](models-and-data-flow.md) · [User Guide](README.md) ·
-[Next: Change Settings at Runtime](settings.md)
+[Next: Configuration and Runtime Settings](configuration-and-runtime-settings.md)
