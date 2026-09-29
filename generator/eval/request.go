@@ -7,6 +7,15 @@ import (
 )
 
 func compileRequest(prompt string, clarifications []ClarificationExchange, context Context) (Request, error) {
+	return compileDialogueRequest(prompt, nil, clarifications, context)
+}
+
+func compileDialogueRequest(
+	prompt string,
+	conversation []DialogueTurn,
+	clarifications []ClarificationExchange,
+	context Context,
+) (Request, error) {
 	if strings.TrimSpace(prompt) == "" {
 		return Request{}, evaluationError("evaluation_prompt_required", "prompt", "prompt is required")
 	}
@@ -31,6 +40,7 @@ func compileRequest(prompt string, clarifications []ClarificationExchange, conte
 	result := Request{
 		ContractVersion: CurrentContractVersion,
 		Prompt:          prompt,
+		Conversation:    cloneDialogueTurns(conversation),
 		Clarifications:  cloneClarificationExchanges(clarifications),
 		Book: BookContext{
 			Version:      manifest.BookVersion,
@@ -79,6 +89,32 @@ func validateRequest(value Request) error {
 		if strings.TrimSpace(value.Target.SourceFingerprint) == "" || strings.TrimSpace(value.Target.HatmaxVersion) == "" || strings.TrimSpace(string(value.Target.Admission)) == "" {
 			return evaluationError("evaluation_target_invalid", "target", "target fingerprint, Hatmax version, and admission are required")
 		}
+	}
+
+	if len(value.Conversation) > MaximumDialogueTurns {
+		return evaluationError("evaluation_dialogue_limit", "conversation", "dialogue exceeds %d turns", MaximumDialogueTurns)
+	}
+
+	totalDialogueBytes := 0
+
+	for index, turn := range value.Conversation {
+		if turn.Role != DialogueRoleUser && turn.Role != DialogueRoleHatmax {
+			return evaluationError("evaluation_dialogue_invalid", indexedField("conversation", index)+".role", "unknown dialogue role %q", turn.Role)
+		}
+
+		if strings.TrimSpace(turn.Content) == "" {
+			return evaluationError("evaluation_dialogue_invalid", indexedField("conversation", index)+".content", "dialogue content is required")
+		}
+
+		if len(turn.Content) > MaximumDialogueTurnBytes {
+			return evaluationError("evaluation_dialogue_too_large", indexedField("conversation", index)+".content", "dialogue turn exceeds %d bytes", MaximumDialogueTurnBytes)
+		}
+
+		totalDialogueBytes += len(turn.Content)
+	}
+
+	if totalDialogueBytes > MaximumDialogueBytes {
+		return evaluationError("evaluation_dialogue_too_large", "conversation", "dialogue exceeds %d bytes", MaximumDialogueBytes)
 	}
 
 	if len(value.Clarifications) > MaximumClarificationExchanges {

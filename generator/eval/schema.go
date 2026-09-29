@@ -13,10 +13,11 @@ func InterpretationOutputSchema() ([]byte, error) {
 	schema := map[string]any{
 		"type":                 "object",
 		"additionalProperties": false,
-		"required":             []string{"schema_version", "kind", "intent", "clarifications", "diagnostics"},
+		"required":             []string{"schema_version", "kind", "response", "intent", "clarifications", "diagnostics"},
 		"properties": map[string]any{
 			"schema_version": map[string]any{"type": "integer", "enum": []int{CurrentInterpretationSchemaVersion}},
-			"kind":           enumSchema("intent", "clarification_required", "unsupported"),
+			"kind":           enumSchema("conversation_response", "intent", "clarification_required", "unsupported"),
+			"response":       nullableSchema(map[string]any{"$ref": "#/$defs/conversation_response"}),
 			"intent":         nullableSchema(map[string]any{"$ref": "#/$defs/intent"}),
 			"clarifications": nullableSchema(map[string]any{
 				"type":  "array",
@@ -35,6 +36,14 @@ func InterpretationOutputSchema() ([]byte, error) {
 
 func interpretationDefinitions() map[string]any {
 	return map[string]any{
+		"conversation_response": map[string]any{
+			"type":                 "object",
+			"additionalProperties": false,
+			"required":             []string{"content"},
+			"properties": map[string]any{
+				"content": boundedStringSchema(),
+			},
+		},
 		"intent": map[string]any{
 			"type":                 "object",
 			"additionalProperties": false,

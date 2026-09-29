@@ -43,6 +43,8 @@ func TestCompileTurnContainsOnlyBoundedRequestAndSchema(t *testing.T) {
 	}
 
 	for _, expected := range []string{
+		"conversation_response",
+		"ordinary questions, informal remarks",
 		"Hatmax derives canonical identifiers, routes, plurals, and default labels",
 		"set entity, route, and labels to null unless the user explicitly chose",
 		"document_feature with document_existing_behavior",

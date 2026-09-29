@@ -28,11 +28,25 @@ func EvaluateConversation(
 	clarifications []ClarificationExchange,
 	evaluationContext Context,
 ) (Result, error) {
+	return EvaluateDialogue(ctx, interpreter, prompt, nil, clarifications, evaluationContext)
+}
+
+// EvaluateDialogue runs one interpretation with bounded user-visible dialogue
+// and explicit clarification history before deterministic validation and
+// planning.
+func EvaluateDialogue(
+	ctx context.Context,
+	interpreter Interpreter,
+	prompt string,
+	conversation []DialogueTurn,
+	clarifications []ClarificationExchange,
+	evaluationContext Context,
+) (Result, error) {
 	if interpreter == nil {
 		return Result{}, evaluationError("evaluation_interpreter_required", "interpreter", "interpreter is required")
 	}
 
-	request, err := compileRequest(prompt, clarifications, evaluationContext)
+	request, err := compileDialogueRequest(prompt, conversation, clarifications, evaluationContext)
 	if err != nil {
 		return Result{}, err
 	}
@@ -60,6 +74,11 @@ func EvaluateConversation(
 	}
 
 	switch interpretation.Kind {
+	case InterpretationConversation:
+		return Result{
+			Response:   cloneConversationResponse(interpretation.Response),
+			Provenance: backendResult.Provenance,
+		}, nil
 	case InterpretationClarification:
 		return Result{
 			Status:         intent.StatusClarificationRequired,
@@ -159,8 +178,20 @@ func validateInterpretation(value Interpretation) error {
 	}
 
 	switch value.Kind {
+	case InterpretationConversation:
+		if value.Response == nil || value.Intent != nil || len(value.Clarifications) != 0 || len(value.Diagnostics) != 0 {
+			return evaluationError("evaluation_result_invalid", "interpretation", "conversation result must contain only one bounded response")
+		}
+
+		if strings.TrimSpace(value.Response.Content) == "" {
+			return evaluationError("evaluation_result_invalid", "interpretation.response.content", "conversation response content is required")
+		}
+
+		if len(value.Response.Content) > MaximumDialogueTurnBytes {
+			return evaluationError("evaluation_result_invalid", "interpretation.response.content", "conversation response exceeds %d bytes", MaximumDialogueTurnBytes)
+		}
 	case InterpretationIntent:
-		if value.Intent == nil || len(value.Clarifications) != 0 || len(value.Diagnostics) != 0 {
+		if value.Response != nil || value.Intent == nil || len(value.Clarifications) != 0 || len(value.Diagnostics) != 0 {
 			return evaluationError("evaluation_result_invalid", "interpretation", "intent result must contain only one typed intent")
 		}
 
@@ -169,7 +200,7 @@ func validateInterpretation(value Interpretation) error {
 			return evaluationError("evaluation_result_invalid", "interpretation.intent", "%v", err)
 		}
 	case InterpretationClarification:
-		if value.Intent != nil || len(value.Clarifications) == 0 || len(value.Diagnostics) != 0 {
+		if value.Response != nil || value.Intent != nil || len(value.Clarifications) == 0 || len(value.Diagnostics) != 0 {
 			return evaluationError("evaluation_result_invalid", "interpretation", "clarification result must contain only focused questions")
 		}
 
@@ -197,7 +228,7 @@ func validateInterpretation(value Interpretation) error {
 			seen[field] = struct{}{}
 		}
 	case InterpretationUnsupported:
-		if value.Intent != nil || len(value.Clarifications) != 0 || len(value.Diagnostics) == 0 {
+		if value.Response != nil || value.Intent != nil || len(value.Clarifications) != 0 || len(value.Diagnostics) == 0 {
 			return evaluationError("evaluation_result_invalid", "interpretation", "unsupported result must contain only diagnostics")
 		}
 
@@ -223,6 +254,7 @@ func validateInterpretation(value Interpretation) error {
 
 func cloneInterpretation(value Interpretation) Interpretation {
 	result := value
+	result.Response = cloneConversationResponse(value.Response)
 	result.Intent = nil
 
 	if value.Intent != nil {
@@ -233,6 +265,16 @@ func cloneInterpretation(value Interpretation) Interpretation {
 	result.Diagnostics = cloneDiagnostics(value.Diagnostics)
 
 	return result
+}
+
+func cloneConversationResponse(value *ConversationResponse) *ConversationResponse {
+	if value == nil {
+		return nil
+	}
+
+	result := *value
+
+	return &result
 }
 
 func cloneIntent(value intent.Intent) *intent.Intent {
@@ -283,4 +325,8 @@ func cloneClarifications(values []intent.Clarification) []intent.Clarification {
 
 func cloneClarificationExchanges(values []ClarificationExchange) []ClarificationExchange {
 	return append([]ClarificationExchange{}, values...)
+}
+
+func cloneDialogueTurns(values []DialogueTurn) []DialogueTurn {
+	return append([]DialogueTurn{}, values...)
 }

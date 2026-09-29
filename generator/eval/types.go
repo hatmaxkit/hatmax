@@ -19,7 +19,7 @@ import (
 const (
 	// CurrentContractVersion is the interactive interpreter contract understood
 	// by this package.
-	CurrentContractVersion = 2
+	CurrentContractVersion = 3
 	// MaximumPromptBytes bounds one natural-language request.
 	MaximumPromptBytes = 32 << 10
 	// MaximumClarificationExchanges bounds one explicit clarification history.
@@ -27,8 +27,16 @@ const (
 	// MaximumClarificationTextBytes bounds one clarification field, question, or
 	// answer.
 	MaximumClarificationTextBytes = 4 << 10
+	// MaximumDialogueTurns bounds the recent user-visible turns supplied to one
+	// interpretation. Durable storage may retain more history.
+	MaximumDialogueTurns = 32
+	// MaximumDialogueBytes bounds the aggregate recent dialogue supplied to one
+	// interpretation.
+	MaximumDialogueBytes = 128 << 10
+	// MaximumDialogueTurnBytes bounds one user-visible conversation turn.
+	MaximumDialogueTurnBytes = 32 << 10
 	// CurrentInterpretationSchemaVersion is the model-output schema version.
-	CurrentInterpretationSchemaVersion = 2
+	CurrentInterpretationSchemaVersion = 3
 	// MaximumInterpretationBytes bounds one complete model output.
 	MaximumInterpretationBytes = 64 << 10
 	// MaximumInterpretationDiagnostics bounds one unsupported result.
@@ -39,6 +47,9 @@ const (
 type InterpretationKind string
 
 const (
+	// InterpretationConversation contains bounded user-visible dialogue and no
+	// mutation authority.
+	InterpretationConversation InterpretationKind = "conversation_response"
 	// InterpretationIntent contains one typed intent for deterministic
 	// validation.
 	InterpretationIntent InterpretationKind = "intent"
@@ -47,6 +58,28 @@ const (
 	// InterpretationUnsupported rejects a request outside the Hatmax Book.
 	InterpretationUnsupported InterpretationKind = "unsupported"
 )
+
+// DialogueRole identifies one user-visible speaker in interpreter context.
+type DialogueRole string
+
+const (
+	// DialogueRoleUser is a retained user turn.
+	DialogueRoleUser DialogueRole = "user"
+	// DialogueRoleHatmax is a retained Hatmax turn.
+	DialogueRoleHatmax DialogueRole = "hatmax"
+)
+
+// DialogueTurn is bounded conversational context without project authority.
+type DialogueTurn struct {
+	Role    DialogueRole `json:"role" yaml:"role"`
+	Content string       `json:"content" yaml:"content"`
+}
+
+// ConversationResponse is bounded user-visible dialogue. Its shape cannot
+// carry an intent, plan, command, path, edit, tool call, or approval.
+type ConversationResponse struct {
+	Content string `json:"content" yaml:"content"`
+}
 
 // ProjectContext is the bounded project information exposed to an
 // interpreter.
@@ -103,6 +136,7 @@ type ClarificationExchange struct {
 type Request struct {
 	ContractVersion int                     `json:"contract_version" yaml:"contract_version"`
 	Prompt          string                  `json:"prompt" yaml:"prompt"`
+	Conversation    []DialogueTurn          `json:"conversation" yaml:"conversation"`
 	Clarifications  []ClarificationExchange `json:"clarifications" yaml:"clarifications"`
 	Project         ProjectContext          `json:"project" yaml:"project"`
 	Target          *TargetContext          `json:"target" yaml:"target"`
@@ -114,6 +148,7 @@ type Request struct {
 type Interpretation struct {
 	SchemaVersion  int                    `json:"schema_version" yaml:"schema_version"`
 	Kind           InterpretationKind     `json:"kind" yaml:"kind"`
+	Response       *ConversationResponse  `json:"response,omitempty" yaml:"response,omitempty"`
 	Intent         *intent.Intent         `json:"intent,omitempty" yaml:"intent,omitempty"`
 	Clarifications []intent.Clarification `json:"clarifications,omitempty" yaml:"clarifications,omitempty"`
 	Diagnostics    []intent.Diagnostic    `json:"diagnostics,omitempty" yaml:"diagnostics,omitempty"`
@@ -188,6 +223,7 @@ type Context struct {
 // validated by the kernel.
 type Result struct {
 	Status         intent.Status
+	Response       *ConversationResponse
 	Intent         *intent.Intent
 	Plan           *plan.Plan
 	Diagnostics    []intent.Diagnostic

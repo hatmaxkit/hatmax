@@ -214,7 +214,7 @@ func newTestInterpreter(t *testing.T, client *interpreterFakeClient, timeout tim
 }
 
 func validUnsupportedOutput() string {
-	return `{"schema_version":2,"kind":"unsupported","diagnostics":[{"code":"REQUEST-UNSUPPORTED","field":"prompt","message":"Unsupported request"}]}`
+	return `{"schema_version":3,"kind":"unsupported","diagnostics":[{"code":"REQUEST-UNSUPPORTED","field":"prompt","message":"Unsupported request"}]}`
 }
 
 func agentMessageNotification(threadID, turnID, text string) Notification {

@@ -77,8 +77,9 @@ func interpretationPrompt(request []byte) string {
 	var prompt bytes.Buffer
 
 	prompt.WriteString("Interpret the bounded Hatmax request below.\n")
-	prompt.WriteString("Choose exactly one schema result: intent, clarification_required, or unsupported.\n")
+	prompt.WriteString("Choose exactly one schema result: conversation_response, intent, clarification_required, or unsupported.\n")
 	prompt.WriteString("Set payloads for every unchosen result kind to null.\n")
+	prompt.WriteString("Use conversation_response for ordinary questions, informal remarks, and discussion that does not request Hatmax project work. Its content is user-visible dialogue only and must not contain paths, commands, dependencies, edits, tool calls, or approval decisions.\n")
 	prompt.WriteString("Use only operations, archetypes, capabilities, and variants present in the request.\n")
 	prompt.WriteString("Preserve the supplied project or target fingerprint, hatmax_version, and book_version exactly in an intent.\n")
 	prompt.WriteString("For create_application, use intent schema version 3, operation create_application, archetype server_rendered_hatmax_application, and source_fingerprint from target context.\n")
