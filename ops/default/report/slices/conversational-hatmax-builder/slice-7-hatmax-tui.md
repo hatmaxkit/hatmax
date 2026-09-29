@@ -1,6 +1,6 @@
 # Slice 7: Hatmax TUI
 
-Status: reviewing
+Status: delivered
 Delivery set: conversational-hatmax-builder
 Plan: [Conversational Hatmax Builder Delivery Plan](../../../plan/conversational-hatmax-builder.md)
 Tracker: [Conversational Hatmax Builder Tracker](../../../tracker/conversational-hatmax-builder.md)

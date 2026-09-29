@@ -13,8 +13,8 @@ Approved specs:
 
 Base branch: `dev`
 Planning base: `510a856419a97d64959387099c48a81f867fb09a`
-Active slice: Slice 7
-Active tasks: T7.1, T7.2, T7.3
+Active slice: Slice 8
+Active tasks: T8.1, T8.2, T8.3
 Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Slice Status
@@ -27,8 +27,8 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 | Slice 4 | Application bootstrap product | delivered | `feat/application-scaffold-product` | `feat(slice-4): deliver Hatmax application bootstrap` | #59 | `ops/default/report/slices/conversational-hatmax-builder/slice-4-application-bootstrap-product.md` |
 | Slice 5 | Conversation state | delivered | `feat/conversational-state` | `feat(slice-5): persist Hatmax conversations` | #60 | `ops/default/report/slices/conversational-hatmax-builder/slice-5-conversation-state.md` |
 | Slice 6 | Conversational coordinator | delivered | `feat/conversational-coordinator` | `feat(slice-6): coordinate conversational Hatmax work` | #61 | `ops/default/report/slices/conversational-hatmax-builder/slice-6-conversational-coordinator.md` |
-| Slice 7 | Hatmax TUI | reviewing | `feat/hatmax-tui` | `feat(slice-7): deliver the conversational Hatmax TUI` | #62 | `ops/default/report/slices/conversational-hatmax-builder/slice-7-hatmax-tui.md` |
-| Slice 8 | Builder acceptance | planned | `test/conversational-builder-acceptance` | `test(slice-8): validate the conversational Hatmax builder` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-8-builder-acceptance.md` |
+| Slice 7 | Hatmax TUI | delivered | `feat/hatmax-tui` | `feat(slice-7): deliver the conversational Hatmax TUI` | #62 | `ops/default/report/slices/conversational-hatmax-builder/slice-7-hatmax-tui.md` |
+| Slice 8 | Builder acceptance | active | `test/conversational-builder-acceptance` | `test(slice-8): validate the conversational Hatmax builder` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-8-builder-acceptance.md` |
 
 ## Slice 1 Tasks
 
@@ -104,11 +104,11 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 - [x] Slice 4 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 5 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 6 is delivered through its branch, report, pull request, and merge.
-- [ ] Slice 7 is delivered through its branch, report, pull request, and merge.
+- [x] Slice 7 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 8 is delivered through its branch, report, pull request, and merge.
 - [ ] The exact integrated `dev` candidate passes the delivery-set gate.
 
 ## Current Gate
 
-Slice 7 implementation and validation are complete on `feat/hatmax-tui`;
-maintainer review and merge are pending.
+Slice 7 was delivered by #62. Slice 8 is approved for execution on
+`test/conversational-builder-acceptance`; T8.1, T8.2, and T8.3 are active.
