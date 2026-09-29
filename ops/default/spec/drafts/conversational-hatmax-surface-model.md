@@ -17,9 +17,34 @@ Hatmax owns the store in the operating system's per-user state location. The
 store is outside generated repositories and must not be committed with an
 application.
 
-The storage technology and exact path remain implementation decisions. The
-logical model and lifecycle below are stable regardless of whether the first
-implementation uses files or a local database.
+The first implementation stores versioned JSON snapshots under:
+
+- `${HOME}/Library/Application Support/Hatmax/State` on macOS;
+- `%LOCALAPPDATA%\\Hatmax\\State` on Windows;
+- `${XDG_STATE_HOME}/hatmax` when `XDG_STATE_HOME` is an absolute path on other
+  Unix systems;
+- `${HOME}/.local/state/hatmax` on other Unix systems when `XDG_STATE_HOME` is
+  unavailable.
+
+Failure to resolve a per-user state location disables persistence with an
+explicit diagnostic; it never redirects state into the project.
+
+The store layout is:
+
+```text
+<state-root>/v1/
+└── scopes/<scope-key>/
+    ├── index.json
+    ├── lock
+    └── conversations/<conversation-id>.json
+```
+
+`index.json` records the active conversation and bounded archive order. Each
+conversation file contains its metadata, turns, and proposed-operation
+summaries. Writes use a temporary sibling, file synchronization, and atomic
+rename. Files and directories use user-only permissions where the platform
+supports them. A process holds one per-scope advisory lock while it has that
+conversation open for mutation.
 
 ## Project Conversation
 
@@ -37,10 +62,13 @@ A project conversation records:
 | `created_at` | Local creation time |
 | `updated_at` | Last meaningful interaction time |
 
-The scope key may derive from canonical local identity but must not expose a
-repository path in user-visible diagnostics. A pre-project conversation is
-rebound to the created project's identity after successful application
-creation.
+The scope key is the lowercase hexadecimal SHA-256 digest of the canonical
+absolute project root or proposed target path after platform path
+normalization. The digest prevents repository paths from appearing in store
+directory names or user-visible diagnostics. Moving a project creates a new
+scope; the first delivery does not attempt path-independent repository
+identity. A pre-project conversation is rebound to the created project's
+identity after successful application creation.
 
 At most one conversation is resumed by default for a compatible scope and
 Book contract. Resetting a conversation creates a new identity; it does not
@@ -62,6 +90,10 @@ A retained turn records:
 Hatmax retains only user-visible content needed for continuity. It does not
 store hidden reasoning, raw provider events, repository file contents,
 credentials, or environment snapshots as conversation turns.
+
+Each retained turn contains at most 32 KiB of UTF-8 text. A turn that exceeds
+the limit is rejected before it reaches the store or interpreter; retained
+turns are never silently truncated.
 
 ## Proposed Operation
 
@@ -120,9 +152,47 @@ the durable product record.
 
 ### Retention
 
-Hatmax bounds retained turns, diagnostics, and result summaries. Eviction must
-preserve enough terminal metadata to explain the last visible operation.
-Retention limits and user-facing cleanup controls remain open product details.
+One conversation retains at most:
+
+- the most recent 200 turns;
+- 8 MiB of turn content;
+- the most recent 50 proposed-operation summaries;
+- 16 KiB in one result summary or aggregate diagnostic.
+
+One scope retains one active and at most nine archived conversations. Pruning
+removes the oldest eligible turns, terminal operations, and archived
+conversations in that order. It always preserves the active non-terminal
+operation, its collected answers, and the latest terminal operation summary.
+If those protected records alone exceed a limit, persistence stops and reports
+`state_limit_exceeded` rather than discarding required recovery context.
+
+When a backend thread must be replaced, Hatmax replays at most the newest 32
+turns and 128 KiB of user-visible conversation plus the active operation's
+structured decisions. Older retained history remains locally inspectable but
+does not enter model context.
+
+Reset archives the current conversation and creates a new active identity. It
+does not immediately delete prior turns; ordinary pruning applies the archive
+limit.
+
+### Recovery
+
+- Failure to acquire the per-scope lock returns `state_busy`; a second process
+  does not open a concurrent mutable session for that scope.
+- An interrupted snapshot write leaves the previous valid snapshot active.
+- Invalid or unsupported state is preserved for diagnosis, marked
+  incompatible in the index when possible, and never guessed into a newer
+  schema. After the diagnostic, the user may explicitly start a new
+  conversation without overwriting the incompatible snapshot.
+- A failed state write keeps the current in-memory conversation usable for the
+  process, shows `state_persistence_failed`, and promises no later resume.
+- A missing or invalid backend thread is replaced and receives only the
+  bounded replay context. Approval is not replayed.
+- Process loss during a proposed operation causes live source inspection on
+  restart. The operation becomes stale or failed and is never resumed or
+  retried automatically.
+- Cancellation interrupts the active backend or execution context, persists a
+  user-visible terminal transition when possible, and always clears approval.
 
 ## Privacy and Integrity Rules
 
@@ -159,10 +229,5 @@ The persistence implementation must support:
 - Reset and pruning do not modify the target project.
 - Stored state contains no credentials, hidden reasoning, or repository file
   snapshots.
-
-## Open Questions
-
-- What storage format best supports bounded local state and migrations?
-- Which operating-system state-directory convention supplies the root path?
-- What default retention count or duration applies?
-- Should reset archive or immediately delete prior user-visible turns?
+- Concurrent processes cannot mutate one scope's state simultaneously.
+- Interrupted writes retain the previous valid snapshot.

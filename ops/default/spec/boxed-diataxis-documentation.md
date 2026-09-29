@@ -224,9 +224,12 @@ existing execution policy.
 
 ## Product Surface
 
-`hatmax generate "<request>"` remains the only initial command. The displayed
-plan identifies each documentation target, quadrant, path, index effect, and
-evidence fingerprint before approval.
+The delivered surface uses `hatmax generate "<request>"`. When the approved
+conversational surface is delivered, `hm generate "<request>"` becomes the
+canonical headless command and the former spelling remains an equivalent
+compatibility alias for its defined transition. The displayed plan identifies
+each documentation target, quadrant, path, index effect, and evidence
+fingerprint before approval.
 
 The final report lists created, updated, and unchanged documentation paths,
 managed-section preservation, conformance, and exact repository-command

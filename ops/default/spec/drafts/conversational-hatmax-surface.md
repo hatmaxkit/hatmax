@@ -55,8 +55,47 @@ executable owns headless subcommands for automation and tests. The existing
 `hatmax` executable remains a temporary compatibility alias; it does not become
 a second product with different authority.
 
-Command availability and the compatibility lifetime must be verified before
-implementation.
+The initial command surface is:
+
+```text
+hm
+hm generate "<request>"
+hm conversation new
+hm conversation list
+hm conversation resume <conversation-id>
+```
+
+`hm conversation new` archives the active local conversation and starts a new
+one for the same scope. `list` and `resume` expose only conversations for the
+resolved scope. The TUI exposes equivalent New Conversation and conversation
+selection actions without requiring users to memorize commands.
+
+`hatmax` and `hatmax generate` remain behaviorally equivalent aliases during
+the transition. The alias is retained for the first two tagged minor releases
+that contain `hm`. It becomes eligible for removal only in a later minor
+release after the immediately preceding release notes announce removal.
+Interactive use may show a deprecation notice; machine-readable and redirected
+headless output must not be polluted by it.
+
+## Terminal UI Boundary
+
+The first TUI uses Bubble Tea v2 as its event loop and rendering boundary,
+Bubbles v2 for the viewport, text area, help, and progress primitives, and Lip
+Gloss v2 for presentation styling. These dependencies belong only to the TUI
+adapter; headless commands and the Hatmax kernels do not depend on terminal UI
+types.
+
+Bubble Tea's model represents presentation state and dispatches typed Hatmax
+actions. It does not become the authority for conversation, intent, plan,
+approval, execution, or persisted state. Long-running inventory, interpreter,
+planning, and execution work runs through cancellable commands that return
+typed messages to the UI. `View` performs no project, backend, or state-store
+I/O.
+
+The first layout contains one scrollable conversation viewport, one multiline
+composer, one contextual status line, and an inspectable plan or result panel.
+Terminal width may change arrangement but not hide plan digest, approval,
+failure, or retained-change information.
 
 ## Session Modes
 
@@ -176,7 +215,9 @@ stored approval survives process exit, cancellation, drift, backend identity
 change, or plan invalidation.
 
 Hatmax must provide a deliberate way to start a fresh conversation without
-deleting or changing project source.
+deleting or changing project source. Reset uses the New Conversation action or
+`hm conversation new`; prior state is archived until ordinary retention prunes
+it.
 
 ## Headless Parity
 
@@ -224,6 +265,13 @@ The user can reset local conversation state without modifying the project.
 Losing all local state does not prevent Hatmax from reconstructing project
 facts from source and the compatible Book.
 
+The first implementation uses the versioned JSON store and fixed retention
+limits defined by the state model. One dialogue turn is limited to 32 KiB of
+UTF-8 text. Oversized user input is rejected before inference rather than
+truncated. Oversized backend dialogue is rejected as a bounded backend result.
+At most eight clarification exchanges belong to one proposed operation, in
+line with the existing interaction kernel.
+
 ## Observable Outcomes
 
 The TUI presents at least:
@@ -258,6 +306,8 @@ validation evidence, and the next safe action.
   content.
 - Reopening a project resumes local conversation but reinspects source and
   invalidates stale plans.
+- New, list, and resume controls never modify project source.
+- Local state is bounded, versioned, atomically replaced, and locked per scope.
 - Cancellation and failures preserve useful conversational context without
   preserving approval.
 - Headless and TUI operations use the same deterministic kernels.
@@ -265,10 +315,6 @@ validation evidence, and the next safe action.
 
 ## Open Questions
 
-- Which terminal UI framework and component model best fit the state machine?
-- What exact command resets or selects a conversation?
-- How long should the `hatmax` compatibility alias remain?
-- What retention limit applies to old turns and execution summaries?
 - Does prototype testing confirm the compact versus expanded plan presentation?
 - Which additional Hatmax-native maintenance capability should follow the
   current operation set first?

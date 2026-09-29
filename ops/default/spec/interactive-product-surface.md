@@ -15,6 +15,12 @@ authenticated through the user's ChatGPT subscription. Pi and direct API
 adapters can implement the same boundary later, but they are not part of the
 first product surface.
 
+This specification remains the delivered single-request CLI contract. The
+successor conversational product contract is being defined in
+`ops/default/spec/drafts/conversational-hatmax-surface.md`; it extends this
+backend boundary and deterministic kernel rather than replacing them with a
+second execution path.
+
 The model interprets user intent. Hatmax owns project inspection, context
 selection, intent validation, planning, approval, execution, conformance, and
 reporting. The interpreter backend never becomes an alternate implementation
@@ -262,6 +268,10 @@ new interpretation and plan.
 
 The initial command has no automatic approval flag. Automation and risk-based
 approval policies require a later specification revision.
+
+The conversational successor retains explicit approval for every mutation.
+Compact and expanded TUI presentations are views over the same sealed plan and
+digest; they do not weaken this rule.
 
 ## Execution Coordination
 
