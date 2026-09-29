@@ -119,6 +119,8 @@ type Manifest struct {
 	SourceFingerprint  string           `json:"source_fingerprint,omitempty" yaml:"source_fingerprint,omitempty"`
 	Intent             intent.Operation `json:"intent" yaml:"intent"`
 	Feature            string           `json:"feature" yaml:"feature"`
+	TargetPath         string           `json:"target_path,omitempty" yaml:"target_path,omitempty"`
+	PreservedPaths     []string         `json:"preserved_paths,omitempty" yaml:"preserved_paths,omitempty"`
 	AllowedSurfaces    []string         `json:"allowed_surfaces" yaml:"allowed_surfaces"`
 	Edits              []Edit           `json:"edits" yaml:"edits"`
 	Commands           []Command        `json:"commands,omitempty" yaml:"commands,omitempty"`

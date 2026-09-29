@@ -2,6 +2,7 @@ package execute
 
 import (
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -39,7 +40,20 @@ func Validate(value Manifest) error {
 		if value.Feature != "" {
 			return executionError("execution_feature_invalid", "feature", "application manifests do not identify one feature")
 		}
+
+		if !filepath.IsAbs(value.TargetPath) || filepath.Clean(value.TargetPath) != value.TargetPath {
+			return executionError("execution_target_invalid", "target_path", "application target must be an absolute clean path")
+		}
+
+		err := validateUniquePaths("preserved_paths", value.PreservedPaths)
+		if err != nil {
+			return err
+		}
 	} else {
+		if value.TargetPath != "" || len(value.PreservedPaths) != 0 {
+			return executionError("execution_target_invalid", "target_path", "project manifests do not carry application target state")
+		}
+
 		if value.SourceFingerprint != "" || !digestPattern.MatchString(value.ProjectFingerprint) {
 			return executionError("execution_identity_invalid", "project_fingerprint", "project manifests require only a sha256 project fingerprint")
 		}
@@ -66,6 +80,24 @@ func Validate(value Manifest) error {
 
 	if value.Digest != "" && !digestPattern.MatchString(value.Digest) {
 		return executionError("execution_digest_invalid", "digest", "digest must use sha256:<hex>")
+	}
+
+	return nil
+}
+
+func validateUniquePaths(field string, values []string) error {
+	seen := make(map[string]struct{}, len(values))
+	for index, value := range values {
+		normalized, err := normalizeRelativePath(value)
+		if err != nil || normalized != value {
+			return executionError("execution_target_invalid", indexedPath(field, index), "path %q must be clean and relative", value)
+		}
+
+		if _, exists := seen[value]; exists {
+			return executionError("execution_duplicate_value", indexedPath(field, index), "duplicate path %q", value)
+		}
+
+		seen[value] = struct{}{}
 	}
 
 	return nil

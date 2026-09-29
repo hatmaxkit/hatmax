@@ -123,7 +123,8 @@ func applicationManifestForRecipes(t *testing.T, value plan.Plan, recipeIDs []st
 
 	result := Manifest{
 		SchemaVersion: CurrentSchemaVersion, PlanDigest: value.Digest, SourceFingerprint: value.SourceFingerprint,
-		Intent: value.Intent, AllowedSurfaces: append([]string{}, value.AllowedEffects.Surfaces...), Edits: edits, Commands: []Command{},
+		Intent: value.Intent, TargetPath: value.Target.Path,
+		AllowedSurfaces: append([]string{}, value.AllowedEffects.Surfaces...), Edits: edits, Commands: []Command{},
 	}
 
 	result, err := Seal(result)

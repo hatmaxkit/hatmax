@@ -272,6 +272,7 @@ func conditionPresent(values []Condition, expected ConditionKind) bool {
 
 func cloneManifest(value Manifest) Manifest {
 	result := value
+	result.PreservedPaths = append([]string{}, value.PreservedPaths...)
 	result.AllowedSurfaces = append([]string{}, value.AllowedSurfaces...)
 
 	result.Edits = make([]Edit, len(value.Edits))

@@ -18,6 +18,7 @@ help:
 	@echo "  test-short            - Run tests in short mode"
 	@echo "  generator-live-smoke  - Run the opt-in authenticated Codex generator smoke"
 	@echo "  generator-project-acceptance - Generate and validate a real representative project"
+	@echo "  generator-scaffold-acceptance - Render, publish, and validate a canonical application scaffold"
 	@echo "  test-coverage         - Run tests with coverage report"
 	@echo "  test-coverage-profile - Generate coverage profile"
 	@echo "  test-coverage-html    - Generate HTML coverage report"
@@ -97,6 +98,9 @@ generator-project-acceptance:
 	@command -v sqlc >/dev/null || { echo "sqlc is required"; exit 1; }
 	@command -v golangci-lint >/dev/null || { echo "golangci-lint is required"; exit 1; }
 	@go test -tags=acceptance -count=1 -run '^TestTerminalSurfaceValidatesGeneratedProjectWithRealCommands$$' ./internal/hatmaxcli
+
+generator-scaffold-acceptance:
+	@go test -tags=acceptance -count=1 -run '^TestApplicationScaffoldAcceptance$$' ./generator/execute
 
 # Run tests with coverage
 test-coverage:

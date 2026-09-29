@@ -136,6 +136,17 @@ func TestRenderApplicationFoundationRejectsRecipeDrift(t *testing.T) {
 func applicationRenderPlan(t *testing.T) plan.Plan {
 	t.Helper()
 
+	result, _, _ := applicationExecutionPlan(t, nil)
+
+	return result
+}
+
+func applicationExecutionPlan(
+	t *testing.T,
+	prepare func(string),
+) (plan.Plan, project.TargetInventory, *book.Book) {
+	t.Helper()
+
 	selectedBook, err := book.LoadRelease(2)
 	if err != nil {
 		t.Fatalf("book.LoadRelease(2) error = %v", err)
@@ -162,8 +173,13 @@ func applicationRenderPlan(t *testing.T) plan.Plan {
 
 	parent := t.TempDir()
 
+	targetPath := filepath.Join(parent, "real-estate")
+	if prepare != nil {
+		prepare(targetPath)
+	}
+
 	target, err := project.InspectTarget(context.Background(), project.TargetRequest{
-		Parent: parent, Target: filepath.Join(parent, "real-estate"), PlannedPaths: plannedPaths, Book: selectedBook,
+		Parent: parent, Target: targetPath, PlannedPaths: plannedPaths, Book: selectedBook,
 	})
 	if err != nil {
 		t.Fatalf("project.InspectTarget() error = %v", err)
@@ -186,7 +202,7 @@ func applicationRenderPlan(t *testing.T) plan.Plan {
 		t.Fatalf("plan.Expand() error = %v", err)
 	}
 
-	return result
+	return result, target, selectedBook
 }
 
 func applicationFoundationManifest(t *testing.T, value plan.Plan) Manifest {

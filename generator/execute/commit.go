@@ -26,10 +26,11 @@ const (
 
 // Result reports one atomic application attempt.
 type Result struct {
-	ManifestDigest string          `json:"manifest_digest" yaml:"manifest_digest"`
-	Status         ExecutionStatus `json:"status" yaml:"status"`
-	Changes        []Change        `json:"changes" yaml:"changes"`
-	Diagnostics    []Diagnostic    `json:"diagnostics" yaml:"diagnostics"`
+	ManifestDigest string                    `json:"manifest_digest" yaml:"manifest_digest"`
+	Status         ExecutionStatus           `json:"status" yaml:"status"`
+	Changes        []Change                  `json:"changes" yaml:"changes"`
+	Diagnostics    []Diagnostic              `json:"diagnostics" yaml:"diagnostics"`
+	Validation     []ValidationCommandResult `json:"validation,omitempty" yaml:"validation,omitempty"`
 }
 
 type commitHooks struct {
