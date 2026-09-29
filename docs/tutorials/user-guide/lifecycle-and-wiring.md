@@ -131,6 +131,13 @@ When wiring a capability, check four questions:
 If those answers are visible in `main.go`, a reader can understand how the
 application becomes operational without tracing hidden initialization.
 
+Supporting services follow the same rule. Brokers and job stores follow the
+database and migrator; subscribers and schedulers follow those stores;
+provider-backed components follow validated configuration. Plain mailers,
+image adapters, telemetry collectors, and feature services stay outside the
+lifecycle list unless they genuinely start, stop, or register routes. Reverse
+shutdown therefore stops active consumers before the resources they use.
+
 For the rationale behind this contract, read
 [Component Order and Startup Rollback](../../explanation/component-order-and-startup/README.md).
 
