@@ -1,7 +1,7 @@
 ---
 id: TKT-20260928210147
 title: Render canonical idiomatic Go source
-status: ready
+status: reviewing
 kind: bug
 severity: high
 priority: normal
@@ -10,6 +10,9 @@ tags: generator, rendering, go
 source: review
 reported_at: 2026-09-28T21:01:47Z
 ready_at: 2026-09-29T07:02:59Z
+started_at: 2026-09-29T07:04:24Z
+reviewed_at: 2026-09-29T07:11:00Z
+branch: dev
 commits:
 ---
 

@@ -117,6 +117,8 @@ func TestRenderDomainRecipesCoverEveryAdmittedFieldType(t *testing.T) {
 		t.Fatalf("renderSelectedRecipes() error = %v", err)
 	}
 
+	assertCanonicalRenderedGo(t, manifest, mutations)
+
 	assertRenderedContains(t, mutations, "create.model", "Active bool", "DueOn time.Time", "Amount string", "Sequence int64", "model.ParseID(value.CustomerID)")
 	assertRenderedContains(t, mutations, "create.model_tests", "\"time\"")
 	assertRenderedContains(t, mutations, "create.service_tests", "\"time\"")

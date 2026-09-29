@@ -25,6 +25,14 @@ func TestRenderAddValidationLayersDurableRule(t *testing.T) {
 		t.Fatalf("RenderAddValidation() error = %v", err)
 	}
 
+	repeated, err := RenderAddValidation(value, manifest, inventory)
+	if err != nil {
+		t.Fatalf("second RenderAddValidation() error = %v", err)
+	}
+
+	assertDeterministicMutations(t, mutations, repeated)
+	assertCanonicalRenderedGo(t, manifest, mutations)
+
 	if len(mutations) != 6 {
 		t.Fatalf("rendered mutations = %d, want 6", len(mutations))
 	}

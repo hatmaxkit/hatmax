@@ -55,6 +55,8 @@ func TestRenderCreateFeatureRendersAndAppliesCompleteManifest(t *testing.T) {
 		t.Fatalf("rendered mutations = %d, want %d", len(mutations), len(manifest.Edits))
 	}
 
+	assertCanonicalRenderedGo(t, manifest, mutations)
+
 	workspace, err := OpenWorkspace(context.Background(), manifest, value, inventory)
 	if err != nil {
 		t.Fatalf("OpenWorkspace() error = %v", err)

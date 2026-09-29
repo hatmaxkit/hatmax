@@ -123,11 +123,13 @@ func renderHandler(context renderContext, edit Edit) ([]byte, error) {
 	fmt.Fprintf(&source, "\tUpdate(context.Context, string, %sInput) (*%s, error)\n", context.entity, context.entity)
 	source.WriteString("\tDelete(context.Context, string) error\n}\n\n")
 	source.WriteString("// TemplateRenderer is the handler-owned rendering boundary.\ntype TemplateRenderer interface {\n\tRender(http.ResponseWriter, string, string, interface{})\n\tRenderPartial(http.ResponseWriter, string, string, interface{})\n}\n\n")
-	fmt.Fprintf(&source, "type PageView struct { Title string; Values []%s; Form FormView }\n", context.entity)
-	source.WriteString("type FormView struct { Values map[string]string; Errors web.FormErrors }\n\n")
-	source.WriteString("type Handler struct { service FeatureService; templates TemplateRenderer; log log.Logger }\n\n")
+	fmt.Fprintf(&source, "type PageView struct {\n\tTitle string\n\tValues []%s\n\tForm FormView\n}\n\n", context.entity)
+	source.WriteString("type FormView struct {\n\tValues map[string]string\n\tErrors web.FormErrors\n}\n\n")
+	source.WriteString("type Handler struct {\n\tservice FeatureService\n\ttemplates TemplateRenderer\n\tlog log.Logger\n}\n\n")
 	source.WriteString("func NewHandler(service FeatureService, templates TemplateRenderer, logger log.Logger) *Handler {\n\treturn &Handler{service: service, templates: templates, log: logger}\n}\n\n")
-	fmt.Fprintf(&source, "func (handler *Handler) RegisterRoutes(router chi.Router) {\n\trouter.Get(%q, handler.page)\n\trouter.Post(%q, handler.create)\n\trouter.Put(%q+\"/{id}\", handler.update)\n\trouter.Delete(%q+\"/{id}\", handler.delete)\n}\n\n", context.route, context.route, context.route, context.route)
+
+	itemRoute := context.route + "/{id}"
+	fmt.Fprintf(&source, "func (handler *Handler) RegisterRoutes(router chi.Router) {\n\trouter.Get(%q, handler.page)\n\trouter.Post(%q, handler.create)\n\trouter.Put(%q, handler.update)\n\trouter.Delete(%q, handler.delete)\n}\n\n", context.route, context.route, itemRoute, itemRoute)
 	renderPageHandler(&source, context)
 	renderCreateHandler(&source, context)
 	renderUpdateHandler(&source, context)
@@ -149,12 +151,12 @@ func renderCreateHandler(source *strings.Builder, context renderContext) {
 }
 
 func renderUpdateHandler(source *strings.Builder, context renderContext) {
-	source.WriteString("func (handler *Handler) update(response http.ResponseWriter, request *http.Request) {\n\tinput, form := parseInput(request)\n\tif form.Errors.Any() {\n\t\thandler.renderInvalid(response, request, form)\n\n\t\treturn\n\t}\n\n\tvalue, err := handler.service.Update(request.Context(), chi.URLParam(request, \"id\"), input)\n\tif errors.Is(err, ErrNotFound) {\n\t\thttp.Error(response, \"Record not found\", http.StatusNotFound)\n\n\t\treturn\n\t}\n\tif err != nil {\n\t\tif formErrors := web.FormErrorsFrom(err, \"Review the highlighted fields.\"); len(formErrors.Fields) > 0 {\n\t\t\tform.Errors = formErrors\n\t\t\thandler.renderInvalid(response, request, form)\n\n\t\t\treturn\n\t\t}\n\n\t\thandler.internalError(response, \"update record\", err)\n\n\t\treturn\n\t}\n\n\tif htmx.IsHTMXRequest(request) {\n")
+	source.WriteString("func (handler *Handler) update(response http.ResponseWriter, request *http.Request) {\n\tinput, form := parseInput(request)\n\tif form.Errors.Any() {\n\t\thandler.renderInvalid(response, request, form)\n\n\t\treturn\n\t}\n\n\tvalue, err := handler.service.Update(request.Context(), chi.URLParam(request, \"id\"), input)\n\tif errors.Is(err, ErrNotFound) {\n\t\thttp.Error(response, \"Record not found\", http.StatusNotFound)\n\n\t\treturn\n\t}\n\n\tif err != nil {\n\t\tformErrors := web.FormErrorsFrom(err, \"Review the highlighted fields.\")\n\t\tif len(formErrors.Fields) > 0 {\n\t\t\tform.Errors = formErrors\n\t\t\thandler.renderInvalid(response, request, form)\n\n\t\t\treturn\n\t\t}\n\n\t\thandler.internalError(response, \"update record\", err)\n\n\t\treturn\n\t}\n\n\tif htmx.IsHTMXRequest(request) {\n")
 	fmt.Fprintf(source, "\t\thandler.templates.RenderPartial(response, %q, \"row\", value)\n\n\t\treturn\n\t}\n\n\thttp.Redirect(response, request, %q, http.StatusSeeOther)\n}\n\n", context.feature, context.route)
 }
 
 func renderDeleteHandler(source *strings.Builder, context renderContext) {
-	source.WriteString("func (handler *Handler) delete(response http.ResponseWriter, request *http.Request) {\n\terr := handler.service.Delete(request.Context(), chi.URLParam(request, \"id\"))\n\tif errors.Is(err, ErrNotFound) {\n\t\thttp.Error(response, \"Record not found\", http.StatusNotFound)\n\n\t\treturn\n\t}\n\tif err != nil {\n\t\thandler.internalError(response, \"delete record\", err)\n\n\t\treturn\n\t}\n\n\tif htmx.IsHTMXRequest(request) {\n\t\thtmx.RespondDelete(response)\n\n\t\treturn\n\t}\n\n")
+	source.WriteString("func (handler *Handler) delete(response http.ResponseWriter, request *http.Request) {\n\terr := handler.service.Delete(request.Context(), chi.URLParam(request, \"id\"))\n\tif errors.Is(err, ErrNotFound) {\n\t\thttp.Error(response, \"Record not found\", http.StatusNotFound)\n\n\t\treturn\n\t}\n\n\tif err != nil {\n\t\thandler.internalError(response, \"delete record\", err)\n\n\t\treturn\n\t}\n\n\tif htmx.IsHTMXRequest(request) {\n\t\thtmx.RespondDelete(response)\n\n\t\treturn\n\t}\n\n")
 	fmt.Fprintf(source, "\thttp.Redirect(response, request, %q, http.StatusSeeOther)\n}\n\n", context.route)
 }
 
@@ -176,18 +178,18 @@ func renderParsedField(source *strings.Builder, field renderField) {
 	case "boolean":
 		fmt.Fprintf(source, "\tinput.%s = values.Bool(%q)\n", field.GoName, field.Name)
 	case "integer":
-		fmt.Fprintf(source, "\tif form.Values[%q] != \"\" {\n\t\tparsed, parseErr := strconv.ParseInt(form.Values[%q], 10, 64)\n\t\tif parseErr != nil { form.Errors.Add(%q, \"must be an integer\") } else { input.%s = parsed }\n\t}\n", field.Name, field.Name, field.Name, field.GoName)
+		fmt.Fprintf(source, "\tif form.Values[%q] != \"\" {\n\t\tparsed, parseErr := strconv.ParseInt(form.Values[%q], 10, 64)\n\t\tif parseErr != nil {\n\t\t\tform.Errors.Add(%q, \"must be an integer\")\n\t\t} else {\n\t\t\tinput.%s = parsed\n\t\t}\n\t}\n", field.Name, field.Name, field.Name, field.GoName)
 	case "date":
-		fmt.Fprintf(source, "\tif form.Values[%q] != \"\" {\n\t\tparsed, parseErr := time.Parse(\"2006-01-02\", form.Values[%q])\n\t\tif parseErr != nil { form.Errors.Add(%q, \"must be a date\") } else { input.%s = parsed }\n\t}\n", field.Name, field.Name, field.Name, field.GoName)
+		fmt.Fprintf(source, "\tif form.Values[%q] != \"\" {\n\t\tparsed, parseErr := time.Parse(\"2006-01-02\", form.Values[%q])\n\t\tif parseErr != nil {\n\t\t\tform.Errors.Add(%q, \"must be a date\")\n\t\t} else {\n\t\t\tinput.%s = parsed\n\t\t}\n\t}\n", field.Name, field.Name, field.Name, field.GoName)
 	case "timestamp":
-		fmt.Fprintf(source, "\tif form.Values[%q] != \"\" {\n\t\tparsed, parseErr := time.Parse(\"2006-01-02T15:04\", form.Values[%q])\n\t\tif parseErr != nil { form.Errors.Add(%q, \"must be a date and time\") } else { input.%s = parsed }\n\t}\n", field.Name, field.Name, field.Name, field.GoName)
+		fmt.Fprintf(source, "\tif form.Values[%q] != \"\" {\n\t\tparsed, parseErr := time.Parse(\"2006-01-02T15:04\", form.Values[%q])\n\t\tif parseErr != nil {\n\t\t\tform.Errors.Add(%q, \"must be a date and time\")\n\t\t} else {\n\t\t\tinput.%s = parsed\n\t\t}\n\t}\n", field.Name, field.Name, field.Name, field.GoName)
 	default:
 		fmt.Fprintf(source, "\tinput.%s = validation.NormalizeText(form.Values[%q])\n", field.GoName, field.Name)
 	}
 }
 
 func renderHandlerHelpers(source *strings.Builder, context renderContext) {
-	source.WriteString("func emptyForm() FormView { return FormView{Values: make(map[string]string), Errors: web.NewFormErrors(\"\")} }\n\n")
+	source.WriteString("func emptyForm() FormView {\n\treturn FormView{Values: make(map[string]string), Errors: web.NewFormErrors(\"\")}\n}\n\n")
 	source.WriteString("func (handler *Handler) renderInvalid(response http.ResponseWriter, request *http.Request, form FormView) {\n\tresponse.WriteHeader(http.StatusUnprocessableEntity)\n\tif htmx.IsHTMXRequest(request) {\n")
 	fmt.Fprintf(source, "\t\thandler.templates.RenderPartial(response, %q, \"form\", form)\n\n\t\treturn\n\t}\n\n\tvalues, err := handler.service.List(request.Context())\n\tif err != nil {\n\t\thandler.log.Errorf(\"list records after invalid form: %%v\", err)\n\t}\n\n\thandler.templates.Render(response, %q, \"page\", PageView{Title: %q, Values: values, Form: form})\n}\n\n", context.feature, context.feature, context.label)
 	source.WriteString("func (handler *Handler) internalError(response http.ResponseWriter, operation string, err error) {\n\thandler.log.Errorf(\"%s: %v\", operation, err)\n\thttp.Error(response, \"The request could not be completed.\", http.StatusInternalServerError)\n}\n")
@@ -298,7 +300,9 @@ func TestHandlerMapsValidationErrors(t *testing.T) {
 	request.Header.Set("HX-Request", "true")
 	response := httptest.NewRecorder()
 	router.ServeHTTP(response, request)
-	if response.Code != http.StatusUnprocessableEntity || renderer.name != "form" || !renderer.partial { t.Fatalf("validation response = %%d, %%#v", response.Code, renderer) }
+	if response.Code != http.StatusUnprocessableEntity || renderer.name != "form" || !renderer.partial {
+		t.Fatalf("validation response = %%d, %%#v", response.Code, renderer)
+	}
 }
 `, context.validation.Field, validationMessage(*context.validation), context.route, validForm)
 	}
@@ -316,15 +320,45 @@ import (
 	"hatmax.adrianpk.com/log"%s
 )
 
-type handlerService struct { created bool; createErr error }
-func (service *handlerService) List(context.Context) ([]%s, error) { return nil, nil }
-func (service *handlerService) Create(_ context.Context, _ %sInput) (*%s, error) { if service.createErr != nil { return nil, service.createErr }; service.created = true; return &%s{ID: "created"}, nil }
-func (service *handlerService) Update(context.Context, string, %sInput) (*%s, error) { return &%s{ID: "updated"}, nil }
-func (service *handlerService) Delete(context.Context, string) error { return nil }
+type handlerService struct {
+	created bool
+	createErr error
+}
 
-type renderedTemplate struct { name string; partial bool }
-func (renderer *renderedTemplate) Render(_ http.ResponseWriter, _, name string, _ interface{}) { renderer.name = name }
-func (renderer *renderedTemplate) RenderPartial(_ http.ResponseWriter, _, name string, _ interface{}) { renderer.name, renderer.partial = name, true }
+func (service *handlerService) List(context.Context) ([]%s, error) {
+	return nil, nil
+}
+
+func (service *handlerService) Create(_ context.Context, _ %sInput) (*%s, error) {
+	if service.createErr != nil {
+		return nil, service.createErr
+	}
+
+	service.created = true
+
+	return &%s{ID: "created"}, nil
+}
+
+func (service *handlerService) Update(context.Context, string, %sInput) (*%s, error) {
+	return &%s{ID: "updated"}, nil
+}
+
+func (service *handlerService) Delete(context.Context, string) error {
+	return nil
+}
+
+type renderedTemplate struct {
+	name string
+	partial bool
+}
+
+func (renderer *renderedTemplate) Render(_ http.ResponseWriter, _, name string, _ interface{}) {
+	renderer.name = name
+}
+
+func (renderer *renderedTemplate) RenderPartial(_ http.ResponseWriter, _, name string, _ interface{}) {
+	renderer.name, renderer.partial = name, true
+}
 
 func TestHandlerRendersPageAndHTMXCreate(t *testing.T) {
 	service := &handlerService{}
@@ -335,14 +369,18 @@ func TestHandlerRendersPageAndHTMXCreate(t *testing.T) {
 
 	page := httptest.NewRecorder()
 	router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, %q, nil))
-	if page.Code != http.StatusOK || renderer.name != "page" || renderer.partial { t.Fatalf("page response = %%d, %%#v", page.Code, renderer) }
+	if page.Code != http.StatusOK || renderer.name != "page" || renderer.partial {
+		t.Fatalf("page response = %%d, %%#v", page.Code, renderer)
+	}
 
 	request := httptest.NewRequest(http.MethodPost, %q, strings.NewReader(%q))
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	request.Header.Set("HX-Request", "true")
 	created := httptest.NewRecorder()
 	router.ServeHTTP(created, request)
-	if created.Code != http.StatusOK || !service.created || renderer.name != "row" || !renderer.partial { t.Fatalf("create response = %%d, %%#v", created.Code, renderer) }
+	if created.Code != http.StatusOK || !service.created || renderer.name != "row" || !renderer.partial {
+		t.Fatalf("create response = %%d, %%#v", created.Code, renderer)
+	}
 }%s
 `, context.feature, validationImport, context.entity, context.entity, context.entity, context.entity, context.entity, context.entity, context.entity, context.route, context.route, validForm, validationTest)
 

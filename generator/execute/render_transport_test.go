@@ -84,6 +84,8 @@ func TestRenderTransportParsersCoverTypedFields(t *testing.T) {
 		t.Fatalf("renderSelectedRecipes() error = %v", err)
 	}
 
+	assertCanonicalRenderedGo(t, manifest, mutations)
+
 	assertRenderedContains(t, mutations, "create.handler", "values.Bool(\"active\")", "strconv.ParseInt", "time.Parse(\"2006-01-02\"", "time.Parse(\"2006-01-02T15:04\"")
 	assertRenderedContains(t, mutations, "create.handler", "\"strconv\"", "\"time\"")
 }

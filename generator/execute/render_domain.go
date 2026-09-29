@@ -51,14 +51,14 @@ func renderModel(context renderContext, edit Edit) ([]byte, error) {
 	}
 
 	source.WriteString("\t\tCreatedAt: now,\n\t\tUpdatedAt: now,\n\t}\n\n")
-	source.WriteString("\tif err := value.Validate(); err != nil {\n\t\treturn nil, err\n\t}\n\n\treturn value, nil\n}\n\n")
+	source.WriteString("\terr := value.Validate()\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\treturn value, nil\n}\n\n")
 	fmt.Fprintf(&source, "// Update applies validated mutable values.\nfunc (value *%s) Update(input %sInput) error {\n", context.entity, context.entity)
 
 	for _, field := range context.fields {
 		fmt.Fprintf(&source, "\tvalue.%s = input.%s\n", field.GoName, field.GoName)
 	}
 
-	source.WriteString("\n\tif err := value.Validate(); err != nil {\n\t\treturn err\n\t}\n\n\tvalue.UpdatedAt = model.Now()\n\n\treturn nil\n}\n\n")
+	source.WriteString("\n\terr := value.Validate()\n\tif err != nil {\n\t\treturn err\n\t}\n\n\tvalue.UpdatedAt = model.Now()\n\n\treturn nil\n}\n\n")
 	fmt.Fprintf(&source, "// Validate enforces durable %s invariants.\nfunc (value %s) Validate() error {\n", context.entity, context.entity)
 	source.WriteString("\tvar errors validation.ValidationErrors\n")
 
@@ -93,7 +93,7 @@ func renderFieldValidation(source *strings.Builder, field renderField, rule *int
 	}
 
 	if field.ParseKind == "uuid" {
-		fmt.Fprintf(source, "\n\tif value.%s != \"\" {\n\t\tif _, err := model.ParseID(value.%s); err != nil {\n\t\t\terrors.Add(%q, \"must be a valid UUID\")\n\t\t}\n\t}\n", field.GoName, field.GoName, field.Name)
+		fmt.Fprintf(source, "\n\tif value.%s != \"\" {\n\t\t_, err := model.ParseID(value.%s)\n\t\tif err != nil {\n\t\t\terrors.Add(%q, \"must be a valid UUID\")\n\t\t}\n\t}\n", field.GoName, field.GoName, field.Name)
 	}
 
 	if rule != nil && rule.Field == field.Name && rule.Scope == intent.ValidationDurable {
@@ -184,21 +184,21 @@ func renderPostgresStore(context renderContext, edit Edit) ([]byte, error) {
 	source.WriteString("// PostgresStore persists the feature through generated SQLC queries.\ntype PostgresStore struct {\n\tprovider DBProvider\n\tqueries *dal.Queries\n}\n\n")
 	source.WriteString("// NewPostgresStore retains dependencies without performing I/O.\nfunc NewPostgresStore(provider DBProvider) *PostgresStore {\n\treturn &PostgresStore{provider: provider}\n}\n\n")
 	source.WriteString("// Start acquires the live database after its provider has started.\nfunc (store *PostgresStore) Start(context.Context) error {\n\tdatabase := store.provider.GetDB()\n\tif database == nil {\n\t\treturn errors.New(\"database connection not available\")\n\t}\n\n\tstore.queries = dal.New(database)\n\n\treturn nil\n}\n\n")
-	source.WriteString("// Stop preserves lifecycle alignment.\nfunc (store *PostgresStore) Stop(context.Context) error { return nil }\n\n")
+	source.WriteString("// Stop preserves lifecycle alignment.\nfunc (store *PostgresStore) Stop(context.Context) error {\n\treturn nil\n}\n\n")
 	fmt.Fprintf(&source, "func (store *PostgresStore) List(ctx context.Context) ([]%s, error) {\n\trows, err := store.queries.List%s(ctx)\n", context.entity, context.plural)
 	source.WriteString("\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"list records: %w\", err)\n\t}\n\n")
 	fmt.Fprintf(&source, "\tresult := make([]%s, 0, len(rows))\n\tfor _, row := range rows {\n\t\tresult = append(result, %sFromRow(row))\n\t}\n\n\treturn result, nil\n}\n\n", context.entity, context.feature)
 	fmt.Fprintf(&source, "func (store *PostgresStore) Get(ctx context.Context, id string) (*%s, error) {\n\trow, err := store.queries.Get%s(ctx, id)\n", context.entity, context.entity)
-	source.WriteString("\tif errors.Is(err, sql.ErrNoRows) {\n\t\treturn nil, ErrNotFound\n\t}\n\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"get record: %w\", err)\n\t}\n\n")
+	source.WriteString("\tif errors.Is(err, sql.ErrNoRows) {\n\t\treturn nil, ErrNotFound\n\t}\n\n\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"get record: %w\", err)\n\t}\n\n")
 	fmt.Fprintf(&source, "\tresult := %sFromRow(row)\n\n\treturn &result, nil\n}\n\n", context.feature)
 	fmt.Fprintf(&source, "func (store *PostgresStore) Create(ctx context.Context, value *%s) error {\n\terr := store.queries.Create%s(ctx, dal.Create%sParams{\n", context.entity, context.entity, context.entity)
 	renderDALParams(&source, context, "value", true)
 	source.WriteString("\t})\n\tif err != nil {\n\t\treturn fmt.Errorf(\"create record: %w\", err)\n\t}\n\n\treturn nil\n}\n\n")
 	fmt.Fprintf(&source, "func (store *PostgresStore) Update(ctx context.Context, value *%s) error {\n\tresult, err := store.queries.Update%s(ctx, dal.Update%sParams{\n", context.entity, context.entity, context.entity)
 	renderDALParams(&source, context, "value", false)
-	source.WriteString("\t})\n\tif err != nil {\n\t\treturn fmt.Errorf(\"update record: %w\", err)\n\t}\n\tif result == 0 {\n\t\treturn ErrNotFound\n\t}\n\n\treturn nil\n}\n\n")
+	source.WriteString("\t})\n\tif err != nil {\n\t\treturn fmt.Errorf(\"update record: %w\", err)\n\t}\n\n\tif result == 0 {\n\t\treturn ErrNotFound\n\t}\n\n\treturn nil\n}\n\n")
 	fmt.Fprintf(&source, "func (store *PostgresStore) Delete(ctx context.Context, id string) error {\n\tresult, err := store.queries.Delete%s(ctx, id)\n", context.entity)
-	source.WriteString("\tif err != nil {\n\t\treturn fmt.Errorf(\"delete record: %w\", err)\n\t}\n\tif result == 0 {\n\t\treturn ErrNotFound\n\t}\n\n\treturn nil\n}\n\n")
+	source.WriteString("\tif err != nil {\n\t\treturn fmt.Errorf(\"delete record: %w\", err)\n\t}\n\n\tif result == 0 {\n\t\treturn ErrNotFound\n\t}\n\n\treturn nil\n}\n\n")
 	fmt.Fprintf(&source, "func %sFromRow(row dal.%s) %s {\n\treturn %s{\n\t\tID: row.ID,\n", context.feature, context.entity, context.entity, context.entity)
 
 	for _, field := range context.fields {
@@ -233,40 +233,72 @@ import (
 )
 
 // Service owns %s application workflows.
-type Service struct { store Store }
+type Service struct {
+	store Store
+}
 
 // NewService constructs the feature service.
-func NewService(store Store) *Service { return &Service{store: store} }
+func NewService(store Store) *Service {
+	return &Service{store: store}
+}
 
 func (service *Service) List(ctx context.Context) ([]%s, error) {
 	values, err := service.store.List(ctx)
-	if err != nil { return nil, fmt.Errorf("list %s: %%w", err) }
+	if err != nil {
+		return nil, fmt.Errorf("list %s: %%w", err)
+	}
+
 	return values, nil
 }
 
 func (service *Service) Get(ctx context.Context, id string) (*%s, error) {
 	value, err := service.store.Get(ctx, id)
-	if err != nil { return nil, fmt.Errorf("get %s: %%w", err) }
+	if err != nil {
+		return nil, fmt.Errorf("get %s: %%w", err)
+	}
+
 	return value, nil
 }
 
 func (service *Service) Create(ctx context.Context, input %sInput) (*%s, error) {
 	value, err := New%s(input)
-	if err != nil { return nil, err }
-	if err = service.store.Create(ctx, value); err != nil { return nil, fmt.Errorf("create %s: %%w", err) }
+	if err != nil {
+		return nil, err
+	}
+
+	err = service.store.Create(ctx, value)
+	if err != nil {
+		return nil, fmt.Errorf("create %s: %%w", err)
+	}
+
 	return value, nil
 }
 
 func (service *Service) Update(ctx context.Context, id string, input %sInput) (*%s, error) {
 	value, err := service.store.Get(ctx, id)
-	if err != nil { return nil, fmt.Errorf("get %s: %%w", err) }
-	if err = value.Update(input); err != nil { return nil, err }
-	if err = service.store.Update(ctx, value); err != nil { return nil, fmt.Errorf("update %s: %%w", err) }
+	if err != nil {
+		return nil, fmt.Errorf("get %s: %%w", err)
+	}
+
+	err = value.Update(input)
+	if err != nil {
+		return nil, err
+	}
+
+	err = service.store.Update(ctx, value)
+	if err != nil {
+		return nil, fmt.Errorf("update %s: %%w", err)
+	}
+
 	return value, nil
 }
 
 func (service *Service) Delete(ctx context.Context, id string) error {
-	if err := service.store.Delete(ctx, id); err != nil { return fmt.Errorf("delete %s: %%w", err) }
+	err := service.store.Delete(ctx, id)
+	if err != nil {
+		return fmt.Errorf("delete %s: %%w", err)
+	}
+
 	return nil
 }
 `, context.feature, context.label, context.entity, context.feature, context.entity, context.feature, context.entity, context.entity, context.entity, context.feature, context.entity, context.entity, context.feature, context.feature, context.feature)
@@ -288,7 +320,7 @@ func renderModelTests(context renderContext, edit Edit) ([]byte, error) {
 
 	source.WriteString(")\n\n")
 	fmt.Fprintf(&source, "func TestNew%sValidatesRequiredFields(t *testing.T) {\n", context.entity)
-	fmt.Fprintf(&source, "\ttests := []struct { name string; input %sInput; wantError bool }{\n", context.entity)
+	fmt.Fprintf(&source, "\ttests := []struct {\n\t\tname string\n\t\tinput %sInput\n\t\twantError bool\n\t}{\n", context.entity)
 	fmt.Fprintf(&source, "\t\t{name: \"valid\", input: %sInput{%s}, wantError: false},\n", context.entity, renderTestInput(context.fields, true))
 
 	if hasRequiredRenderField(context.fields) {
@@ -297,7 +329,7 @@ func renderModelTests(context renderContext, edit Edit) ([]byte, error) {
 
 	source.WriteString("\t}\n\n\tfor _, test := range tests {\n\t\tt.Run(test.name, func(t *testing.T) {\n")
 	fmt.Fprintf(&source, "\t\t\tvalue, err := New%s(test.input)\n", context.entity)
-	source.WriteString("\t\t\tif (err != nil) != test.wantError { t.Fatalf(\"error = %v, wantError %v\", err, test.wantError) }\n\t\t\tif !test.wantError && (value.ID == \"\" || value.CreatedAt.IsZero() || value.UpdatedAt.IsZero()) { t.Error(\"constructor did not establish identity and timestamps\") }\n\t\t})\n\t}\n}\n")
+	source.WriteString("\t\t\tif (err != nil) != test.wantError {\n\t\t\t\tt.Fatalf(\"error = %v, wantError %v\", err, test.wantError)\n\t\t\t}\n\n\t\t\tif !test.wantError && (value.ID == \"\" || value.CreatedAt.IsZero() || value.UpdatedAt.IsZero()) {\n\t\t\t\tt.Error(\"constructor did not establish identity and timestamps\")\n\t\t\t}\n\t\t})\n\t}\n}\n")
 
 	if context.validation != nil && context.validation.Scope == intent.ValidationDurable && context.validation.Kind != "unique" {
 		renderValidationModelTest(&source, context)
@@ -315,7 +347,7 @@ func renderValidationModelTest(source *strings.Builder, context renderContext) {
 	fmt.Fprintf(source, "\nfunc Test%sRejects%sValidation(t *testing.T) {\n", context.entity, exportedName(context.validation.Field))
 	fmt.Fprintf(source, "\tinput := %sInput{%s}\n", context.entity, renderTestInput(context.fields, true))
 	fmt.Fprintf(source, "\tinput.%s = %s\n", field.GoName, invalidValidationValue(field, *context.validation))
-	fmt.Fprintf(source, "\tif _, err := New%s(input); err == nil { t.Fatal(\"New%s() error = nil, want validation failure\") }\n}\n", context.entity, context.entity)
+	fmt.Fprintf(source, "\t_, err := New%s(input)\n\tif err == nil {\n\t\tt.Fatal(\"New%s() error = nil, want validation failure\")\n\t}\n}\n", context.entity, context.entity)
 }
 
 func renderFieldByName(fields []renderField, name string) (renderField, bool) {
@@ -373,19 +405,43 @@ import (
 	"testing"%s
 )
 
-type recordingStore struct { created *%s }
-func (store *recordingStore) List(context.Context) ([]%s, error) { return nil, nil }
-func (store *recordingStore) Get(context.Context, string) (*%s, error) { return nil, ErrNotFound }
-func (store *recordingStore) Create(_ context.Context, value *%s) error { store.created = value; return nil }
-func (store *recordingStore) Update(context.Context, *%s) error { return nil }
-func (store *recordingStore) Delete(context.Context, string) error { return nil }
+type recordingStore struct {
+	created *%s
+}
+
+func (store *recordingStore) List(context.Context) ([]%s, error) {
+	return nil, nil
+}
+
+func (store *recordingStore) Get(context.Context, string) (*%s, error) {
+	return nil, ErrNotFound
+}
+
+func (store *recordingStore) Create(_ context.Context, value *%s) error {
+	store.created = value
+
+	return nil
+}
+
+func (store *recordingStore) Update(context.Context, *%s) error {
+	return nil
+}
+
+func (store *recordingStore) Delete(context.Context, string) error {
+	return nil
+}
 
 func TestServiceCreateValidatesBeforePersistence(t *testing.T) {
 	store := &recordingStore{}
 	service := NewService(store)
 	_, err := service.Create(context.Background(), %sInput{%s})
-	if err != nil { t.Fatalf("Create() error = %%v", err) }
-	if store.created == nil { t.Fatal("Create() did not persist the valid entity") }
+	if err != nil {
+		t.Fatalf("Create() error = %%v", err)
+	}
+
+	if store.created == nil {
+		t.Fatal("Create() did not persist the valid entity")
+	}
 }
 `, context.feature, imports, context.entity, context.entity, context.entity, context.entity, context.entity, context.entity, renderTestInput(context.fields, true))
 
@@ -409,12 +465,18 @@ import (
 	"hatmax.adrianpk.com/testhelper"
 )
 
-type testDBProvider struct { database *sql.DB }
-func (provider testDBProvider) GetDB() *sql.DB { return provider.database }
+type testDBProvider struct {
+	database *sql.DB
+}
+
+func (provider testDBProvider) GetDB() *sql.DB {
+	return provider.database
+}
 
 func TestPostgresStoreRequiresStartedDatabase(t *testing.T) {
 	store := NewPostgresStore(testDBProvider{})
-	if err := store.Start(context.Background()); err == nil {
+	err := store.Start(context.Background())
+	if err == nil {
 		t.Fatal("Start() error = nil, want unavailable database")
 	}
 }
@@ -424,23 +486,45 @@ func TestPostgresStoreCRUD(t *testing.T) {
 	defer cleanup()
 
 	_, err := database.Exec(%q)
-	if err != nil { t.Fatalf("create table: %%v", err) }
+	if err != nil {
+		t.Fatalf("create table: %%v", err)
+	}
 
 	store := NewPostgresStore(testDBProvider{database: database})
-	if err = store.Start(context.Background()); err != nil { t.Fatalf("Start() error = %%v", err) }
+	err = store.Start(context.Background())
+	if err != nil {
+		t.Fatalf("Start() error = %%v", err)
+	}
 
 	value, err := New%s(%sInput{%s})
-	if err != nil { t.Fatalf("New%s() error = %%v", err) }
-	if err = store.Create(context.Background(), value); err != nil { t.Fatalf("Create() error = %%v", err) }
+	if err != nil {
+		t.Fatalf("New%s() error = %%v", err)
+	}
+
+	err = store.Create(context.Background(), value)
+	if err != nil {
+		t.Fatalf("Create() error = %%v", err)
+	}
 
 	loaded, err := store.Get(context.Background(), value.ID)
-	if err != nil || loaded.ID != value.ID { t.Fatalf("Get() = %%#v, %%v", loaded, err) }
+	if err != nil || loaded.ID != value.ID {
+		t.Fatalf("Get() = %%#v, %%v", loaded, err)
+	}
 
 	values, err := store.List(context.Background())
-	if err != nil || len(values) != 1 { t.Fatalf("List() = %%#v, %%v", values, err) }
+	if err != nil || len(values) != 1 {
+		t.Fatalf("List() = %%#v, %%v", values, err)
+	}
 
-	if err = store.Delete(context.Background(), value.ID); err != nil { t.Fatalf("Delete() error = %%v", err) }
-	if _, err = store.Get(context.Background(), value.ID); !errors.Is(err, ErrNotFound) { t.Fatalf("Get() after Delete() error = %%v", err) }
+	err = store.Delete(context.Background(), value.ID)
+	if err != nil {
+		t.Fatalf("Delete() error = %%v", err)
+	}
+
+	_, err = store.Get(context.Background(), value.ID)
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("Get() after Delete() error = %%v", err)
+	}
 }
 `, context.feature, imports, renderTestTableSQL(context), context.entity, context.entity, renderTestInput(context.fields, true), context.entity)
 

@@ -26,6 +26,14 @@ func TestRenderAddFieldUpdatesEveryCanonicalRepresentation(t *testing.T) {
 		t.Fatalf("RenderAddField() error = %v", err)
 	}
 
+	repeated, err := RenderAddField(value, manifest, inventory)
+	if err != nil {
+		t.Fatalf("second RenderAddField() error = %v", err)
+	}
+
+	assertDeterministicMutations(t, mutations, repeated)
+	assertCanonicalRenderedGo(t, manifest, mutations)
+
 	if len(mutations) != 14 {
 		t.Fatalf("rendered mutations = %d, want 14", len(mutations))
 	}
