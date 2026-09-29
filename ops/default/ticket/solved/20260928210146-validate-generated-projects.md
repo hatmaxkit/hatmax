@@ -1,7 +1,7 @@
 ---
 id: TKT-20260928210146
 title: Validate generated projects with real build and lint gates
-status: reviewing
+status: solved
 kind: bug
 severity: high
 priority: normal
@@ -12,8 +12,10 @@ reported_at: 2026-09-28T21:01:46Z
 ready_at: 2026-09-29T07:02:59Z
 started_at: 2026-09-29T07:11:45Z
 reviewed_at: 2026-09-29T07:22:57Z
+closed_at: 2026-09-29T07:23:32Z
+resolution: fixed
 branch: dev
-commits:
+commits: d708b5568b9e9da6283887a2cc1213464b52beb4
 ---
 
 ## Observed Behavior
