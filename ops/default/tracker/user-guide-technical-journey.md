@@ -19,7 +19,7 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 | Slice 2 | web interaction | delivered | `docs/user-guide-web-interaction` | `docs(slice-2): explain the Hatmax web interaction model` | #49 | `ops/default/report/slices/user-guide-technical-journey/slice-2-web-interaction.md` |
 | Slice 3 | feature anatomy | delivered | `docs/user-guide-feature-anatomy` | `docs(slice-3): establish canonical feature anatomy` | #50 | `ops/default/report/slices/user-guide-technical-journey/slice-3-feature-anatomy.md` |
 | Slice 4 | data lifecycle | delivered | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` | #51 | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |
-| Slice 5 | identity and runtime | active | `docs/user-guide-identity-runtime` | `docs(slice-5): explain identity and runtime configuration` |  | `ops/default/report/slices/user-guide-technical-journey/slice-5-identity-runtime.md` |
+| Slice 5 | identity and runtime | reviewing | `docs/user-guide-identity-runtime` | `docs(slice-5): explain identity and runtime configuration` |  | `ops/default/report/slices/user-guide-technical-journey/slice-5-identity-runtime.md` |
 | Slice 6 | application services | planned | `docs/user-guide-application-services` | `docs(slice-6): explain Hatmax application services` |  | `ops/default/report/slices/user-guide-technical-journey/slice-6-application-services.md` |
 | Slice 7 | testing and evolution | planned | `docs/user-guide-testing-evolution` | `docs(slice-7): complete the User Guide journey` |  | `ops/default/report/slices/user-guide-technical-journey/slice-7-testing-evolution.md` |
 
@@ -61,9 +61,9 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T5.1 | pending | `docs(guide): explain identity and sessions` |  |  |
-| T5.2 | pending | `docs(guide): explain runtime configuration` |  |  |
-| T5.3 | pending | `docs(guide): retire superseded runtime pages` |  |  |
+| T5.1 | complete | `docs(guide): explain identity and sessions` | `e2702dd` | `make docs-check` passed |
+| T5.2 | complete | `docs(guide): explain runtime configuration` | `ff3072a` | `make docs-check` passed |
+| T5.3 | complete | `docs(guide): retire superseded runtime pages` | `b40e6e7` | link audit and `make docs-check` passed |
 
 ## Slice 6 Tasks
 
@@ -104,6 +104,5 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Current Gate
 
-Slice 4 merged through pull request #51 at
-`0e1bfd3e2220ea52f3b9f6e9f8e4127d1897ee7e`. Slice 5 is active and may begin
-from that integrated `dev` state.
+Slice 5 content and focused validation are complete. Its report is in
+reviewing state; the recorded pull request must be opened against `dev`.
