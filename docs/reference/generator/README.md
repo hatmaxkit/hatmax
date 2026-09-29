@@ -90,5 +90,5 @@ closing the command does not stop the resident daemon.
 | `7` | Project drift invalidated the approved plan. |
 | `8` | Rendering, mutation, conformance, or project validation failed. |
 
-For a guided run, see
-[Generate a Feature](../../tutorials/user-guide/generation.md).
+For its place in the application journey, see
+[Assisted Generation](../../tutorials/user-guide/assisted-generation.md).
