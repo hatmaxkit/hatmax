@@ -198,9 +198,9 @@ those drafts and do not require further discovery before drafting.
 - `ops/default/spec/interactive-hatmax-generator.md`
 - `ops/default/spec/interactive-product-surface.md`
 - `ops/default/ticket/open/20260929085205-explore-conversational-generator-tui.md`
-- `ops/default/spec/drafts/canonical-application-scaffold.md`
-- `ops/default/spec/drafts/conversational-hatmax-surface.md`
-- `ops/default/spec/drafts/conversational-hatmax-surface-model.md`
+- `ops/default/spec/canonical-application-scaffold.md`
+- `ops/default/spec/conversational-hatmax-surface.md`
+- `ops/default/spec/conversational-hatmax-surface-model.md`
 
 ## Open Questions
 

@@ -16,10 +16,9 @@ adapters can implement the same boundary later, but they are not part of the
 first product surface.
 
 This specification remains the delivered single-request CLI contract. The
-successor conversational product contract is being defined in
-`ops/default/spec/drafts/conversational-hatmax-surface.md`; it extends this
-backend boundary and deterministic kernel rather than replacing them with a
-second execution path.
+approved successor is `ops/default/spec/conversational-hatmax-surface.md`; it
+extends this backend boundary and deterministic kernel rather than replacing
+them with a second execution path.
 
 The model interprets user intent. Hatmax owns project inspection, context
 selection, intent validation, planning, approval, execution, conformance, and

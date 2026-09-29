@@ -10,17 +10,17 @@ integration so neither the TUI nor Codex becomes an alternate mutation
 authority.
 Umbrella spec: `ops/default/spec/interactive-hatmax-generator.md`
 Discovery: `ops/default/quiz/00001-hatmax-conversational-application-generation/artifact.md`
-Draft specs:
+Approved specs:
 
-- `ops/default/spec/drafts/canonical-application-scaffold.md`
-- `ops/default/spec/drafts/conversational-hatmax-surface.md`
-- `ops/default/spec/drafts/conversational-hatmax-surface-model.md`
+- `ops/default/spec/canonical-application-scaffold.md`
+- `ops/default/spec/conversational-hatmax-surface.md`
+- `ops/default/spec/conversational-hatmax-surface-model.md`
 
 Tracker: `ops/default/tracker/conversational-hatmax-builder.md`
 Base branch: `dev`
 Planning base: `510a856419a97d64959387099c48a81f867fb09a`
 Active slice: Slice 1
-Execution gate: satisfied when this approved activation is committed to `dev`
+Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Objective
 
@@ -51,8 +51,8 @@ conformance, and validation.
   is the default parent and the project slug selects a child target.
 - A scaffold must compile and conform. Tests blocked by unavailable declared
   infrastructure are non-blocking; observed generated-test failures block.
-- `main.go` contains only `main`. Slice 1 selects one canonical external owner
-  for application construction and lifecycle assembly.
+- `main.go` contains only `main`; `internal/application` owns construction and
+  lifecycle assembly.
 - Initial features are visible dependent units in one sealed application plan.
   Later single-feature work retains a compact interaction.
 - `hm` is canonical for TUI and headless use. `hatmax` remains a temporary
@@ -168,7 +168,7 @@ an approved plan without product-surface integration.
 
 | Task | Work | Expected commit |
 | --- | --- | --- |
-| T3.1 | Render the module, thin `main.go`, external composition owner, configuration, lifecycle, Postgres, migrations, commands, ignore rules, and tests. | `feat(generator): render Hatmax application foundations` |
+| T3.1 | Render the module, thin `main.go`, `internal/application`, configuration, lifecycle, Postgres, migration activation support, commands, ignore rules, and tests. | `feat(generator): render Hatmax application foundations` |
 | T3.2 | Render the neutral router, middleware, templates, assets, landing page, and embedding surfaces without invented domain or documentation. | `feat(generator): render Hatmax web scaffolds` |
 | T3.3 | Stage and publish targets atomically, preserve admitted files, enforce scaffold conformance, compile fixtures, classify test infrastructure, and cover rollback, collision, and idempotency. | `test(generator): enforce scaffold execution` |
 

@@ -5,17 +5,17 @@ Delivery set: conversational-hatmax-builder
 Plan: `ops/default/plan/conversational-hatmax-builder.md`
 Umbrella spec: `ops/default/spec/interactive-hatmax-generator.md`
 Discovery: `ops/default/quiz/00001-hatmax-conversational-application-generation/artifact.md`
-Draft specs:
+Approved specs:
 
-- `ops/default/spec/drafts/canonical-application-scaffold.md`
-- `ops/default/spec/drafts/conversational-hatmax-surface.md`
-- `ops/default/spec/drafts/conversational-hatmax-surface-model.md`
+- `ops/default/spec/canonical-application-scaffold.md`
+- `ops/default/spec/conversational-hatmax-surface.md`
+- `ops/default/spec/conversational-hatmax-surface-model.md`
 
 Base branch: `dev`
 Planning base: `510a856419a97d64959387099c48a81f867fb09a`
 Active slice: Slice 1
 Active tasks: T1.1, T1.2, T1.3
-Execution gate: satisfied when this approved activation is committed to `dev`
+Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Slice Status
 
@@ -34,8 +34,8 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T1.1 | pending | `docs(spec): reconcile application scaffold contracts` | pending | `make docs-check`; `git diff --check` |
-| T1.2 | pending | `docs(spec): reconcile conversational surface contracts` | pending | `make docs-check`; `git diff --check` |
+| T1.1 | complete | `docs(spec): reconcile application scaffold contracts` | `0d2748bcffcc7f9334dc8e322444610cdb21efe8` | `make docs-check`; `git diff --check` passed |
+| T1.2 | complete | `docs(spec): reconcile conversational surface contracts` | `d6a5b6a9db9376bd8bcacf08ddce92bbbcfb26e7` | `make docs-check`; `git diff --check` passed |
 | T1.3 | pending | `docs(spec): approve the conversational Hatmax builder` | pending | `make docs-check`; `git diff --check` |
 
 ## Slice 2 Tasks
@@ -110,5 +110,5 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Current Gate
 
-Slice 1 is approved for execution. Branch creation is permitted after this
-activation is committed and pushed to `dev`.
+Slice 1 is executing on `docs/hatmax-builder-contracts`. T1.1 and T1.2 are
+complete; T1.3 promotion and slice review remain active.

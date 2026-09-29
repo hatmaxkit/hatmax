@@ -1,13 +1,13 @@
 # Conversational Hatmax Product Surface
 
-Status: Draft
+Status: Approved
 Kind: Subordinate product-surface specification
 Umbrella: `ops/default/spec/interactive-hatmax-generator.md`
 Current surface: `ops/default/spec/interactive-product-surface.md`
 Intent: `ops/default/spec/intent-and-planning.md`
 Execution: `ops/default/spec/execution-and-conformance.md`
-Scaffold: `ops/default/spec/drafts/canonical-application-scaffold.md`
-State model: `ops/default/spec/drafts/conversational-hatmax-surface-model.md`
+Scaffold: `ops/default/spec/canonical-application-scaffold.md`
+State model: `ops/default/spec/conversational-hatmax-surface-model.md`
 Discovery: `ops/default/quiz/00001-hatmax-conversational-application-generation/artifact.md`
 
 ## Purpose
@@ -21,8 +21,9 @@ The product is called **Hatmax**. Its user-facing description is a
 conversational Hatmax application builder. `Generator engine` remains an
 internal component name rather than the identity of the complete product.
 
-Until this draft is accepted and delivered, the approved
-`interactive-product-surface.md` contract remains authoritative.
+This is the approved successor contract. Until its implementation slices are
+delivered, `interactive-product-surface.md` remains authoritative for runtime
+behavior and the `hatmax generate` command.
 
 ## Product Boundary
 
@@ -292,6 +293,8 @@ validation evidence, and the next safe action.
 ## Acceptance Criteria
 
 - `hm` opens a conversational Hatmax TUI and also exposes headless operations.
+- Bubble Tea, Bubbles, and Lip Gloss v2 remain confined to terminal
+  presentation packages; headless kernels expose no TUI types.
 - The compatible resident Codex daemon and isolated context are reused across
   turns.
 - Ordinary conversation produces no implicit project change.

@@ -114,8 +114,7 @@ An archetype defines one canonical assembly pattern. It owns:
 The initial archetypes are:
 
 - `server_rendered_hatmax_application`, governed by
-  `ops/default/spec/drafts/canonical-application-scaffold.md` while that
-  specification is being promoted;
+  `ops/default/spec/canonical-application-scaffold.md`;
 - `server_rendered_crud`, governed by
   `ops/default/spec/server-rendered-crud.md`.
 

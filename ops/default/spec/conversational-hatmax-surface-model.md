@@ -1,8 +1,8 @@
 # Conversational Hatmax Surface State Model
 
-Status: Draft
+Status: Approved
 Kind: Model companion
-Specification: `ops/default/spec/drafts/conversational-hatmax-surface.md`
+Specification: `ops/default/spec/conversational-hatmax-surface.md`
 Discovery: `ops/default/quiz/00001-hatmax-conversational-application-generation/artifact.md`
 
 ## Purpose
@@ -62,13 +62,15 @@ A project conversation records:
 | `created_at` | Local creation time |
 | `updated_at` | Last meaningful interaction time |
 
-The scope key is the lowercase hexadecimal SHA-256 digest of the canonical
-absolute project root or proposed target path after platform path
-normalization. The digest prevents repository paths from appearing in store
-directory names or user-visible diagnostics. Moving a project creates a new
-scope; the first delivery does not attempt path-independent repository
-identity. A pre-project conversation is rebound to the created project's
-identity after successful application creation.
+The scope key is the lowercase hexadecimal SHA-256 digest of the scope kind, a
+zero byte, and the canonical absolute scope path after platform path
+normalization. A project uses its root. A pre-project session initially uses
+the parent directory and rebinds to the proposed target as soon as application
+identity resolves it. The digest prevents repository paths from appearing in
+store directory names or user-visible diagnostics. Moving a project creates a
+new scope; the first delivery does not attempt path-independent repository
+identity. After successful application creation, the target-scoped
+pre-project conversation is rebound to the created project's identity.
 
 At most one conversation is resumed by default for a compatible scope and
 Book contract. Resetting a conversation creates a new identity; it does not
@@ -204,6 +206,8 @@ limit.
 - Version every structured intent and operation record.
 - Reject or archive incompatible stored contracts rather than guessing an
   upgrade.
+- Require an explicit, tested state migrator before accepting a future schema;
+  version 1 has no implicit migration path.
 - Losing or deleting the store never changes application behavior.
 
 ## Required Queries

@@ -1,12 +1,17 @@
 # Canonical Hatmax Application Scaffold
 
-Status: Draft
+Status: Approved
 Kind: Subordinate generator specification
 Umbrella: `ops/default/spec/interactive-hatmax-generator.md`
 Book: `ops/default/spec/hatmax-book.md`
 Intent: `ops/default/spec/intent-and-planning.md`
 Execution: `ops/default/spec/execution-and-conformance.md`
 Discovery: `ops/default/quiz/00001-hatmax-conversational-application-generation/artifact.md`
+
+Delivery boundary: this contract becomes operational with intent schema
+version 3 and Book release 2. Book release 1 and intent schema version 2 remain
+the delivered runtime authority until the corresponding implementation slices
+land.
 
 ## Purpose
 
