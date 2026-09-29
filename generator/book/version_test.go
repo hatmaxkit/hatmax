@@ -16,7 +16,10 @@ func TestSupportsHatmaxUsesHalfOpenVersionRange(t *testing.T) {
 		{version: "0.4.0", want: true},
 		{version: "v0.4.0", want: true},
 		{version: "0.4.999", want: true},
-		{version: "0.5.0", want: false},
+		{version: "0.5.0", want: true},
+		{version: "v0.5.0", want: true},
+		{version: "0.5.999", want: true},
+		{version: "0.6.0", want: false},
 	}
 
 	for _, test := range tests {

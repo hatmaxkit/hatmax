@@ -2,7 +2,8 @@
 
 The User Guide follows the current Hatmax repository API. It takes a reader
 from the first running process through web interaction, persistence,
-authentication, background work, and runtime settings.
+authentication, background work, runtime settings, and canonical project
+generation.
 
 ## Before You Begin
 
@@ -39,6 +40,8 @@ and produces both a health response and an HTML page.
    request to the durable audit subscriber.
 8. [Change Settings at Runtime](settings.md) changes a schema-checked setting
    without reloading static configuration.
+9. [Generate a Feature](generation.md) turns a product request into an
+   inspectable plan and canonical Hatmax changes.
 
 ## Direct Routes
 

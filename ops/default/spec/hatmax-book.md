@@ -48,7 +48,7 @@ schema_version: 1
 book_version: 1
 hatmax:
   minimum: 0.4.0
-  maximum_exclusive: 0.5.0
+  maximum_exclusive: 0.6.0
 capabilities: []
 archetypes: []
 rules: []

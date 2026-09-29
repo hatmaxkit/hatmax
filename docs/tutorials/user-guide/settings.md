@@ -65,4 +65,5 @@ See [Configuration](../../reference/configuration/index.md) and
 ---
 
 [Previous: Work Outside the Request](background-work.md) ·
-[User Guide](index.md)
+[User Guide](index.md) ·
+[Next: Generate a Feature](generation.md)

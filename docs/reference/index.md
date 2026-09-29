@@ -42,3 +42,4 @@ reference follows the exported code.
 - [Test Helper](testhelper/index.md)
 - [Fake](fake/index.md)
 - [Gallery](gallery/index.md)
+- [Generator](generator/index.md)

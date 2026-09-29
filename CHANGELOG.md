@@ -7,15 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-29
+
 ### Added
 
 - `hatmax generate` now turns natural-language feature requests into an
   inspectable Hatmax plan, requires explicit approval, applies only canonical
-  Book-owned project changes, and reports conformance and repository validation
-  evidence through a resident Codex session.
+  Book-owned project changes, reuses a resident Codex session, and reports
+  conformance and repository validation evidence.
 - Explicit documentation requests now generate the smallest warranted
   tutorial, how-to, reference, or explanation surface from sealed Hatmax
   evidence, preserving user-authored Markdown outside managed sections.
+- Generated projects follow the canonical Hatmax package, wiring, persistence,
+  rendering, validation, and testing patterns and pass the discovered project
+  generation, formatting, build, test, and lint commands before completion.
 
 ## [0.4.0] - 2026-09-28
 

@@ -22,6 +22,8 @@ It includes:
 - Practical building blocks that work together out of the box.
 - Composable roles and interfaces instead of hidden global state.
 - Postgres-first primitives for authentication, scheduling, and pubsub.
+- Interactive generation that turns a product request into an inspectable,
+  canonical Hatmax plan before changing the project.
 
 ## Quick Start
 
@@ -91,6 +93,23 @@ func main() {
 Run `go run .`, then request `http://localhost:8080/ping`. Continue with the
 [User Guide](docs/tutorials/user-guide/index.md) to add Postgres, templates,
 forms, authentication, records, background work, and runtime settings.
+
+## Generate a Feature
+
+Install the Hatmax command and run it from the root of an existing Hatmax
+project:
+
+```sh
+go install hatmax.adrianpk.com/cmd/hatmax@v0.5.0
+cd myapp
+hatmax generate "Create a property feature with a required name."
+```
+
+Hatmax asks Codex to interpret the request, presents the complete typed plan,
+and waits for approval before applying deterministic Book-owned changes. See
+[Generate a Feature](docs/tutorials/user-guide/generation.md) for the guided
+workflow and [Generator](docs/reference/generator/index.md) for the exact
+contract and prerequisites.
 
 ## Package Map
 

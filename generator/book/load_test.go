@@ -76,7 +76,7 @@ func TestLoadRejectsInvalidManifestContracts(t *testing.T) {
 		},
 		{
 			name:     "empty Hatmax version range",
-			oldValue: "maximum_exclusive: 0.5.0",
+			oldValue: "maximum_exclusive: 0.6.0",
 			newValue: "maximum_exclusive: 0.4.0",
 			wantCode: "book_invalid_version",
 		},
