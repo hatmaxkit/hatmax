@@ -27,7 +27,7 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 | Slice 4 | Application bootstrap product | delivered | `feat/application-scaffold-product` | `feat(slice-4): deliver Hatmax application bootstrap` | #59 | `ops/default/report/slices/conversational-hatmax-builder/slice-4-application-bootstrap-product.md` |
 | Slice 5 | Conversation state | delivered | `feat/conversational-state` | `feat(slice-5): persist Hatmax conversations` | #60 | `ops/default/report/slices/conversational-hatmax-builder/slice-5-conversation-state.md` |
 | Slice 6 | Conversational coordinator | delivered | `feat/conversational-coordinator` | `feat(slice-6): coordinate conversational Hatmax work` | #61 | `ops/default/report/slices/conversational-hatmax-builder/slice-6-conversational-coordinator.md` |
-| Slice 7 | Hatmax TUI | active | `feat/hatmax-tui` | `feat(slice-7): deliver the conversational Hatmax TUI` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-7-hatmax-tui.md` |
+| Slice 7 | Hatmax TUI | reviewing | `feat/hatmax-tui` | `feat(slice-7): deliver the conversational Hatmax TUI` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-7-hatmax-tui.md` |
 | Slice 8 | Builder acceptance | planned | `test/conversational-builder-acceptance` | `test(slice-8): validate the conversational Hatmax builder` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-8-builder-acceptance.md` |
 
 ## Slice 1 Tasks
@@ -82,9 +82,9 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T7.1 | pending | `feat(cli): add the hm command` | pending | TUI lifecycle, input, resize, cancellation, and restoration tests; full slice gate pending |
-| T7.2 | pending | `feat(tui): present conversational Hatmax work` | pending | conversation, plan, progress, failure, and accessibility tests; full slice gate pending |
-| T7.3 | pending | `feat(cli): preserve Hatmax headless compatibility` | pending | parity, alias, exit status, and routing tests; full slice gate pending |
+| T7.1 | complete | `feat(cli): add the hm command` | `113b7ae65a872f195e990233412a299bc1c1a412` | TUI lifecycle, input, resize, cancellation, and restoration tests; full slice gate passed |
+| T7.2 | complete | `feat(tui): present conversational Hatmax work` | `2310853a755729b475004618ded323ec1ebb7db6` | conversation, plan, progress, failure, and accessibility tests; full slice gate passed |
+| T7.3 | complete | `feat(cli): preserve Hatmax headless compatibility` | `a38960c0c6f503038c43bd6288648b248316047b` | parity, alias, exit status, and routing tests; full slice gate passed |
 
 ## Slice 8 Tasks
 
@@ -110,5 +110,5 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Current Gate
 
-Slice 6 was delivered by #61. Slice 7 is approved for execution on
-`feat/hatmax-tui`; T7.1, T7.2, and T7.3 are active.
+Slice 7 implementation and validation are complete on `feat/hatmax-tui`;
+maintainer review and merge are pending.
