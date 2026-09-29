@@ -20,6 +20,7 @@ func (c *Coordinator) Run(ctx context.Context, root, prompt string) Result {
 	}
 
 	result := prepared.result
+
 	result.State = StateExecuting
 	if prepared.plan.Intent == intent.OperationCreateApplication {
 		return c.runApplication(ctx, prepared, result)
@@ -88,6 +89,7 @@ func (c *Coordinator) runApplication(ctx context.Context, prepared preparedInter
 	if err != nil {
 		return *terminalFailure(result, OutcomeExecutionFailed, PhasePreparation, "HMGEN-EXECUTION-PREPARATION-FAILED", err)
 	}
+
 	result.Manifest = &manifest
 
 	mutations, err := execute.RenderApplication(prepared.plan, manifest)
@@ -109,6 +111,7 @@ func (c *Coordinator) runApplication(ctx context.Context, prepared preparedInter
 
 	executionResult, err := workspace.Commit(ctx)
 	result.Execution = &executionResult
+
 	result.Diagnostics = append(result.Diagnostics, executionDiagnostics(executionResult.Diagnostics, PhaseValidation)...)
 	if err != nil {
 		return *terminalFailure(result, cancelledExecutionOutcome(ctx), PhaseValidation, "HMGEN-EXECUTION-COMMIT-FAILED", err)

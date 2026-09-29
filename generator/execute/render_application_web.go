@@ -245,6 +245,7 @@ func RenderApplication(value plan.Plan, manifest Manifest) ([]Mutation, error) {
 	}
 
 	result := append(foundation, web...)
+
 	result = append(result, features...)
 	if len(result) != len(manifest.Edits) {
 		return nil, executionError("execution_recipe_unsupported", "edits", "%d manifest edits have no application renderer", len(manifest.Edits)-len(result))

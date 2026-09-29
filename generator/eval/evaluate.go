@@ -242,6 +242,7 @@ func cloneIntent(value intent.Intent) *intent.Intent {
 	result.Exceptions = append([]intent.Exception{}, value.Exceptions...)
 	result.Domain.Fields = append([]intent.Field{}, value.Domain.Fields...)
 	result.Domain.Rules = append([]intent.BusinessRule{}, value.Domain.Rules...)
+
 	result.InitialFeatures = make([]intent.InitialFeature, len(value.InitialFeatures))
 	for index, feature := range value.InitialFeatures {
 		result.InitialFeatures[index] = feature

@@ -42,6 +42,7 @@ func PrepareApplication(value plan.Plan, target project.TargetInventory, selecte
 			Command{Kind: project.CommandGeneration, Name: "generation.sqlc", Args: []string{"sqlc", "generate"}, WorkingDirectory: ".", Source: "hatmax.application.initial_features"},
 		)
 	}
+
 	result.Commands = append(result.Commands,
 		Command{Kind: project.CommandGeneration, Name: "generation.modules", Args: []string{"go", "mod", "tidy"}, WorkingDirectory: ".", Source: "hatmax.application.scaffold"},
 		Command{Kind: project.CommandValidation, Name: "validation.build", Args: []string{"go", "build", "./..."}, WorkingDirectory: ".", Source: "hatmax.application.scaffold"},
@@ -117,6 +118,7 @@ func prepareApplicationEdits(value plan.Plan) ([]Edit, error) {
 			recipeID, exists = applicationFeatureRecipe(value, effect.Path)
 			recipe = applicationRecipe{target: effect.Path, goSource: path.Ext(effect.Path) == ".go"}
 		}
+
 		if !exists || recipe.target != effect.Path {
 			return nil, executionError("execution_recipe_unsupported", effect.Path, "planned path has no canonical application recipe")
 		}
@@ -154,6 +156,7 @@ func prepareApplicationEdits(value plan.Plan) ([]Edit, error) {
 
 func applicationPlanOperations(values []plan.Operation, target string) []plan.Operation {
 	result := make([]plan.Operation, 0)
+
 	for _, operation := range values {
 		for _, effect := range operation.Files {
 			if effect.Path == target {

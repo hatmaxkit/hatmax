@@ -198,6 +198,7 @@ func TestEvaluateApplicationCreationAgainstBoundedTarget(t *testing.T) {
 	}
 
 	parent := t.TempDir()
+
 	target, err := project.InspectTarget(context.Background(), project.TargetRequest{
 		Parent: parent, Target: "real-estate", PlannedPaths: plannedPaths, Book: selectedBook,
 	})
@@ -218,7 +219,7 @@ func TestEvaluateApplicationCreationAgainstBoundedTarget(t *testing.T) {
 	}}
 
 	result, err := Evaluate(context.Background(), interpreter, "Create Real Estate for property management with an invoice number.", Context{
-		Target: &target, Fingerprint: fingerprint, Book: selectedBook,
+		Target: &target, TargetResolved: true, Fingerprint: fingerprint, Book: selectedBook,
 	})
 	if err != nil {
 		t.Fatalf("Evaluate() error = %v", err)
@@ -229,7 +230,7 @@ func TestEvaluateApplicationCreationAgainstBoundedTarget(t *testing.T) {
 	}
 
 	request := interpreter.requests[0]
-	if request.Target == nil || request.Target.Admission != project.TargetAbsent || request.Project.Fingerprint != "" {
+	if request.Target == nil || !request.Target.Resolved || request.Target.Admission != project.TargetAbsent || request.Project.Fingerprint != "" {
 		t.Errorf("Request source context = project %#v target %#v", request.Project, request.Target)
 	}
 

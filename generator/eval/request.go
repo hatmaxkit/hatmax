@@ -51,6 +51,7 @@ func compileRequest(prompt string, clarifications []ClarificationExchange, conte
 			HatmaxVersion:     manifest.Hatmax.Minimum,
 			Admission:         context.Target.Admission,
 			RemoteModulePath:  context.Target.RemoteModulePath,
+			Resolved:          context.TargetResolved,
 		}
 	}
 
@@ -68,6 +69,7 @@ func validateRequest(value Request) error {
 	}
 
 	hasProject := strings.TrimSpace(value.Project.Fingerprint) != ""
+
 	hasTarget := value.Target != nil
 	if hasProject == hasTarget {
 		return evaluationError("evaluation_source_invalid", "project", "exactly one project or target context is required")

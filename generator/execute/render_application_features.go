@@ -77,11 +77,13 @@ func RenderApplicationFeatures(value plan.Plan, manifest Manifest) ([]Mutation, 
 	for recipe, renderer := range domainRenderers {
 		renderers[recipe] = renderer
 	}
+
 	for recipe, renderer := range transportRenderers {
 		renderers[recipe] = renderer
 	}
 
 	result := make([]Mutation, 0)
+
 	for _, edit := range manifest.Edits {
 		if edit.Recipe == applicationSQLCRecipe {
 			result = append(result, Mutation{EditID: edit.ID, Kind: MutationCreate, Content: []byte(applicationSQLCConfiguration)})
@@ -141,9 +143,11 @@ func newApplicationFeatureRenderContext(value plan.Plan, manifest Manifest, unit
 }
 
 func renderCompositeApplication(value plan.Plan) ([]byte, error) {
-	var imports strings.Builder
-	var construction strings.Builder
-	var dependencies strings.Builder
+	var (
+		imports      strings.Builder
+		construction strings.Builder
+		dependencies strings.Builder
+	)
 
 	for _, unit := range value.Units {
 		if unit.Feature == "" {
@@ -255,6 +259,7 @@ func applicationFeaturePrefix(feature string) string {
 
 	var result strings.Builder
 	result.WriteString(parts[0])
+
 	for _, part := range parts[1:] {
 		result.WriteString(exportedName(part))
 	}

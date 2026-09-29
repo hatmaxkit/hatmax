@@ -72,6 +72,7 @@ func New(config Config) (*Coordinator, error) {
 	if err != nil {
 		return nil, fmt.Errorf("load application Hatmax Book: %w", err)
 	}
+
 	if config.Book != nil && config.Book.Manifest().BookVersion == 2 {
 		applicationBook = config.Book
 	}
@@ -176,6 +177,7 @@ func (c *Coordinator) prepareApplicationApproved(
 	baseResult Result,
 ) (preparedInteraction, *Result) {
 	selectedBook := c.applicationBook
+
 	provisional, err := project.InspectTarget(ctx, project.TargetRequest{
 		Parent: root, Target: ".hatmax-proposed-application", Book: selectedBook, Options: c.inspectionOptions,
 	})
@@ -189,12 +191,13 @@ func (c *Coordinator) prepareApplicationApproved(
 	}
 
 	currentTarget := provisional
+	targetResolved := false
 	clarifications := make([]eval.ClarificationExchange, 0)
 	baseResult.State = StateInterpreting
 
 	for round := 0; ; round++ {
 		evaluation, evaluationErr := eval.EvaluateConversation(ctx, c.interpreter, prompt, clarifications, eval.Context{
-			Target: &currentTarget, Fingerprint: fingerprint, Book: selectedBook,
+			Target: &currentTarget, TargetResolved: targetResolved, Fingerprint: fingerprint, Book: selectedBook,
 		})
 		if evaluationErr != nil {
 			return preparedInteraction{}, terminalFailure(baseResult, cancelledOutcome(ctx), PhaseInterpretation, "HMGEN-INTERPRETATION-FAILED", evaluationErr)
@@ -211,6 +214,7 @@ func (c *Coordinator) prepareApplicationApproved(
 			evaluation = rebound
 			currentTarget = target
 			fingerprint = targetFingerprint
+			targetResolved = true
 		}
 
 		if evaluation.Status != intent.StatusClarificationRequired {
@@ -232,12 +236,14 @@ func (c *Coordinator) prepareApplicationApproved(
 		}
 
 		baseResult.State = StateClarifying
+
 		response, clarificationErr := c.clarifier.Clarify(ctx, ClarificationRequest{
 			Round: round + 1, Questions: cloneIntentClarifications(evaluation.Clarifications),
 		})
 		if clarificationErr != nil {
 			return preparedInteraction{}, terminalFailure(baseResult, cancelledOutcome(ctx), PhaseClarification, "HMGEN-CLARIFICATION-FAILED", clarificationErr)
 		}
+
 		if response.Cancelled {
 			return preparedInteraction{}, terminalResult(baseResult, OutcomeCancelled)
 		}
@@ -282,6 +288,7 @@ func (c *Coordinator) bindApplicationTarget(
 	}
 
 	value.SourceFingerprint = fingerprint.Value
+
 	rebound, err := eval.EvaluateIntent(value, provenance, eval.Context{
 		Target: &target, Fingerprint: fingerprint, Book: c.applicationBook,
 	})
@@ -389,6 +396,7 @@ func (c *Coordinator) finishPlanning(
 
 			return preparedInteraction{}, terminalResult(baseResult, OutcomePlanStale)
 		}
+
 		if transition.State != plan.LifecycleConsumed {
 			return preparedInteraction{}, terminalFailure(baseResult, OutcomeFailed, PhaseFreshness, "HMGEN-PLAN-UNAVAILABLE", fmt.Errorf("plan lifecycle entered %q", transition.State))
 		}

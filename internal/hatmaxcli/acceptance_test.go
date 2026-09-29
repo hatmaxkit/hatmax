@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -61,6 +63,78 @@ func TestTerminalSurfaceExecutesCanonicalOperationsWithoutUndeclaredEffects(t *t
 	_, err := os.Stat(filepath.Join(root, ".git"))
 	if !os.IsNotExist(err) {
 		t.Fatalf("terminal generation created Git state: %v", err)
+	}
+}
+
+func TestTerminalSurfaceCreatesTerseAndDetailedApplications(t *testing.T) {
+	tests := []struct {
+		name      string
+		prompt    string
+		input     string
+		composite bool
+		turns     int
+	}{
+		{name: "terse clarified", prompt: "Create Ledger.", input: "example.com/alex/ledger\nyes\n", turns: 2},
+		{name: "detailed composite", prompt: "Create Ledger with an invoice number.", input: "yes\n", composite: true, turns: 1},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			installCLIApplicationCommands(t)
+			parent := t.TempDir()
+			turns := 0
+			interpreter := &cliInterpreter{interpret: func(_ context.Context, request eval.Request) (eval.InterpreterResult, error) {
+				turns++
+
+				value := cliApplicationIntent(request, test.composite)
+				if !test.composite && !request.Target.Resolved {
+					value.Application.ModulePath = ""
+				}
+
+				if request.Target.Resolved && value.Application.ModulePath == "" {
+					value.Application.ModulePath = request.Clarifications[0].Answer
+				}
+
+				return cliInterpreterResult(eval.Interpretation{
+					SchemaVersion: eval.CurrentInterpretationSchemaVersion,
+					Kind:          eval.InterpretationIntent,
+					Intent:        &value,
+				}), nil
+			}}
+
+			exitCode, output, errorOutput, result := runCLIRequest(t, parent, test.input, test.prompt, interpreter, nil)
+			if exitCode != ExitSuccess || result == nil || result.Outcome != interaction.OutcomeCompleted {
+				t.Fatalf("application request = exit %d result %#v\n%s", exitCode, result, output)
+			}
+
+			if turns != test.turns {
+				t.Fatalf("interpreter turns = %d, want %d", turns, test.turns)
+			}
+
+			for _, expected := range []string{"Intent: create_application", "Application: Ledger", "Source fingerprint:", "Outcome: completed"} {
+				if !strings.Contains(output, expected) {
+					t.Errorf("output does not contain %q:\n%s", expected, output)
+				}
+			}
+
+			if errorOutput != "" {
+				t.Errorf("error output = %q", errorOutput)
+			}
+
+			_, err := os.Stat(filepath.Join(parent, "ledger", "main.go"))
+			if err != nil {
+				t.Fatalf("generated application: %v", err)
+			}
+
+			_, featureErr := os.Stat(filepath.Join(parent, "ledger", "internal", "feat", "invoice", "model.go"))
+			if test.composite && featureErr != nil {
+				t.Fatalf("generated initial feature: %v", featureErr)
+			}
+
+			if !test.composite && !errors.Is(featureErr, os.ErrNotExist) {
+				t.Fatalf("terse application invented a feature: %v", featureErr)
+			}
+		})
 	}
 }
 
@@ -534,6 +608,31 @@ func cliInterpreterResult(interpretation eval.Interpretation) eval.InterpreterRe
 	}
 }
 
+func cliApplicationIntent(request eval.Request, composite bool) intent.Intent {
+	value := intent.Intent{
+		SchemaVersion:     intent.ApplicationSchemaVersion,
+		Operation:         intent.OperationCreateApplication,
+		SourceFingerprint: request.Target.SourceFingerprint,
+		HatmaxVersion:     request.Target.HatmaxVersion,
+		BookVersion:       request.Book.Version,
+		Archetype:         "server_rendered_hatmax_application",
+		Capabilities:      []string{},
+		Documentation:     intent.DocumentationNotRequested,
+		Application: &intent.ApplicationIdentity{
+			DisplayName: "Ledger", ModulePath: "example.com/alex/ledger",
+		},
+		Target: &intent.ApplicationTarget{Base: "session_directory"},
+	}
+	if composite {
+		value.InitialFeatures = []intent.InitialFeature{{
+			Feature: "invoice",
+			Domain:  intent.Domain{Fields: []intent.Field{{Name: "number", Type: "string", Required: true}}},
+		}}
+	}
+
+	return value
+}
+
 func copyCLIProject(t *testing.T) string {
 	t.Helper()
 
@@ -616,6 +715,26 @@ func installCLICommands(t *testing.T, failValidation bool) {
 	}
 
 	writeCLIExecutable(t, filepath.Join(directory, "make"), makeSource)
+	writeCLIExecutable(t, filepath.Join(directory, "sqlc"), "#!/bin/sh\nexit 0\n")
+	t.Setenv("PATH", directory+string(os.PathListSeparator)+os.Getenv("PATH"))
+}
+
+func installCLIApplicationCommands(t *testing.T) {
+	t.Helper()
+
+	if os.Getenv("HATMAX_REAL_APPLICATION_COMMANDS") == "1" {
+		for _, name := range []string{"go", "sqlc"} {
+			_, err := exec.LookPath(name)
+			if err != nil {
+				t.Fatalf("%s is required for real application acceptance: %v", name, err)
+			}
+		}
+
+		return
+	}
+
+	directory := t.TempDir()
+	writeCLIExecutable(t, filepath.Join(directory, "go"), "#!/bin/sh\nexit 0\n")
 	writeCLIExecutable(t, filepath.Join(directory, "sqlc"), "#!/bin/sh\nexit 0\n")
 	t.Setenv("PATH", directory+string(os.PathListSeparator)+os.Getenv("PATH"))
 }

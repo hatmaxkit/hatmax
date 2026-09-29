@@ -2,6 +2,7 @@ package interaction
 
 import (
 	"context"
+	"errors"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -174,6 +175,127 @@ func TestCoordinatorRejectsStaleApprovedPlan(t *testing.T) {
 	}
 }
 
+func TestCoordinatorClarifiesApplicationModuleAfterResolvingTarget(t *testing.T) {
+	parent := t.TempDir()
+	interpreter := &functionInterpreter{interpret: func(_ context.Context, request eval.Request) (eval.InterpreterResult, error) {
+		value := applicationIntent(request, false)
+		if !request.Target.Resolved {
+			value.Application.ModulePath = ""
+		}
+
+		if request.Target.Resolved {
+			if len(request.Clarifications) != 1 || request.Clarifications[0].Field != "application.module_path" {
+				t.Fatalf("resolved request clarifications = %#v", request.Clarifications)
+			}
+
+			value.Application.ModulePath = request.Clarifications[0].Answer
+		}
+
+		return intentInterpreterResult(value), nil
+	}}
+	clarifier := &functionClarifier{clarify: func(_ context.Context, request ClarificationRequest) (ClarificationResponse, error) {
+		if len(request.Questions) != 1 || request.Questions[0].Field != "application.module_path" {
+			t.Fatalf("clarification = %#v, want module path", request)
+		}
+
+		return ClarificationResponse{Answers: []ClarificationAnswer{{
+			Field: "application.module_path", Answer: "example.com/alex/ledger",
+		}}}, nil
+	}}
+	coordinator := newTestCoordinator(t, interpreter, approvingPort(), clarifier)
+
+	prepared, terminal := coordinator.prepareApproved(context.Background(), parent, "Create Ledger.")
+	if terminal != nil {
+		t.Fatalf("prepareApproved() terminal = %#v", terminal)
+	}
+
+	if len(interpreter.requests) != 2 || interpreter.requests[0].Target.Resolved || !interpreter.requests[1].Target.Resolved {
+		t.Fatalf("target resolution sequence = %#v", interpreter.requests)
+	}
+
+	if prepared.plan.Application.ModulePath != "example.com/alex/ledger" || prepared.result.Provenance.ClarificationRounds != 1 {
+		t.Fatalf("prepared application = %#v provenance = %#v", prepared.plan.Application, prepared.result.Provenance)
+	}
+}
+
+func TestCoordinatorRejectsConflictingApplicationTargetBeforeApproval(t *testing.T) {
+	parent := t.TempDir()
+
+	target := filepath.Join(parent, "ledger")
+
+	err := os.MkdirAll(target, 0o755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = os.WriteFile(filepath.Join(target, "go.mod"), []byte("module example.com/other\n\ngo 1.24\n"), 0o644)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	approver := approvingPort()
+	coordinator := newTestCoordinator(t, &functionInterpreter{interpret: func(_ context.Context, request eval.Request) (eval.InterpreterResult, error) {
+		return intentInterpreterResult(applicationIntent(request, false)), nil
+	}}, approver, nil)
+
+	_, terminal := coordinator.prepareApproved(context.Background(), parent, "Create Ledger.")
+	if terminal == nil || terminal.Outcome != OutcomeIntentRejected {
+		t.Fatalf("prepareApproved() = %#v, want target rejection", terminal)
+	}
+
+	if approver.calls != 0 {
+		t.Fatalf("approval calls = %d, want zero", approver.calls)
+	}
+}
+
+func TestCoordinatorDetectsApplicationTargetDriftAndCancellation(t *testing.T) {
+	tests := []struct {
+		name    string
+		approve func(string) *functionApprover
+		outcome Outcome
+	}{
+		{
+			name: "stale",
+			approve: func(parent string) *functionApprover {
+				return &functionApprover{approve: func(context.Context, ApprovalRequest) (ApprovalDecision, error) {
+					return ApprovalGranted, os.Mkdir(filepath.Join(parent, "ledger"), 0o755)
+				}}
+			},
+			outcome: OutcomePlanStale,
+		},
+		{
+			name: "cancelled",
+			approve: func(string) *functionApprover {
+				return &functionApprover{approve: func(context.Context, ApprovalRequest) (ApprovalDecision, error) {
+					return ApprovalRejected, nil
+				}}
+			},
+			outcome: OutcomeCancelled,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			parent := t.TempDir()
+			coordinator := newTestCoordinator(t, &functionInterpreter{interpret: func(_ context.Context, request eval.Request) (eval.InterpreterResult, error) {
+				return intentInterpreterResult(applicationIntent(request, false)), nil
+			}}, test.approve(parent), nil)
+
+			_, terminal := coordinator.prepareApproved(context.Background(), parent, "Create Ledger.")
+			if terminal == nil || terminal.Outcome != test.outcome {
+				t.Fatalf("prepareApproved() = %#v, want %q", terminal, test.outcome)
+			}
+
+			if test.outcome == OutcomeCancelled {
+				_, err := os.Stat(filepath.Join(parent, "ledger"))
+				if !errors.Is(err, os.ErrNotExist) {
+					t.Fatalf("cancelled target exists: %v", err)
+				}
+			}
+		})
+	}
+}
+
 func TestCoordinatorRejectsInvalidClarificationBindingWithoutApproval(t *testing.T) {
 	root := copySupportedProject(t)
 	interpreter := &functionInterpreter{interpret: func(context.Context, eval.Request) (eval.InterpreterResult, error) {
@@ -267,6 +389,31 @@ func admittedCreateFeature(_ context.Context, request eval.Request) (eval.Interp
 		Kind:          eval.InterpretationIntent,
 		Intent:        &value,
 	}), nil
+}
+
+func applicationIntent(request eval.Request, composite bool) intent.Intent {
+	value := intent.Intent{
+		SchemaVersion:     intent.ApplicationSchemaVersion,
+		Operation:         intent.OperationCreateApplication,
+		SourceFingerprint: request.Target.SourceFingerprint,
+		HatmaxVersion:     request.Target.HatmaxVersion,
+		BookVersion:       request.Book.Version,
+		Archetype:         "server_rendered_hatmax_application",
+		Capabilities:      []string{},
+		Documentation:     intent.DocumentationNotRequested,
+		Application: &intent.ApplicationIdentity{
+			DisplayName: "Ledger", ModulePath: "example.com/alex/ledger",
+		},
+		Target: &intent.ApplicationTarget{Base: "session_directory"},
+	}
+	if composite {
+		value.InitialFeatures = []intent.InitialFeature{{
+			Feature: "invoice",
+			Domain:  intent.Domain{Fields: []intent.Field{{Name: "number", Type: "string", Required: true}}},
+		}}
+	}
+
+	return value
 }
 
 func fixtureInterpreterResult(interpretation eval.Interpretation) eval.InterpreterResult {

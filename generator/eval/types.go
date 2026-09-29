@@ -63,6 +63,7 @@ type TargetContext struct {
 	HatmaxVersion     string                  `json:"hatmax_version" yaml:"hatmax_version"`
 	Admission         project.TargetAdmission `json:"admission" yaml:"admission"`
 	RemoteModulePath  string                  `json:"remote_module_path" yaml:"remote_module_path"`
+	Resolved          bool                    `json:"resolved" yaml:"resolved"`
 }
 
 // ArchetypeContext describes supported operations and capability choices
@@ -177,6 +178,7 @@ type Interpreter interface {
 type Context struct {
 	Inventory             project.Inventory
 	Target                *project.TargetInventory
+	TargetResolved        bool
 	Fingerprint           project.Fingerprint
 	Book                  *book.Book
 	DocumentationEvidence *project.FeatureEvidence
