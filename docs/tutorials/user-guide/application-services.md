@@ -74,4 +74,5 @@ For exact contracts, see [Mailer](../../reference/mailer/README.md),
 ---
 
 [Previous: Events and Background Work](events-and-background-work.md) ·
-[User Guide](README.md)
+[User Guide](README.md) ·
+[Next: Testing and Evolution](testing-and-evolution.md)

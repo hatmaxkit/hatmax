@@ -51,17 +51,10 @@ designed:
     pubsub and scheduled work.
 14. [Application Services](application-services.md) places mail, images,
     telemetry, and replaceable adapters.
-15. **Testing and Evolution** explains how to validate and safely extend the
-    assembled application.
-16. **Assisted Generation** introduces the experimental generator after the
-    manual application model is clear.
-
-## Current Capability Walkthroughs
-
-These chapters contain verified Hatmax behavior that is being incorporated
-into the technical journey:
-
-- [Generate a Feature](generation.md)
+15. [Testing and Evolution](testing-and-evolution.md) explains how to validate
+    and safely extend the assembled application.
+16. [Assisted Generation](assisted-generation.md) introduces the experimental
+    generator after the manual application model is clear.
 
 ## Supporting Documentation
 
