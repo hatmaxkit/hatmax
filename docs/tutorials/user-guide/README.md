@@ -23,10 +23,10 @@ as a menu of interchangeable frameworks.
 The journey follows the order in which an application is understood and
 designed:
 
-1. **Orientation** defines the kind of application Hatmax supports and the
-   boundary between Hatmax and application-owned behavior.
-2. **Application Anatomy** maps the entrypoint, application components,
-   features, infrastructure, templates, and tests.
+1. [Orientation](orientation.md) defines the kind of application Hatmax
+   supports and the boundary between Hatmax and application-owned behavior.
+2. [Application Anatomy](application-anatomy.md) maps the entrypoint,
+   application components, features, infrastructure, templates, and tests.
 3. **Lifecycle and Wiring** explains how dependencies become an ordered,
    running process.
 4. **The Request Boundary** follows an HTTP request through middleware and
