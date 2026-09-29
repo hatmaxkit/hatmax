@@ -12,6 +12,12 @@ cases:
     expected:
       status: admitted
       equivalent_group: create_invoice
+  - id: create_invoice_plain_language
+    prompt: Give me a place to manage invoices. Each invoice needs a number and may have notes.
+    intent: intents/create-invoice-semantic.yaml
+    expected:
+      status: admitted
+      equivalent_group: create_invoice
   - id: add_property_field_ambiguous
     prompt: Add another field to property.
     intent: intents/add-field-ambiguous.yaml

@@ -13,6 +13,12 @@ typed_cases:
     expected:
       status: admitted
       equivalent_group: create_invoice
+  - id: create_invoice_semantic_names
+    category: admitted
+    intent: intents/create-invoice-semantic.yaml
+    expected:
+      status: admitted
+      equivalent_group: create_invoice
   - id: add_field_ambiguous
     category: ambiguous
     intent: intents/add-field-ambiguous.yaml

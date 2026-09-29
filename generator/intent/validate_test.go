@@ -67,7 +67,7 @@ func TestValidateRequestsOnlyMissingProductDecisions(t *testing.T) {
 		{
 			name:       "create feature",
 			fixture:    "create-feature.yaml",
-			wantFields: []string{"domain.entity", "domain.fields", "domain.route"},
+			wantFields: []string{"domain.fields"},
 		},
 		{
 			name:       "add field",
@@ -181,13 +181,13 @@ func TestValidateRejectsInvalidDomainDecisions(t *testing.T) {
 		{
 			name:    "feature name",
 			fixture: "create-feature.yaml",
-			mutate:  func(value *Intent) { value.Feature = "InvoiceItem" },
+			mutate:  func(value *Intent) { value.Feature = "invoice/item" },
 			code:    "HMGEN-FEATURE-NAME",
 		},
 		{
 			name:    "route",
 			fixture: "create-feature.yaml",
-			mutate:  func(value *Intent) { value.Domain.Route = "invoices" },
+			mutate:  func(value *Intent) { value.Domain.Route = "/invoices?sort=number" },
 			code:    "HMGEN-ROUTE-NAME",
 		},
 		{

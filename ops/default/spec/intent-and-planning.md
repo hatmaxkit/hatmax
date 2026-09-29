@@ -66,8 +66,16 @@ archetype, such as entity names, fields, routes, labels, ownership, and business
 rules. It must not contain file paths, imports, wiring order, storage adapters,
 or other architectural decisions owned by the Book.
 
-The interpreter may normalize names and values when the Book declares an
-unambiguous rule. It must ask one focused question when multiple materially
+The interpreter identifies semantic concepts without owning implementation
+syntax. Before semantic validation, Hatmax deterministically normalizes
+unambiguous ASCII names: features and fields use lower snake case, entities use
+exported Go identifier form, and routes use absolute lower-kebab paths. For a
+new feature, an omitted entity derives from the feature; an omitted route and
+display label derive from the entity's deterministic plural. Explicit product
+labels remain unchanged. Names containing materially ambiguous punctuation are
+rejected instead of guessed.
+
+The interpreter must ask one focused question when multiple materially
 different product meanings remain.
 
 ## Documentation Intent

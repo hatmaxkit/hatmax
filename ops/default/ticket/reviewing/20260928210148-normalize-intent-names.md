@@ -1,7 +1,7 @@
 ---
 id: TKT-20260928210148
 title: Normalize canonical names outside the interpreter model
-status: ready
+status: reviewing
 kind: bug
 severity: high
 priority: normal
@@ -10,6 +10,9 @@ tags: generator, intent, determinism
 source: manual_test
 reported_at: 2026-09-28T21:01:48Z
 ready_at: 2026-09-29T07:02:59Z
+started_at: 2026-09-29T07:24:33Z
+reviewed_at: 2026-09-29T07:29:31Z
+branch: dev
 commits:
 ---
 

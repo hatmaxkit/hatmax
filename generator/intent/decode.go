@@ -43,6 +43,8 @@ func DecodeYAML(data []byte) (Intent, error) {
 }
 
 func normalize(value *Intent) {
+	normalizeSemanticNames(value)
+
 	if version := canonicalVersion(value.HatmaxVersion); version != "" {
 		value.HatmaxVersion = version
 	}

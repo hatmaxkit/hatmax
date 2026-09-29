@@ -81,6 +81,8 @@ func interpretationPrompt(request []byte) string {
 	prompt.WriteString("Set payloads for every unchosen result kind to null.\n")
 	prompt.WriteString("Use only operations, archetypes, capabilities, and variants present in the request.\n")
 	prompt.WriteString("Preserve project_fingerprint, hatmax_version, and book_version exactly in an intent.\n")
+	prompt.WriteString("Return semantic feature and field names without translating them into Go or URL syntax. Hatmax derives canonical identifiers, routes, plurals, and default labels.\n")
+	prompt.WriteString("For create_feature, set entity, route, and labels to null unless the user explicitly chose a distinct product name, route, or display label.\n")
 	prompt.WriteString("For create_feature, use domain.fields and set domain.field and domain.validation to null. A required field uses its required boolean, not domain.validation.\n")
 	prompt.WriteString("For add_field, use domain.field and set domain.fields and domain.validation to null.\n")
 	prompt.WriteString("For add_validation, use domain.validation and set domain.fields and domain.field to null.\n")
