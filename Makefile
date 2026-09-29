@@ -104,7 +104,8 @@ generator-scaffold-acceptance:
 	@go test -tags=acceptance -count=1 -run '^TestApplicationScaffoldAcceptance$$' ./generator/execute
 
 generator-conversation-acceptance:
-	@go test -count=1 ./generator/conversation ./internal/hatmaxstate ./internal/hatmaxtui ./internal/hatmaxcli
+	@go test -tags=acceptance -count=1 ./generator/conversation
+	@go test -count=1 ./internal/hatmaxstate ./internal/hatmaxtui ./internal/hatmaxcli
 
 # Run tests with coverage
 test-coverage:
