@@ -1,7 +1,7 @@
 ---
 id: TKT-20260929090213
 title: Rebuild the User Guide as a Hatmax application journey
-status: open
+status: ready
 kind: task
 severity: unclassified
 priority: unclassified
@@ -9,6 +9,7 @@ scope: docs
 tags: user-guide, diataxis, application-journey
 source: chat
 reported_at: 2026-09-29T09:02:13Z
+ready_at: 2026-09-29T09:41:45Z
 commits:
 ---
 

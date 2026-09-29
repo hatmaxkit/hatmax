@@ -1,19 +1,19 @@
 # User Guide Technical Journey Delivery Plan
 
-Status: Proposed
+Status: Approved
 Delivery set: user-guide-technical-journey
 Slice strategy: behavior-first
 Reason: each slice replaces one consecutive part of the reader's journey with
 a coherent, independently useful section. The guide remains navigable after
 every merge, while the central application model expands from foundation to
 web behavior, data, identity, supporting services, and operation.
-Ticket: `ops/default/ticket/open/20260929090213-rebuild-user-guide-technical-journey.md`
+Ticket: `ops/default/ticket/ready/20260929090213-rebuild-user-guide-technical-journey.md`
 Spec: none
 Tracker: `ops/default/tracker/user-guide-technical-journey.md`
 Base branch: `dev`
 Planning base: `4f783c75d9e9417d35ce4cc2e8a4118a10a89c19`
-Active slice: none
-Execution gate: requires explicit maintainer approval of this plan and tracker
+Active slice: Slice 1
+Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Objective
 
@@ -354,8 +354,8 @@ brief factual introduction to assisted generation.
 After Slice 7 is merged into `dev`:
 
 1. Run `make docs-check` against the exact integrated commit.
-2. Read the User Guide from its index in order and record the editorial
-   consistency result in the final slice report.
+2. Read the User Guide from its README entrypoint in order and record the
+   editorial consistency result in the final slice report.
 3. Compare the primitive-coverage matrix with `docs/reference/package-map/`
    and the root Go packages.
 4. Confirm the future practical Todo tutorial remains separate and was not
@@ -365,7 +365,9 @@ After Slice 7 is merged into `dev`:
 ## Prerequisites
 
 - The ticket, plan, and tracker are reviewed and committed on `dev`.
-- The maintainer explicitly approves this proposed plan before Slice 1 starts.
+- The maintainer approved this plan and the order of delivery.
+- The documentation-layout-normalization delivery set is closed on `dev` at
+  `32038ac34893`.
 - The existing User Guide, reference, how-to, explanation, examples, and
   exported APIs remain the evidence base for each slice.
 - Each slice starts only after the preceding slice is merged into `dev`.
