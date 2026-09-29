@@ -13,8 +13,8 @@ Approved specs:
 
 Base branch: `dev`
 Planning base: `510a856419a97d64959387099c48a81f867fb09a`
-Active slice: Slice 4
-Active tasks: T4.1, T4.2, T4.3
+Active slice: Slice 5
+Active tasks: T5.1, T5.2, T5.3
 Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Slice Status
@@ -24,8 +24,8 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 | Slice 1 | Builder contracts | delivered | `docs/hatmax-builder-contracts` | `docs(slice-1): define Hatmax builder contracts` | #56 | `ops/default/report/slices/conversational-hatmax-builder/slice-1-builder-contracts.md` |
 | Slice 2 | Application planning kernel | delivered | `feat/application-scaffold-kernel` | `feat(slice-2): plan canonical Hatmax applications` | #57 | `ops/default/report/slices/conversational-hatmax-builder/slice-2-application-planning-kernel.md` |
 | Slice 3 | Scaffold execution | delivered | `feat/application-scaffold-rendering` | `feat(slice-3): render canonical Hatmax applications` | #58 | `ops/default/report/slices/conversational-hatmax-builder/slice-3-scaffold-execution.md` |
-| Slice 4 | Application bootstrap product | reviewing | `feat/application-scaffold-product` | `feat(slice-4): deliver Hatmax application bootstrap` | #59 | `ops/default/report/slices/conversational-hatmax-builder/slice-4-application-bootstrap-product.md` |
-| Slice 5 | Conversation state | planned | `feat/conversational-state` | `feat(slice-5): persist Hatmax conversations` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-5-conversation-state.md` |
+| Slice 4 | Application bootstrap product | delivered | `feat/application-scaffold-product` | `feat(slice-4): deliver Hatmax application bootstrap` | #59 | `ops/default/report/slices/conversational-hatmax-builder/slice-4-application-bootstrap-product.md` |
+| Slice 5 | Conversation state | active | `feat/conversational-state` | `feat(slice-5): persist Hatmax conversations` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-5-conversation-state.md` |
 | Slice 6 | Conversational coordinator | planned | `feat/conversational-coordinator` | `feat(slice-6): coordinate conversational Hatmax work` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-6-conversational-coordinator.md` |
 | Slice 7 | Hatmax TUI | planned | `feat/hatmax-tui` | `feat(slice-7): deliver the conversational Hatmax TUI` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-7-hatmax-tui.md` |
 | Slice 8 | Builder acceptance | planned | `test/conversational-builder-acceptance` | `test(slice-8): validate the conversational Hatmax builder` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-8-builder-acceptance.md` |
@@ -101,7 +101,7 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 - [x] Slice 1 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 2 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 3 is delivered through its branch, report, pull request, and merge.
-- [ ] Slice 4 is delivered through its branch, report, pull request, and merge.
+- [x] Slice 4 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 5 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 6 is delivered through its branch, report, pull request, and merge.
 - [ ] Slice 7 is delivered through its branch, report, pull request, and merge.
@@ -110,5 +110,5 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Current Gate
 
-Slice 4 implementation and validation are complete on
-`feat/application-scaffold-product`; maintainer review and merge are pending.
+Slice 4 was delivered by #59. Slice 5 is approved for execution on
+`feat/conversational-state`; T5.1, T5.2, and T5.3 are active.
