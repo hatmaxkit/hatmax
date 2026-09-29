@@ -60,9 +60,7 @@ designed:
 These chapters contain verified Hatmax behavior that is being incorporated
 into the technical journey:
 
-- [Add Postgres](postgres.md)
 - [Sign In](sign-in.md)
-- [Save a Record](records.md)
 - [Work Outside the Request](background-work.md)
 - [Change Settings at Runtime](settings.md)
 - [Generate a Feature](generation.md)

@@ -5,8 +5,8 @@ pubsub to Ticked's durable audit store.
 
 ## Before You Begin
 
-Complete [Save a Record](records.md). Keep Ticked running with the first
-account and its cookie jar.
+Read [Models and Data Flow](models-and-data-flow.md). Keep Ticked running with
+the first account and its cookie jar.
 
 ## Publish an event
 
@@ -55,5 +55,5 @@ Continue with [Change Settings at Runtime](settings.md).
 
 ---
 
-[Previous: Save a Record](records.md) · [User Guide](README.md) ·
+[Previous: Models and Data Flow](models-and-data-flow.md) · [User Guide](README.md) ·
 [Next: Change Settings at Runtime](settings.md)

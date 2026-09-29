@@ -73,9 +73,9 @@ account email and the same request without the cookie redirects.
 See [Authentication](../../reference/authentication/README.md) and the focused
 [authentication how-to](../../how-to/add-authentication/README.md).
 
-Continue with [Save a Record](records.md).
+Continue with [Models and Data Flow](models-and-data-flow.md).
 
 ---
 
 [Previous: Forms and Validation](forms-and-validation.md) · [User Guide](README.md) ·
-[Next: Save a Record](records.md)
+[Next: Models and Data Flow](models-and-data-flow.md)
