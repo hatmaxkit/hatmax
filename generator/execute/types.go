@@ -12,7 +12,7 @@ import (
 
 // CurrentSchemaVersion is the execution manifest schema understood by this
 // package.
-const CurrentSchemaVersion = 3
+const CurrentSchemaVersion = 4
 
 // EditKind identifies one structured project mutation family.
 type EditKind string
@@ -115,7 +115,8 @@ type Command struct {
 type Manifest struct {
 	SchemaVersion      int              `json:"schema_version" yaml:"schema_version"`
 	PlanDigest         string           `json:"plan_digest" yaml:"plan_digest"`
-	ProjectFingerprint string           `json:"project_fingerprint" yaml:"project_fingerprint"`
+	ProjectFingerprint string           `json:"project_fingerprint,omitempty" yaml:"project_fingerprint,omitempty"`
+	SourceFingerprint  string           `json:"source_fingerprint,omitempty" yaml:"source_fingerprint,omitempty"`
 	Intent             intent.Operation `json:"intent" yaml:"intent"`
 	Feature            string           `json:"feature" yaml:"feature"`
 	AllowedSurfaces    []string         `json:"allowed_surfaces" yaml:"allowed_surfaces"`

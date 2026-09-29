@@ -23,16 +23,30 @@ func Validate(value Manifest) error {
 		return executionError("execution_schema_unsupported", "schema_version", "schema version %d is not supported", value.SchemaVersion)
 	}
 
-	if !digestPattern.MatchString(value.PlanDigest) || !digestPattern.MatchString(value.ProjectFingerprint) {
-		return executionError("execution_identity_invalid", "identity", "plan digest and project fingerprint must use sha256:<hex>")
+	if !digestPattern.MatchString(value.PlanDigest) {
+		return executionError("execution_identity_invalid", "plan_digest", "plan digest must use sha256:<hex>")
 	}
 
-	if value.Intent != intent.OperationCreateFeature && value.Intent != intent.OperationAddField && value.Intent != intent.OperationAddValidation && value.Intent != intent.OperationDocumentFeature {
+	if value.Intent != intent.OperationCreateApplication && value.Intent != intent.OperationCreateFeature && value.Intent != intent.OperationAddField && value.Intent != intent.OperationAddValidation && value.Intent != intent.OperationDocumentFeature {
 		return executionError("execution_intent_invalid", "intent", "unknown intent %q", value.Intent)
 	}
 
-	if !stableIDPattern.MatchString(value.Feature) {
-		return executionError("execution_feature_invalid", "feature", "feature must use a stable lower-case ID")
+	if value.Intent == intent.OperationCreateApplication {
+		if value.ProjectFingerprint != "" || !digestPattern.MatchString(value.SourceFingerprint) {
+			return executionError("execution_identity_invalid", "source_fingerprint", "application manifests require only a sha256 source fingerprint")
+		}
+
+		if value.Feature != "" {
+			return executionError("execution_feature_invalid", "feature", "application manifests do not identify one feature")
+		}
+	} else {
+		if value.SourceFingerprint != "" || !digestPattern.MatchString(value.ProjectFingerprint) {
+			return executionError("execution_identity_invalid", "project_fingerprint", "project manifests require only a sha256 project fingerprint")
+		}
+
+		if !stableIDPattern.MatchString(value.Feature) {
+			return executionError("execution_feature_invalid", "feature", "feature must use a stable lower-case ID")
+		}
 	}
 
 	err := validateUniqueStrings("allowed_surfaces", value.AllowedSurfaces, true)
