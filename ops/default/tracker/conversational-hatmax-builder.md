@@ -14,7 +14,7 @@ Approved specs:
 Base branch: `dev`
 Planning base: `510a856419a97d64959387099c48a81f867fb09a`
 Active slice: Slice 2
-Active tasks: T2.1, T2.2, T2.3
+Active tasks: none; slice review pending
 Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Slice Status
@@ -22,7 +22,7 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Builder contracts | delivered | `docs/hatmax-builder-contracts` | `docs(slice-1): define Hatmax builder contracts` | #56 | `ops/default/report/slices/conversational-hatmax-builder/slice-1-builder-contracts.md` |
-| Slice 2 | Application planning kernel | active | `feat/application-scaffold-kernel` | `feat(slice-2): plan canonical Hatmax applications` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-2-application-planning-kernel.md` |
+| Slice 2 | Application planning kernel | reviewing | `feat/application-scaffold-kernel` | `feat(slice-2): plan canonical Hatmax applications` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-2-application-planning-kernel.md` |
 | Slice 3 | Scaffold execution | planned | `feat/application-scaffold-rendering` | `feat(slice-3): render canonical Hatmax applications` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-3-scaffold-execution.md` |
 | Slice 4 | Application bootstrap product | planned | `feat/application-scaffold-product` | `feat(slice-4): deliver Hatmax application bootstrap` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-4-application-bootstrap-product.md` |
 | Slice 5 | Conversation state | planned | `feat/conversational-state` | `feat(slice-5): persist Hatmax conversations` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-5-conversation-state.md` |
@@ -42,9 +42,9 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T2.1 | pending | `feat(generator): inventory application targets` | pending | target inventory tests; full slice gate pending |
-| T2.2 | pending | `feat(generator): define application intents` | pending | normalization and semantic validation tests; full slice gate pending |
-| T2.3 | pending | `feat(generator): plan application scaffolds` | pending | Book, composite plan, digest, and drift tests; full slice gate pending |
+| T2.1 | complete | `feat(generator): inventory application targets` | `606e132863d39492c8f49481eb3212200d1baf5a` | target inventory tests and full slice gate passed |
+| T2.2 | complete | `feat(generator): define application intents` | `08322e5d2ea663184d89f1725bb94ac9b1307405` | normalization, schema, and semantic validation tests; full slice gate passed |
+| T2.3 | complete | `feat(generator): plan application scaffolds` | `347dca571e118df7b581c13a912cece2cd3e1bb3` | Book, composite plan, serialization, digest, preservation, and drift tests; full slice gate passed |
 
 ## Slice 3 Tasks
 
