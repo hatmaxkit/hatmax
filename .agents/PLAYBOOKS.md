@@ -3,6 +3,26 @@
 Hatmax has no `staging` branch and no nightly workflow. These steps replace
 the global nightly `main` integration for this repository.
 
+## Repository authority and backup mirrors
+
+1. `origin` on Forgejo is the only operational remote and the source of truth
+   for branches, tags, pull requests, CI, and releases.
+2. `mirrorcb` on Codeberg and `mirrorgh` on GitHub are download-only backup
+   mirrors. Do not use them for integration, pull requests, CI, release
+   identity, or repository-state decisions.
+3. Fetch branches and tags only from Forgejo with `git fetch origin --prune
+   --tags`. Inspect backup refs with `git ls-remote` when publication needs
+   verification. Do not use `git fetch --all --tags` as a release operation.
+4. Configure both backup remotes with `skipDefaultUpdate = true`, `tagOpt =
+   --no-tags`, and a fetch refspec limited to `main`. This keeps routine
+   `git fetch --all` operations authoritative and prevents backup-only tags or
+   branches from entering the local namespace.
+5. Publish only the verified `origin/main` ref and explicitly approved version
+   tags to both backups. Never publish `dev`, feature branches, pull-request
+   refs, or local-only tags.
+6. A version tag is created and verified on Forgejo first, then the exact same
+   tag ref is pushed outward to both backups.
+
 ## Focused development
 
 1. Run only the smallest relevant check while implementing.
@@ -67,6 +87,9 @@ the global nightly `main` integration for this repository.
    fast-forward.
 6. Completing work on `dev` does not authorize the alignment. The maintainer
    controls the merge.
+7. After the merge is verified on Forgejo, publish the exact `origin/main` ref
+   to `mirrorcb/main` and `mirrorgh/main`. Publish a version tag only after the
+   separate release gate authorizes it.
 
 ## Docs-only alignment
 
