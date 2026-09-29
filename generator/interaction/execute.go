@@ -21,6 +21,9 @@ func (c *Coordinator) Run(ctx context.Context, root, prompt string) Result {
 
 	result := prepared.result
 	result.State = StateExecuting
+	if prepared.plan.Intent == intent.OperationCreateApplication {
+		return c.runApplication(ctx, prepared, result)
+	}
 
 	manifest, err := execute.Prepare(prepared.plan, prepared.inventory, prepared.book)
 	if err != nil {
@@ -70,6 +73,48 @@ func (c *Coordinator) Run(ctx context.Context, root, prompt string) Result {
 		return *terminalFailure(result, cancelledExecutionOutcome(ctx), PhaseValidation, "HMGEN-EXECUTION-VALIDATION-FAILED", err)
 	}
 
+	result.State = StateFinished
+	result.Outcome = OutcomeCompleted
+
+	return result
+}
+
+func (c *Coordinator) runApplication(ctx context.Context, prepared preparedInteraction, result Result) Result {
+	if prepared.target == nil {
+		return *terminalFailure(result, OutcomeExecutionFailed, PhasePreparation, "HMGEN-TARGET-MISSING", errors.New("application target inventory is required"))
+	}
+
+	manifest, err := execute.PrepareApplication(prepared.plan, *prepared.target, prepared.book)
+	if err != nil {
+		return *terminalFailure(result, OutcomeExecutionFailed, PhasePreparation, "HMGEN-EXECUTION-PREPARATION-FAILED", err)
+	}
+	result.Manifest = &manifest
+
+	mutations, err := execute.RenderApplication(prepared.plan, manifest)
+	if err != nil {
+		return *terminalFailure(result, OutcomeExecutionFailed, PhaseRendering, "HMGEN-EXECUTION-RENDERING-FAILED", err)
+	}
+
+	workspace, err := execute.OpenApplicationWorkspace(ctx, manifest, prepared.plan, *prepared.target, prepared.book)
+	if err != nil {
+		return *terminalFailure(result, OutcomeExecutionFailed, PhaseApplication, "HMGEN-WORKSPACE-OPEN-FAILED", err)
+	}
+
+	for _, mutation := range mutations {
+		_, err = workspace.Stage(mutation)
+		if err != nil {
+			return *terminalFailure(result, OutcomeExecutionFailed, PhaseApplication, "HMGEN-EXECUTION-STAGE-FAILED", err)
+		}
+	}
+
+	executionResult, err := workspace.Commit(ctx)
+	result.Execution = &executionResult
+	result.Diagnostics = append(result.Diagnostics, executionDiagnostics(executionResult.Diagnostics, PhaseValidation)...)
+	if err != nil {
+		return *terminalFailure(result, cancelledExecutionOutcome(ctx), PhaseValidation, "HMGEN-EXECUTION-COMMIT-FAILED", err)
+	}
+
+	result.RetainedChanges = retainedChanges(executionResult.Changes)
 	result.State = StateFinished
 	result.Outcome = OutcomeCompleted
 

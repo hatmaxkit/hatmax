@@ -13,8 +13,7 @@ import (
 
 // PrepareApplication converts one sealed application plan and matching target
 // inventory into the exact manifest consumed by scaffold rendering and
-// publication. Composite initial-feature units remain a product-integration
-// concern for the next delivery slice.
+// publication.
 func PrepareApplication(value plan.Plan, target project.TargetInventory, selectedBook *book.Book) (Manifest, error) {
 	err := validateApplicationPreparation(value, target, selectedBook)
 	if err != nil {
@@ -36,12 +35,18 @@ func PrepareApplication(value plan.Plan, target project.TargetInventory, selecte
 		PlanDigest:    value.Digest, SourceFingerprint: value.SourceFingerprint,
 		Intent: value.Intent, TargetPath: target.Target, PreservedPaths: preserved,
 		AllowedSurfaces: append([]string{}, value.AllowedEffects.Surfaces...), Edits: edits,
-		Commands: []Command{
-			{Kind: project.CommandGeneration, Name: "generation.modules", Args: []string{"go", "mod", "tidy"}, WorkingDirectory: ".", Source: "hatmax.application.scaffold"},
-			{Kind: project.CommandValidation, Name: "validation.build", Args: []string{"go", "build", "./..."}, WorkingDirectory: ".", Source: "hatmax.application.scaffold"},
-			{Kind: project.CommandValidation, Name: "validation.test", Args: []string{"go", "test", "./..."}, WorkingDirectory: ".", Source: "hatmax.application.scaffold"},
-		},
+		Commands: []Command{},
 	}
+	if len(value.Units) > 1 {
+		result.Commands = append(result.Commands,
+			Command{Kind: project.CommandGeneration, Name: "generation.sqlc", Args: []string{"sqlc", "generate"}, WorkingDirectory: ".", Source: "hatmax.application.initial_features"},
+		)
+	}
+	result.Commands = append(result.Commands,
+		Command{Kind: project.CommandGeneration, Name: "generation.modules", Args: []string{"go", "mod", "tidy"}, WorkingDirectory: ".", Source: "hatmax.application.scaffold"},
+		Command{Kind: project.CommandValidation, Name: "validation.build", Args: []string{"go", "build", "./..."}, WorkingDirectory: ".", Source: "hatmax.application.scaffold"},
+		Command{Kind: project.CommandValidation, Name: "validation.test", Args: []string{"go", "test", "./..."}, WorkingDirectory: ".", Source: "hatmax.application.scaffold"},
+	)
 
 	result, err = Seal(result)
 	if err != nil {
@@ -65,8 +70,8 @@ func validateApplicationPreparation(value plan.Plan, target project.TargetInvent
 		return executionError("execution_intent_invalid", "intent", "application preparation requires a create_application plan")
 	}
 
-	if len(value.Units) != 1 || value.Units[0].Intent != intent.OperationCreateApplication {
-		return executionError("execution_composite_deferred", "units", "scaffold execution requires the standalone application unit")
+	if len(value.Units) == 0 || value.Units[0].Intent != intent.OperationCreateApplication {
+		return executionError("execution_units_invalid", "units", "application unit must lead scaffold execution")
 	}
 
 	if target.Target != value.Target.Path || target.Parent != value.Target.Parent || target.Admission != value.Target.Admission {
@@ -104,17 +109,28 @@ func prepareApplicationEdits(value plan.Plan) ([]Edit, error) {
 	edits := make([]Edit, 0, len(value.AllowedEffects.Files))
 	for _, effect := range value.AllowedEffects.Files {
 		if effect.Effect != plan.FileEffectCreate {
-			return nil, executionError("execution_effect_invalid", effect.Path, "standalone scaffold files must be create effects")
+			return nil, executionError("execution_effect_invalid", effect.Path, "application publication requires final create effects")
 		}
 
 		recipeID, recipe, exists := applicationRecipeForPath(effect.Path)
+		if !exists {
+			recipeID, exists = applicationFeatureRecipe(value, effect.Path)
+			recipe = applicationRecipe{target: effect.Path, goSource: path.Ext(effect.Path) == ".go"}
+		}
 		if !exists || recipe.target != effect.Path {
-			return nil, executionError("execution_recipe_unsupported", effect.Path, "planned path has no canonical recipe")
+			return nil, executionError("execution_recipe_unsupported", effect.Path, "planned path has no canonical application recipe")
 		}
 
-		operation, exists := applicationPlanOperation(value.Operations, effect.Path)
-		if !exists {
+		operations := applicationPlanOperations(value.Operations, effect.Path)
+		if len(operations) == 0 {
 			return nil, executionError("execution_obligation_missing", effect.Path, "planned path has no owning operation")
+		}
+
+		obligations := make([]Obligation, 0, len(operations))
+		for _, operation := range operations {
+			obligations = append(obligations, Obligation{
+				Operation: operation.ID, Owner: operation.Owner, Rules: append([]string{}, operation.Rules...),
+			})
 		}
 
 		postconditions := []Condition{{Kind: ConditionPathPresent}}
@@ -124,10 +140,10 @@ func prepareApplicationEdits(value plan.Plan) ([]Edit, error) {
 
 		edits = append(edits, Edit{
 			ID:   "application.scaffold." + applicationEditID(effect.Path),
-			Kind: EditCreateFile, Surface: operation.Surfaces[0], Target: effect.Path, Recipe: recipeID,
-			Obligations:   []Obligation{{Operation: operation.ID, Owner: operation.Owner, Rules: append([]string{}, operation.Rules...)}},
+			Kind: EditCreateFile, Surface: operations[0].Surfaces[0], Target: effect.Path, Recipe: recipeID,
+			Obligations:   obligations,
 			Preconditions: []Condition{{Kind: ConditionPathAbsent}}, Postconditions: postconditions,
-			Slots: implementationSlots(value, operation.Surfaces[0]),
+			Slots: implementationSlots(value, operations[0].Surfaces[0]),
 		})
 	}
 
@@ -136,16 +152,19 @@ func prepareApplicationEdits(value plan.Plan) ([]Edit, error) {
 	return edits, nil
 }
 
-func applicationPlanOperation(values []plan.Operation, target string) (plan.Operation, bool) {
+func applicationPlanOperations(values []plan.Operation, target string) []plan.Operation {
+	result := make([]plan.Operation, 0)
 	for _, operation := range values {
 		for _, effect := range operation.Files {
 			if effect.Path == target {
-				return operation, true
+				result = append(result, operation)
+
+				break
 			}
 		}
 	}
 
-	return plan.Operation{}, false
+	return result
 }
 
 func applicationEditID(target string) string {

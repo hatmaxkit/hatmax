@@ -33,7 +33,7 @@ func CheckApplicationConformance(value plan.Plan, manifest Manifest, root string
 	checkApplicationEffects(value, manifest, &diagnostics)
 	checkApplicationModule(value, root, &diagnostics)
 	checkApplicationMain(root, &diagnostics)
-	checkApplicationComposition(root, &diagnostics)
+	checkApplicationComposition(value, root, &diagnostics)
 	checkApplicationWeb(root, &diagnostics)
 
 	return ConformanceResult{Passed: len(diagnostics) == 0, Diagnostics: diagnostics}, nil
@@ -48,7 +48,7 @@ func checkApplicationEffects(value plan.Plan, manifest Manifest, diagnostics *[]
 	prepared := make([]string, 0, len(manifest.Edits))
 	for _, edit := range manifest.Edits {
 		prepared = append(prepared, edit.Target)
-		if strings.Contains(edit.Target, "migration") {
+		if len(value.Units) == 1 && strings.Contains(edit.Target, "migration") {
 			addApplicationDiagnostic(diagnostics, "HMGEN-APPLICATION-BOOTSTRAP-MIGRATION", "hatmax.application.no_bootstrap_migration", edit.Target, "migration scaffold", "no migration before a domain owner")
 		}
 	}
@@ -116,7 +116,7 @@ func checkApplicationMain(root string, diagnostics *[]Diagnostic) {
 	}
 }
 
-func checkApplicationComposition(root string, diagnostics *[]Diagnostic) {
+func checkApplicationComposition(value plan.Plan, root string, diagnostics *[]Diagnostic) {
 	application := applicationContent(root, "internal/application/application.go", diagnostics)
 	database := applicationContent(root, "internal/application/database.go", diagnostics)
 
@@ -124,8 +124,16 @@ func checkApplicationComposition(root string, diagnostics *[]Diagnostic) {
 		addApplicationDiagnostic(diagnostics, "HMGEN-APPLICATION-COMPOSITION", "hatmax.application.explicit_composition", "internal/application/application.go", "incomplete lifecycle", "explicit setup, start, serve, and shutdown")
 	}
 
-	if !strings.Contains(database, "db.New(") || strings.Contains(application+database, "NewMigrator") {
+	if !strings.Contains(database, "db.New(") {
 		addApplicationDiagnostic(diagnostics, "HMGEN-APPLICATION-BOOTSTRAP-MIGRATION", "hatmax.application.no_bootstrap_migration", "internal/application/database.go", "invalid database lifecycle", "database wiring without migrator")
+	}
+
+	if len(value.Units) == 1 && strings.Contains(application+database, "NewMigrator") {
+		addApplicationDiagnostic(diagnostics, "HMGEN-APPLICATION-BOOTSTRAP-MIGRATION", "hatmax.application.no_bootstrap_migration", "internal/application/database.go", "invalid database lifecycle", "database wiring without migrator")
+	}
+
+	if len(value.Units) > 1 && !strings.Contains(application, "db.NewMigrator") {
+		addApplicationDiagnostic(diagnostics, "HMGEN-APPLICATION-MIGRATION", "hatmax.persistence.postgres_sqlc", "internal/application/application.go", "missing migrator", "migrator owned by initial persistent features")
 	}
 }
 

@@ -103,6 +103,7 @@ type Diagnostic struct {
 type ApprovalRequest struct {
 	PlanDigest         string
 	ProjectFingerprint string
+	SourceFingerprint  string
 	PlanYAML           []byte
 }
 

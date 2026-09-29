@@ -330,7 +330,13 @@ func RenderApplicationFoundation(value plan.Plan, manifest Manifest) ([]Mutation
 			return nil, executionError("execution_recipe_duplicate", edit.Recipe, "application recipe occurs more than once")
 		}
 
-		content, renderErr := renderApplicationTemplate(context, recipe)
+		var content []byte
+		var renderErr error
+		if edit.Recipe == applicationCompositionRecipe && len(value.Units) > 1 {
+			content, renderErr = renderCompositeApplication(value)
+		} else {
+			content, renderErr = renderApplicationTemplate(context, recipe)
+		}
 		if renderErr != nil {
 			return nil, executionError("execution_render_failed", edit.Target, "%v", renderErr)
 		}

@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -32,11 +34,13 @@ type Coordinator struct {
 	approver          Approver
 	clarifier         Clarifier
 	selectedBook      *book.Book
+	applicationBook   *book.Book
 	inspectionOptions project.Options
 }
 
 type preparedInteraction struct {
 	inventory project.Inventory
+	target    *project.TargetInventory
 	book      *book.Book
 	plan      plan.Plan
 	planYAML  []byte
@@ -64,11 +68,20 @@ func New(config Config) (*Coordinator, error) {
 		}
 	}
 
+	applicationBook, err := book.LoadRelease(2)
+	if err != nil {
+		return nil, fmt.Errorf("load application Hatmax Book: %w", err)
+	}
+	if config.Book != nil && config.Book.Manifest().BookVersion == 2 {
+		applicationBook = config.Book
+	}
+
 	return &Coordinator{
 		interpreter:       config.Interpreter,
 		approver:          config.Approver,
 		clarifier:         config.Clarifier,
 		selectedBook:      selectedBook,
+		applicationBook:   applicationBook,
 		inspectionOptions: config.InspectionOptions,
 	}, nil
 }
@@ -81,6 +94,11 @@ func (c *Coordinator) prepareApproved(ctx context.Context, root, prompt string) 
 
 	inventory, err := project.InspectWithOptions(ctx, root, c.inspectionOptions)
 	if err != nil {
+		_, moduleErr := os.Stat(filepath.Join(root, "go.mod"))
+		if errors.Is(moduleErr, os.ErrNotExist) {
+			return c.prepareApplicationApproved(ctx, root, prompt, baseResult)
+		}
+
 		return preparedInteraction{}, terminalFailure(baseResult, OutcomeFailed, PhaseInspection, "HMGEN-INSPECTION-FAILED", err)
 	}
 
@@ -107,7 +125,7 @@ func (c *Coordinator) prepareApproved(ctx context.Context, root, prompt string) 
 		baseResult.Provenance.Interpretations = append(baseResult.Provenance.Interpretations, evaluation.Provenance)
 
 		if evaluation.Status != intent.StatusClarificationRequired {
-			return c.finishPlanning(ctx, inventory, evaluation, baseResult)
+			return c.finishPlanning(ctx, inventory, nil, c.selectedBook, evaluation, baseResult)
 		}
 
 		baseResult.Clarifications = cloneIntentClarifications(evaluation.Clarifications)
@@ -151,9 +169,134 @@ func (c *Coordinator) prepareApproved(ctx context.Context, root, prompt string) 
 	}
 }
 
+func (c *Coordinator) prepareApplicationApproved(
+	ctx context.Context,
+	root string,
+	prompt string,
+	baseResult Result,
+) (preparedInteraction, *Result) {
+	selectedBook := c.applicationBook
+	provisional, err := project.InspectTarget(ctx, project.TargetRequest{
+		Parent: root, Target: ".hatmax-proposed-application", Book: selectedBook, Options: c.inspectionOptions,
+	})
+	if err != nil {
+		return preparedInteraction{}, terminalFailure(baseResult, OutcomeFailed, PhaseInspection, "HMGEN-TARGET-INSPECTION-FAILED", err)
+	}
+
+	fingerprint, err := provisional.Fingerprint(selectedBook.Manifest().BookVersion)
+	if err != nil {
+		return preparedInteraction{}, terminalFailure(baseResult, OutcomeFailed, PhaseInspection, "HMGEN-FINGERPRINT-FAILED", err)
+	}
+
+	currentTarget := provisional
+	clarifications := make([]eval.ClarificationExchange, 0)
+	baseResult.State = StateInterpreting
+
+	for round := 0; ; round++ {
+		evaluation, evaluationErr := eval.EvaluateConversation(ctx, c.interpreter, prompt, clarifications, eval.Context{
+			Target: &currentTarget, Fingerprint: fingerprint, Book: selectedBook,
+		})
+		if evaluationErr != nil {
+			return preparedInteraction{}, terminalFailure(baseResult, cancelledOutcome(ctx), PhaseInterpretation, "HMGEN-INTERPRETATION-FAILED", evaluationErr)
+		}
+
+		baseResult.Provenance.Interpretations = append(baseResult.Provenance.Interpretations, evaluation.Provenance)
+
+		if evaluation.Intent != nil && evaluation.Intent.Operation == intent.OperationCreateApplication {
+			rebound, target, targetFingerprint, bindErr := c.bindApplicationTarget(ctx, root, *evaluation.Intent, evaluation.Provenance)
+			if bindErr != nil {
+				return preparedInteraction{}, terminalFailure(baseResult, OutcomeFailed, PhaseInspection, "HMGEN-TARGET-INSPECTION-FAILED", bindErr)
+			}
+
+			evaluation = rebound
+			currentTarget = target
+			fingerprint = targetFingerprint
+		}
+
+		if evaluation.Status != intent.StatusClarificationRequired {
+			return c.finishPlanning(ctx, project.Inventory{}, &currentTarget, selectedBook, evaluation, baseResult)
+		}
+
+		baseResult.Clarifications = cloneIntentClarifications(evaluation.Clarifications)
+		if c.clarifier == nil {
+			return preparedInteraction{}, terminalResult(baseResult, OutcomeClarificationRequired)
+		}
+
+		if round >= MaximumClarificationRounds || len(clarifications)+len(evaluation.Clarifications) > MaximumClarificationExchanges {
+			baseResult.Diagnostics = append(baseResult.Diagnostics, Diagnostic{
+				Code: "HMGEN-CLARIFICATION-LIMIT", Phase: PhaseClarification, Field: "clarifications",
+				Message: "clarification limit reached before the intent was complete",
+			})
+
+			return preparedInteraction{}, terminalResult(baseResult, OutcomeClarificationRequired)
+		}
+
+		baseResult.State = StateClarifying
+		response, clarificationErr := c.clarifier.Clarify(ctx, ClarificationRequest{
+			Round: round + 1, Questions: cloneIntentClarifications(evaluation.Clarifications),
+		})
+		if clarificationErr != nil {
+			return preparedInteraction{}, terminalFailure(baseResult, cancelledOutcome(ctx), PhaseClarification, "HMGEN-CLARIFICATION-FAILED", clarificationErr)
+		}
+		if response.Cancelled {
+			return preparedInteraction{}, terminalResult(baseResult, OutcomeCancelled)
+		}
+
+		exchanges, responseErr := bindClarifications(evaluation.Clarifications, response.Answers)
+		if responseErr != nil {
+			return preparedInteraction{}, terminalFailure(baseResult, OutcomeFailed, PhaseClarification, "HMGEN-CLARIFICATION-INVALID", responseErr)
+		}
+
+		clarifications = append(clarifications, exchanges...)
+		baseResult.Provenance.ClarificationRounds++
+		baseResult.State = StateInterpreting
+	}
+}
+
+func (c *Coordinator) bindApplicationTarget(
+	ctx context.Context,
+	root string,
+	value intent.Intent,
+	provenance eval.Provenance,
+) (eval.Result, project.TargetInventory, project.Fingerprint, error) {
+	plannedPaths, err := plan.ApplicationTargetPaths(value, c.applicationBook)
+	if err != nil {
+		return eval.Result{}, project.TargetInventory{}, project.Fingerprint{}, err
+	}
+
+	if value.Target == nil || strings.TrimSpace(value.Target.Directory) == "" {
+		return eval.Result{}, project.TargetInventory{}, project.Fingerprint{}, errors.New("application target directory is required")
+	}
+
+	target, err := project.InspectTarget(ctx, project.TargetRequest{
+		Parent: root, Target: value.Target.Directory, PlannedPaths: plannedPaths,
+		Book: c.applicationBook, Options: c.inspectionOptions,
+	})
+	if err != nil {
+		return eval.Result{}, project.TargetInventory{}, project.Fingerprint{}, err
+	}
+
+	fingerprint, err := target.Fingerprint(c.applicationBook.Manifest().BookVersion)
+	if err != nil {
+		return eval.Result{}, project.TargetInventory{}, project.Fingerprint{}, err
+	}
+
+	value.SourceFingerprint = fingerprint.Value
+	rebound, err := eval.EvaluateIntent(value, provenance, eval.Context{
+		Target: &target, Fingerprint: fingerprint, Book: c.applicationBook,
+	})
+	if err != nil {
+		return eval.Result{}, project.TargetInventory{}, project.Fingerprint{}, err
+	}
+
+	return rebound, target, fingerprint, nil
+}
+
 func (c *Coordinator) finishPlanning(
 	ctx context.Context,
 	inventory project.Inventory,
+	target *project.TargetInventory,
+	selectedBook *book.Book,
 	evaluation eval.Result,
 	baseResult Result,
 ) (preparedInteraction, *Result) {
@@ -199,6 +342,7 @@ func (c *Coordinator) finishPlanning(
 	decision, err := c.approver.Approve(ctx, ApprovalRequest{
 		PlanDigest:         sealedPlan.Digest,
 		ProjectFingerprint: sealedPlan.ProjectFingerprint,
+		SourceFingerprint:  sealedPlan.SourceFingerprint,
 		PlanYAML:           append([]byte{}, serialized...),
 	})
 	if err != nil {
@@ -219,6 +363,40 @@ func (c *Coordinator) finishPlanning(
 			"HMGEN-APPROVAL-INVALID",
 			fmt.Errorf("unknown approval decision %q", decision),
 		)
+	}
+
+	if target != nil {
+		currentTarget, targetErr := project.InspectTarget(ctx, project.TargetRequest{
+			Parent: target.Parent, Target: target.Target, PlannedPaths: target.PlannedPaths,
+			Book: selectedBook, Options: c.inspectionOptions,
+		})
+		if targetErr != nil {
+			return preparedInteraction{}, terminalFailure(baseResult, OutcomeFailed, PhaseFreshness, "HMGEN-REINSPECTION-FAILED", targetErr)
+		}
+
+		currentFingerprint, fingerprintErr := currentTarget.Fingerprint(sealedPlan.BookVersion)
+		if fingerprintErr != nil {
+			return preparedInteraction{}, terminalFailure(baseResult, OutcomeFailed, PhaseFreshness, "HMGEN-FINGERPRINT-FAILED", fingerprintErr)
+		}
+
+		transition, claimErr := lifecycle.Claim(currentFingerprint)
+		if claimErr != nil {
+			return preparedInteraction{}, terminalFailure(baseResult, OutcomeFailed, PhaseFreshness, "HMGEN-PLAN-FRESHNESS-FAILED", claimErr)
+		}
+
+		if transition.State == plan.LifecycleStale {
+			baseResult.FreshnessChanges = append([]project.Change{}, transition.Changes...)
+
+			return preparedInteraction{}, terminalResult(baseResult, OutcomePlanStale)
+		}
+		if transition.State != plan.LifecycleConsumed {
+			return preparedInteraction{}, terminalFailure(baseResult, OutcomeFailed, PhaseFreshness, "HMGEN-PLAN-UNAVAILABLE", fmt.Errorf("plan lifecycle entered %q", transition.State))
+		}
+
+		return preparedInteraction{
+			target: &currentTarget, book: selectedBook, plan: sealedPlan,
+			planYAML: append([]byte{}, serialized...), result: baseResult,
+		}, nil
 	}
 
 	currentInventory, err := project.InspectWithOptions(ctx, inventory.Root, c.inspectionOptions)
@@ -267,7 +445,7 @@ func (c *Coordinator) finishPlanning(
 
 	return preparedInteraction{
 		inventory: currentInventory,
-		book:      c.selectedBook,
+		book:      selectedBook,
 		plan:      sealedPlan,
 		planYAML:  append([]byte{}, serialized...),
 		result:    baseResult,

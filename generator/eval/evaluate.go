@@ -116,6 +116,23 @@ func evaluateIntent(value intent.Intent, provenance Provenance, context Context)
 	return result, nil
 }
 
+// EvaluateIntent validates and plans one already interpreted intent against
+// authoritative source state. It is used when application identity must be
+// known before Hatmax can inspect the exact child target.
+func EvaluateIntent(value intent.Intent, provenance Provenance, context Context) (Result, error) {
+	err := validateProvenance(provenance)
+	if err != nil {
+		return Result{}, err
+	}
+
+	err = intent.ValidateSchema(value)
+	if err != nil {
+		return Result{}, evaluationError("evaluation_result_invalid", "interpretation.intent", "%v", err)
+	}
+
+	return evaluateIntent(value, provenance, context)
+}
+
 func validateProvenance(value Provenance) error {
 	if value.ContractVersion != CurrentContractVersion {
 		return evaluationError("evaluation_provenance_invalid", "provenance.contract_version", "interpreter provenance must use contract version %d", CurrentContractVersion)

@@ -54,6 +54,72 @@ func TestCoordinatorRunsEveryCanonicalOperationWithoutGitEffects(t *testing.T) {
 	}
 }
 
+func TestCoordinatorCreatesApplicationWithInitialFeatureUnderOneApproval(t *testing.T) {
+	installFixtureCommands(t, false)
+
+	parent := t.TempDir()
+	interpreter := &functionInterpreter{interpret: func(_ context.Context, request eval.Request) (eval.InterpreterResult, error) {
+		if request.Target == nil {
+			t.Fatal("application interpretation omitted bounded target context")
+		}
+
+		value := intent.Intent{
+			SchemaVersion:        intent.ApplicationSchemaVersion,
+			Operation:            intent.OperationCreateApplication,
+			SourceFingerprint:    request.Target.SourceFingerprint,
+			HatmaxVersion:        request.Target.HatmaxVersion,
+			BookVersion:          request.Book.Version,
+			Archetype:            "server_rendered_hatmax_application",
+			Capabilities:         []string{},
+			Documentation:        intent.DocumentationNotRequested,
+			DocumentationTargets: []intent.DocumentationTarget{},
+			Exceptions:           []intent.Exception{},
+			Application: &intent.ApplicationIdentity{
+				DisplayName: "Real Estate", ModulePath: "example.com/alex/real-estate", Niche: "property management",
+			},
+			Target: &intent.ApplicationTarget{Base: "session_directory"},
+			InitialFeatures: []intent.InitialFeature{{
+				Feature: "invoice",
+				Domain: intent.Domain{Fields: []intent.Field{
+					{Name: "number", Type: "string", Required: true},
+					{Name: "notes", Type: "text"},
+				}},
+			}},
+		}
+
+		return intentInterpreterResult(value), nil
+	}}
+	approver := approvingPort()
+	coordinator := newTestCoordinator(t, interpreter, approver, nil)
+
+	result := coordinator.Run(context.Background(), parent, "Create Real Estate with invoices.")
+	if result.Outcome != OutcomeCompleted || result.Plan == nil || result.Execution == nil {
+		t.Fatalf("Run() = %#v, want completed application bootstrap", result)
+	}
+
+	if approver.calls != 1 || len(result.Plan.Units) != 2 {
+		t.Fatalf("approval calls = %d units = %d, want one approval and two units", approver.calls, len(result.Plan.Units))
+	}
+
+	if len(interpreter.requests) != 1 || interpreter.requests[0].Book.Version != 2 {
+		t.Fatalf("interpreter requests = %#v, want one Book 2 turn", interpreter.requests)
+	}
+
+	for _, target := range []string{
+		"main.go",
+		"internal/application/application.go",
+		"internal/feat/invoice/model.go",
+		"internal/feat/invoice/handler.go",
+		"assets/migration/postgres/0001-invoice.sql",
+		"sqlc.yaml",
+	} {
+		_, err := os.Stat(filepath.Join(parent, "real-estate", filepath.FromSlash(target)))
+		if err != nil {
+			t.Errorf("generated target %q: %v", target, err)
+		}
+	}
+}
+
 func TestCoordinatorRunsPureDocumentationWithoutImplementationEffects(t *testing.T) {
 	installFixtureCommands(t, false)
 
@@ -308,6 +374,7 @@ func installFixtureCommands(t *testing.T, failValidation bool) {
 
 	writeExecutable(t, filepath.Join(directory, "make"), makeSource)
 	writeExecutable(t, filepath.Join(directory, "sqlc"), "#!/bin/sh\nexit 0\n")
+	writeExecutable(t, filepath.Join(directory, "go"), "#!/bin/sh\nexit 0\n")
 	t.Setenv("PATH", directory+string(os.PathListSeparator)+os.Getenv("PATH"))
 }
 

@@ -239,7 +239,13 @@ func RenderApplication(value plan.Plan, manifest Manifest) ([]Mutation, error) {
 		return nil, err
 	}
 
+	features, err := RenderApplicationFeatures(value, manifest)
+	if err != nil {
+		return nil, err
+	}
+
 	result := append(foundation, web...)
+	result = append(result, features...)
 	if len(result) != len(manifest.Edits) {
 		return nil, executionError("execution_recipe_unsupported", "edits", "%d manifest edits have no application renderer", len(manifest.Edits)-len(result))
 	}
@@ -274,14 +280,18 @@ func applicationRecipeForPath(target string) (string, applicationRecipe, bool) {
 
 func validateApplicationRecipeCoverage(value plan.Plan) error {
 	for _, effect := range value.AllowedEffects.Files {
-		if _, _, exists := applicationRecipeForPath(effect.Path); !exists {
+		if _, _, exists := applicationRecipeForPath(effect.Path); exists {
+			continue
+		}
+
+		if _, exists := applicationFeatureRecipe(value, effect.Path); !exists {
 			return fmt.Errorf("planned path %q has no application recipe", effect.Path)
 		}
 	}
 
-	want := len(applicationFoundationRecipes) + len(applicationWebRecipes)
-	if len(value.AllowedEffects.Files) != want {
-		return fmt.Errorf("application plan has %d file effects, recipes require %d", len(value.AllowedEffects.Files), want)
+	wantMinimum := len(applicationFoundationRecipes) + len(applicationWebRecipes)
+	if len(value.AllowedEffects.Files) < wantMinimum {
+		return fmt.Errorf("application plan has %d file effects, scaffold recipes require at least %d", len(value.AllowedEffects.Files), wantMinimum)
 	}
 
 	return nil

@@ -36,9 +36,17 @@ func writePlanSummary(report *strings.Builder, result interaction.Result) {
 
 	fmt.Fprintln(report, "Plan summary:")
 	fmt.Fprintf(report, "  Intent: %s\n", result.Plan.Intent)
-	fmt.Fprintf(report, "  Feature: %s\n", result.Plan.Feature)
+	if result.Plan.Application != nil {
+		fmt.Fprintf(report, "  Application: %s\n", result.Plan.Application.DisplayName)
+		fmt.Fprintf(report, "  Project slug: %s\n", result.Plan.Application.ProjectSlug)
+		fmt.Fprintf(report, "  Module path: %s\n", result.Plan.Application.ModulePath)
+		fmt.Fprintf(report, "  Source fingerprint: %s\n", result.Plan.SourceFingerprint)
+		fmt.Fprintf(report, "  Units: %d\n", len(result.Plan.Units))
+	} else {
+		fmt.Fprintf(report, "  Feature: %s\n", result.Plan.Feature)
+		fmt.Fprintf(report, "  Project fingerprint: %s\n", result.Plan.ProjectFingerprint)
+	}
 	fmt.Fprintf(report, "  Digest: %s\n", result.Plan.Digest)
-	fmt.Fprintf(report, "  Project fingerprint: %s\n", result.Plan.ProjectFingerprint)
 	fmt.Fprintf(report, "  Hatmax version: %s\n", result.Plan.HatmaxVersion)
 	fmt.Fprintf(report, "  Book version: %d\n", result.Plan.BookVersion)
 	fmt.Fprintf(report, "  Affected surfaces: %s\n", stringList(result.Plan.AffectedSurfaces))
@@ -208,6 +216,18 @@ func hasCondition(values []execute.Condition, expected execute.ConditionKind) bo
 }
 
 func writeValidation(report *strings.Builder, result interaction.Result) {
+	if result.Report == nil && result.Execution != nil && len(result.Execution.Validation) > 0 {
+		fmt.Fprintln(report, "Validation:")
+		for _, command := range result.Execution.Validation {
+			fmt.Fprintf(report, "  Command %s: status=%s\n", command.Name, command.Status)
+			if command.Output != "" {
+				fmt.Fprintf(report, "    Output: %s\n", indentMultiline(command.Output, "    "))
+			}
+		}
+
+		return
+	}
+
 	if result.Report == nil {
 		return
 	}
