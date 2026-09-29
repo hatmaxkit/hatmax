@@ -13,8 +13,8 @@ Approved specs:
 
 Base branch: `dev`
 Planning base: `510a856419a97d64959387099c48a81f867fb09a`
-Active slice: Slice 8
-Active tasks: none; Slice 8 is in review
+Active slice: none; all eight slices are delivered
+Active tasks: none
 Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Slice Status
@@ -28,7 +28,7 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 | Slice 5 | Conversation state | delivered | `feat/conversational-state` | `feat(slice-5): persist Hatmax conversations` | #60 | `ops/default/report/slices/conversational-hatmax-builder/slice-5-conversation-state.md` |
 | Slice 6 | Conversational coordinator | delivered | `feat/conversational-coordinator` | `feat(slice-6): coordinate conversational Hatmax work` | #61 | `ops/default/report/slices/conversational-hatmax-builder/slice-6-conversational-coordinator.md` |
 | Slice 7 | Hatmax TUI | delivered | `feat/hatmax-tui` | `feat(slice-7): deliver the conversational Hatmax TUI` | #62 | `ops/default/report/slices/conversational-hatmax-builder/slice-7-hatmax-tui.md` |
-| Slice 8 | Builder acceptance | reviewing | `test/conversational-builder-acceptance` | `test(slice-8): validate the conversational Hatmax builder` | #63 | `ops/default/report/slices/conversational-hatmax-builder/slice-8-builder-acceptance.md` |
+| Slice 8 | Builder acceptance | delivered | `test/conversational-builder-acceptance` | `test(slice-8): validate the conversational Hatmax builder` | #63 | `ops/default/report/slices/conversational-hatmax-builder/slice-8-builder-acceptance.md` |
 
 ## Slice 1 Tasks
 
@@ -105,14 +105,15 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 - [x] Slice 5 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 6 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 7 is delivered through its branch, report, pull request, and merge.
-- [ ] Slice 8 is delivered through its branch, report, pull request, and merge.
+- [x] Slice 8 is delivered through its branch, report, pull request, and merge.
 - [ ] The exact integrated `dev` candidate passes the delivery-set gate.
 
 ## Current Gate
 
-Slice 7 was delivered by #62. Slice 8 implementation and focused validation
-are complete on `test/conversational-builder-acceptance` and ready for review.
-Authenticated Codex validation passed with a matching managed `0.159.0`
-executable. `make check` remains incomplete because Testcontainers cannot
-access the local Docker socket; all generator, race, TUI, vet, lint, and
-documentation gates passed independently.
+All eight slices are delivered; Slice 8 merged through #63 at exact integrated
+commit `c854355a7b4d4effa767523a87e5827b28c80eb0`. Post-merge scaffold,
+conversation, race, authenticated Codex, vet, lint, documentation, and
+whitespace gates passed. The delivery-set gate remains incomplete only because
+Testcontainers cannot access `/var/run/docker.sock`; `make check` stops on that
+environmental permission error before its Postgres integration containers
+start.

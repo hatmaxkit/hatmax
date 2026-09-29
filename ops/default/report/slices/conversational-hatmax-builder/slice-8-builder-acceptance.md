@@ -1,6 +1,6 @@
 # Slice 8: Builder Acceptance
 
-Status: reviewing
+Status: delivered
 Delivery set: conversational-hatmax-builder
 Plan: [Conversational Hatmax Builder Delivery Plan](../../../plan/conversational-hatmax-builder.md)
 Tracker: [Conversational Hatmax Builder Tracker](../../../tracker/conversational-hatmax-builder.md)
@@ -80,9 +80,13 @@ or restarting the user's session.
   integration containers started. Generator, TUI, race, live Codex, vet, lint,
   and documentation gates are independently green.
 
+Post-merge validation on exact integrated `dev` commit
+`c854355a7b4d4effa767523a87e5827b28c80eb0` repeated the scaffold,
+conversation, race, vet, lint, documentation, and whitespace gates
+successfully. The non-cached authenticated smoke passed again in 86.58 seconds.
+
 ## Remaining Delivery Gate
 
-Review and merge this slice into `dev`. The delivery-set gate then requires
-the same validation on the exact integrated commit. The Docker-dependent
-portion of `make check` remains unverified until the runner or local user can
-access the Docker socket; it is not represented as passed.
+The slice is delivered by #63. The Docker-dependent portion of the integrated
+delivery-set gate remains unverified until the runner or local user can access
+the Docker socket; it is not represented as passed.
