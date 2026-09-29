@@ -47,9 +47,10 @@ designed:
     authorization, and cryptographic support.
 12. [Configuration and Runtime Settings](configuration-and-runtime-settings.md)
     separates startup configuration, logging, and mutable settings.
-13. **Events and Background Work** introduces pubsub and scheduled work.
-14. **Application Services** places mail, images, telemetry, and replaceable
-    adapters.
+13. [Events and Background Work](events-and-background-work.md) introduces
+    pubsub and scheduled work.
+14. [Application Services](application-services.md) places mail, images,
+    telemetry, and replaceable adapters.
 15. **Testing and Evolution** explains how to validate and safely extend the
     assembled application.
 16. **Assisted Generation** introduces the experimental generator after the
@@ -60,7 +61,6 @@ designed:
 These chapters contain verified Hatmax behavior that is being incorporated
 into the technical journey:
 
-- [Work Outside the Request](background-work.md)
 - [Generate a Feature](generation.md)
 
 ## Supporting Documentation

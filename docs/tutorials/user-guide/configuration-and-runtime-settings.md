@@ -130,4 +130,5 @@ For exact loading, schemas, typed access, and logging behavior, see
 ---
 
 [Previous: Identity and Sessions](identity-and-sessions.md) ·
-[User Guide](README.md)
+[User Guide](README.md) ·
+[Next: Events and Background Work](events-and-background-work.md)
