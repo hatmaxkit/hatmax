@@ -1,14 +1,15 @@
 ---
 id: TKT-20260929091830
 title: Normalize documentation entrypoints and image assets
-status: open
-kind: decision
+status: ready
+kind: task
 severity: unclassified
 priority: unclassified
 scope: docs
 tags: documentation-layout, forge-rendering, media-assets
 source: chat
 reported_at: 2026-09-29T09:18:30Z
+ready_at: 2026-09-29T09:27:33Z
 commits:
 ---
 
@@ -32,8 +33,7 @@ layout.
 
 ## Expected Outcome
 
-Decide and apply one repository-wide documentation layout. The recommended
-layout is:
+Apply one repository-wide documentation layout:
 
 ```text
 docs/
