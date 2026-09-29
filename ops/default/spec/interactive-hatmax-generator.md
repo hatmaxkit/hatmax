@@ -5,7 +5,7 @@ Kind: Umbrella specification
 
 ## Purpose
 
-The Interactive Hatmax Generator builds and evolves Hatmax-based Go
+The Interactive Hatmax Generator creates and evolves Hatmax-based Go
 applications from natural-language intent. It gives users an interactive way
 to request features, models, services, validation, wiring, tests, and
 documentation without making application architecture an open-ended model
@@ -113,8 +113,9 @@ from one Hatmax version to a project using another.
 The generator constrains model behavior through independent control layers.
 No prompt alone is treated as sufficient enforcement.
 
-1. **Project inventory** reads the current module, Hatmax version, source
-   layout, configuration, migrations, templates, tests, and repository rules.
+1. **Source inventory** reads either the current application or an admitted
+   pre-project target, including relevant module, version, layout,
+   configuration, migration, template, test, and repository observations.
 2. **Book context** supplies only the rules, archetypes, examples, and
    capability definitions that apply to the detected project and request.
 3. **Structured interpretation** requires schema-valid output from the model.
@@ -152,6 +153,8 @@ wiring, and verification obligations.
 
 Canonical construction applies to at least:
 
+- initial application identity, module layout, process entrypoint, and
+  composition root;
 - feature boundaries and source layout;
 - models and persistence;
 - stores and services;
@@ -173,7 +176,8 @@ merely because it would also work.
 
 The generator follows this lifecycle:
 
-1. Capture the user's natural-language request and the relevant project state.
+1. Capture the user's natural-language request and the relevant project or
+   proposed-target state.
 2. Classify the requested operation and candidate Hatmax archetype.
 3. Ask only for decisions required to remove material ambiguity.
 4. Produce a schema-valid typed Hatmax intent.
@@ -197,6 +201,7 @@ or the application's source of truth.
 The typed intent describes concepts such as:
 
 - the requested operation;
+- application identity and target for application creation;
 - the selected Hatmax archetype;
 - domain names, fields, rules, and requested behavior;
 - required Hatmax capabilities;
@@ -395,6 +400,11 @@ definition from which the project must always be regenerated.
 The generator must inspect current project state before planning a change. It
 must not assume that a previously generated project remains unchanged.
 
+For application creation, the generator starts from the parent directory,
+inspects the proposed child target, and uses the same typed-intent, planning,
+approval, execution, and conformance pipeline as existing-project changes. It
+does not require the user to create or enter the child directory first.
+
 ## Observable Failure Behavior
 
 The generator reports a bounded failure instead of applying speculative edits
@@ -416,6 +426,8 @@ decision or capability, and the smallest action that can unblock the request.
 The umbrella direction is satisfied when:
 
 - users can express supported changes in ordinary language;
+- users can create a named canonical Hatmax application from its parent
+  directory;
 - equivalent requests converge to the same canonical archetype;
 - materially ambiguous requests cause focused clarification;
 - admitted intents expand all obligations defined by the Hatmax book;
@@ -443,6 +455,7 @@ The umbrella direction is satisfied when:
 
 This umbrella requires subordinate specifications for:
 
+- canonical application scaffolding;
 - the Hatmax book format and rule taxonomy;
 - the typed intent schema and semantic validation;
 - deterministic obligation expansion and plan representation;
@@ -458,8 +471,8 @@ This umbrella requires subordinate specifications for:
 - Hatmax capability-gap and exception handling;
 - the interactive product surface and interpreter-backend boundary.
 
-The first implementation sequence must resolve these specifications in this
-order:
+The initial implementation sequence resolved the core feature generator in
+this order:
 
 1. Hatmax book, rule taxonomy, version compatibility, and dependency policy.
 2. Typed intent schema, semantic validation, and mandatory plan format.
@@ -469,6 +482,11 @@ order:
 4. Conformance checks and the regression evaluation corpus for that slice.
 5. Interactive product surface and interpreter-backend boundary.
 6. Boxed Diataxis documentation generation.
+
+Application scaffolding and the conversational product surface extend that
+kernel through their own approved delivery set. Existing-project adoption and
+migration remain distinct from creating a new application in an absent, empty,
+or explicitly admitted non-conflicting target.
 
 The exact Go source layout, approval policy, existing-project admission
 threshold, extension points, editing primitives, and initial product surface

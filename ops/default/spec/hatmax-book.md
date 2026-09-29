@@ -111,8 +111,24 @@ An archetype defines one canonical assembly pattern. It owns:
 - structural and behavioral conformance rules;
 - operation-specific effects and validation.
 
-The first archetype is `server_rendered_crud`, governed by
-`ops/default/spec/server-rendered-crud.md`.
+The initial archetypes are:
+
+- `server_rendered_hatmax_application`, governed by
+  `ops/default/spec/drafts/canonical-application-scaffold.md` while that
+  specification is being promoted;
+- `server_rendered_crud`, governed by
+  `ops/default/spec/server-rendered-crud.md`.
+
+The application archetype owns the root module, `internal/application`
+composition package, process lifecycle, neutral web surface, root metadata,
+and the transition that activates migration wiring with the first real
+migration. Feature archetypes extend that composition package; they never turn
+`main.go` into an application assembly surface.
+
+Book release 1 remains the delivered `server_rendered_crud` contract. The
+application archetype enters Book release 2 together with the compatible
+composition rules for CRUD and intent schema version 3. A generator must not
+advertise `create_application` while it has selected Book release 1.
 
 An archetype must not offer equivalent architecture variants. A materially
 different architecture requires a different named archetype and explicit

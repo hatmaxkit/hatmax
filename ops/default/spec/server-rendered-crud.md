@@ -56,7 +56,7 @@ assets/templates/<feature>/page.html
 assets/templates/<feature>/form.html
 assets/templates/<feature>/row.html
 db/queries/<feature>.sql
-main.go
+internal/application/<composition files>
 ```
 
 Files that have no admitted obligation are omitted. A feature can add more
@@ -154,8 +154,9 @@ and replacement behavior without creating a client-side domain model.
 
 ## Wiring
 
-`main.go` remains the visible composition root. A generated feature adds its
-components after their dependencies:
+`internal/application` is the visible composition root. `main.go` contains
+only `main` and delegates process execution to that package. A generated
+feature adds its components in `internal/application` after their dependencies:
 
 1. database;
 2. migrator;
@@ -173,6 +174,11 @@ The generator must preserve existing order and insert components at the first
 position that satisfies all declared dependencies. It must not infer or hide a
 runtime dependency graph.
 
+When the feature introduces the application's first migration, the same plan
+creates the migration surface and adds `db.Migrator` immediately after the
+database. Later features reuse that registration and add only their ordered
+migrations.
+
 ## Tests
 
 The archetype requires:
@@ -184,7 +190,8 @@ The archetype requires:
 - Postgres integration tests for queries, constraints, transactions, and
   not-found behavior;
 - migration and SQLC generation validation;
-- a composition test or compile gate that covers main wiring.
+- a composition test or compile gate that covers application wiring and the
+  thin `main` entrypoint.
 
 Tests use Hatmax `testhelper` and `fake` support when applicable. A generated
 test must catch a meaningful contract regression; compilation-only assertions

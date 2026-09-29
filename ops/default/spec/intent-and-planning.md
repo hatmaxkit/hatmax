@@ -15,7 +15,8 @@ Neither free-form model text nor hidden reasoning is executable input.
 
 ## Lifecycle
 
-1. Inventory the project and compute its fingerprint.
+1. Inventory the existing project or proposed application target and compute
+   its fingerprint.
 2. Select the compatible Hatmax Book.
 3. Provide the interpreter with the request, relevant project observations,
    and selected Book context.
@@ -31,7 +32,7 @@ Neither free-form model text nor hidden reasoning is executable input.
 The intent is ephemeral and contains at least:
 
 ```yaml
-schema_version: 1
+schema_version: 2
 operation: create_feature
 project_fingerprint: sha256:...
 hatmax_version: 0.4.0
@@ -50,11 +51,22 @@ exceptions: []
 Structured schemas define allowed fields, enums, names, and values. Unknown
 fields are rejected unless the schema marks a specific extension map.
 
-The initial operation vocabulary is:
+Intent schema version 2 supports:
 
 - `create_feature`;
 - `add_field`;
 - `add_validation`.
+
+Intent schema version 3 adds `create_application`, `source_fingerprint`, the
+application identity object, and the proposed target object. For
+existing-project operations, `source_fingerprint` carries the same project
+fingerprint represented by `project_fingerprint` in schema version 2.
+
+`create_application` uses an application identity object, proposed target,
+selected compatible Hatmax version, and target fingerprint. Existing-project
+operations use the current project identity and project fingerprint. Both are
+represented by `source_fingerprint`; an intent never fabricates an existing
+project merely to satisfy the schema.
 
 Additional operations require Book support and a schema revision. Free-form
 operation names do not degrade to generic coding requests.
@@ -103,7 +115,8 @@ them. It reports `exception_execution_unsupported`.
 
 Semantic validation rejects an intent when:
 
-- the project fingerprint or Hatmax version is absent;
+- the applicable project or target fingerprint is absent;
+- no compatible Hatmax version can be selected from the Book;
 - the Book does not support the operation or archetype;
 - a capability is unknown, incompatible, or missing a prerequisite;
 - a domain value violates naming, type, or ownership rules;
@@ -143,7 +156,7 @@ documentation: not_requested
 The complete internal plan also records:
 
 - schema, Hatmax, and Book versions;
-- source project fingerprint;
+- source project or target fingerprint;
 - selected rule IDs;
 - ordered operations and their owning obligations;
 - preconditions and expected observations;

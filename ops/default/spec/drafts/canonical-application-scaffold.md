@@ -67,11 +67,11 @@ mechanically after the application display name.
 The Go module path uses this precedence:
 
 1. derive it from an existing target-repository remote when unambiguous;
-2. derive it from an explicitly configured user module base when available;
-3. request it as a clarification.
+2. request it as a clarification.
 
-Hatmax must not invent a hosting provider or account owner. User-level module
-base configuration is optional and is not required for the first delivery.
+Hatmax must not invent a hosting provider or account owner. A user-level module
+base preference is deferred; it does not participate in first-delivery
+planning or inference.
 
 An application description is optional. Its absence does not block planning.
 
@@ -106,12 +106,18 @@ the exact merge behavior.
 The plan lists every preserved file and every planned create or update effect.
 Hatmax never silently overwrites target content.
 
+Hatmax preserves existing Git metadata but does not initialize a repository,
+create branches, or change remotes. Source-control initialization remains an
+explicit user action outside `create_application`.
+
 ## Typed Intent
 
 The intent adds the `create_application` operation and an application identity
-object. A minimal normalized projection is:
+object through intent schema version 3 and Book release 2. A minimal normalized
+projection is:
 
 ```yaml
+schema_version: 3
 operation: create_application
 application:
   display_name: Real Estate
@@ -120,6 +126,7 @@ application:
 target:
   base: session_directory
 archetype: server_rendered_hatmax_application
+book_version: 2
 documentation: not_requested
 initial_features: []
 ```
@@ -155,18 +162,43 @@ archetype. Its minimum scaffold includes:
 
 - a Go module with a compatible, explicit Hatmax dependency;
 - `main.go` containing only the `main` function;
-- application construction, dependency builders, and lifecycle assembly
-  outside `main.go`;
+- application construction, dependency builders, and lifecycle assembly in
+  `internal/application`;
 - startup configuration and validation;
 - canonical Hatmax logging;
 - router, middleware, server, and graceful shutdown wiring;
-- Postgres database and migration lifecycle wiring;
+- Postgres database lifecycle wiring;
 - template and static-asset embedding;
 - a neutral server-rendered landing page;
-- migration support and a Book-defined bootstrap migration when required;
+- migration support that becomes active with the first Book-owned persistent
+  feature;
 - basic meaningful tests and a composition compile gate;
 - canonical local build, test, formatting, and lint commands;
 - ignore rules for generated binaries, runtime state, and local secrets.
+
+`main.go` delegates process execution to `internal/application` and contains no
+builders, component declarations, route registration, or helper functions.
+The application package exposes the single process entrypoint used by `main`
+and owns configuration, construction, lifecycle order, serving, shutdown, and
+exit classification.
+
+The neutral scaffold does not create a no-op migration, an application table,
+or another persistence artifact without a domain owner. It wires the Postgres
+database because Postgres is part of the canonical Hatmax application, but it
+does not register `db.Migrator` until a later admitted operation adds the first
+real migration. That operation creates the migration directory and migration,
+adds the migrator in canonical lifecycle order, and validates both effects in
+one plan.
+
+The mandatory root metadata is:
+
+- `go.mod` and `go.sum`;
+- `config.yaml`;
+- `Makefile`;
+- `.gitignore`.
+
+A README, license, CI configuration, Git repository, and Diataxis tree are not
+implied scaffold metadata and are not generated without separate intent.
 
 The exact package and file layout belongs to the application archetype. It must
 preserve explicit dependency assembly and must not hide application wiring in
@@ -250,19 +282,11 @@ were retained, and the smallest safe next action.
 
 ## Cross-Specification Reconciliation
 
-Before implementation, the accepted contracts must be revised together:
-
-- intent validation currently requires an existing project fingerprint and
-  Hatmax version;
-- execution currently assumes every target path is inside an existing project;
-- the approved product surface currently admits only existing applications;
-- the CRUD archetype currently describes `main.go` as the composition root,
-  while this scaffold requires `main.go` to contain only `main`.
-
-The scaffold cannot be implemented by bypassing those contracts. The Book and
-dependent specifications must explicitly model pre-project inventory, target
-fingerprints, selected Hatmax versions, and the canonical external composition
-location.
+The Book, intent, execution, umbrella, and CRUD contracts define pre-project
+inventory, target fingerprints, selected Hatmax versions, and
+`internal/application` as the canonical composition location. Implementations
+must use those shared contracts rather than special-case application creation
+outside the ordinary planning and conformance pipeline.
 
 ## Acceptance Criteria
 
@@ -274,17 +298,16 @@ location.
 - Existing non-conflicting repository files are preserved and listed.
 - Incompatible targets and collisions fail before overwrite.
 - `main.go` contains only `main`; canonical construction lives elsewhere.
+- Git is preserved when present and is never initialized implicitly.
+- The neutral scaffold does not invent a bootstrap migration.
 - The neutral application compiles and satisfies scaffold conformance.
 - Missing external test infrastructure is distinguished from a failing test.
 - No domain feature or Diataxis documentation is invented.
 - The generated application remains ordinary Go source without a required
   Hatmax generator runtime.
 
-## Open Questions
+## Deferred Decisions
 
-- What exact package owns application construction outside `main.go`?
-- What bootstrap migration content is meaningful without a domain model?
-- Should Hatmax initialize Git when the target has no repository?
-- Where should an optional user module-base preference be configured?
-- Which root metadata files are mandatory scaffold metadata?
-- How long should the compatibility alias for the existing command remain?
+- The location and format of an optional user-level module-base preference.
+- Source-control initialization as a separately authorized capability.
+- Compatibility-alias duration, owned by the conversational product surface.

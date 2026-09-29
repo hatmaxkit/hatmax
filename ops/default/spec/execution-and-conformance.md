@@ -9,15 +9,16 @@ First archetype: `ops/default/spec/server-rendered-crud.md`
 
 ## Purpose
 
-This specification defines project inventory, plan execution, drift control,
-idempotency, Hatmax conformance, diagnostics, and regression evaluation.
+This specification defines project and pre-project target inventory, plan
+execution, drift control, idempotency, Hatmax conformance, diagnostics, and
+regression evaluation.
 
 Execution is constrained transformation, not an unconstrained second model
 request. Conformance evaluates the result independently from the implementer.
 
 ## Project Inventory
 
-Inventory is read-only and records at least:
+Inventory is read-only. For an existing project it records at least:
 
 - repository root and current revision when Git is available;
 - dirty paths relevant to the requested operation;
@@ -34,12 +35,28 @@ Inventory is read-only and records at least:
 Inventory uses semantic observations rather than sending the full repository
 to a model. File content is loaded only when selected rules or edits need it.
 
+For `create_application`, pre-project inventory instead records:
+
+- the authorized parent directory and proposed target;
+- whether the target is absent, empty, or contains preserved entries;
+- Git metadata and an unambiguous repository remote when present;
+- collisions, existing Go modules, and Hatmax compatibility evidence;
+- filesystem capabilities needed for staging and atomic publication;
+- applicable parent or repository instructions and protected paths;
+- the Hatmax and Book versions selected for the proposed application.
+
+Pre-project inventory does not require `go.mod`, an application entrypoint, or
+an installed Hatmax version in the target. Their planned values come from the
+selected application archetype and compatible Book.
+
 ## Fingerprint
 
 The inventory produces a stable fingerprint over every observation that can
 change planning or execution. The fingerprint includes file identity and
-content for planned surfaces, relevant configuration, Hatmax version, Book
-version, and repository rules.
+content for planned surfaces, relevant configuration, selected Hatmax version,
+Book version, and repository rules. For application creation it also includes
+the parent and target identities, every preserved target entry, and relevant
+filesystem observations.
 
 Unrelated file changes do not invalidate a plan. Any change to a precondition,
 selected input, or planned surface does.
@@ -52,7 +69,8 @@ Execution begins only when:
 - the plan digest matches its content;
 - the current fingerprint matches the plan fingerprint;
 - every operation has an owning Book obligation and rule;
-- every target path is inside the project and authorized scope;
+- every target path is inside the existing project or the admitted new target
+  below its authorized parent;
 - no undeclared dependency or surface is required;
 - the repository does not contain an overlapping uncommitted change;
 - required tools and compatible versions are available.
@@ -87,8 +105,16 @@ unless restoration would overwrite concurrent external changes. In that case
 it stops and reports `execution_conflict` with recovery paths.
 
 External effects such as database execution, network publication, deployment,
-or account mutation are outside initial generator execution. Creating migration
-source is allowed; applying it to a live database is not implied.
+account mutation, Git initialization, branch creation, or remote changes are
+outside initial generator execution. Creating migration source is allowed;
+applying it to a live database is not implied.
+
+For a new application, the engine prepares the complete tree in an isolated
+staging location below the authorized parent. It publishes the tree to the
+target only after structural preparation succeeds. An admitted target with
+preserved entries uses explicit rollback material and receives only effects
+listed in the plan. Cancellation before publication leaves the target
+unchanged.
 
 ## Idempotency
 
