@@ -25,7 +25,7 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 | Slice 2 | Application planning kernel | delivered | `feat/application-scaffold-kernel` | `feat(slice-2): plan canonical Hatmax applications` | #57 | `ops/default/report/slices/conversational-hatmax-builder/slice-2-application-planning-kernel.md` |
 | Slice 3 | Scaffold execution | delivered | `feat/application-scaffold-rendering` | `feat(slice-3): render canonical Hatmax applications` | #58 | `ops/default/report/slices/conversational-hatmax-builder/slice-3-scaffold-execution.md` |
 | Slice 4 | Application bootstrap product | delivered | `feat/application-scaffold-product` | `feat(slice-4): deliver Hatmax application bootstrap` | #59 | `ops/default/report/slices/conversational-hatmax-builder/slice-4-application-bootstrap-product.md` |
-| Slice 5 | Conversation state | active | `feat/conversational-state` | `feat(slice-5): persist Hatmax conversations` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-5-conversation-state.md` |
+| Slice 5 | Conversation state | reviewing | `feat/conversational-state` | `feat(slice-5): persist Hatmax conversations` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-5-conversation-state.md` |
 | Slice 6 | Conversational coordinator | planned | `feat/conversational-coordinator` | `feat(slice-6): coordinate conversational Hatmax work` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-6-conversational-coordinator.md` |
 | Slice 7 | Hatmax TUI | planned | `feat/hatmax-tui` | `feat(slice-7): deliver the conversational Hatmax TUI` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-7-hatmax-tui.md` |
 | Slice 8 | Builder acceptance | planned | `test/conversational-builder-acceptance` | `test(slice-8): validate the conversational Hatmax builder` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-8-builder-acceptance.md` |
@@ -66,9 +66,9 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T5.1 | pending | `feat(generator): define conversational results` | pending | dialogue schema, bounds, and mutation isolation tests; full slice gate pending |
-| T5.2 | pending | `feat(generator): model persistent conversations` | pending | lifecycle, stale, reset, rebind, and no-approval tests; full slice gate pending |
-| T5.3 | pending | `feat(generator): persist local conversation state` | pending | migration, atomicity, privacy, restart, and pruning tests; full slice gate pending |
+| T5.1 | complete | `feat(generator): define conversational results` | `46f6fae36f0f9c6816547c3fb6f26eb909ad14a7` | dialogue schema, bounds, mutation isolation tests, and full slice gate passed |
+| T5.2 | complete | `feat(generator): model persistent conversations` | `06f828b8b3a826c5a441154d60f9d4629c982e39` | lifecycle, stale, reset, rebind, no-approval tests, and full slice gate passed |
+| T5.3 | complete | `feat(generator): persist local conversation state` | `f3d6fab4a42d863da2d7689c7786417f7343c818` | incompatible schema, atomicity, privacy, restart, lock, rebinding, pruning tests, and full slice gate passed |
 
 ## Slice 6 Tasks
 
@@ -110,5 +110,5 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Current Gate
 
-Slice 4 was delivered by #59. Slice 5 is approved for execution on
-`feat/conversational-state`; T5.1, T5.2, and T5.3 are active.
+Slice 5 implementation and validation are complete on
+`feat/conversational-state`; maintainer review and merge are pending.
