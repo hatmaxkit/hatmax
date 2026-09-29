@@ -17,7 +17,7 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | journey foundation | delivered | `docs/user-guide-journey-foundation` | `docs(slice-1): establish the User Guide journey` | #48 | `ops/default/report/slices/user-guide-technical-journey/slice-1-journey-foundation.md` |
 | Slice 2 | web interaction | delivered | `docs/user-guide-web-interaction` | `docs(slice-2): explain the Hatmax web interaction model` | #49 | `ops/default/report/slices/user-guide-technical-journey/slice-2-web-interaction.md` |
-| Slice 3 | feature anatomy | active | `docs/user-guide-feature-anatomy` | `docs(slice-3): establish canonical feature anatomy` |  | `ops/default/report/slices/user-guide-technical-journey/slice-3-feature-anatomy.md` |
+| Slice 3 | feature anatomy | reviewing | `docs/user-guide-feature-anatomy` | `docs(slice-3): establish canonical feature anatomy` |  | `ops/default/report/slices/user-guide-technical-journey/slice-3-feature-anatomy.md` |
 | Slice 4 | data lifecycle | planned | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` |  | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |
 | Slice 5 | identity and runtime | planned | `docs/user-guide-identity-runtime` | `docs(slice-5): explain identity and runtime configuration` |  | `ops/default/report/slices/user-guide-technical-journey/slice-5-identity-runtime.md` |
 | Slice 6 | application services | planned | `docs/user-guide-application-services` | `docs(slice-6): explain Hatmax application services` |  | `ops/default/report/slices/user-guide-technical-journey/slice-6-application-services.md` |
@@ -45,9 +45,9 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T3.1 | pending | `docs(guide): define canonical feature anatomy` |  |  |
-| T3.2 | pending | `docs(guide): connect feature boundaries` |  |  |
-| T3.3 | pending | `docs(guide): reconcile feature examples` |  |  |
+| T3.1 | complete | `docs(guide): define canonical feature anatomy` | `ebcfa57` | `make docs-check` passed |
+| T3.2 | complete | `docs(guide): connect feature boundaries` | `f7317d4` | `make docs-check` passed |
+| T3.3 | complete | `docs(guide): reconcile feature examples` | `9d142e7` | example, Book, and reference audit passed |
 
 ## Slice 4 Tasks
 
@@ -104,6 +104,5 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Current Gate
 
-Slice 2 merged through pull request #49 at
-`cf61fe0a024e68c73b91a4ea6c17a24c626f14ec`. Slice 3 is active and may begin
-from that integrated `dev` state.
+Slice 3 content and focused validation are complete. Its report is in
+reviewing state; the recorded pull request must be opened against `dev`.
