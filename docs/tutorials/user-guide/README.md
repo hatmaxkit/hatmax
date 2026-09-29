@@ -2,7 +2,9 @@
 
 The User Guide explains how a Hatmax web application is composed. Read it in
 order to build a working mental model of the application before consulting
-individual package contracts or focused procedures.
+individual package contracts or focused procedures. Use that model through
+the recommended conversational TUI, the supported headless CLI, or direct Go
+development.
 
 This guide is not a step-by-step project tutorial. It uses small, connected
 examples to explain responsibilities and assembly. A separate tutorial will
@@ -53,8 +55,9 @@ designed:
     telemetry, and replaceable adapters.
 15. [Testing and Evolution](testing-and-evolution.md) explains how to validate
     and safely extend the assembled application.
-16. [Assisted Generation](assisted-generation.md) introduces the experimental
-    generator after the manual application model is clear.
+16. [Assisted Generation](assisted-generation.md) teaches the recommended
+    conversational TUI and presents the headless CLI as a supported
+    alternative for focused work.
 
 ## Journey Outcome
 

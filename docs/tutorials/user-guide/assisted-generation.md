@@ -1,16 +1,21 @@
 # Assisted Generation
 
-This chapter uses `hm` to create a Hatmax application and then continue its
-development through the same conversation. The outcome is a compiling
-application whose generated structure follows the application model developed
-throughout this guide.
+Hatmax provides two ways to use its application builder:
 
-Hatmax is conversational, but it is not a general coding harness. You can ask
-ordinary questions or make informal remarks; they do not become project
-changes. A mutation must resolve to a typed operation admitted by the Hatmax
-Book, produce a visible plan, and receive explicit approval.
+- `hm` opens the conversational terminal UI. This is the recommended way to
+  create and evolve an application.
+- `hm generate "<request>"` runs one focused request through the headless CLI.
+  It is a supported alternative for terminal workflows and automation.
 
-## Prepare the Builder
+Both interfaces use the same Hatmax Book, planning, approval, execution, and
+validation contracts. The TUI adds a persistent conversation around those
+contracts; it does not replace them with a general coding agent.
+
+This chapter follows one TUI conversation from an empty parent directory to a
+new application, then shows how to continue working and when to use the
+headless CLI.
+
+## Prepare Hatmax
 
 Install `hm` and authenticate the Codex CLI as described in the
 [official Codex CLI documentation](https://learn.chatgpt.com/docs/codex/cli):
@@ -20,104 +25,146 @@ go install hatmax.adrianpk.com/cmd/hm@latest
 ```
 
 The Codex CLI and its resident App Server must have compatible versions.
-Hatmax reuses that resident process and never stops or restarts it.
+Hatmax reuses that resident process across conversation turns. It does not
+start a separate Codex process for every message.
 
-Choose the parent directory in which the application should be created:
+## Open the TUI
+
+To create an application, start Hatmax from the directory that will contain
+the new project:
 
 ```sh
 cd ~/Projects
 hm
 ```
 
-Running from the parent is intentional. Hatmax creates a normalized child
-directory after it knows the application identity. Running `hm` from an
-existing compatible Hatmax project instead opens that project's conversation.
+The TUI opens a conversation for that directory. Hatmax creates no project
+until a request becomes an admitted Hatmax operation, you review its plan, and
+you approve it.
+
+Starting `hm` from an existing compatible Hatmax project opens that project's
+conversation instead. Starting it from an incompatible project still permits
+ordinary conversation, but Hatmax rejects project mutations there.
+
+## Talk to Hatmax
+
+Write in the composer and press `Enter` to send. Use `Ctrl+J` when the message
+needs a newline.
+
+The conversation does not need to begin with a generation command. You can
+ask a question, discuss the application, or provide product context. Ordinary
+dialogue produces no files and grants no later operation implicit approval.
+
+When a message describes supported Hatmax work, the conversation moves into a
+visible change proposal. Hatmax can create an application, create a canonical
+feature, add a field or validation rule, or document admitted Hatmax behavior.
+Requests for another application stack or substitutes for Hatmax primitives
+are outside the builder's mutation boundary.
 
 ## Create an Application
 
-Enter a complete request in the composer and press `Enter`:
+A complete first request can provide the application identity and an initial
+feature together:
 
 ```text
-Create a Hatmax application named Ledger with module path example.com/alex/ledger and an invoice feature with a required number string field.
+Create a Hatmax application named Ledger with module path example.com/alex/ledger and an invoice feature with a required number string field and an optional notes text field.
 ```
 
-A shorter request is also valid. Hatmax asks focused questions for required
-identity it cannot derive; it does not require a description, niche, or
-initial feature. PostgreSQL is part of the canonical Hatmax application and
-does not need to be requested.
-
-Inspect the displayed plan before approving it. An application plan includes
-the scaffold as its first unit and each requested initial feature as a
-dependent unit. It also lists exact effects, conformance rules, and validation
-commands. No target file has changed yet.
-
-Press `Ctrl+A` to approve the displayed digest. `Esc` cancels the proposal
-without changing the target.
-
-After approval, Hatmax creates `~/Projects/ledger`, validates the canonical
-scaffold, compiles it, and runs applicable project checks. The conversation is
-then rebound from the parent scope to the new project. This prevents the
-pre-project backend thread from becoming hidden authority inside the created
-application.
-
-## Read the Result
-
-A successful result reports `Completed`. If compilation and conformance pass
-but an external test prerequisite is unavailable, the result is `Completed;
-validation incomplete` and identifies the blocked command. A real generated
-test failure is not downgraded to incomplete validation.
-
-Review the generated application using the same composition model used for
-manual development:
+A shorter request is also valid:
 
 ```text
-main -> internal/application -> infrastructure -> features -> handlers -> templates
+Create an invoicing application with Hatmax.
 ```
 
-The composition root remains explicit, `main.go` contains only `main`, and
-features retain the canonical vertical slice:
+Hatmax derives what it can from the request and current directory. If a
+required product decision is still missing, it asks one focused question in
+the conversation. Answer that question in the same composer. Optional details
+do not block generation.
 
-```text
-model -> store -> service -> handler -> templates -> wiring -> tests
-```
+PostgreSQL, server-rendered HTML, HTMX interaction, explicit wiring, and the
+canonical Hatmax feature shape are part of the Hatmax application model. You
+do not need to request them on every turn.
 
-Generated files are ordinary Go, SQL, templates, and assets. The application
-does not require the generator at runtime.
+## Review and Approve the Plan
 
-## Continue the Conversation
+Before changing the target, Hatmax displays a sealed plan. Review the concrete
+result: application identity, requested features and fields, affected layers,
+validation, tests, and documentation scope. No project file has changed at
+this point.
 
-From the created project, run `hm` again:
+Press `Ctrl+A` to approve the plan currently displayed in the TUI. Approval is
+bound to that exact plan and the inspected project state; it is not a reusable
+permission for later changes.
+
+If the proposal is wrong, press `Esc` to cancel it without changing the
+project. Then send a corrected request. If source or target state changes
+before approval, Hatmax marks the plan stale and requires a fresh proposal.
+
+## Follow Execution
+
+After approval, Hatmax renders only the authorized Hatmax surfaces and runs
+the applicable conformance and project checks. For a new application, it
+creates a normalized child directory below the directory where the
+conversation started.
+
+The final state distinguishes these outcomes:
+
+- `Completed` means mutation and required checks succeeded.
+- `Completed; validation incomplete` means the generated application compiled
+  and a declared external test prerequisite prevented a remaining check.
+- `Execution failed` means rendering, conformance, compilation, or a project
+  check failed.
+- `Plan stale` means the approved proposal no longer matches current source or
+  target state.
+- `Cancelled` means execution or the pending proposal was stopped.
+
+A failed project check is never reported as a successful generation. When an
+operation fails, read its diagnostic and retained-change information before
+submitting a revised request.
+
+## Continue in the Same Conversation
+
+After successful application creation, Hatmax associates the conversation
+with the created project. Continue from the project directory:
 
 ```sh
 cd ~/Projects/ledger
 hm
 ```
 
-The active project conversation resumes. You can now request another admitted
-change, for example:
+Hatmax resumes the active local conversation and reinspects the project before
+planning another change. For example:
 
 ```text
-Add an optional notes text field to invoice.
+Add a required issued-at timestamp to invoice.
 ```
 
-Hatmax reinspects the project before planning. Previous dialogue can preserve
-product context, but source inspection remains authoritative. If the project
-changes after a plan is displayed, approval returns `Plan stale`; send a
-revised request or let Hatmax create a fresh plan.
+The new request follows the same cycle: conversation, clarification when
+required, visible plan, explicit approval, execution, and validation. Prior
+dialogue can preserve product context, but source inspection remains
+authoritative.
 
-Use these controls during the session:
+Generated files are ordinary Go, SQL, templates, and assets. The application
+does not require `hm` or Codex at runtime.
 
-- `Enter` sends a request and `Ctrl+J` inserts a newline;
-- `Ctrl+A` approves the current plan;
-- `Esc` cancels work or the current proposal;
-- `Ctrl+N` starts a new conversation for the same scope;
-- `Ctrl+H` expands key help;
-- `Ctrl+C` exits safely.
+## Use the TUI Controls
 
-## Select a Retained Conversation
+| Key | Action |
+| --- | --- |
+| `Enter` | Send the composer contents. |
+| `Ctrl+J` | Insert a newline in the composer. |
+| `Ctrl+A` | Approve the currently displayed plan. |
+| `Esc` | Cancel current work or the pending proposal; otherwise clear the composer. |
+| `Ctrl+N` | Start a new conversation for the current directory or project. |
+| `Ctrl+H` | Show or hide complete key help. |
+| `Ctrl+C` | Cancel active work and exit safely. |
 
-Conversation state is stored outside the repository. List retained
-conversations for the current project, select one, and reopen the TUI:
+## Resume or Reset Conversation State
+
+Conversation state is local user state outside the application repository.
+Opening `hm` in the same scope resumes its active compatible conversation.
+
+Use the conversation commands when you need explicit selection:
 
 ```sh
 hm conversation list
@@ -125,34 +172,37 @@ hm conversation resume <conversation-id>
 hm
 ```
 
-To deliberately start over without changing source:
+Start over without changing application source with either `Ctrl+N` in the
+TUI or:
 
 ```sh
 hm conversation new
 hm
 ```
 
-Resetting or losing local conversation state does not affect the project.
-Hatmax reconstructs project facts from source and the compatible Book.
+Losing or resetting conversation state does not damage the project. Hatmax
+reconstructs project facts from source and the compatible Book.
 
-## Use the Headless Surface
+## Use the Headless CLI
 
-For one focused request, use the same kernel without the TUI:
+Use the headless CLI when one bounded request is more useful than a persistent
+conversation:
 
 ```sh
 hm generate "Add a required issued-at timestamp to invoice."
 ```
 
-The command prints the plan and accepts only `y` or `yes` as approval. It is
-useful for automation and acceptance checks, while `hm` remains the primary
-interactive surface.
+The command interprets one request, prints its plan, and accepts only `y` or
+`yes` as approval. It uses the same Hatmax mutation boundary as the TUI. The
+CLI remains suitable for focused terminal work, automation, and acceptance
+checks; the TUI is the recommended interface for iterative application work.
 
-The previous `hatmax` command is a temporary compatibility alias. New scripts
-and documentation should use `hm`.
+The previous `hatmax` and `hatmax generate` forms are temporary compatibility
+aliases. New usage and scripts should use `hm`.
 
 The [Generator Reference](../../reference/generator/README.md) defines the
 complete command surface, supported operations, state locations, runtime
-contract, exit statuses, and migration policy.
+contract, exit statuses, and compatibility policy.
 
 ---
 

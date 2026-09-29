@@ -1,8 +1,10 @@
 # Generator
 
 `hm` is the conversational Hatmax application builder. With no arguments it
-opens the terminal UI. Its headless commands expose the same Hatmax-owned
-planning and execution kernels for automation and focused terminal work.
+opens the recommended terminal UI, which keeps planning, approval, execution,
+and follow-up work in one conversation. The supported `hm generate` headless
+CLI exposes the same Hatmax-owned planning and execution kernel for automation
+and focused terminal work.
 
 Codex interprets natural language into a bounded schema. It cannot inspect the
 project, call tools, select files, approve a plan, or perform a mutation.

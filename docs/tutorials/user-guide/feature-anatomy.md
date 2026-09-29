@@ -398,11 +398,11 @@ compact so readers can exercise lifecycle and package behavior. Its model,
 store, handlers, and wiring share one file; that compression is useful for a
 small executable example but is not the structure for a product feature.
 
-The experimental generator applies the same feature anatomy when it changes a
-compatible project. Its Hatmax Book makes generation deterministic, but the
-Book is generator policy rather than a runtime dependency or a prerequisite
-for understanding this chapter. Manually written and generated features must
-remain ordinary Go code with the same visible ownership and assembly.
+The generator applies the same feature anatomy when it changes a compatible
+project. Its Hatmax Book makes generation deterministic, but the Book is
+generator policy rather than a runtime dependency or a prerequisite for
+understanding this chapter. Manually written and generated features must remain
+ordinary Go code with the same visible ownership and assembly.
 
 ## Continue into Exact Contracts
 
@@ -422,8 +422,8 @@ behavior:
   tests;
 - [Interfaces and Adapter Ownership](../../explanation/interfaces-and-adapters/README.md)
   for the dependency-direction rationale;
-- [Generator](../../reference/generator/README.md) for the experimental
-  assisted workflow and its current boundary.
+- [Generator](../../reference/generator/README.md) for the TUI, headless CLI,
+  and assisted-workflow boundary.
 
 ---
 
