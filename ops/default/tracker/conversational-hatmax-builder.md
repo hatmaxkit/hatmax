@@ -14,7 +14,7 @@ Approved specs:
 Base branch: `dev`
 Planning base: `510a856419a97d64959387099c48a81f867fb09a`
 Active slice: Slice 8
-Active tasks: T8.1, T8.2, T8.3
+Active tasks: none; Slice 8 is in review
 Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Slice Status
@@ -90,9 +90,9 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T8.1 | pending | `test(generator): exercise conversational workflows` | pending | scaffold, resume, evolution, reset, drift, cancellation, recovery, and rejection acceptance; full slice gate pending |
-| T8.2 | pending | `test(generator): validate live Hatmax conversations` | pending | authenticated backend, thread reuse, rebind, and isolation smoke; full slice gate pending |
-| T8.3 | pending | `docs(generator): document conversational Hatmax` | pending | reference, User Guide, migration, examples, changelog, and docs gate; full slice gate pending |
+| T8.1 | complete | `test(generator): exercise conversational workflows` | `fb174a0a01c1b48dfbcad99bed4d34cd805293b8` | scaffold, resume, evolution, reset, drift, cancellation, recovery, blocked infrastructure, and rejection acceptance passed |
+| T8.2 | complete | `test(generator): validate live Hatmax conversations` | `ea2b2266523efd2eb6f026fe75d145f40fc15c85` | authenticated dialogue, application planning and approval, runtime and thread reuse, rebind, and isolation passed; live cache disabled by `7f65de96ec81403a2b3e7d6c06ce40ebc4a2d28f` |
+| T8.3 | complete | `docs(generator): document conversational Hatmax` | `3f0d0ab57fb1b4d6b095aa923ef0f2afd40b3d09` | reference, User Guide, command migration, README, changelog, and docs gate passed |
 
 ## Completion Gates
 
@@ -110,5 +110,9 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Current Gate
 
-Slice 7 was delivered by #62. Slice 8 is approved for execution on
-`test/conversational-builder-acceptance`; T8.1, T8.2, and T8.3 are active.
+Slice 7 was delivered by #62. Slice 8 implementation and focused validation
+are complete on `test/conversational-builder-acceptance` and ready for review.
+Authenticated Codex validation passed with a matching managed `0.159.0`
+executable. `make check` remains incomplete because Testcontainers cannot
+access the local Docker socket; all generator, race, TUI, vet, lint, and
+documentation gates passed independently.
