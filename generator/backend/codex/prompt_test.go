@@ -52,6 +52,7 @@ func TestCompileTurnContainsOnlyBoundedRequestAndSchema(t *testing.T) {
 		"tutorial, how_to, reference, or explanation",
 		"ask one focused clarification instead of selecting every quadrant",
 		"use intent schema version 3",
+		"Preserve an application.module_path explicitly supplied by the user",
 		"PostgreSQL is implicit",
 		"initial features are optional",
 	} {
