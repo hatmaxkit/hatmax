@@ -1,6 +1,6 @@
 # Slice 5: Identity and Runtime
 
-Status: reviewing
+Status: delivered
 Delivery set: user-guide-technical-journey
 Plan: [User Guide Technical Journey Plan](../../../plan/user-guide-technical-journey.md)
 Tracker: [User Guide Technical Journey Tracker](../../../tracker/user-guide-technical-journey.md)
@@ -57,6 +57,8 @@ the new chapters.
   logging claims were checked against current reference contracts.
 - Superseded `sign-in.md` and `settings.md` link audit passed.
 - `git diff --check` passed.
+- Pull request #52 merged into `dev` at
+  `d1bf11a5c750dccb6954a54700c5e01bb2634a92`.
 
 ## Risks and Follow-ups
 
