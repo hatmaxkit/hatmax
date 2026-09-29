@@ -273,6 +273,106 @@ ordered list; it does not infer a hidden graph.
 behavior stays in the feature package, and helper builders do not accumulate
 beside the entrypoint.
 
+## Follow One Create Across the Boundaries
+
+A create request demonstrates why the layers remain separate:
+
+1. The same-origin middleware admits the state-changing request.
+2. The handler parses form values, normalizes text, and reports transport
+   errors without calling the service.
+3. The service calls `NewInvoice`, which establishes identity, timestamps, and
+   durable domain validity.
+4. The service asks the `Store` contract to persist the valid invoice.
+5. `PostgresStore` maps the model into generated SQLC parameters and executes
+   the named query.
+6. The handler renders the created row for HTMX or redirects an ordinary
+   request to the invoice page.
+
+No layer reaches around the next boundary. The template cannot insert an
+invoice, the handler cannot call SQLC, and the store cannot choose an HTTP
+status. That constraint keeps one operation understandable from its public
+route down to its durable result.
+
+The values passed between boundaries are equally deliberate:
+
+| Boundary | Input | Output |
+| --- | --- | --- |
+| Browser to handler | form strings, path values, headers | parsed input or safe form errors |
+| Handler to service | `InvoiceInput`, identity from context | model value or classified error |
+| Service to model | typed creation or update input | valid `Invoice` or validation errors |
+| Service to store | valid model or stable identifier | stored result or persistence error |
+| Store to SQLC | generated query parameters | generated rows and affected-row counts |
+| Handler to template | explicit page or form view | full page or named partial HTML |
+
+Transport-only representations stop at the handler. SQLC representations stop
+at the store. The model crosses the service and store boundary without gaining
+knowledge of either adapter.
+
+## Preserve Error Meaning
+
+Each layer adds context needed by its caller while preserving error identity:
+
+```text
+Postgres or SQLC failure
+  -> store wraps the failed persistence operation
+  -> service wraps the failed application workflow
+  -> handler logs internal context and selects safe HTTP behavior
+```
+
+Expected failures take a more specific route. `validation.ValidationErrors`
+become `web.FormErrors` and return the form with field feedback.
+`ErrNotFound` becomes `404`. An unexpected database or service error becomes a
+stable `500` message, while the wrapped detail remains available to logs.
+
+Use `errors.Is` and `errors.As` at the boundary that translates a failure.
+Avoid comparing error strings, discarding wrapped causes, or returning
+infrastructure messages to the browser.
+
+## Change the Whole Slice
+
+Adding a field is not a model-only edit. A stored, editable `due_date` can
+affect:
+
+```text
+migration
+  -> SQLC select, create, and update queries
+  -> generated row and parameter types
+  -> model and input
+  -> store mappings
+  -> domain validation
+  -> form parsing and view values
+  -> form and row templates
+  -> fixtures and boundary tests
+```
+
+Optional, computed, or read-only values can remove some obligations, but the
+decision must be explicit. Searching only for the Go field name is not enough:
+SQL names, HTML input names, labels, and template accessors may use different
+representations.
+
+The same principle applies to a new invariant. A client-side `required`,
+`minlength`, or similar attribute improves interaction. A durable invariant
+also belongs in the model and, when representable, in a Postgres constraint.
+Handler tests confirm safe feedback; model and persistence tests confirm that
+other callers cannot bypass the rule.
+
+## Test the Contracts, Not the File Count
+
+Tests follow the boundaries that make the feature real:
+
+- model tests cover valid construction, invalid input, and state transitions;
+- service tests use a small `Store` fake to prove workflow order and effects;
+- handler tests use narrow service and renderer fakes to cover full pages,
+  HTMX partials, invalid forms, missing records, and internal failures;
+- Postgres store tests use `testhelper.SetupTestDB` to cover queries,
+  constraints, mapping, affected-row behavior, and transactions;
+- project build and validation gates cover generated SQLC code and explicit
+  `main.go` wiring.
+
+A test should fail when its boundary contract regresses. Merely constructing a
+type or compiling a mock does not establish feature behavior. Keep fakes local
+to the consumer test and implement only the methods that consumer requires.
+
 ---
 
 [Previous: Presentation Primitives](presentation-primitives.md) ·
