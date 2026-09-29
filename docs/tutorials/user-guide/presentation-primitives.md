@@ -154,4 +154,5 @@ Exact builders and edge cases are documented in the
 ---
 
 [Previous: Forms and Validation](forms-and-validation.md) ·
-[User Guide](README.md)
+[User Guide](README.md) ·
+[Next: Feature Anatomy](feature-anatomy.md)

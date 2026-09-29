@@ -37,8 +37,8 @@ designed:
    domain, and persistence validation at their correct boundaries.
 7. [Presentation Primitives](presentation-primitives.md) covers UI helpers,
    modals, formatting, pagination, and internationalization.
-8. **Feature Anatomy** connects model, store, service, handler, templates,
-   wiring, and tests as one canonical feature.
+8. [Feature Anatomy](feature-anatomy.md) connects model, store, service,
+   handler, templates, wiring, and tests as one canonical feature.
 9. **Persistence and Migrations** explains the Postgres lifecycle and schema
    ownership.
 10. **Models and Data Flow** follows application data across feature layers.
