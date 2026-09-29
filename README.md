@@ -94,19 +94,27 @@ Run `go run .`, then request `http://localhost:8080/ping`. Continue with the
 [User Guide](docs/tutorials/user-guide/README.md) to add Postgres, templates,
 forms, authentication, records, background work, and runtime settings.
 
-## Generate a Feature
+## Build with Hatmax
 
-Install the Hatmax command and run it from the root of an existing Hatmax
-project:
+Install the canonical command. Run `hm` from a parent directory to create an
+application, or from an existing Hatmax application to evolve it:
 
 ```sh
-go install hatmax.adrianpk.com/cmd/hatmax@v0.5.0
-cd myapp
-hatmax generate "Create a property feature with a required name."
+go install hatmax.adrianpk.com/cmd/hm@latest
+cd ~/Projects
+hm
 ```
 
-Hatmax asks Codex to interpret the request, presents the complete typed plan,
-and waits for approval before applying deterministic Book-owned changes. See
+Describe the application or feature conversationally. Hatmax uses Codex only
+for bounded interpretation, presents the complete typed plan, and waits for
+explicit approval before applying deterministic Book-owned changes. For a
+single headless request, use:
+
+```sh
+hm generate "Create a property feature with a required name."
+```
+
+See
 [Assisted Generation](docs/tutorials/user-guide/assisted-generation.md) for the
 guided workflow and [Generator](docs/reference/generator/README.md) for the
 exact contract and prerequisites.

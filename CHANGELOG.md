@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `hm` now provides a resumable conversational TUI for creating canonical
+  compiling Hatmax applications, optionally with initial features, and for
+  evolving existing Hatmax projects through explicit digest-bound plans.
+- User-local conversation state now retains bounded dialogue, proposals,
+  diagnostics, reset history, and safe recovery without storing repository
+  contents or reusable approval.
+- Authenticated acceptance now covers ordinary dialogue, application
+  clarification and planning, approval recomputation, scope rebinding,
+  resident runtime reuse, and project thread isolation.
+
+### Changed
+
+- `hm` is the canonical command for interactive and headless generation.
+  `hatmax` remains a behaviorally equivalent compatibility alias for the first
+  two tagged minor releases containing `hm`.
+- Complete application requests now preserve an explicitly supplied Go module
+  path through target inspection instead of asking for it again.
+
 ## [0.5.0] - 2026-09-29
 
 ### Added

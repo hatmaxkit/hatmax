@@ -1,87 +1,158 @@
 # Generator
 
-The `hatmax` command provides an interactive, AI-interpreted generator for
-existing Hatmax applications. Hatmax owns the plan, renderers, mutations,
-conformance checks, and validation. Codex is restricted to mapping natural
-language into the bounded intent schema.
+`hm` is the conversational Hatmax application builder. With no arguments it
+opens the terminal UI. Its headless commands expose the same Hatmax-owned
+planning and execution kernels for automation and focused terminal work.
 
-## Command
+Codex interprets natural language into a bounded schema. It cannot inspect the
+project, call tools, select files, approve a plan, or perform a mutation.
+Hatmax owns project inspection, Book selection, planning, approval, rendering,
+conformance, and validation.
 
-Run the command from the application root:
+## Installation Requirements
 
-```text
-hatmax generate "<request>"
+Install the canonical command:
+
+```sh
+go install hatmax.adrianpk.com/cmd/hm@latest
 ```
 
-The command accepts exactly one non-empty request argument. Any other command
-shape prints the usage line and exits with status `2`.
+The command also requires:
 
-## Requirements
+- a compatible, authenticated `codex` executable on `PATH`; installation and
+  authentication are covered by the
+  [official Codex CLI documentation](https://learn.chatgpt.com/docs/codex/cli);
+- project-owned generation and validation tools required by the discovered
+  commands; a Postgres feature normally requires `sqlc`, and project linting
+  may require `golangci-lint`.
 
-- The target is a Go module with a supported Hatmax dependency. Book version
-  `1` supports Hatmax versions from `v0.4.0` up to, but not including,
-  `v0.6.0`.
-- A compatible `codex` executable is available on `PATH` and authenticated.
-  Installation and authentication are covered by the
-  [official Codex CLI documentation](https://learn.chatgpt.com/docs/codex/cli).
-- Project-owned generation, formatting, and validation tools required by the
-  discovered commands are installed. A Postgres feature normally requires
-  `sqlc`; the project's lint command may require `golangci-lint`.
+Hatmax checks that the Codex CLI and resident App Server have compatible
+versions before inference. It reports a backend compatibility diagnostic
+instead of restarting an incompatible resident process.
+
+## Command Surface
+
+| Command | Behavior |
+| --- | --- |
+| `hm` | Resume the active conversation for the current scope in the TUI. |
+| `hm generate "<request>"` | Run one headless request with terminal clarification and approval. |
+| `hm conversation new` | Reset to a new conversation for the current scope. |
+| `hm conversation list` | List retained conversations for the current scope. |
+| `hm conversation resume <conversation-id>` | Select a retained conversation as active. |
+
+Run `hm` from a parent directory to create an application in a normalized
+child directory. Run it from a compatible Hatmax application root to evolve
+that application. A pre-project conversation follows the created application
+after successful bootstrap.
+
+The headless generator accepts exactly one non-empty request argument:
+
+```sh
+hm generate "Create an invoice feature with a required number."
+```
+
+Any other `generate` shape prints usage and exits with status `2`.
+
+## TUI Controls
+
+| Key | Action |
+| --- | --- |
+| `Enter` | Send the composer contents. |
+| `Ctrl+J` | Insert a newline. |
+| `Ctrl+A` | Approve the currently displayed plan. |
+| `Esc` | Cancel in-flight work, cancel the pending proposal, or clear the composer. |
+| `Ctrl+N` | Start a new conversation for the same scope. |
+| `Ctrl+H` | Toggle the complete key help. |
+| `Ctrl+C` | Cancel in-flight work and exit. |
+
+Approval is available only for the exact pending plan digest. Ordinary
+conversation, questions, and informal replies never create an implicit
+operation.
 
 ## Supported Operations
 
 | Operation | Effect |
 | --- | --- |
+| `create_application` | Creates a canonical compiling Hatmax application in a child directory, optionally with initial features. |
 | `create_feature` | Creates a canonical server-rendered CRUD feature. |
-| `add_field` | Adds one field across the existing feature's required surfaces. |
+| `add_field` | Adds one field across an existing feature's required surfaces. |
 | `add_validation` | Adds a Hatmax-owned validation rule and its required coverage. |
-| `document_feature` | Documents inspected existing behavior without implementation changes. |
+| `document_feature` | Documents inspected existing behavior or an admitted planned change. |
 
-Implementation requests use the server-rendered CRUD archetype and Book-owned
+Application creation requires a display name and Go module path. Hatmax
+normalizes the project slug and directory, can use compatible remote evidence
+for the module path, and asks only for required information it cannot derive.
+Description, niche, and initial features are optional. Initial features appear
+as dependent units in the same visible application plan.
+
+Feature operations use the server-rendered CRUD archetype and Book-owned
 capabilities for Postgres persistence, Hatmax validation, and HTMX forms.
-Requests for alternate databases, ORMs, routers, validation frameworks, or
-client-side application state are outside this Book.
+Requests for alternate databases, ORMs, routers, validation frameworks,
+client-side application state, or non-Hatmax application generation are
+unsupported.
 
-Documentation changes require explicit documentation intent. A request only
-for documentation may affect only documentation. A combined request may
-document the planned implementation. Generated pages use the selected
-Diataxis quadrant, remain reachable from the documentation indexes, and
-preserve text outside Hatmax-managed sections.
+Documentation changes require explicit documentation intent. A
+documentation-only request may affect only documentation. A combined request
+may document the admitted implementation. Generated pages use the selected
+Diataxis quadrant and preserve text outside Hatmax-managed sections.
 
 ## Interaction Contract
 
-One run performs these steps:
+For a project-changing request, Hatmax:
 
-1. Inspect the module, repository state, layout, instructions, documentation,
-   and recognized project commands.
-2. Ask Codex for a schema-bounded interpretation. Project paths and file
-   contents are not included in that request.
-3. Collect any required clarifications, repeat interpretation with those
-   explicit answers, and validate the typed intent.
-4. Expand the intent through the Hatmax Book into a sealed, digest-bound plan.
-5. Print the plan and require `y` or `yes` approval.
-6. Reject approval if the project fingerprint has changed.
-7. Render and apply only the effects authorized by the plan.
-8. Check conformance and run the applicable project commands.
-9. Print the execution report.
+1. Resolves the current pre-project or project scope and inspects source truth.
+2. Gives Codex only bounded Hatmax context and asks for a schema-constrained
+   interpretation.
+3. Collects focused clarifications when an irreducible product decision is
+   missing.
+4. Expands the typed intent through the compatible Hatmax Book.
+5. Displays the sealed, digest-bound plan without changing the project.
+6. Recomputes the plan after explicit approval and rejects drift.
+7. Applies only the effects authorized by the plan.
+8. Checks Hatmax conformance and runs applicable project validation commands.
+9. Retains the result, diagnostics, and safe next action in the conversation.
 
-A negative answer or end of input cancels the plan. Approval is never inferred
-from the original request.
+Rejecting a headless approval or cancelling a TUI proposal leaves the project
+unchanged. Stored plans and conversation history are never reusable approval.
+
+## Conversation State and Privacy
+
+Conversation snapshots are user-local state, not project files:
+
+- macOS: `~/Library/Application Support/Hatmax/State`;
+- Windows: `%LOCALAPPDATA%\Hatmax\State`;
+- other systems: `$XDG_STATE_HOME/hatmax` when the variable is absolute,
+  otherwise `~/.local/state/hatmax`.
+
+Hatmax stores bounded turns, proposal summaries, diagnostics, Book identity,
+and an optional backend thread reference. It does not store credentials,
+environment variables, arbitrary repository contents, hidden reasoning, raw
+App Server streams, or approval authority. If persistence fails, the current
+TUI session may continue in memory and reports that recovery boundary.
 
 ## Codex Runtime
 
 Hatmax locates `codex` on `PATH`, checks the CLI and managed App Server
 versions, and reuses a compatible resident daemon. It starts the daemon only
-when none is available and never stops or restarts it. Each command opens a
-short-lived proxy and reuses the isolated thread assigned to that project;
-closing the command does not stop the resident daemon.
+when none is available and never stops or restarts it. Each Hatmax process
+opens a short-lived proxy. Backend threads are isolated by Hatmax scope and
+cleared when a pre-project conversation is rebound to a created project.
 
-## Exit Statuses
+## Outcomes and Validation
+
+The TUI distinguishes conversation, clarification, unsupported requests,
+plan-ready work, cancellation, stale plans, execution failure, incomplete
+validation, and completion. A compiling scaffold may complete with validation
+incomplete only when a declared external test prerequisite is unavailable.
+An observed generated-code test failure remains an execution failure. Hatmax
+never reports a failed check as passed.
+
+Headless exit statuses are stable:
 
 | Status | Meaning |
 | ---: | --- |
 | `0` | Generation completed. |
-| `1` | Setup or unclassified interaction failure. |
+| `1` | Setup failed, an unclassified failure occurred, or mutation completed with incomplete validation. |
 | `2` | Invalid command usage. |
 | `3` | Clarification or approval was cancelled. |
 | `4` | Required product decisions remain unresolved. |
@@ -90,5 +161,13 @@ closing the command does not stop the resident daemon.
 | `7` | Project drift invalidated the approved plan. |
 | `8` | Rendering, mutation, conformance, or project validation failed. |
 
-For its place in the application journey, see
+## Command Migration
+
+`hm` is the canonical command. `hatmax` and `hatmax generate` remain
+behaviorally equivalent compatibility aliases for the first two tagged minor
+releases that contain `hm`. The alias becomes eligible for removal only in a
+later minor release after the immediately preceding release notes announce
+the removal.
+
+For a guided first session, see
 [Assisted Generation](../../tutorials/user-guide/assisted-generation.md).

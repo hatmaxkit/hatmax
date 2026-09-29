@@ -1,63 +1,158 @@
 # Assisted Generation
 
-Hatmax includes an experimental AI-interpreted generator for changing an
-existing compatible Hatmax application. It does not create the application,
-replace the architecture described by this guide, or act as a general coding
-harness.
+This chapter uses `hm` to create a Hatmax application and then continue its
+development through the same conversation. The outcome is a compiling
+application whose generated structure follows the application model developed
+throughout this guide.
 
-The current product surface is a CLI:
+Hatmax is conversational, but it is not a general coding harness. You can ask
+ordinary questions or make informal remarks; they do not become project
+changes. A mutation must resolve to a typed operation admitted by the Hatmax
+Book, produce a visible plan, and receive explicit approval.
+
+## Prepare the Builder
+
+Install `hm` and authenticate the Codex CLI as described in the
+[official Codex CLI documentation](https://learn.chatgpt.com/docs/codex/cli):
 
 ```sh
-hatmax generate "Create an invoice feature with a required number."
+go install hatmax.adrianpk.com/cmd/hm@latest
 ```
 
-A conversational TUI is planned but not yet delivered. The generator may
-answer limited interaction needs around its workflow, but implementation
-requests remain constrained to Hatmax features and primitives.
+The Codex CLI and its resident App Server must have compatible versions.
+Hatmax reuses that resident process and never stops or restarts it.
 
-## Understand the Control Boundary
+Choose the parent directory in which the application should be created:
 
-Codex interprets natural language into a bounded typed intent. Hatmax then
-selects the canonical archetype, expands all required surfaces, validates the
-intent, and presents a sealed plan. The model does not choose arbitrary
-libraries, architecture, files, or commands.
+```sh
+cd ~/Projects
+hm
+```
 
-No project mutation occurs until the user explicitly approves that plan. If
-the project changes after planning, Hatmax rejects the stale approval. After
-approval, Hatmax-owned renderers apply the edits, check structural conformance,
-and run applicable commands discovered from the project.
+Running from the parent is intentional. Hatmax creates a normalized child
+directory after it knows the application identity. Running `hm` from an
+existing compatible Hatmax project instead opens that project's conversation.
 
-The generator currently supports creating a canonical server-rendered CRUD
-feature, adding a field, adding a Hatmax validation rule, and explicitly
-requested boxed Diataxis documentation. Documentation is never added merely
-because an implementation changed.
+## Create an Application
 
-## Inspect Before and After
+Enter a complete request in the composer and press `Enter`:
 
-Before approval, confirm the intent, capabilities, affected surfaces,
-documentation mode, allowed effects, and validation commands. A required
-product decision should appear as a clarification, not as an implementation
-guess.
+```text
+Create a Hatmax application named Ledger with module path example.com/alex/ledger and an invoice feature with a required number string field.
+```
 
-After completion, review the Git diff with the manual application model from
-this guide:
+A shorter request is also valid. Hatmax asks focused questions for required
+identity it cannot derive; it does not require a description, niche, or
+initial feature. PostgreSQL is part of the canonical Hatmax application and
+does not need to be requested.
+
+Inspect the displayed plan before approving it. An application plan includes
+the scaffold as its first unit and each requested initial feature as a
+dependent unit. It also lists exact effects, conformance rules, and validation
+commands. No target file has changed yet.
+
+Press `Ctrl+A` to approve the displayed digest. `Esc` cancels the proposal
+without changing the target.
+
+After approval, Hatmax creates `~/Projects/ledger`, validates the canonical
+scaffold, compiles it, and runs applicable project checks. The conversation is
+then rebound from the parent scope to the new project. This prevents the
+pre-project backend thread from becoming hidden authority inside the created
+application.
+
+## Read the Result
+
+A successful result reports `Completed`. If compilation and conformance pass
+but an external test prerequisite is unavailable, the result is `Completed;
+validation incomplete` and identifies the blocked command. A real generated
+test failure is not downgraded to incomplete validation.
+
+Review the generated application using the same composition model used for
+manual development:
+
+```text
+main -> internal/application -> infrastructure -> features -> handlers -> templates
+```
+
+The composition root remains explicit, `main.go` contains only `main`, and
+features retain the canonical vertical slice:
 
 ```text
 model -> store -> service -> handler -> templates -> wiring -> tests
 ```
 
-Verify project-specific behavior even when the generated conformance and
-command gates pass. Assisted generation reduces mechanical assembly; it does
-not own product decisions, deployment acceptance, or code review.
+Generated files are ordinary Go, SQL, templates, and assets. The application
+does not require the generator at runtime.
 
-Requests for alternate databases, ORMs, routers, validation frameworks, or a
-client-side application state model are outside the current Hatmax Book. Use a
-general coding tool outside Hatmax when the desired result is not a Hatmax
-application change.
+## Continue the Conversation
 
-For installation requirements, supported operations, runtime behavior,
-approval rules, diagnostics, and exit statuses, use the
-[Generator Reference](../../reference/generator/README.md).
+From the created project, run `hm` again:
+
+```sh
+cd ~/Projects/ledger
+hm
+```
+
+The active project conversation resumes. You can now request another admitted
+change, for example:
+
+```text
+Add an optional notes text field to invoice.
+```
+
+Hatmax reinspects the project before planning. Previous dialogue can preserve
+product context, but source inspection remains authoritative. If the project
+changes after a plan is displayed, approval returns `Plan stale`; send a
+revised request or let Hatmax create a fresh plan.
+
+Use these controls during the session:
+
+- `Enter` sends a request and `Ctrl+J` inserts a newline;
+- `Ctrl+A` approves the current plan;
+- `Esc` cancels work or the current proposal;
+- `Ctrl+N` starts a new conversation for the same scope;
+- `Ctrl+H` expands key help;
+- `Ctrl+C` exits safely.
+
+## Select a Retained Conversation
+
+Conversation state is stored outside the repository. List retained
+conversations for the current project, select one, and reopen the TUI:
+
+```sh
+hm conversation list
+hm conversation resume <conversation-id>
+hm
+```
+
+To deliberately start over without changing source:
+
+```sh
+hm conversation new
+hm
+```
+
+Resetting or losing local conversation state does not affect the project.
+Hatmax reconstructs project facts from source and the compatible Book.
+
+## Use the Headless Surface
+
+For one focused request, use the same kernel without the TUI:
+
+```sh
+hm generate "Add a required issued-at timestamp to invoice."
+```
+
+The command prints the plan and accepts only `y` or `yes` as approval. It is
+useful for automation and acceptance checks, while `hm` remains the primary
+interactive surface.
+
+The previous `hatmax` command is a temporary compatibility alias. New scripts
+and documentation should use `hm`.
+
+The [Generator Reference](../../reference/generator/README.md) defines the
+complete command surface, supported operations, state locations, runtime
+contract, exit statuses, and migration policy.
 
 ---
 
