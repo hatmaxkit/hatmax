@@ -7,7 +7,7 @@ Reason: the repository and generator must expose one documentation layout at
 the same time. A single end-to-end slice keeps checked-in documentation,
 validation, specifications, planning, rendering, conformance, and tests on the
 same `README.md` contract without a transitional dual-layout state.
-Ticket: `ops/default/ticket/ready/20260929091830-normalize-documentation-entrypoints-and-media.md`
+Ticket: `ops/default/ticket/reviewing/20260929091830-normalize-documentation-entrypoints-and-media.md`
 Spec: `ops/default/spec/boxed-diataxis-documentation.md`
 Tracker: `ops/default/tracker/documentation-layout-normalization.md`
 Base branch: `dev`

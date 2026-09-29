@@ -1,7 +1,7 @@
 ---
 id: TKT-20260929091830
 title: Normalize documentation entrypoints and image assets
-status: ready
+status: reviewing
 kind: task
 severity: unclassified
 priority: unclassified
@@ -10,7 +10,11 @@ tags: documentation-layout, forge-rendering, media-assets
 source: chat
 reported_at: 2026-09-29T09:18:30Z
 ready_at: 2026-09-29T09:27:33Z
-commits:
+started_at: 2026-09-29T09:29:13Z
+reviewed_at: 2026-09-29T09:32:53Z
+branch: feat/documentation-readme-layout
+pr: pending
+commits: a854c2750876, 92320c0fab6c, 6ba9c6be5185
 ---
 
 ## Observed Behavior
