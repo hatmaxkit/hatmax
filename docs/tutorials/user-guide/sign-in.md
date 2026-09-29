@@ -5,8 +5,8 @@ a session, and reach an authenticated route.
 
 ## Before You Begin
 
-Complete [Accept a Form](forms.md). Stop the guide application so port `8080`
-is available. Ensure Postgres accepts the defaults in
+Read [Forms and Validation](forms-and-validation.md). Stop the guide
+application so port `8080` is available. Ensure Postgres accepts the defaults in
 `examples/ticked/config.yaml`.
 
 ## Prepare Ticked
@@ -77,5 +77,5 @@ Continue with [Save a Record](records.md).
 
 ---
 
-[Previous: Accept a Form](forms.md) · [User Guide](README.md) ·
+[Previous: Forms and Validation](forms-and-validation.md) · [User Guide](README.md) ·
 [Next: Save a Record](records.md)

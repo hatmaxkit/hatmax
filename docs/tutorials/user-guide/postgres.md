@@ -53,10 +53,10 @@ For a focused integration procedure, see
 [Connect to Postgres](../../how-to/connect-postgres/README.md). For exact
 behavior, see [Database](../../reference/database/README.md).
 
-Continue with [Serve a Page](pages.md).
+Continue with [The Request Boundary](request-boundary.md).
 
 ---
 
 [Previous: Lifecycle and Wiring](lifecycle-and-wiring.md) ·
 [User Guide](README.md) ·
-[Next: Serve a Page](pages.md)
+[Next: The Request Boundary](request-boundary.md)
