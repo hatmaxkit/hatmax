@@ -123,7 +123,7 @@ func NewCoordinator(config CoordinatorConfig) (*Coordinator, error) {
 // Open resumes the compatible scope conversation by default, or applies an
 // explicit selection/fresh request without changing project source.
 func (c *Coordinator) Open(ctx context.Context, root string, options SessionOptions) (*ActiveSession, error) {
-	absoluteRoot, kind, err := resolveSessionRoot(root)
+	absoluteRoot, kind, err := ResolveSessionRoot(root)
 	if err != nil {
 		return nil, err
 	}
@@ -578,7 +578,9 @@ func (s *ActiveSession) sessionResult(operationID string, result interaction.Res
 	}
 }
 
-func resolveSessionRoot(root string) (string, ScopeKind, error) {
+// ResolveSessionRoot classifies one existing directory as a Hatmax project or
+// a parent directory that can host an application conversation.
+func ResolveSessionRoot(root string) (string, ScopeKind, error) {
 	if strings.TrimSpace(root) == "" {
 		return "", "", errors.New("conversation root is required")
 	}

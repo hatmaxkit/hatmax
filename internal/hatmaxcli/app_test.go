@@ -7,7 +7,9 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
 
+	"hatmax.adrianpk.com/generator/conversation"
 	"hatmax.adrianpk.com/generator/intent"
 	"hatmax.adrianpk.com/generator/interaction"
 )
@@ -105,9 +107,106 @@ func TestAppRejectsInvalidCommandWithoutAssembly(t *testing.T) {
 			t.Errorf("case %d = exit %d, assembled %t; want usage without assembly", index, exitCode, assembled)
 		}
 
-		if errorOutput.String() != "usage: hatmax generate \"<request>\"\n" || output.Len() != 0 {
+		expectedUsage := "usage:\n" +
+			"  hatmax generate \"<request>\"\n" +
+			"  hatmax conversation new\n" +
+			"  hatmax conversation list\n" +
+			"  hatmax conversation resume <conversation-id>\n"
+		if errorOutput.String() != expectedUsage || output.Len() != 0 {
 			t.Errorf("case %d output = %q / %q, want usage on stderr", index, output.String(), errorOutput.String())
 		}
+	}
+}
+
+func TestConversationCommandsControlOnlyLocalSelection(t *testing.T) {
+	now := time.Date(2026, time.September, 29, 21, 0, 0, 0, time.UTC)
+	manager := &fakeConversationManager{
+		session: &fakeConversationSession{value: conversation.Conversation{
+			ID: "conversation-new", Status: conversation.StatusActive,
+		}},
+		summaries: []conversation.Summary{{
+			ID: "conversation-new", Status: conversation.StatusActive, UpdatedAt: now,
+		}},
+	}
+
+	tests := []struct {
+		arguments []string
+		contains  string
+		assert    func(*testing.T, conversation.SessionOptions)
+	}{
+		{
+			arguments: []string{"conversation", "new"},
+			contains:  "Conversation: conversation-new\nStatus: active\n",
+			assert: func(t *testing.T, options conversation.SessionOptions) {
+				t.Helper()
+				if !options.Fresh || options.ConversationID != "" {
+					t.Fatalf("new options = %#v", options)
+				}
+			},
+		},
+		{
+			arguments: []string{"conversation", "resume", "conversation-old"},
+			contains:  "Conversation: conversation-new\nStatus: active\n",
+			assert: func(t *testing.T, options conversation.SessionOptions) {
+				t.Helper()
+				if options.Fresh || options.ConversationID != "conversation-old" {
+					t.Fatalf("resume options = %#v", options)
+				}
+			},
+		},
+	}
+
+	for _, testCase := range tests {
+		var output, errorOutput bytes.Buffer
+		app := newConversationTestApp(t, &output, &errorOutput, manager)
+
+		if exit := app.Run(context.Background(), testCase.arguments); exit != ExitSuccess {
+			t.Fatalf("Run(%v) exit = %d", testCase.arguments, exit)
+		}
+		if output.String() != testCase.contains || errorOutput.Len() != 0 {
+			t.Fatalf("Run(%v) output = %q / %q", testCase.arguments, output.String(), errorOutput.String())
+		}
+		testCase.assert(t, manager.openOptions)
+	}
+
+	var output, errorOutput bytes.Buffer
+	app := newConversationTestApp(t, &output, &errorOutput, manager)
+	if exit := app.Run(context.Background(), []string{"conversation", "list"}); exit != ExitSuccess {
+		t.Fatalf("conversation list exit = %d", exit)
+	}
+	if output.String() != "conversation-new\tactive\t2026-09-29T21:00:00Z\n" || errorOutput.Len() != 0 {
+		t.Fatalf("conversation list output = %q / %q", output.String(), errorOutput.String())
+	}
+}
+
+func TestHmAndHatmaxGenerateUseTheSameHeadlessKernel(t *testing.T) {
+	factory := func(string, interaction.Approver, interaction.Clarifier) (Runner, error) {
+		return runnerFunc(func(context.Context, string, string) interaction.Result {
+			return interaction.Result{State: interaction.StateFinished, Outcome: interaction.OutcomeCompleted}
+		}), nil
+	}
+
+	run := func(commandName string) (int, string, string) {
+		var output, errorOutput bytes.Buffer
+		app, err := New(Config{
+			Input: strings.NewReader(""), Output: &output, ErrorOutput: &errorOutput,
+			WorkingDirectory:   func() (string, error) { return "/project", nil },
+			CoordinatorFactory: factory, CommandName: commandName,
+		})
+		if err != nil {
+			t.Fatalf("New(%s) error = %v", commandName, err)
+		}
+
+		return app.Run(context.Background(), []string{"generate", "Add invoices."}), output.String(), errorOutput.String()
+	}
+
+	hmExit, hmOutput, hmError := run("hm")
+	hatmaxExit, hatmaxOutput, hatmaxError := run("hatmax")
+	if hmExit != hatmaxExit || hmOutput != hatmaxOutput || hmError != hatmaxError {
+		t.Fatalf(
+			"hm = %d %q %q; hatmax = %d %q %q",
+			hmExit, hmOutput, hmError, hatmaxExit, hatmaxOutput, hatmaxError,
+		)
 	}
 }
 
@@ -182,6 +281,65 @@ func newTestApp(
 	}
 
 	return app
+}
+
+func newConversationTestApp(
+	t *testing.T,
+	output *bytes.Buffer,
+	errorOutput *bytes.Buffer,
+	manager ConversationManager,
+) *App {
+	t.Helper()
+
+	app, err := New(Config{
+		Input: strings.NewReader(""), Output: output, ErrorOutput: errorOutput,
+		WorkingDirectory: func() (string, error) { return "/project", nil },
+		CoordinatorFactory: func(string, interaction.Approver, interaction.Clarifier) (Runner, error) {
+			return nil, errors.New("generate coordinator must not be assembled")
+		},
+		ConversationFactory: func(string) (ConversationManager, error) { return manager, nil },
+		CommandName:         "hm",
+	})
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+
+	return app
+}
+
+type fakeConversationManager struct {
+	session     ConversationSession
+	summaries   []conversation.Summary
+	openOptions conversation.SessionOptions
+}
+
+func (manager *fakeConversationManager) OpenConversation(
+	_ context.Context,
+	_ string,
+	options conversation.SessionOptions,
+) (ConversationSession, error) {
+	manager.openOptions = options
+
+	return manager.session, nil
+}
+
+func (manager *fakeConversationManager) List(
+	context.Context,
+	string,
+) ([]conversation.Summary, error) {
+	return append([]conversation.Summary{}, manager.summaries...), nil
+}
+
+type fakeConversationSession struct {
+	value conversation.Conversation
+}
+
+func (session *fakeConversationSession) Current() conversation.Conversation {
+	return session.value
+}
+
+func (session *fakeConversationSession) Close() error {
+	return nil
 }
 
 func bufioReader(value string) *bufio.Reader {

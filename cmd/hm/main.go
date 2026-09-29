@@ -16,10 +16,8 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	if len(os.Args) != 1 {
-		_, _ = fmt.Fprintln(os.Stderr, "usage: hm")
-
-		os.Exit(2)
+	if len(os.Args) > 1 {
+		os.Exit(runHeadless(ctx, os.Args[1:]))
 	}
 
 	root, err := os.Getwd()
@@ -54,4 +52,25 @@ func main() {
 
 		os.Exit(1)
 	}
+}
+
+func runHeadless(ctx context.Context, arguments []string) int {
+	app, err := hatmaxcli.New(hatmaxcli.Config{
+		Input:              os.Stdin,
+		Output:             os.Stdout,
+		ErrorOutput:        os.Stderr,
+		WorkingDirectory:   os.Getwd,
+		CoordinatorFactory: hatmaxcli.NewCodexCoordinator,
+		ConversationFactory: func(root string) (hatmaxcli.ConversationManager, error) {
+			return hatmaxcli.NewCodexConversationRuntime(root)
+		},
+		CommandName: "hm",
+	})
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "hm: initialize command: %v\n", err)
+
+		return hatmaxcli.ExitFailure
+	}
+
+	return app.Run(ctx, arguments)
 }

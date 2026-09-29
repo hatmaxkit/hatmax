@@ -9,6 +9,7 @@ import (
 	"io"
 	"strings"
 
+	"hatmax.adrianpk.com/generator/conversation"
 	"hatmax.adrianpk.com/generator/interaction"
 )
 
@@ -42,22 +43,43 @@ type Runner interface {
 // the terminal-owned interaction ports.
 type CoordinatorFactory func(string, interaction.Approver, interaction.Clarifier) (Runner, error)
 
+// ConversationManager controls user-local conversation selection without
+// granting project mutation authority.
+type ConversationManager interface {
+	OpenConversation(context.Context, string, conversation.SessionOptions) (ConversationSession, error)
+	List(context.Context, string) ([]conversation.Summary, error)
+}
+
+// ConversationSession is the read-only lifecycle needed by headless
+// conversation selection commands.
+type ConversationSession interface {
+	Current() conversation.Conversation
+	Close() error
+}
+
+// ConversationManagerFactory assembles local conversation state for one root.
+type ConversationManagerFactory func(string) (ConversationManager, error)
+
 // Config supplies process IO and assembly boundaries.
 type Config struct {
-	Input              io.Reader
-	Output             io.Writer
-	ErrorOutput        io.Writer
-	WorkingDirectory   func() (string, error)
-	CoordinatorFactory CoordinatorFactory
+	Input               io.Reader
+	Output              io.Writer
+	ErrorOutput         io.Writer
+	WorkingDirectory    func() (string, error)
+	CoordinatorFactory  CoordinatorFactory
+	ConversationFactory ConversationManagerFactory
+	CommandName         string
 }
 
 // App parses commands and binds terminal IO to the interaction coordinator.
 type App struct {
-	input              io.Reader
-	output             io.Writer
-	errorOutput        io.Writer
-	workingDirectory   func() (string, error)
-	coordinatorFactory CoordinatorFactory
+	input               io.Reader
+	output              io.Writer
+	errorOutput         io.Writer
+	workingDirectory    func() (string, error)
+	coordinatorFactory  CoordinatorFactory
+	conversationFactory ConversationManagerFactory
+	commandName         string
 }
 
 // New constructs a terminal app without inspecting a project or connecting
@@ -71,20 +93,27 @@ func New(config Config) (*App, error) {
 		return nil, errors.New("working-directory and coordinator factories are required")
 	}
 
+	commandName := strings.TrimSpace(config.CommandName)
+	if commandName == "" {
+		commandName = "hatmax"
+	}
+
 	return &App{
-		input:              config.Input,
-		output:             config.Output,
-		errorOutput:        config.ErrorOutput,
-		workingDirectory:   config.WorkingDirectory,
-		coordinatorFactory: config.CoordinatorFactory,
+		input:               config.Input,
+		output:              config.Output,
+		errorOutput:         config.ErrorOutput,
+		workingDirectory:    config.WorkingDirectory,
+		coordinatorFactory:  config.CoordinatorFactory,
+		conversationFactory: config.ConversationFactory,
+		commandName:         commandName,
 	}, nil
 }
 
 // Run executes one command and returns a stable process exit status.
 func (app *App) Run(ctx context.Context, arguments []string) int {
-	prompt, valid := parseGenerate(arguments)
+	command, valid := parseCommand(arguments)
 	if !valid {
-		_, _ = fmt.Fprintln(app.errorOutput, `usage: hatmax generate "<request>"`)
+		app.writeUsage()
 
 		return ExitUsage
 	}
@@ -94,6 +123,10 @@ func (app *App) Run(ctx context.Context, arguments []string) int {
 		_, _ = fmt.Fprintf(app.errorOutput, "hatmax: determine project directory: %v\n", err)
 
 		return ExitFailure
+	}
+
+	if command.kind != commandGenerate {
+		return app.runConversation(ctx, root, command)
 	}
 
 	terminal := &terminalInteraction{
@@ -108,7 +141,7 @@ func (app *App) Run(ctx context.Context, arguments []string) int {
 		return ExitFailure
 	}
 
-	result := runner.Run(ctx, root, prompt)
+	result := runner.Run(ctx, root, command.prompt)
 
 	err = writeResult(app.output, result)
 	if err != nil {
@@ -118,6 +151,132 @@ func (app *App) Run(ctx context.Context, arguments []string) int {
 	}
 
 	return exitStatus(result.Outcome)
+}
+
+type commandKind string
+
+const (
+	commandGenerate           commandKind = "generate"
+	commandConversationNew    commandKind = "conversation_new"
+	commandConversationList   commandKind = "conversation_list"
+	commandConversationResume commandKind = "conversation_resume"
+)
+
+type parsedCommand struct {
+	kind           commandKind
+	prompt         string
+	conversationID string
+}
+
+func parseCommand(arguments []string) (parsedCommand, bool) {
+	if prompt, valid := parseGenerate(arguments); valid {
+		return parsedCommand{kind: commandGenerate, prompt: prompt}, true
+	}
+
+	if len(arguments) == 2 && arguments[0] == "conversation" {
+		switch arguments[1] {
+		case "new":
+			return parsedCommand{kind: commandConversationNew}, true
+		case "list":
+			return parsedCommand{kind: commandConversationList}, true
+		}
+	}
+
+	if len(arguments) == 3 && arguments[0] == "conversation" && arguments[1] == "resume" {
+		id := strings.TrimSpace(arguments[2])
+		if id != "" {
+			return parsedCommand{kind: commandConversationResume, conversationID: id}, true
+		}
+	}
+
+	return parsedCommand{}, false
+}
+
+func (app *App) runConversation(ctx context.Context, root string, command parsedCommand) int {
+	if app.conversationFactory == nil {
+		_, _ = fmt.Fprintf(app.errorOutput, "%s: conversation commands are unavailable\n", app.commandName)
+
+		return ExitFailure
+	}
+
+	manager, err := app.conversationFactory(root)
+	if err != nil {
+		_, _ = fmt.Fprintf(app.errorOutput, "%s: initialize conversation: %v\n", app.commandName, err)
+
+		return ExitFailure
+	}
+
+	if command.kind == commandConversationList {
+		return app.listConversations(ctx, manager, root)
+	}
+
+	options := conversation.SessionOptions{Fresh: command.kind == commandConversationNew}
+	if command.kind == commandConversationResume {
+		options.ConversationID = command.conversationID
+	}
+
+	session, err := manager.OpenConversation(ctx, root, options)
+	if err != nil {
+		_, _ = fmt.Fprintf(app.errorOutput, "%s: open conversation: %v\n", app.commandName, err)
+
+		return ExitFailure
+	}
+	defer session.Close()
+
+	value := session.Current()
+	_, err = fmt.Fprintf(app.output, "Conversation: %s\nStatus: %s\n", value.ID, value.Status)
+	if err != nil {
+		_, _ = fmt.Fprintf(app.errorOutput, "%s: write conversation: %v\n", app.commandName, err)
+
+		return ExitFailure
+	}
+
+	return ExitSuccess
+}
+
+func (app *App) listConversations(ctx context.Context, manager ConversationManager, root string) int {
+	values, err := manager.List(ctx, root)
+	if err != nil {
+		_, _ = fmt.Fprintf(app.errorOutput, "%s: list conversations: %v\n", app.commandName, err)
+
+		return ExitFailure
+	}
+
+	if len(values) == 0 {
+		_, err = fmt.Fprintln(app.output, "No conversations.")
+	} else {
+		for _, value := range values {
+			_, err = fmt.Fprintf(
+				app.output,
+				"%s\t%s\t%s\n",
+				value.ID,
+				value.Status,
+				value.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z"),
+			)
+			if err != nil {
+				break
+			}
+		}
+	}
+
+	if err != nil {
+		_, _ = fmt.Fprintf(app.errorOutput, "%s: write conversations: %v\n", app.commandName, err)
+
+		return ExitFailure
+	}
+
+	return ExitSuccess
+}
+
+func (app *App) writeUsage() {
+	_, _ = fmt.Fprintf(
+		app.errorOutput,
+		"usage:\n  %s generate \"<request>\"\n  %s conversation new\n  %s conversation list\n  %s conversation resume <conversation-id>\n",
+		app.commandName,
+		app.commandName,
+		app.commandName,
+		app.commandName,
+	)
 }
 
 func parseGenerate(arguments []string) (string, bool) {

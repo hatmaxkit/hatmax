@@ -57,6 +57,7 @@ func NewCodexCoordinator(
 // around the same deterministic interaction kernel as headless generation.
 type ConversationRuntime struct {
 	coordinator *conversation.Coordinator
+	store       conversation.Store
 }
 
 // NewCodexConversationRuntime assembles a persistent conversational runtime
@@ -124,7 +125,7 @@ func NewCodexConversationRuntime(root string) (*ConversationRuntime, error) {
 		return nil, fmt.Errorf("initialize conversation coordinator: %w", err)
 	}
 
-	return &ConversationRuntime{coordinator: coordinator}, nil
+	return &ConversationRuntime{coordinator: coordinator, store: store}, nil
 }
 
 // Open resumes or deliberately creates one conversation for root.
@@ -134,6 +135,33 @@ func (runtime *ConversationRuntime) Open(
 	options conversation.SessionOptions,
 ) (*conversation.ActiveSession, error) {
 	return runtime.coordinator.Open(ctx, root, options)
+}
+
+// OpenConversation selects one conversation for a headless control command.
+func (runtime *ConversationRuntime) OpenConversation(
+	ctx context.Context,
+	root string,
+	options conversation.SessionOptions,
+) (ConversationSession, error) {
+	return runtime.Open(ctx, root, options)
+}
+
+// List returns bounded metadata for conversations in root's exact scope.
+func (runtime *ConversationRuntime) List(
+	ctx context.Context,
+	root string,
+) ([]conversation.Summary, error) {
+	absoluteRoot, kind, err := conversation.ResolveSessionRoot(root)
+	if err != nil {
+		return nil, err
+	}
+
+	scope, err := conversation.ResolveScope(kind, absoluteRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	return runtime.store.List(ctx, scope)
 }
 
 type rejectingApprover struct{}
