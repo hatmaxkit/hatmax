@@ -373,6 +373,58 @@ A test should fail when its boundary contract regresses. Merely constructing a
 type or compiling a mock does not establish feature behavior. Keep fakes local
 to the consumer test and implement only the methods that consumer requires.
 
+## Read the Repository Examples as Evidence
+
+The repository examples show working Hatmax behavior, but they were created at
+different stages of the project and are not interchangeable blueprints.
+
+The Ticked application provides the closest feature evidence:
+
+- its [list model](../../../examples/ticked/internal/feat/list/model.go),
+  [store](../../../examples/ticked/internal/feat/list/store.go), and
+  [service](../../../examples/ticked/internal/feat/list/service.go) demonstrate
+  a cohesive application feature;
+- its SQLC queries, migrations, templates, and explicit composition root show
+  the supporting surfaces working together;
+- its tests demonstrate domain, service, store, and HTTP behavior.
+
+Ticked predates the consolidated canonical layout. Its HTTP handlers live in
+one application-wide package rather than beside each feature. Use those
+handlers to inspect real responses, not as authority for new feature
+ownership.
+
+The [guide application](../../../examples/guide/main.go) is intentionally
+compact so readers can exercise lifecycle and package behavior. Its model,
+store, handlers, and wiring share one file; that compression is useful for a
+small executable example but is not the structure for a product feature.
+
+The experimental generator applies the same feature anatomy when it changes a
+compatible project. Its Hatmax Book makes generation deterministic, but the
+Book is generator policy rather than a runtime dependency or a prerequisite
+for understanding this chapter. Manually written and generated features must
+remain ordinary Go code with the same visible ownership and assembly.
+
+## Continue into Exact Contracts
+
+This chapter defines how the parts fit. Use the reference pages for exact API
+behavior:
+
+- [Model](../../reference/model/README.md) for identity and timestamps;
+- [Database](../../reference/database/README.md) for connections, migrations,
+  and lifecycle;
+- [Validation](../../reference/validation/README.md) for field rules and
+  structured errors;
+- [HTTP](../../reference/http/README.md) and
+  [HTMX](../../reference/htmx/README.md) for parsing and response contracts;
+- [Application Lifecycle](../../reference/application-lifecycle/README.md)
+  for setup and route registration;
+- [Test Helper](../../reference/testhelper/README.md) for Postgres integration
+  tests;
+- [Interfaces and Adapter Ownership](../../explanation/interfaces-and-adapters/README.md)
+  for the dependency-direction rationale;
+- [Generator](../../reference/generator/README.md) for the experimental
+  assisted workflow and its current boundary.
+
 ---
 
 [Previous: Presentation Primitives](presentation-primitives.md) ·
