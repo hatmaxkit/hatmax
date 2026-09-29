@@ -5,7 +5,7 @@ Delivery set: conversational-hatmax-builder
 Plan: [Conversational Hatmax Builder Delivery Plan](../../../plan/conversational-hatmax-builder.md)
 Tracker: [Conversational Hatmax Builder Tracker](../../../tracker/conversational-hatmax-builder.md)
 Branch: `feat/application-scaffold-kernel`
-PR: pending
+PR: #57
 
 ## Purpose
 
