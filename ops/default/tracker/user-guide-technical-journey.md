@@ -21,7 +21,7 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 | Slice 4 | data lifecycle | delivered | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` | #51 | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |
 | Slice 5 | identity and runtime | delivered | `docs/user-guide-identity-runtime` | `docs(slice-5): explain identity and runtime configuration` | #52 | `ops/default/report/slices/user-guide-technical-journey/slice-5-identity-runtime.md` |
 | Slice 6 | application services | delivered | `docs/user-guide-application-services` | `docs(slice-6): explain Hatmax application services` | #53 | `ops/default/report/slices/user-guide-technical-journey/slice-6-application-services.md` |
-| Slice 7 | testing and evolution | reviewing | `docs/user-guide-testing-evolution` | `docs(slice-7): complete the User Guide journey` |  | `ops/default/report/slices/user-guide-technical-journey/slice-7-testing-evolution.md` |
+| Slice 7 | testing and evolution | reviewing | `docs/user-guide-testing-evolution` | `docs(slice-7): complete the User Guide journey` | #54 | `ops/default/report/slices/user-guide-technical-journey/slice-7-testing-evolution.md` |
 
 ## Slice 1 Tasks
 
@@ -104,5 +104,5 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Current Gate
 
-Slice 7 content and focused validation are complete. Its report is in
-reviewing state; the recorded pull request must be opened against `dev`.
+Slice 7 content and focused validation are complete. Pull request #54 is open
+against `dev` for review.
