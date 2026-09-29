@@ -212,4 +212,5 @@ default and its tradeoffs, read
 ---
 
 [Previous: Feature Anatomy](feature-anatomy.md) ·
-[User Guide](README.md)
+[User Guide](README.md) ·
+[Next: Models and Data Flow](models-and-data-flow.md)

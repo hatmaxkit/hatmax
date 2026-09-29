@@ -41,7 +41,8 @@ designed:
    handler, templates, wiring, and tests as one canonical feature.
 9. [Persistence and Migrations](persistence-and-migrations.md) explains the
    Postgres lifecycle and schema ownership.
-10. **Models and Data Flow** follows application data across feature layers.
+10. [Models and Data Flow](models-and-data-flow.md) follows application data
+    across feature layers.
 11. **Identity and Sessions** adds authentication, authorization, and
     cryptographic support.
 12. **Configuration and Runtime Settings** separates startup configuration,
