@@ -1,10 +1,7 @@
 package execute
 
 import (
-	"bytes"
-	"fmt"
 	"strings"
-	"text/template"
 
 	"hatmax.adrianpk.com/generator/intent"
 	"hatmax.adrianpk.com/generator/plan"
@@ -46,12 +43,17 @@ var applicationFoundationRecipes = map[string]applicationRecipe{
 
 go 1.24.0
 
-require hatmax.adrianpk.com {{.HatmaxVersion}}
+require (
+	github.com/go-chi/chi/v5 v5.2.3
+	hatmax.adrianpk.com {{.HatmaxVersion}}
+)
 `,
 	},
 	applicationChecksumsRecipe: {
 		target: "go.sum",
-		template: `hatmax.adrianpk.com v0.5.0 h1:9LptUn0pjo9c1um7rhwwYYAhmDyg/ejjQBzm7X7UM3U=
+		template: `github.com/go-chi/chi/v5 v5.2.3 h1:WQIt9uxdsAbgIYgid+BpYc+liqQZGMHRaUwp0JUcvdE=
+github.com/go-chi/chi/v5 v5.2.3/go.mod h1:L2yAIGWB3H+phAw1NxKwWM+7eUH/lU8pOMm5hHcoops=
+hatmax.adrianpk.com v0.5.0 h1:9LptUn0pjo9c1um7rhwwYYAhmDyg/ejjQBzm7X7UM3U=
 hatmax.adrianpk.com v0.5.0/go.mod h1:X8IRNfizbKzpeyDUTs2iSuzpPvuF8zNa2ndkGC6c6Yg=
 `,
 	},
@@ -381,21 +383,19 @@ func newApplicationRenderContext(value plan.Plan, manifest Manifest) (applicatio
 }
 
 func renderApplicationTemplate(context applicationRenderContext, recipe applicationRecipe) ([]byte, error) {
-	parsed, err := template.New(recipe.target).Option("missingkey=error").Parse(recipe.template)
-	if err != nil {
-		return nil, fmt.Errorf("parse recipe: %w", err)
-	}
-
-	var rendered bytes.Buffer
-
-	err = parsed.Execute(&rendered, context)
-	if err != nil {
-		return nil, fmt.Errorf("execute recipe: %w", err)
-	}
+	replacer := strings.NewReplacer(
+		"{{.DisplayName}}", context.DisplayName,
+		"{{.ProjectSlug}}", context.ProjectSlug,
+		"{{.ModulePath}}", context.ModulePath,
+		"{{.HatmaxVersion}}", context.HatmaxVersion,
+		"{{.Environment}}", context.Environment,
+		"{{.Database}}", context.Database,
+	)
+	rendered := replacer.Replace(recipe.template)
 
 	if recipe.goSource {
-		return formatGo(recipe.target, rendered.String())
+		return formatGo(recipe.target, rendered)
 	}
 
-	return rendered.Bytes(), nil
+	return []byte(rendered), nil
 }

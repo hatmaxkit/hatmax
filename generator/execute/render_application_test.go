@@ -42,7 +42,7 @@ func TestRenderApplicationFoundationUsesCanonicalIdentityAndBoundaries(t *testin
 	}
 
 	contents := mutationContents(manifest, mutations)
-	assertContains(t, contents["go.mod"], "module example.com/alex/real-estate", "require hatmax.adrianpk.com v0.5.0")
+	assertContains(t, contents["go.mod"], "module example.com/alex/real-estate", "hatmax.adrianpk.com v0.5.0")
 	assertContains(t, contents["main.go"], "func main()", "application.Run(context.Background(), os.Args)")
 
 	if strings.Contains(contents["main.go"], "func build") || strings.Count(contents["main.go"], "func ") != 1 {
@@ -192,41 +192,7 @@ func applicationRenderPlan(t *testing.T) plan.Plan {
 func applicationFoundationManifest(t *testing.T, value plan.Plan) Manifest {
 	t.Helper()
 
-	edits := make([]Edit, 0, len(applicationFoundationOrder))
-	for index, recipeID := range applicationFoundationOrder {
-		recipe := applicationFoundationRecipes[recipeID]
-		operation := applicationOperationForPath(t, value, recipe.target)
-		surface := operation.Surfaces[0]
-
-		postconditions := []Condition{{Kind: ConditionPathPresent}}
-		if recipe.goSource {
-			postconditions = append(postconditions, Condition{Kind: ConditionGoParses})
-		}
-
-		dependsOn := []string{}
-		if index > 0 {
-			dependsOn = []string{edits[index-1].ID}
-		}
-
-		edits = append(edits, Edit{
-			ID:   "application.foundation." + strings.ReplaceAll(recipeID, "application.", ""),
-			Kind: EditCreateFile, Surface: surface, Target: recipe.target, Recipe: recipeID,
-			Obligations: []Obligation{{Operation: operation.ID, Owner: operation.Owner, Rules: append([]string{}, operation.Rules...)}},
-			DependsOn:   dependsOn, Preconditions: []Condition{{Kind: ConditionPathAbsent}}, Postconditions: postconditions,
-		})
-	}
-
-	result := Manifest{
-		SchemaVersion: CurrentSchemaVersion, PlanDigest: value.Digest, SourceFingerprint: value.SourceFingerprint,
-		Intent: value.Intent, AllowedSurfaces: append([]string{}, value.AllowedEffects.Surfaces...), Edits: edits, Commands: []Command{},
-	}
-
-	result, err := Seal(result)
-	if err != nil {
-		t.Fatalf("Seal() error = %v", err)
-	}
-
-	return result
+	return applicationManifestForRecipes(t, value, applicationFoundationOrder)
 }
 
 func applicationOperationForPath(t *testing.T, value plan.Plan, target string) plan.Operation {
