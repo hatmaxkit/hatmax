@@ -1,7 +1,7 @@
 ---
 id: TKT-20260928210148
 title: Normalize canonical names outside the interpreter model
-status: reviewing
+status: solved
 kind: bug
 severity: high
 priority: normal
@@ -12,8 +12,10 @@ reported_at: 2026-09-28T21:01:48Z
 ready_at: 2026-09-29T07:02:59Z
 started_at: 2026-09-29T07:24:33Z
 reviewed_at: 2026-09-29T07:29:31Z
+closed_at: 2026-09-29T07:29:57Z
+resolution: fixed
 branch: dev
-commits:
+commits: c36021d528137ce6580197f4ac74ebc54d825007
 ---
 
 ## Observed Behavior
