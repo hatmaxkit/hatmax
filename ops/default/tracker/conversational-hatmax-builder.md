@@ -27,7 +27,7 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 | Slice 4 | Application bootstrap product | delivered | `feat/application-scaffold-product` | `feat(slice-4): deliver Hatmax application bootstrap` | #59 | `ops/default/report/slices/conversational-hatmax-builder/slice-4-application-bootstrap-product.md` |
 | Slice 5 | Conversation state | delivered | `feat/conversational-state` | `feat(slice-5): persist Hatmax conversations` | #60 | `ops/default/report/slices/conversational-hatmax-builder/slice-5-conversation-state.md` |
 | Slice 6 | Conversational coordinator | delivered | `feat/conversational-coordinator` | `feat(slice-6): coordinate conversational Hatmax work` | #61 | `ops/default/report/slices/conversational-hatmax-builder/slice-6-conversational-coordinator.md` |
-| Slice 7 | Hatmax TUI | reviewing | `feat/hatmax-tui` | `feat(slice-7): deliver the conversational Hatmax TUI` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-7-hatmax-tui.md` |
+| Slice 7 | Hatmax TUI | reviewing | `feat/hatmax-tui` | `feat(slice-7): deliver the conversational Hatmax TUI` | #62 | `ops/default/report/slices/conversational-hatmax-builder/slice-7-hatmax-tui.md` |
 | Slice 8 | Builder acceptance | planned | `test/conversational-builder-acceptance` | `test(slice-8): validate the conversational Hatmax builder` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-8-builder-acceptance.md` |
 
 ## Slice 1 Tasks
