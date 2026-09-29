@@ -16,7 +16,7 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | journey foundation | delivered | `docs/user-guide-journey-foundation` | `docs(slice-1): establish the User Guide journey` | #48 | `ops/default/report/slices/user-guide-technical-journey/slice-1-journey-foundation.md` |
-| Slice 2 | web interaction | active | `docs/user-guide-web-interaction` | `docs(slice-2): explain the Hatmax web interaction model` |  | `ops/default/report/slices/user-guide-technical-journey/slice-2-web-interaction.md` |
+| Slice 2 | web interaction | reviewing | `docs/user-guide-web-interaction` | `docs(slice-2): explain the Hatmax web interaction model` |  | `ops/default/report/slices/user-guide-technical-journey/slice-2-web-interaction.md` |
 | Slice 3 | feature anatomy | planned | `docs/user-guide-feature-anatomy` | `docs(slice-3): establish canonical feature anatomy` |  | `ops/default/report/slices/user-guide-technical-journey/slice-3-feature-anatomy.md` |
 | Slice 4 | data lifecycle | planned | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` |  | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |
 | Slice 5 | identity and runtime | planned | `docs/user-guide-identity-runtime` | `docs(slice-5): explain identity and runtime configuration` |  | `ops/default/report/slices/user-guide-technical-journey/slice-5-identity-runtime.md` |
@@ -36,10 +36,10 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T2.1 | pending | `docs(guide): explain requests and partials` |  |  |
-| T2.2 | pending | `docs(guide): explain forms and validation` |  |  |
-| T2.3 | pending | `docs(guide): explain presentation primitives` |  |  |
-| T2.4 | pending | `docs(guide): retire superseded interaction pages` |  |  |
+| T2.1 | complete | `docs(guide): explain requests and partials` | `24bae79` | `make docs-check` passed |
+| T2.2 | complete | `docs(guide): explain forms and validation` | `0500f9d` | `make docs-check` passed |
+| T2.3 | complete | `docs(guide): explain presentation primitives` | `949bef8` | `make docs-check` passed |
+| T2.4 | complete | `docs(guide): retire superseded interaction pages` | `ea89fa9` | link audit and `make docs-check` passed |
 
 ## Slice 3 Tasks
 
@@ -104,6 +104,5 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Current Gate
 
-Slice 1 merged through pull request #48 at
-`cd60d6afd735b33c9a0ab201076eb2628e7cd4ab`. Slice 2 is active and may begin
-from that integrated `dev` state.
+Slice 2 content and focused validation are complete. Its report is in
+reviewing state; the recorded pull request must be opened against `dev`.
