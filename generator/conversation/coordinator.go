@@ -62,17 +62,20 @@ type TurnRequest struct {
 
 // SessionResult combines the durable snapshot with one kernel result.
 type SessionResult struct {
-	Conversation Conversation
-	OperationID  string
-	Interaction  interaction.Result
+	Conversation      Conversation
+	OperationID       string
+	Interaction       interaction.Result
+	PersistenceFailed bool
 }
 
 // ActiveSession owns the scope lock and one resumable conversation.
 type ActiveSession struct {
-	coordinator *Coordinator
-	store       Session
-	root        string
-	closed      bool
+	coordinator       *Coordinator
+	store             Session
+	root              string
+	current           Conversation
+	persistenceFailed bool
+	closed            bool
 }
 
 // NewCoordinator constructs the terminal-independent conversational state
@@ -143,7 +146,9 @@ func (c *Coordinator) Open(ctx context.Context, root string, options SessionOpti
 		return nil, err
 	}
 
-	active := &ActiveSession{coordinator: c, store: stored, root: absoluteRoot}
+	active := &ActiveSession{
+		coordinator: c, store: stored, root: absoluteRoot, current: stored.Current(),
+	}
 	if kind != ScopeProject {
 		return active, nil
 	}
@@ -163,12 +168,14 @@ func (c *Coordinator) Open(ctx context.Context, root string, options SessionOpti
 		return nil, replaceErr
 	}
 
+	active.current = stored.Current()
+
 	return active, nil
 }
 
 // Current returns a mutation-isolated snapshot.
 func (s *ActiveSession) Current() Conversation {
-	return s.store.Current()
+	return Clone(s.current)
 }
 
 // Turn classifies one message and persists only bounded user-visible context
@@ -183,7 +190,7 @@ func (s *ActiveSession) Turn(ctx context.Context, request TurnRequest) (SessionR
 		return SessionResult{}, errors.New("conversation turn content is required")
 	}
 
-	value := s.store.Current()
+	value := Clone(s.current)
 	dialogue := replayDialogue(value)
 	operation := activeOperation(value)
 	operationID := ""
@@ -237,12 +244,9 @@ func (s *ActiveSession) Turn(ctx context.Context, request TurnRequest) (SessionR
 		return SessionResult{}, err
 	}
 
-	err = s.store.Replace(ctx, value)
-	if err != nil {
-		return SessionResult{}, err
-	}
+	s.persist(ctx, &value, operationID, &result, now)
 
-	return SessionResult{Conversation: s.store.Current(), OperationID: operationID, Interaction: result}, nil
+	return s.sessionResult(operationID, result), nil
 }
 
 // Approve recomputes and executes one stored proposal only for the exact
@@ -252,7 +256,7 @@ func (s *ActiveSession) Approve(ctx context.Context, operationID, planDigest str
 		return SessionResult{}, errors.New("conversation session is closed")
 	}
 
-	value := s.store.Current()
+	value := Clone(s.current)
 
 	operation, err := plannedOperation(value, operationID)
 	if err != nil {
@@ -288,12 +292,9 @@ func (s *ActiveSession) Approve(ctx context.Context, operationID, planDigest str
 		return SessionResult{}, err
 	}
 
-	err = s.store.Replace(ctx, value)
-	if err != nil {
-		return SessionResult{}, err
-	}
+	s.persist(ctx, &value, operation.ID, &result, now)
 
-	if result.Outcome == interaction.OutcomeCompleted && result.Plan != nil && result.Plan.Target != nil {
+	if !s.persistenceFailed && completedMutation(result.Outcome) && result.Plan != nil && result.Plan.Target != nil {
 		projectScope, scopeErr := ResolveScope(ScopeProject, result.Plan.Target.Path)
 		if scopeErr != nil {
 			return SessionResult{}, scopeErr
@@ -303,9 +304,47 @@ func (s *ActiveSession) Approve(ctx context.Context, operationID, planDigest str
 		if rebindErr != nil {
 			return SessionResult{}, rebindErr
 		}
+
+		s.current = s.store.Current()
 	}
 
-	return SessionResult{Conversation: s.store.Current(), OperationID: operation.ID, Interaction: result}, nil
+	return s.sessionResult(operation.ID, result), nil
+}
+
+func completedMutation(outcome interaction.Outcome) bool {
+	return outcome == interaction.OutcomeCompleted || outcome == interaction.OutcomeValidationIncomplete
+}
+
+// Cancel abandons one revisable proposal without discarding its visible goal,
+// decisions, plan identity, or diagnostics.
+func (s *ActiveSession) Cancel(ctx context.Context, operationID string) (SessionResult, error) {
+	if s.closed {
+		return SessionResult{}, errors.New("conversation session is closed")
+	}
+
+	value := Clone(s.current)
+
+	operation := operationByID(value, operationID)
+	if operation == nil {
+		return SessionResult{}, modelError("conversation_operation_missing", "operation.id", "operation %q is not retained", operationID)
+	}
+
+	now := s.coordinator.clock().UTC()
+
+	err := value.TransitionOperation(operationID, OperationCancelled, "cancelled by user", now)
+	if err != nil {
+		return SessionResult{}, err
+	}
+
+	err = value.AppendTurn(RoleHatmax, TurnResult, "Cancelled without project changes.", operationID, now)
+	if err != nil {
+		return SessionResult{}, err
+	}
+
+	result := interaction.Result{State: interaction.StateFinished, Outcome: interaction.OutcomeCancelled}
+	s.persist(ctx, &value, operationID, &result, now)
+
+	return s.sessionResult(operationID, result), nil
 }
 
 // Reset starts a fresh conversation for the current scope and preserves the
@@ -316,7 +355,26 @@ func (s *ActiveSession) Reset(ctx context.Context) (Conversation, error) {
 		return Conversation{}, fmt.Errorf("create conversation identity: %w", err)
 	}
 
-	return s.store.Reset(ctx, id, s.coordinator.clock().UTC())
+	now := s.coordinator.clock().UTC()
+	if s.persistenceFailed {
+		_, next, resetErr := s.current.Reset(id, now)
+		if resetErr != nil {
+			return Conversation{}, resetErr
+		}
+
+		s.current = next
+
+		return Clone(next), nil
+	}
+
+	next, err := s.store.Reset(ctx, id, now)
+	if err != nil {
+		return Conversation{}, err
+	}
+
+	s.current = next
+
+	return Clone(next), nil
 }
 
 // Close releases the scope lock.
@@ -458,27 +516,66 @@ func (s *ActiveSession) persistInvalidApproval(
 
 	now := s.coordinator.clock().UTC()
 
-	err := value.TransitionOperation(operation.ID, OperationStale, result.Diagnostics[0].Message, now)
-	if err != nil {
-		return SessionResult{}, err
-	}
-
 	content := result.Diagnostics[0].Message
 	if planDigest == "" {
 		content = "approval requires the current displayed plan digest"
 	}
 
-	err = value.AppendTurn(RoleHatmax, TurnDiagnostic, content, operation.ID, now)
+	err := value.AppendTurn(RoleHatmax, TurnDiagnostic, content, operation.ID, now)
 	if err != nil {
 		return SessionResult{}, err
 	}
 
-	err = s.store.Replace(ctx, value)
-	if err != nil {
-		return SessionResult{}, err
+	s.persist(ctx, &value, operation.ID, &result, now)
+
+	return s.sessionResult(operation.ID, result), nil
+}
+
+func (s *ActiveSession) persist(
+	ctx context.Context,
+	value *Conversation,
+	operationID string,
+	result *interaction.Result,
+	now time.Time,
+) {
+	if s.persistenceFailed {
+		s.current = Clone(*value)
+
+		return
 	}
 
-	return SessionResult{Conversation: s.store.Current(), OperationID: operation.ID, Interaction: result}, nil
+	err := s.store.Replace(ctx, *value)
+	if err == nil {
+		s.current = s.store.Current()
+
+		return
+	}
+
+	s.persistenceFailed = true
+
+	result.Diagnostics = append(result.Diagnostics, interaction.Diagnostic{
+		Code: "HMGEN-STATE-PERSISTENCE-FAILED", Phase: interaction.PhasePersistence,
+		Field: "conversation_state", Message: "local conversation state could not be persisted; this session continues in memory only",
+	})
+
+	if operationID != "" {
+		_ = value.AppendTurn(
+			RoleHatmax,
+			TurnDiagnostic,
+			"HMGEN-STATE-PERSISTENCE-FAILED: local conversation state could not be persisted; this session continues in memory only",
+			operationID,
+			now,
+		)
+	}
+
+	s.current = Clone(*value)
+}
+
+func (s *ActiveSession) sessionResult(operationID string, result interaction.Result) SessionResult {
+	return SessionResult{
+		Conversation: Clone(s.current), OperationID: operationID,
+		Interaction: result, PersistenceFailed: s.persistenceFailed,
+	}
 }
 
 func resolveSessionRoot(root string) (string, ScopeKind, error) {
@@ -665,7 +762,7 @@ func updateBackendIdentity(value *Conversation, result interaction.Result) {
 
 func operationStatusForResult(result interaction.Result) OperationStatus {
 	switch result.Outcome {
-	case interaction.OutcomeCompleted:
+	case interaction.OutcomeCompleted, interaction.OutcomeValidationIncomplete:
 		return OperationCompleted
 	case interaction.OutcomeCancelled:
 		return OperationCancelled
@@ -687,7 +784,12 @@ func resultSummary(result interaction.Result) string {
 	}
 
 	if len(result.RetainedChanges) > 0 {
-		summary += fmt.Sprintf("; %d retained changes", len(result.RetainedChanges))
+		targets := make([]string, 0, len(result.RetainedChanges))
+		for _, change := range result.RetainedChanges {
+			targets = append(targets, change.Target)
+		}
+
+		summary += "; retained changes: " + strings.Join(targets, ", ")
 	}
 
 	if len(summary) > MaximumResultSummaryBytes {

@@ -2,14 +2,17 @@ package conversation_test
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
 	"hatmax.adrianpk.com/generator/conversation"
 	"hatmax.adrianpk.com/generator/eval"
+	"hatmax.adrianpk.com/generator/execute"
 	"hatmax.adrianpk.com/generator/intent"
 	"hatmax.adrianpk.com/generator/interaction"
 	"hatmax.adrianpk.com/generator/plan"
@@ -162,11 +165,250 @@ func TestCoordinatorRebindsApplicationConversationAndSupportsFreshReset(t *testi
 	}
 }
 
+func TestCoordinatorPreservesCancelledAndFailedProposalsForSafeRetry(t *testing.T) {
+	ctx := context.Background()
+	root := t.TempDir()
+	writeModule(t, root)
+
+	before, err := os.ReadFile(filepath.Join(root, "go.mod"))
+	if err != nil {
+		t.Fatalf("ReadFile(before) error = %v", err)
+	}
+
+	clock := &testClock{value: time.Date(2026, time.September, 29, 21, 0, 0, 0, time.UTC)}
+	failed := featurePlanResult("thread-1")
+	failed.Outcome = interaction.OutcomeExecutionFailed
+	failed.State = interaction.StateFinished
+	failed.Diagnostics = []interaction.Diagnostic{{
+		Code: "HMGEN-VALIDATION-FAILED", Phase: interaction.PhaseValidation, Message: "generated validation failed",
+	}}
+	failed.RetainedChanges = []execute.Change{
+		{Target: "internal/feat/invoice/model.go", Status: execute.ChangeApplied},
+		{Target: "internal/feat/invoice/handler.go", Status: execute.ChangeApplied},
+	}
+	engine := &fakeTurnEngine{
+		fingerprint: testFingerprintA,
+		previews: []interaction.Result{
+			clarificationResult("thread-1"), featurePlanResult("thread-1"), featurePlanResult("thread-2"),
+		},
+		executions: []interaction.Result{failed},
+	}
+	coordinator := newConversationCoordinator(t, engine, clock)
+
+	session, err := coordinator.Open(ctx, root, conversation.SessionOptions{})
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+	defer session.Close()
+
+	started, err := session.Turn(ctx, conversation.TurnRequest{Content: "Add invoices."})
+	if err != nil {
+		t.Fatalf("Turn(goal) error = %v", err)
+	}
+
+	planned, err := session.Turn(ctx, conversation.TurnRequest{Content: "/invoices"})
+	if err != nil {
+		t.Fatalf("Turn(decision) error = %v", err)
+	}
+
+	cancelled, err := session.Cancel(ctx, planned.OperationID)
+	if err != nil {
+		t.Fatalf("Cancel() error = %v", err)
+	}
+
+	operation := cancelled.Conversation.Operations[0]
+	if operation.Status != conversation.OperationCancelled || len(operation.Decisions) != 1 || operation.PlanDigest != testPlanDigest {
+		t.Fatalf("cancelled operation = %#v, want revisable context without approval", operation)
+	}
+
+	after, err := os.ReadFile(filepath.Join(root, "go.mod"))
+	if err != nil {
+		t.Fatalf("ReadFile(after) error = %v", err)
+	}
+
+	if string(after) != string(before) {
+		t.Fatal("cancellation changed project source")
+	}
+
+	if started.OperationID != planned.OperationID {
+		t.Fatalf("clarification operation changed identity: %q then %q", started.OperationID, planned.OperationID)
+	}
+
+	retryPlan, err := session.Turn(ctx, conversation.TurnRequest{Content: "Retry the invoice feature."})
+	if err != nil {
+		t.Fatalf("Turn(retry) error = %v", err)
+	}
+
+	failedResult, err := session.Approve(ctx, retryPlan.OperationID, testPlanDigest)
+	if err != nil {
+		t.Fatalf("Approve(failing retry) error = %v", err)
+	}
+
+	failedOperation := failedResult.Conversation.Operations[1]
+	if failedOperation.Status != conversation.OperationFailed ||
+		!strings.Contains(failedOperation.ResultSummary, "internal/feat/invoice/model.go") ||
+		!strings.Contains(failedOperation.ResultSummary, "internal/feat/invoice/handler.go") {
+		t.Fatalf("failed operation = %#v, want every retained target", failedOperation)
+	}
+}
+
+func TestCoordinatorRejectsInvalidApprovalWithoutConsumingRetry(t *testing.T) {
+	ctx := context.Background()
+	root := t.TempDir()
+	writeModule(t, root)
+
+	clock := &testClock{value: time.Date(2026, time.September, 29, 21, 0, 0, 0, time.UTC)}
+	plannedResult := featurePlanResult("thread-1")
+	completed := plannedResult
+	completed.State = interaction.StateFinished
+	completed.Outcome = interaction.OutcomeValidationIncomplete
+	engine := &fakeTurnEngine{
+		fingerprint: testFingerprintA,
+		previews:    []interaction.Result{plannedResult},
+		executions:  []interaction.Result{completed},
+	}
+	coordinator := newConversationCoordinator(t, engine, clock)
+
+	session, err := coordinator.Open(ctx, root, conversation.SessionOptions{})
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+	defer session.Close()
+
+	planned, err := session.Turn(ctx, conversation.TurnRequest{Content: "Add invoices."})
+	if err != nil {
+		t.Fatalf("Turn() error = %v", err)
+	}
+
+	invalid, err := session.Approve(ctx, planned.OperationID, testFingerprintB)
+	if err != nil {
+		t.Fatalf("Approve(invalid) error = %v", err)
+	}
+
+	if invalid.Conversation.Operations[0].Status != conversation.OperationPlanned || len(engine.executions) != 1 {
+		t.Fatalf("invalid approval consumed proposal or execution: %#v", invalid)
+	}
+
+	completedResult, err := session.Approve(ctx, planned.OperationID, testPlanDigest)
+	if err != nil {
+		t.Fatalf("Approve(valid retry) error = %v", err)
+	}
+
+	if completedResult.Interaction.Outcome != interaction.OutcomeValidationIncomplete || completedResult.Conversation.Operations[0].Status != conversation.OperationCompleted || len(engine.executions) != 0 {
+		t.Fatalf("valid retry = %#v, want one completed execution", completedResult)
+	}
+}
+
+func TestCoordinatorContinuesInMemoryAfterPersistenceFailure(t *testing.T) {
+	ctx := context.Background()
+	root := t.TempDir()
+	writeModule(t, root)
+
+	clock := &testClock{value: time.Date(2026, time.September, 29, 21, 0, 0, 0, time.UTC)}
+	engine := &fakeTurnEngine{
+		fingerprint: testFingerprintA,
+		previews: []interaction.Result{
+			featurePlanResult("thread-1"),
+			{
+				State: interaction.StateConversation, Outcome: interaction.OutcomeConversationResponse,
+				Response: &eval.ConversationResponse{Content: "The proposal is still available in this process."},
+			},
+		},
+	}
+
+	state, err := hatmaxstate.New(hatmaxstate.Config{
+		Root: filepath.Join(t.TempDir(), "state"), Now: clock.now,
+		NewID: func() string { return "stored-conversation" },
+	})
+	if err != nil {
+		t.Fatalf("hatmaxstate.New() error = %v", err)
+	}
+
+	failing := &failingStore{Store: state, successfulReplacements: 1}
+	coordinator := newConversationCoordinatorWithStore(t, failing, engine, clock)
+
+	session, err := coordinator.Open(ctx, root, conversation.SessionOptions{})
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+
+	first, err := session.Turn(ctx, conversation.TurnRequest{Content: "Add invoices."})
+	if err != nil {
+		t.Fatalf("Turn() error = %v", err)
+	}
+
+	if !first.PersistenceFailed || first.Conversation.Operations[0].Status != conversation.OperationPlanned || !hasDiagnostic(first.Interaction.Diagnostics, "HMGEN-STATE-PERSISTENCE-FAILED") {
+		t.Fatalf("persistence failure result = %#v", first)
+	}
+
+	second, err := session.Turn(ctx, conversation.TurnRequest{Content: "Can we keep discussing it?"})
+	if err != nil {
+		t.Fatalf("Turn(in-memory) error = %v", err)
+	}
+
+	if !second.PersistenceFailed || len(second.Conversation.Turns) <= len(first.Conversation.Turns) {
+		t.Fatalf("in-memory continuation = %#v", second)
+	}
+
+	err = session.Close()
+	if err != nil {
+		t.Fatalf("Close() error = %v", err)
+	}
+
+	scope, err := conversation.ResolveScope(conversation.ScopeProject, root)
+	if err != nil {
+		t.Fatalf("ResolveScope() error = %v", err)
+	}
+
+	stored, err := state.Open(ctx, conversation.OpenRequest{
+		Scope:           scope,
+		BookContract:    conversation.BookContract{BookVersion: 1, InterpreterVersion: eval.CurrentContractVersion},
+		BackendIdentity: conversation.BackendIdentity{Adapter: "codex-app-server", Version: "0.158.0"},
+	})
+	if err != nil {
+		t.Fatalf("state.Open() error = %v", err)
+	}
+	defer stored.Close()
+
+	if len(stored.Current().Operations) != 0 {
+		t.Fatalf("failed persistence unexpectedly reached durable state: %#v", stored.Current())
+	}
+}
+
 type fakeTurnEngine struct {
 	fingerprint string
 	previews    []interaction.Result
 	executions  []interaction.Result
 	requests    []interaction.TurnRequest
+}
+
+type failingStore struct {
+	conversation.Store
+	successfulReplacements int
+}
+
+func (s *failingStore) Open(ctx context.Context, request conversation.OpenRequest) (conversation.Session, error) {
+	session, err := s.Store.Open(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return &failingSession{Session: session, remaining: s.successfulReplacements}, nil
+}
+
+type failingSession struct {
+	conversation.Session
+	remaining int
+}
+
+func (s *failingSession) Replace(ctx context.Context, value conversation.Conversation) error {
+	if s.remaining == 0 {
+		return errors.New("injected persistence failure")
+	}
+
+	s.remaining--
+
+	return s.Session.Replace(ctx, value)
 }
 
 func (f *fakeTurnEngine) PreviewTurn(_ context.Context, _ string, request interaction.TurnRequest) interaction.Result {
@@ -217,6 +459,17 @@ func newConversationCoordinator(t *testing.T, engine *fakeTurnEngine, clock *tes
 		t.Fatalf("hatmaxstate.New() error = %v", err)
 	}
 
+	return newConversationCoordinatorWithStore(t, state, engine, clock)
+}
+
+func newConversationCoordinatorWithStore(
+	t *testing.T,
+	state conversation.Store,
+	engine *fakeTurnEngine,
+	clock *testClock,
+) *conversation.Coordinator {
+	t.Helper()
+
 	operationIDs := 0
 
 	coordinator, err := conversation.NewCoordinator(conversation.CoordinatorConfig{
@@ -236,6 +489,16 @@ func newConversationCoordinator(t *testing.T, engine *fakeTurnEngine, clock *tes
 	}
 
 	return coordinator
+}
+
+func hasDiagnostic(values []interaction.Diagnostic, code string) bool {
+	for _, diagnostic := range values {
+		if diagnostic.Code == code {
+			return true
+		}
+	}
+
+	return false
 }
 
 func clarificationResult(threadID string) interaction.Result {

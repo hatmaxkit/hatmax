@@ -159,9 +159,19 @@ func (c *Coordinator) runApplication(ctx context.Context, prepared preparedInter
 
 	result.RetainedChanges = retainedChanges(executionResult.Changes)
 	result.State = StateFinished
-	result.Outcome = OutcomeCompleted
+	result.Outcome = applicationOutcome(executionResult)
 
 	return result
+}
+
+func applicationOutcome(result execute.Result) Outcome {
+	for _, validation := range result.Validation {
+		if validation.Status == execute.ValidationCommandIncomplete {
+			return OutcomeValidationIncomplete
+		}
+	}
+
+	return OutcomeCompleted
 }
 
 func renderPlan(value plan.Plan, manifest execute.Manifest, inventory project.Inventory) ([]execute.Mutation, error) {

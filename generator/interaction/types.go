@@ -73,6 +73,9 @@ const (
 	OutcomePlanStale Outcome = "plan_stale"
 	// OutcomeExecutionFailed means rendering, mutation, conformance, or validation failed.
 	OutcomeExecutionFailed Outcome = "execution_failed"
+	// OutcomeValidationIncomplete means mutation succeeded but an explicitly
+	// non-blocking environmental validation could not complete.
+	OutcomeValidationIncomplete Outcome = "validation_incomplete"
 	// OutcomeFailed means the interaction could not reach a domain outcome.
 	OutcomeFailed Outcome = "failed"
 )
@@ -109,6 +112,8 @@ const (
 	PhaseApplication Phase = "application"
 	// PhaseValidation covers conformance and repository-owned commands.
 	PhaseValidation Phase = "validation"
+	// PhasePersistence covers user-local conversational continuity state.
+	PhasePersistence Phase = "persistence"
 )
 
 // Diagnostic is one stable product-level failure or cancellation detail.

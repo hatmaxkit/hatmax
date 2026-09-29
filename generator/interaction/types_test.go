@@ -46,9 +46,12 @@ func TestInteractionContractsKeepApprovalAndClarificationExplicit(t *testing.T) 
 
 func TestInteractionStatesAndOutcomesAreStable(t *testing.T) {
 	states := []State{
+		StateConversation,
+		StateCandidateChange,
 		StateInspecting,
 		StateInterpreting,
 		StateClarifying,
+		StatePlanReady,
 		StateAwaitingApproval,
 		StateExecuting,
 		StateValidating,
@@ -56,9 +59,12 @@ func TestInteractionStatesAndOutcomesAreStable(t *testing.T) {
 	}
 
 	wantStates := []State{
+		"conversation",
+		"candidate_change",
 		"inspecting",
 		"interpreting",
 		"clarifying",
+		"plan_ready",
 		"awaiting_approval",
 		"executing",
 		"validating",
@@ -71,6 +77,8 @@ func TestInteractionStatesAndOutcomesAreStable(t *testing.T) {
 	}
 
 	outcomes := []Outcome{
+		OutcomeConversationResponse,
+		OutcomePlanReady,
 		OutcomeCompleted,
 		OutcomeCancelled,
 		OutcomeUnsupported,
@@ -78,10 +86,13 @@ func TestInteractionStatesAndOutcomesAreStable(t *testing.T) {
 		OutcomeClarificationRequired,
 		OutcomePlanStale,
 		OutcomeExecutionFailed,
+		OutcomeValidationIncomplete,
 		OutcomeFailed,
 	}
 
 	wantOutcomes := []Outcome{
+		"conversation_response",
+		"plan_ready",
 		"completed",
 		"cancelled",
 		"unsupported",
@@ -89,6 +100,7 @@ func TestInteractionStatesAndOutcomesAreStable(t *testing.T) {
 		"clarification_required",
 		"plan_stale",
 		"execution_failed",
+		"validation_incomplete",
 		"failed",
 	}
 	for index := range wantOutcomes {

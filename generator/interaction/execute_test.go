@@ -54,6 +54,21 @@ func TestCoordinatorRunsEveryCanonicalOperationWithoutGitEffects(t *testing.T) {
 	}
 }
 
+func TestApplicationOutcomeReportsIncompleteEnvironmentalValidation(t *testing.T) {
+	result := execute.Result{Validation: []execute.ValidationCommandResult{{
+		Name: "validation.test", Status: execute.ValidationCommandIncomplete,
+	}}}
+
+	if got := applicationOutcome(result); got != OutcomeValidationIncomplete {
+		t.Fatalf("applicationOutcome() = %q, want %q", got, OutcomeValidationIncomplete)
+	}
+
+	result.Validation[0].Status = execute.ValidationCommandPassed
+	if got := applicationOutcome(result); got != OutcomeCompleted {
+		t.Fatalf("applicationOutcome(passed) = %q, want %q", got, OutcomeCompleted)
+	}
+}
+
 func TestCoordinatorCreatesApplicationWithInitialFeatureUnderOneApproval(t *testing.T) {
 	installFixtureCommands(t, false)
 
