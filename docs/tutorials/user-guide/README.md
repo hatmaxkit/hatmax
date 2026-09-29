@@ -39,8 +39,8 @@ designed:
    modals, formatting, pagination, and internationalization.
 8. [Feature Anatomy](feature-anatomy.md) connects model, store, service,
    handler, templates, wiring, and tests as one canonical feature.
-9. **Persistence and Migrations** explains the Postgres lifecycle and schema
-   ownership.
+9. [Persistence and Migrations](persistence-and-migrations.md) explains the
+   Postgres lifecycle and schema ownership.
 10. **Models and Data Flow** follows application data across feature layers.
 11. **Identity and Sessions** adds authentication, authorization, and
     cryptographic support.
