@@ -400,15 +400,18 @@ func admittedExpansion(
 		}}
 	}
 
-	return intent.Result{
+	result := intent.Result{
 		Status:    intent.StatusAdmitted,
 		Intent:    value,
 		Selection: selection,
-	}, ExpansionContext{
+	}
+	context := ExpansionContext{
 		Book:                  selectedBook,
 		Fingerprint:           fingerprint,
 		DocumentationEvidence: testFeatureEvidence(value.Feature),
 	}
+
+	return result, context
 }
 
 func testFeatureEvidence(feature string) *project.FeatureEvidence {
