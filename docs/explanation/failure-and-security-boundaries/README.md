@@ -28,6 +28,6 @@ credentials, and other secrets. Documentation and logs should name the fields
 without printing live values. The crypto package validates key sizes and
 authenticated data; key storage and rotation remain application operations.
 
-See [Authentication](../../reference/authentication/index.md),
-[Middleware](../../reference/middleware/index.md), and
-[Crypto](../../reference/crypto/index.md).
+See [Authentication](../../reference/authentication/README.md),
+[Middleware](../../reference/middleware/README.md), and
+[Crypto](../../reference/crypto/README.md).

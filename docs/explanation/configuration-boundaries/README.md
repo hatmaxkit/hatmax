@@ -30,5 +30,5 @@ scheduler or selecting a mail delivery mode. They do not rewrite or reload
 Static defaults belong to `config.New`. Runtime-setting defaults belong to
 their `settings.Schema`. When a service supports both sources, it starts from
 static configuration and applies successfully read settings as overrides.
-The [Configuration Reference](../../reference/configuration/index.md) lists
+The [Configuration Reference](../../reference/configuration/README.md) lists
 the exact precedence and validation behavior.

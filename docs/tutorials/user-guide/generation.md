@@ -75,7 +75,7 @@ request when the change should also create or update a boxed Diataxis page.
 - A renderer, conformance, or project-command failure is reported as an
   execution failure with the available evidence.
 
-See [Generator](../../reference/generator/index.md) for supported operations,
+See [Generator](../../reference/generator/README.md) for supported operations,
 runtime behavior, and stable exit statuses.
 
 ## Verify the Result
@@ -87,4 +87,4 @@ acceptance check.
 ---
 
 [Previous: Change Settings at Runtime](settings.md) ·
-[User Guide](index.md)
+[User Guide](README.md)

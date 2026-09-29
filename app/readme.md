@@ -51,5 +51,5 @@ Components implement the interfaces they need. Setup inspects and groups them.
 `Setup` collects start and stop functions into independent slices. If an
 application relies on startup rollback, every ordered startup component must
 also implement `Stoppable` so those slices stay positionally aligned. See the
-[Application Lifecycle Reference](../docs/reference/application-lifecycle/index.md)
+[Application Lifecycle Reference](../docs/reference/application-lifecycle/README.md)
 for the exact failure behavior.

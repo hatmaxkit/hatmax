@@ -57,12 +57,12 @@ A missing template is a startup error when the filesystem walk cannot read it,
 or a render-time `500` when a handler asks for an unknown template name. Match
 the namespace and filename used by the handler.
 
-See [HTTP](../../reference/http/index.md) and
-[HTMX](../../reference/htmx/index.md) for exact behavior.
+See [HTTP](../../reference/http/README.md) and
+[HTMX](../../reference/htmx/README.md) for exact behavior.
 
 Continue with [Accept a Form](forms.md).
 
 ---
 
-[Previous: Add Postgres](postgres.md) · [User Guide](index.md) ·
+[Previous: Add Postgres](postgres.md) · [User Guide](README.md) ·
 [Next: Accept a Form](forms.md)

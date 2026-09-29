@@ -50,12 +50,12 @@ psql -h localhost -U dev -d dev -c '\d guide_notes'
 Both commands must succeed. Stop the process with Ctrl+C.
 
 For a focused integration procedure, see
-[Connect to Postgres](../../how-to/connect-postgres/index.md). For exact
-behavior, see [Database](../../reference/database/index.md).
+[Connect to Postgres](../../how-to/connect-postgres/README.md). For exact
+behavior, see [Database](../../reference/database/README.md).
 
 Continue with [Serve a Page](pages.md).
 
 ---
 
-[Previous: Run the First Process](getting-started.md) · [User Guide](index.md) ·
+[Previous: Run the First Process](getting-started.md) · [User Guide](README.md) ·
 [Next: Serve a Page](pages.md)

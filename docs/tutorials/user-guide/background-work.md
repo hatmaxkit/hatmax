@@ -47,13 +47,13 @@ external effect but before offset advancement can repeat work.
 
 This chapter is complete when `todo.item.added` remains visible after restart.
 
-See [Pubsub](../../reference/pubsub/index.md), the focused
-[pubsub how-to](../../how-to/use-pubsub/index.md), and
-[Postgres-first Infrastructure](../../explanation/postgres-first/index.md).
+See [Pubsub](../../reference/pubsub/README.md), the focused
+[pubsub how-to](../../how-to/use-pubsub/README.md), and
+[Postgres-first Infrastructure](../../explanation/postgres-first/README.md).
 
 Continue with [Change Settings at Runtime](settings.md).
 
 ---
 
-[Previous: Save a Record](records.md) · [User Guide](index.md) ·
+[Previous: Save a Record](records.md) · [User Guide](README.md) ·
 [Next: Change Settings at Runtime](settings.md)

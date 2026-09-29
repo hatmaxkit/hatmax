@@ -45,12 +45,12 @@ Repeat the valid and invalid values in the browser. HTMX replaces only the
 result paragraph. This chapter is complete when the same handler preserves
 both the request boundary and validation behavior.
 
-See [Middleware](../../reference/middleware/index.md) and
-[Validation](../../reference/validation/index.md).
+See [Middleware](../../reference/middleware/README.md) and
+[Validation](../../reference/validation/README.md).
 
 Continue with [Sign In](sign-in.md).
 
 ---
 
-[Previous: Serve a Page](pages.md) · [User Guide](index.md) ·
+[Previous: Serve a Page](pages.md) · [User Guide](README.md) ·
 [Next: Sign In](sign-in.md)

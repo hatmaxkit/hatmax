@@ -57,4 +57,4 @@ verify the selected values before relying on delivery.
 
 In `dry_run`, `Send` validates and logs the message without contacting the
 provider. In `active`, verify delivery through the configured provider. See
-[Mailer Reference](../../reference/mailer/index.md) for provider requirements.
+[Mailer Reference](../../reference/mailer/README.md) for provider requirements.

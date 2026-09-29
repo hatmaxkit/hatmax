@@ -19,6 +19,6 @@ does not require every interaction to use HTMX, and it does not make generated
 HTML safe by default: callers must still distinguish escaped text from trusted
 `template.HTML` values.
 
-See the [HTTP](../../reference/http/index.md),
-[HTMX](../../reference/htmx/index.md), and [UI](../../reference/ui/index.md)
+See the [HTTP](../../reference/http/README.md),
+[HTMX](../../reference/htmx/README.md), and [UI](../../reference/ui/README.md)
 references for exact contracts.

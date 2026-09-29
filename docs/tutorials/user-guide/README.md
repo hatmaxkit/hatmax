@@ -46,16 +46,16 @@ and produces both a health response and an HTML page.
 ## Direct Routes
 
 - To start a separate module, use
-  [Bootstrap a Hatmax Application](../../how-to/bootstrap-application/index.md).
+  [Bootstrap a Hatmax Application](../../how-to/bootstrap-application/README.md).
 - To add one known capability, use the
-  [How-to Guides](../../how-to/index.md).
+  [How-to Guides](../../how-to/README.md).
 - To inspect exact behavior, use the
-  [Reference](../../reference/index.md).
+  [Reference](../../reference/README.md).
 - To understand package boundaries and tradeoffs, use
-  [Explanation](../../explanation/index.md).
+  [Explanation](../../explanation/README.md).
 - To inspect component order and swappable boundaries, use
   [Wiring](wiring.md).
 
-The [Package Map](../../reference/package-map/index.md) lists capabilities
+The [Package Map](../../reference/package-map/README.md) lists capabilities
 that are not required chapters, including image storage, mail delivery,
 telemetry, crypto primitives, and test helpers.

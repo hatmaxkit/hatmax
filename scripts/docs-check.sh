@@ -5,28 +5,42 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-required_indexes=(
-  docs/index.md
-  docs/tutorials/index.md
-  docs/tutorials/user-guide/index.md
-  docs/how-to/index.md
-  docs/reference/index.md
-  docs/explanation/index.md
+required_top_level=(
+  docs/README.md
+  docs/tutorials
+  docs/how-to
+  docs/reference
+  docs/explanation
 )
 
-for index_file in "${required_indexes[@]}"; do
-  if [[ ! -f "$index_file" ]]; then
-    echo "missing documentation index: $index_file" >&2
+for required_entry in "${required_top_level[@]}"; do
+  if [[ ! -e "$required_entry" ]]; then
+    echo "missing documentation entry: $required_entry" >&2
     exit 1
   fi
 done
 
-unexpected_top_level=$(find docs -mindepth 1 -maxdepth 1 -type f -name '*.md' ! -name index.md -print)
+unexpected_top_level=$(
+  find docs -mindepth 1 -maxdepth 1 \
+    ! -path docs/README.md \
+    ! -path docs/tutorials \
+    ! -path docs/how-to \
+    ! -path docs/reference \
+    ! -path docs/explanation \
+    -print
+)
 if [[ -n "$unexpected_top_level" ]]; then
-  echo "unexpected top-level Markdown under docs:" >&2
+  echo "unexpected top-level entry under docs:" >&2
   echo "$unexpected_top_level" >&2
   exit 1
 fi
+
+while IFS= read -r documentation_dir; do
+  if [[ ! -f "$documentation_dir/README.md" ]]; then
+    echo "missing documentation entrypoint: $documentation_dir/README.md" >&2
+    exit 1
+  fi
+done < <(find docs -type d | sort)
 
 mapfile -d '' markdown_files < <(
   find . -path './.git' -prune -o -path './.tmp' -prune -o -path './tmp' -prune \
@@ -54,7 +68,12 @@ while IFS=$'\t' read -r source target; do
   elif [[ "$resolved" == *.md ]]; then
     linked_markdown["$resolved"]=1
   fi
-done < <(perl -ne 'while (/\]\(([^)]+)\)/g) { print "$ARGV\t$1\n" }' "${markdown_files[@]}")
+done < <(
+  perl -ne '
+    while (/\]\(([^)]+)\)/g) { print "$ARGV\t$1\n" }
+    while (/<(?:img|source)\b[^>]*\bsrc="([^"]+)"/g) { print "$ARGV\t$1\n" }
+  ' "${markdown_files[@]}"
+)
 
 if ((broken)); then
   exit 1

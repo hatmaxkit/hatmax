@@ -6,7 +6,7 @@ the end, both the health endpoint and the HTML page respond.
 ## Before You Begin
 
 Complete the repository checkout described in the
-[User Guide](index.md#before-you-begin). Port `8080` must be available.
+[User Guide](README.md#before-you-begin). Port `8080` must be available.
 
 ## Start the application
 
@@ -44,7 +44,7 @@ route capabilities. `app.Start` starts the template manager before it registers
 the page routes.
 
 For the exact contract, see
-[Application Lifecycle](../../reference/application-lifecycle/index.md).
+[Application Lifecycle](../../reference/application-lifecycle/README.md).
 
 ## Recover from startup problems
 
@@ -63,4 +63,4 @@ Continue with [Add Postgres](postgres.md).
 
 ---
 
-[User Guide](index.md) · [Next: Add Postgres](postgres.md)
+[User Guide](README.md) · [Next: Add Postgres](postgres.md)

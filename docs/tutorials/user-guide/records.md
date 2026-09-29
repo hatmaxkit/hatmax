@@ -56,13 +56,13 @@ building blocks without owning the application's todo schema.
 This chapter is complete when the exact item text appears after restarting the
 process.
 
-See [Database](../../reference/database/index.md),
-[Model](../../reference/model/index.md), and
-[Validation](../../reference/validation/index.md).
+See [Database](../../reference/database/README.md),
+[Model](../../reference/model/README.md), and
+[Validation](../../reference/validation/README.md).
 
 Continue with [Work Outside the Request](background-work.md).
 
 ---
 
-[Previous: Sign In](sign-in.md) · [User Guide](index.md) ·
+[Previous: Sign In](sign-in.md) · [User Guide](README.md) ·
 [Next: Work Outside the Request](background-work.md)

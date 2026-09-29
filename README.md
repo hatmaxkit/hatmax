@@ -1,7 +1,7 @@
 # HatMax
 
 <p align="center">
-  <img src="docs/img/hero.png" width="800">
+  <img src="assets/img/docs/brand/hero.png" width="800">
 </p>
 
 [![Go Reference](https://pkg.go.dev/badge/hatmax.adrianpk.com.svg)](https://pkg.go.dev/hatmax.adrianpk.com)
@@ -91,7 +91,7 @@ func main() {
 ```
 
 Run `go run .`, then request `http://localhost:8080/ping`. Continue with the
-[User Guide](docs/tutorials/user-guide/index.md) to add Postgres, templates,
+[User Guide](docs/tutorials/user-guide/README.md) to add Postgres, templates,
 forms, authentication, records, background work, and runtime settings.
 
 ## Generate a Feature
@@ -108,7 +108,7 @@ hatmax generate "Create a property feature with a required name."
 Hatmax asks Codex to interpret the request, presents the complete typed plan,
 and waits for approval before applying deterministic Book-owned changes. See
 [Generate a Feature](docs/tutorials/user-guide/generation.md) for the guided
-workflow and [Generator](docs/reference/generator/index.md) for the exact
+workflow and [Generator](docs/reference/generator/README.md) for the exact
 contract and prerequisites.
 
 ## Package Map
@@ -147,8 +147,8 @@ Small interfaces make components swappable:
 
 ## Docs
 
-- [User Guide](docs/tutorials/user-guide/index.md)
-- [Documentation index](docs/index.md)
+- [User Guide](docs/tutorials/user-guide/README.md)
+- [Documentation index](docs/README.md)
 
 ## Repos
 

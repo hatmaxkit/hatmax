@@ -41,5 +41,5 @@ Run the process. A successful start logs `Database connection established`.
 An unavailable server returns `cannot ping database` before routes are
 registered.
 
-See the [Database Reference](../../reference/database/index.md) for connection
+See the [Database Reference](../../reference/database/README.md) for connection
 and schema behavior.

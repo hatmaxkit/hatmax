@@ -70,12 +70,12 @@ serve the application over HTTPS so the browser sends the secure cookie.
 This chapter is complete when the cookie-authenticated request renders the
 account email and the same request without the cookie redirects.
 
-See [Authentication](../../reference/authentication/index.md) and the focused
-[authentication how-to](../../how-to/add-authentication/index.md).
+See [Authentication](../../reference/authentication/README.md) and the focused
+[authentication how-to](../../how-to/add-authentication/README.md).
 
 Continue with [Save a Record](records.md).
 
 ---
 
-[Previous: Accept a Form](forms.md) · [User Guide](index.md) ·
+[Previous: Accept a Form](forms.md) · [User Guide](README.md) ·
 [Next: Save a Record](records.md)

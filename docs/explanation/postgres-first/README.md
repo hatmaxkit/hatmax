@@ -24,7 +24,7 @@ delivery guarantees can justify another backend. Hatmax keeps those decisions
 at interfaces so applications can introduce them when their requirements are
 concrete.
 
-The [Database](../../reference/database/index.md),
-[Pubsub](../../reference/pubsub/index.md), and
-[Scheduler](../../reference/scheduler/index.md) references state the current
+The [Database](../../reference/database/README.md),
+[Pubsub](../../reference/pubsub/README.md), and
+[Scheduler](../../reference/scheduler/README.md) references state the current
 backend behavior.

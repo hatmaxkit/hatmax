@@ -29,7 +29,7 @@ one of those capabilities shifts one slice and invalidates that assumption.
 Normal shutdown still calls every collected stop function in reverse order.
 
 This is a current API constraint, not a general transaction guarantee. The
-[Application Lifecycle Reference](../../reference/application-lifecycle/index.md)
+[Application Lifecycle Reference](../../reference/application-lifecycle/README.md)
 states the exact execution behavior.
 
 ## Constructors do not perform startup

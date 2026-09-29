@@ -45,4 +45,4 @@ Open the stored object through `store.Get`, then check `result.Width`,
 `result.Height`, and `store.URL(path)`. Persist the corresponding `Image` and
 `Variant` records through the application's repository.
 
-See [Image Reference](../../reference/image/index.md).
+See [Image Reference](../../reference/image/README.md).

@@ -36,5 +36,5 @@ DB_HOST=localhost DB_USER=postgres DB_PASSWORD=postgres go test ./path/to/packag
 ## Verify cleanup
 
 After the test, the generated schema name beginning with `test_` must no longer
-exist. See [Test Helper Reference](../../reference/testhelper/index.md) for all
+exist. See [Test Helper Reference](../../reference/testhelper/README.md) for all
 environment defaults.

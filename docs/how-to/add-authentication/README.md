@@ -58,4 +58,4 @@ Request `/account` without a session cookie. The response is `303` with
 `Location: /signin`. Sign in over HTTPS and repeat the request with the cookie;
 the protected handler receives the user in its context.
 
-See [Authentication Reference](../../reference/authentication/index.md).
+See [Authentication Reference](../../reference/authentication/README.md).

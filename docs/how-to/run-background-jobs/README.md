@@ -45,4 +45,4 @@ Insert a due job with a registered `task_type`, start the process, and inspect
 its `job_runs` row. It should move to `success` with JSON output or `failed`
 with the handler error.
 
-See [Scheduler Reference](../../reference/scheduler/index.md).
+See [Scheduler Reference](../../reference/scheduler/README.md).

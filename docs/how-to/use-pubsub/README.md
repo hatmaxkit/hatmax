@@ -47,4 +47,4 @@ Publish an envelope after the subscriber starts. Confirm that the handler
 receives it and that restarting with the same subscriber ID does not replay
 already acknowledged offsets.
 
-See [Pubsub Reference](../../reference/pubsub/index.md).
+See [Pubsub Reference](../../reference/pubsub/README.md).

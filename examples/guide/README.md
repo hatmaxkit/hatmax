@@ -1,7 +1,7 @@
 # Hatmax User Guide Companion
 
 This application is the versioned companion for the
-[Hatmax User Guide](../../docs/tutorials/user-guide/index.md). It demonstrates
+[Hatmax User Guide](../../docs/tutorials/user-guide/README.md). It demonstrates
 configuration, lifecycle assembly, templates, HTMX, request validation,
 runtime settings, optional Postgres records, and Postgres pubsub.
 

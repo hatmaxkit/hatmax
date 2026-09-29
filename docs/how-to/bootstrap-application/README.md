@@ -84,4 +84,4 @@ curl -fsS http://localhost:8080/ping
 The response is `{"status":"ok"}`. Stop the application with Ctrl+C.
 
 For component ordering and shutdown behavior, see
-[Application Lifecycle](../../reference/application-lifecycle/index.md).
+[Application Lifecycle](../../reference/application-lifecycle/README.md).

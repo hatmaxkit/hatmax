@@ -60,5 +60,5 @@ the module `hatmax.adrianpk.com`.
 | `fake` | Mailer and telemetry fakes |
 | `testhelper` | Isolated Postgres test databases and test logging |
 
-Use the [Reference index](../index.md) for package contracts and the
-[How-to Guides](../../how-to/index.md) for integration procedures.
+Use the [Reference index](../README.md) for package contracts and the
+[How-to Guides](../../how-to/README.md) for integration procedures.

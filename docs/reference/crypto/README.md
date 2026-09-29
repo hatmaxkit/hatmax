@@ -5,7 +5,7 @@ PASETO tokens, and generates TOTP material. The implementation note is
 [crypto/readme.md](../../../crypto/readme.md).
 
 `auth` does not call these password or token functions for signup and
-sign-in. See [Authentication](../authentication/index.md).
+sign-in. See [Authentication](../authentication/README.md).
 
 ## Authenticated strings
 

@@ -5,7 +5,7 @@ pass the components. `app.Start` runs the start functions in that order, and
 registers routes only after every start function succeeds.
 
 The lifecycle contract is in
-[Application Lifecycle](../../reference/application-lifecycle/index.md).
+[Application Lifecycle](../../reference/application-lifecycle/README.md).
 
 ## Order used by the guide companion
 
@@ -30,13 +30,13 @@ their methods.
 
 | Interface | Package | Reference |
 | --- | --- | --- |
-| `Mailer` | `mailer` | [Mailer](../../reference/mailer/index.md) |
-| `Publisher` | `pubsub` | [Pubsub](../../reference/pubsub/index.md) |
-| `Subscriber` | `pubsub` | [Pubsub](../../reference/pubsub/index.md) |
-| `JobStore` | `scheduler` | [Scheduler](../../reference/scheduler/index.md) |
+| `Mailer` | `mailer` | [Mailer](../../reference/mailer/README.md) |
+| `Publisher` | `pubsub` | [Pubsub](../../reference/pubsub/README.md) |
+| `Subscriber` | `pubsub` | [Pubsub](../../reference/pubsub/README.md) |
+| `JobStore` | `scheduler` | [Scheduler](../../reference/scheduler/README.md) |
 
 The database connection those services use is in
-[Database](../../reference/database/index.md).
+[Database](../../reference/database/README.md).
 
 For the design consequences of this API, see
-[Component Order and Startup Rollback](../../explanation/component-order-and-startup/index.md).
+[Component Order and Startup Rollback](../../explanation/component-order-and-startup/README.md).

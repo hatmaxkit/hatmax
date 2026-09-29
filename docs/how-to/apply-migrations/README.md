@@ -49,4 +49,4 @@ psql myapp -c '\d notes'
 ```
 
 Hatmax parses `Down` sections but does not execute them. See
-[Database Reference](../../reference/database/index.md#migrations).
+[Database Reference](../../reference/database/README.md#migrations).

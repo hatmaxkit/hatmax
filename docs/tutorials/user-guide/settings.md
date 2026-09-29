@@ -59,11 +59,11 @@ The response is `Hello` because this example store is not durable.
 This chapter is complete when the value changes without a restart and returns
 to its schema default after a restart.
 
-See [Configuration](../../reference/configuration/index.md) and
-[Static Configuration and Runtime Settings](../../explanation/configuration-boundaries/index.md).
+See [Configuration](../../reference/configuration/README.md) and
+[Static Configuration and Runtime Settings](../../explanation/configuration-boundaries/README.md).
 
 ---
 
 [Previous: Work Outside the Request](background-work.md) ·
-[User Guide](index.md) ·
+[User Guide](README.md) ·
 [Next: Generate a Feature](generation.md)
