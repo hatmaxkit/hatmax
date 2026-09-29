@@ -20,7 +20,7 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 | Slice 3 | feature anatomy | delivered | `docs/user-guide-feature-anatomy` | `docs(slice-3): establish canonical feature anatomy` | #50 | `ops/default/report/slices/user-guide-technical-journey/slice-3-feature-anatomy.md` |
 | Slice 4 | data lifecycle | delivered | `docs/user-guide-data-lifecycle` | `docs(slice-4): explain the Hatmax data lifecycle` | #51 | `ops/default/report/slices/user-guide-technical-journey/slice-4-data-lifecycle.md` |
 | Slice 5 | identity and runtime | delivered | `docs/user-guide-identity-runtime` | `docs(slice-5): explain identity and runtime configuration` | #52 | `ops/default/report/slices/user-guide-technical-journey/slice-5-identity-runtime.md` |
-| Slice 6 | application services | active | `docs/user-guide-application-services` | `docs(slice-6): explain Hatmax application services` |  | `ops/default/report/slices/user-guide-technical-journey/slice-6-application-services.md` |
+| Slice 6 | application services | reviewing | `docs/user-guide-application-services` | `docs(slice-6): explain Hatmax application services` |  | `ops/default/report/slices/user-guide-technical-journey/slice-6-application-services.md` |
 | Slice 7 | testing and evolution | planned | `docs/user-guide-testing-evolution` | `docs(slice-7): complete the User Guide journey` |  | `ops/default/report/slices/user-guide-technical-journey/slice-7-testing-evolution.md` |
 
 ## Slice 1 Tasks
@@ -69,9 +69,9 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T6.1 | pending | `docs(guide): explain events and background work` |  |  |
-| T6.2 | pending | `docs(guide): explain application services` |  |  |
-| T6.3 | pending | `docs(guide): connect services to application wiring` |  |  |
+| T6.1 | complete | `docs(guide): explain events and background work` | `d313be8` | `make docs-check` passed |
+| T6.2 | complete | `docs(guide): explain application services` | `3859877` | `make docs-check` passed |
+| T6.3 | complete | `docs(guide): connect services to application wiring` | `588547e` | link audit and `make docs-check` passed |
 
 ## Slice 7 Tasks
 
@@ -104,6 +104,5 @@ Execution gate: satisfied when this approved activation is committed to `dev`
 
 ## Current Gate
 
-Slice 5 merged through pull request #52 at
-`d1bf11a5c750dccb6954a54700c5e01bb2634a92`. Slice 6 is active and may begin
-from that integrated `dev` state.
+Slice 6 content and focused validation are complete. Its report is in
+reviewing state; the recorded pull request must be opened against `dev`.
