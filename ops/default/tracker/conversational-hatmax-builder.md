@@ -24,7 +24,7 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 | Slice 1 | Builder contracts | delivered | `docs/hatmax-builder-contracts` | `docs(slice-1): define Hatmax builder contracts` | #56 | `ops/default/report/slices/conversational-hatmax-builder/slice-1-builder-contracts.md` |
 | Slice 2 | Application planning kernel | delivered | `feat/application-scaffold-kernel` | `feat(slice-2): plan canonical Hatmax applications` | #57 | `ops/default/report/slices/conversational-hatmax-builder/slice-2-application-planning-kernel.md` |
 | Slice 3 | Scaffold execution | delivered | `feat/application-scaffold-rendering` | `feat(slice-3): render canonical Hatmax applications` | #58 | `ops/default/report/slices/conversational-hatmax-builder/slice-3-scaffold-execution.md` |
-| Slice 4 | Application bootstrap product | active | `feat/application-scaffold-product` | `feat(slice-4): deliver Hatmax application bootstrap` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-4-application-bootstrap-product.md` |
+| Slice 4 | Application bootstrap product | reviewing | `feat/application-scaffold-product` | `feat(slice-4): deliver Hatmax application bootstrap` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-4-application-bootstrap-product.md` |
 | Slice 5 | Conversation state | planned | `feat/conversational-state` | `feat(slice-5): persist Hatmax conversations` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-5-conversation-state.md` |
 | Slice 6 | Conversational coordinator | planned | `feat/conversational-coordinator` | `feat(slice-6): coordinate conversational Hatmax work` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-6-conversational-coordinator.md` |
 | Slice 7 | Hatmax TUI | planned | `feat/hatmax-tui` | `feat(slice-7): deliver the conversational Hatmax TUI` | pending | `ops/default/report/slices/conversational-hatmax-builder/slice-7-hatmax-tui.md` |
@@ -58,9 +58,9 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 | Task | Status | Expected Commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
-| T4.1 | pending | `feat(generator): interpret application creation` | pending | schema, Codex context, clarification, and isolation tests; full slice gate pending |
-| T4.2 | pending | `feat(generator): coordinate application bootstrap` | pending | approval, composite units, execution, conformance, and reporting tests; full slice gate pending |
-| T4.3 | pending | `test(generator): validate application bootstrap` | pending | deterministic and terminal scaffold acceptance; full slice gate pending |
+| T4.1 | complete | `feat(generator): interpret application creation` | `a13eda473093434b51e5bde79f1fd636cd392156` | schema, Codex context, clarification, isolation tests, and full slice gate passed |
+| T4.2 | complete | `feat(generator): coordinate application bootstrap` | `098a024899b43982973c75df2774a6b35e3f2865` | approval, composite units, execution, conformance, reporting tests, and full slice gate passed |
+| T4.3 | complete | `test(generator): validate application bootstrap` | `e17263f0cfae8aa97ba05104680c319a14abd9ec` | deterministic and terminal scaffold acceptance, real composite compilation, and full slice gate passed |
 
 ## Slice 5 Tasks
 
@@ -110,5 +110,5 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 
 ## Current Gate
 
-Slice 3 was delivered by #58. Slice 4 is approved for execution on
-`feat/application-scaffold-product`; T4.1, T4.2, and T4.3 are active.
+Slice 4 implementation and validation are complete on
+`feat/application-scaffold-product`; maintainer review and merge are pending.
