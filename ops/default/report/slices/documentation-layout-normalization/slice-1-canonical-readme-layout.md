@@ -5,7 +5,7 @@ Delivery set: documentation-layout-normalization
 Plan: [Documentation Layout Normalization Plan](../../../plan/documentation-layout-normalization.md)
 Tracker: [Documentation Layout Normalization Tracker](../../../tracker/documentation-layout-normalization.md)
 Branch: `feat/documentation-readme-layout`
-PR: pending
+PR: #47
 
 ## Purpose
 

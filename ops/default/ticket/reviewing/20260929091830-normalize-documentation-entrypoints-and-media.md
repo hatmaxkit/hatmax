@@ -13,8 +13,8 @@ ready_at: 2026-09-29T09:27:33Z
 started_at: 2026-09-29T09:29:13Z
 reviewed_at: 2026-09-29T09:32:53Z
 branch: feat/documentation-readme-layout
-pr: pending
-commits: a854c2750876, 92320c0fab6c, 6ba9c6be5185
+pr: 47
+commits: a854c2750876, 92320c0fab6c, 6ba9c6be5185, b6225d7ef17f
 ---
 
 ## Observed Behavior

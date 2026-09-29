@@ -16,7 +16,7 @@ Execution gate: satisfied when this approved tracker and plan are committed to
 
 | Slice | Short Name | Status | Branch | PR Title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | canonical README layout | reviewing | `feat/documentation-readme-layout` | `feat(slice-1): adopt forge-native documentation layout` | pending | `ops/default/report/slices/documentation-layout-normalization/slice-1-canonical-readme-layout.md` |
+| Slice 1 | canonical README layout | reviewing | `feat/documentation-readme-layout` | `feat(slice-1): adopt forge-native documentation layout` | #47 | `ops/default/report/slices/documentation-layout-normalization/slice-1-canonical-readme-layout.md` |
 
 ## Slice 1 Tasks
 
@@ -25,7 +25,7 @@ Execution gate: satisfied when this approved tracker and plan are committed to
 | T1.1 | complete | `docs: adopt forge-native documentation entrypoints` | `a854c27` | `make docs-check` passed; link and layout audit passed |
 | T1.2 | complete | `docs(generator): adopt the README documentation contract` | `92320c0` | accepted-spec and Book-rule audit passed |
 | T1.3 | complete | `feat(generator): render README documentation entrypoints` | `6ba9c6b` | `go test ./generator/... ./internal/hatmaxcli/...` passed; `make lint-strict` passed |
-| T1.4 | complete | `docs(ops): report documentation layout normalization` | pending | `git diff --check` passed |
+| T1.4 | complete | `docs(ops): report documentation layout normalization` | `b6225d7` | `git diff --check` passed |
 
 ## Completion Gates
 
