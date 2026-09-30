@@ -14,7 +14,7 @@ HTTP middleware for chi router.
 ```go
 r := chi.NewRouter()
 
-// Default stack (RequestID, RealIP, Logger, Recoverer)
+// Default stack (RequestID, ProxyHeaders, Logger, Recoverer)
 for _, mw := range middleware.DefaultStack() {
     r.Use(mw)
 }
@@ -49,6 +49,27 @@ methods require an `Origin` or `Referer` whose scheme and host match the
 request. `Sec-Fetch-Site: cross-site` is always rejected. HTTPS is resolved
 from direct TLS or the first `X-Forwarded-Proto` value.
 
+## Trusted proxy identity
+
+The default stack ignores forwarded IP headers. To resolve clients behind
+an approved proxy, pass its network explicitly:
+
+```go
+trustedProxy := netip.MustParsePrefix("192.0.2.10/32")
+for _, mw := range middleware.DefaultStack(trustedProxy) {
+    r.Use(mw)
+}
+```
+
+`middleware.ClientIP(r)` returns the resolved client; `RemoteAddr` remains
+the connection peer. `RateLimit` uses the same identity. `InternalOnly`
+always restricts the connection network, not the forwarded client's network.
+For custom stacks, install `ProxyHeaders` before rate limiting and before
+any middleware that changes `RemoteAddr`.
+
+See [Middleware reference](../docs/reference/middleware/README.md#client-ip-and-trusted-proxies)
+for chain traversal, header requirements, and migration details.
+
 ## Locale
 
 ```go
@@ -60,4 +81,4 @@ middleware.SetLocaleCookie(w, "es")
 ```
 
 See: `csrf.go`, `locale.go`, `cache.go`, `requestid.go`, `roles.go`,
-`ratelimit.go`, `stack.go`.
+`ratelimit.go`, `stack.go`, `proxy.go`.

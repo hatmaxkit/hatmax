@@ -13,16 +13,68 @@ note is [middleware/readme.md](../../../middleware/readme.md).
 
 ## Stacks
 
-`DefaultStack` returns `RequestID`, chi `RealIP`, chi `Logger`, and chi
-`Recoverer`, in that order.
+`DefaultStack(trustedProxies ...netip.Prefix)` returns `RequestID`,
+`ProxyHeaders`, chi `Logger`, and chi `Recoverer`, in that order. Calling
+`DefaultStack()` trusts no proxies and ignores forwarded IP headers.
 
-`DefaultInternal` returns that stack plus `InternalOnly`.
+`DefaultInternal(trustedProxies ...netip.Prefix)` returns that stack plus
+`InternalOnly`. The zero-argument call also trusts no proxies.
 
-`InternalOnly` responds `403` with `Forbidden` when `RemoteAddr` is not a
-loopback address, an address in `10.0.0.0/8`, `172.16.0.0/12`, or
-`192.168.0.0/16`, or a host text that starts with `fc00:` or `fd00:`. An
-unparseable address is rejected. IPv6 unique-local detection uses that text
-prefix, not `net.IP.IsPrivate`.
+`InternalOnly` responds `403` with `Forbidden` unless the connection peer is
+loopback, IPv4 private (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`),
+or IPv6 unique-local (`fc00::/7`). Unparseable addresses are rejected.
+IPv4-mapped IPv6 addresses are normalized to IPv4 before classification.
+When `ProxyHeaders` is installed, the original connection peer is retained
+even if later middleware changes `RemoteAddr`.
+
+This is a connection-network restriction, not end-client authorization.
+A private proxy can pass it even when forwarding a public client's request.
+An approved public proxy does not pass it by forwarding a private client IP.
+
+## Client IP and trusted proxies
+
+`ProxyHeaders(trustedProxies ...netip.Prefix)` snapshots the connection peer
+and records a resolved client IP in the request context. `ClientIP(r)` reads
+that value. Without this middleware, `ClientIP` reads only the connection
+peer and ignores headers. Valid IPs are canonicalized; an unparseable
+`RemoteAddr` is returned unchanged.
+
+Only a connection peer inside an explicitly supplied network can provide a
+forwarded identity. Private and loopback peers are not implicitly trusted.
+Supply IPv4 networks as IPv4 CIDRs, including for IPv4-mapped IPv6 peers.
+The middleware copies its policy at construction and never rewrites
+`RemoteAddr`. Chi's logger therefore reports the connection peer.
+
+For an approved peer:
+
+- All `X-Forwarded-For` header lines form one ordered comma-separated list.
+  The list is traversed from right to left through approved hops. The first
+  untrusted address is the client IP; entries to its left are ignored.
+- If every hop is approved, the leftmost address is the client IP.
+- A malformed hop reached during traversal falls back to the connection
+  peer, without trying `X-Real-IP`.
+- Only when `X-Forwarded-For` is absent, one `X-Real-IP` value may supply
+  the client IP. Multiple values or a malformed value fall back to the peer.
+- Header addresses must be bare IPv4 or IPv6 literals. Surrounding spaces
+  are removed. Ports, CIDRs, hostnames, brackets, and IPv6 zones are rejected.
+
+Install `ProxyHeaders` before `RateLimit` and before any middleware that
+rewrites `RemoteAddr`. Do not install chi `RealIP` before it. Use narrow
+proxy networks and configure those proxies to overwrite or correctly append
+forwarded headers; trusting a proxy does not sanitize its configuration.
+
+```go
+trustedProxy := netip.MustParsePrefix("192.0.2.10/32")
+router := app.NewRouter(logger,
+	app.WithMiddleware(middleware.DefaultStack(trustedProxy)...),
+)
+```
+
+For a custom stack, install `middleware.ProxyHeaders(trustedProxy)` directly.
+Existing applications that relied on automatic header trust must configure
+approved proxies and use `ClientIP(r)` instead of reading a rewritten
+`RemoteAddr`. Zero-argument stack calls still work; their function signatures
+now accept variadic network prefixes.
 
 ## Request ID
 
@@ -73,9 +125,11 @@ five minutes. `Allow(ip)` records the current time and returns true while
 that IP has fewer than `limit` timestamps inside the window. The next call
 returns false and does not record another timestamp.
 
-`RateLimit` takes the client IP from the first `X-Forwarded-For` entry, then
-`X-Real-IP`, then `RemoteAddr` with the last `:port` removed. A refused call
-responds `429` with `Too many requests`.
+`RateLimit` uses `ClientIP(r)`, so it shares the installed proxy policy.
+Without `ProxyHeaders`, rate buckets use only the connection peer. Ports
+are removed with IPv4/IPv6 address parsing, and equivalent IPv4-mapped or
+IPv6 representations share a bucket. A refused call responds `429` with
+`Too many requests`.
 
 ## Same origin
 

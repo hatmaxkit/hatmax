@@ -178,7 +178,8 @@ func TestRateLimitMiddleware(t *testing.T) {
 	}
 }
 
-func TestGetClientIP(t *testing.T) {
+// TestClientIPFallback verifies that without proxy policy only the socket peer is used.
+func TestClientIPFallback(t *testing.T) {
 	tests := []struct {
 		name       string
 		remoteAddr string
@@ -189,19 +190,19 @@ func TestGetClientIP(t *testing.T) {
 			name:       "X-Forwarded-For single IP",
 			remoteAddr: "127.0.0.1:8080",
 			headers:    map[string]string{"X-Forwarded-For": "203.0.113.195"},
-			wantIP:     "203.0.113.195",
+			wantIP:     "127.0.0.1",
 		},
 		{
 			name:       "X-Forwarded-For multiple IPs",
 			remoteAddr: "127.0.0.1:8080",
 			headers:    map[string]string{"X-Forwarded-For": "203.0.113.195, 70.41.3.18, 150.172.238.178"},
-			wantIP:     "203.0.113.195",
+			wantIP:     "127.0.0.1",
 		},
 		{
 			name:       "X-Real-IP",
 			remoteAddr: "127.0.0.1:8080",
 			headers:    map[string]string{"X-Real-IP": "203.0.113.195"},
-			wantIP:     "203.0.113.195",
+			wantIP:     "127.0.0.1",
 		},
 		{
 			name:       "RemoteAddr with port",
@@ -216,13 +217,13 @@ func TestGetClientIP(t *testing.T) {
 			wantIP:     "192.168.1.1",
 		},
 		{
-			name:       "X-Forwarded-For takes precedence",
+			name:       "both headers ignored without policy",
 			remoteAddr: "127.0.0.1:8080",
 			headers: map[string]string{
 				"X-Forwarded-For": "203.0.113.195",
 				"X-Real-IP":       "10.0.0.1",
 			},
-			wantIP: "203.0.113.195",
+			wantIP: "127.0.0.1",
 		},
 	}
 
@@ -235,9 +236,9 @@ func TestGetClientIP(t *testing.T) {
 				req.Header.Set(k, v)
 			}
 
-			got := getClientIP(req)
+			got := ClientIP(req)
 			if got != tt.wantIP {
-				t.Errorf("getClientIP() = %q, want %q", got, tt.wantIP)
+				t.Errorf("ClientIP() = %q, want %q", got, tt.wantIP)
 			}
 		})
 	}

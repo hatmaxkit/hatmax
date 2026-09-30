@@ -1,7 +1,7 @@
 ---
 id: TKT-20260930211800
 title: Bind proxy-derived identity to trusted peers
-status: open
+status: reviewing
 kind: bug
 severity: high
 priority: high
@@ -9,6 +9,11 @@ scope: api
 tags: architecture-review, api, hardening
 source: review
 reported_at: 2026-09-30T21:18:00Z
+ready_at: 2026-09-30T22:13:06Z
+started_at: 2026-09-30T22:13:06Z
+reviewed_at: 2026-09-30T22:22:30Z
+branch: fix/ticket-20260930211800-trusted-proxies
+pr: pending
 commits:
 ---
 <!--
@@ -37,3 +42,13 @@ Define one trusted-proxy policy. Preserve the socket peer for InternalOnly and a
 Test public peers with forged loopback/private headers, approved and unapproved proxy chains, and IPv4/IPv6 buckets. Verify both access restriction and rate limiting.
 
 Review: [Architecture Nit Review](../../report/20260930211800-architecture-nit-review.md#f1).
+
+## Implementation
+
+`ProxyHeaders` owns an explicit copied proxy-network policy and records peer
+and client identities separately. Default stacks trust no proxies. `RateLimit`
+uses `ClientIP`, while `InternalOnly` uses the retained socket peer.
+IPv4, IPv6, mapped IPv4, malformed headers, and unapproved chain boundaries
+are covered by regression tests and fuzzing.
+
+Delivery: [Trusted proxy identity](../../report/20260930222230-trusted-proxy-identity.md).

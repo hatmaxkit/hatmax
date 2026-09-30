@@ -34,9 +34,13 @@ router := app.NewRouter(
 )
 ```
 
-`DefaultStack` adds request IDs, real-IP handling, request logging, and panic
-recovery. Applications add only the middleware required by their contract,
-such as `middleware.RequireSameOrigin`, locale selection, telemetry, or a rate
+`DefaultStack` adds request IDs, connection-peer identity, request logging,
+and panic recovery. Forwarded client IPs require explicitly approved proxy
+networks; the zero-argument call ignores those headers. See the
+[trusted proxy contract](../../reference/middleware/README.md#client-ip-and-trusted-proxies)
+when deploying behind a proxy. Applications add only the middleware required
+by their contract, such as `middleware.RequireSameOrigin`, locale selection,
+telemetry, or a rate
 limit. Middleware order is behavior: each entry wraps the entries and handler
 that follow it.
 

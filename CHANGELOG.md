@@ -45,6 +45,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Complete application requests now preserve an explicitly supplied Go module
   path through target inspection instead of asking for it again.
 
+### Security
+
+- Forged forwarded-IP headers no longer bypass internal network restrictions
+  or reset rate limits. Proxy deployments must explicitly configure trusted
+  proxy networks; internal restrictions always check the connection peer.
+
 ## [0.5.0] - 2026-09-29
 
 ### Added
