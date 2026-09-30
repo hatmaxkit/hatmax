@@ -10,7 +10,7 @@ This file is part of Hatmax. See COPYING for license terms.
 Status: reviewing
 Ticket: [TKT-20260930211801](../ticket/reviewing/20260930211801-confine-local-image-storage-to-its-root.md)
 Branch: `fix/ticket-20260930211801-local-image-root`
-PR: pending
+PR: [#69](https://forge.adrianpk.com/hatmax/hatmax/pulls/69)
 
 ## Delivered Behavior
 

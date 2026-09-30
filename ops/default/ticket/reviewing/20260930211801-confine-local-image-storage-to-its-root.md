@@ -13,8 +13,8 @@ ready_at: 2026-09-30T22:41:15Z
 started_at: 2026-09-30T22:41:15Z
 reviewed_at: 2026-09-30T22:51:18Z
 branch: fix/ticket-20260930211801-local-image-root
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/69
+commits: 572354eed81bef370fb9dab3f8847915eb4437fe
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
