@@ -15,7 +15,7 @@ reviewed_at: 2026-09-30T17:37:41Z
 closed_at: 2026-09-30T17:37:41Z
 resolution: fixed
 branch: dev
-commits: 41c3c91c723b
+commits: 41c3c91c723b, 8428afbccb51
 ---
 
 ## Observed Behavior
