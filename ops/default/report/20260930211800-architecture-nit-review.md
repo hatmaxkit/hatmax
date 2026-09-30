@@ -101,7 +101,7 @@ TestObservedStorageEscape reproduced traversal and symlink escape inside owned t
 Severity: high
 Area: architecture
 File: `htmx/oob.go:81-82, htmx/oob.go:124-139`
-Ticket: [Escape OOB attributes before trusting HTML](../ticket/open/20260930211802-escape-oob-selectors-before-trusting-html.md)
+Ticket: [Escape OOB attributes before trusting HTML](../ticket/reviewing/20260930211802-escape-oob-selectors-before-trusting-html.md)
 
 Problem:
 OOB.Attr and OOBWrapper.Open interpolate selectors into quoted attributes and return trusted template types. A selector containing a quote creates an additional HTML attribute.

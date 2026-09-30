@@ -8,6 +8,7 @@ package htmx
 import (
 	"fmt"
 	"html/template"
+	"strings"
 )
 
 // OOB represents an out-of-band swap configuration.
@@ -77,9 +78,9 @@ func (o OOB) String() string {
 	return o.swap
 }
 
-// OOBAttr returns the full hx-swap-oob attribute.
+// Attr returns the full hx-swap-oob attribute with its value HTML-escaped.
 func (o OOB) Attr() template.HTMLAttr {
-	return template.HTMLAttr(fmt.Sprintf(`hx-swap-oob="%s"`, o.String()))
+	return template.HTMLAttr(fmt.Sprintf(`hx-swap-oob="%s"`, template.HTMLEscapeString(o.String())))
 }
 
 // OOBWrapper wraps content with an element that has hx-swap-oob set.
@@ -99,9 +100,11 @@ func OOBWrap(id string) *OOBWrapper {
 	}
 }
 
-// Tag sets the HTML tag for the wrapper (default: div).
+// Tag sets a supported paired HTML content tag, normalized to lowercase.
+// An empty tag selects div. Unsupported tags panic before changing the wrapper.
+// Raw-text, embedded, void, custom, and namespaced elements are not supported.
 func (w *OOBWrapper) Tag(tag string) *OOBWrapper {
-	w.tag = tag
+	w.tag = oobWrapperTag(tag)
 
 	return w
 }
@@ -128,16 +131,42 @@ func (w *OOBWrapper) Open() template.HTML {
 	}
 
 	return template.HTML(fmt.Sprintf(`<%s id="%s" hx-swap-oob="%s"%s>`,
-		w.tag,
+		oobWrapperTag(w.tag),
 		template.HTMLEscapeString(w.id),
-		w.oob.String(),
+		template.HTMLEscapeString(w.oob.String()),
 		classAttr,
 	))
 }
 
 // Close returns the closing tag.
 func (w *OOBWrapper) Close() template.HTML {
-	return template.HTML(fmt.Sprintf("</%s>", w.tag))
+	return template.HTML(fmt.Sprintf("</%s>", oobWrapperTag(w.tag)))
+}
+
+// oobWrapperTag keeps trusted fragments in normal HTML content contexts.
+// Tag syntax alone is insufficient: script and style change how content is read.
+func oobWrapperTag(tag string) string {
+	if tag == "" {
+		return "div"
+	}
+
+	tag = strings.ToLower(tag)
+
+	switch tag {
+	case "a", "abbr", "address", "article", "aside", "b", "bdi", "bdo",
+		"blockquote", "button", "caption", "cite", "code", "colgroup",
+		"data", "datalist", "dd", "del", "details", "dfn", "dialog", "div",
+		"dl", "dt", "em", "fieldset", "figcaption", "figure", "footer", "form",
+		"h1", "h2", "h3", "h4", "h5", "h6", "header", "hgroup", "i", "ins",
+		"kbd", "label", "legend", "li", "main", "mark", "menu", "meter", "nav",
+		"ol", "optgroup", "option", "output", "p", "pre", "progress", "q",
+		"rp", "rt", "ruby", "s", "samp", "section", "select", "small", "span",
+		"strong", "sub", "summary", "sup", "table", "tbody", "td", "template",
+		"tfoot", "th", "thead", "time", "tr", "u", "ul", "var":
+		return tag
+	default:
+		panic("htmx: unsupported OOB wrapper tag")
+	}
 }
 
 // joinClasses joins CSS class names with spaces.

@@ -108,12 +108,33 @@ Swap strategies are `innerHTML`, `outerHTML`, `beforeend`, `afterend`,
 
 `OOB` constructors are `OOBSwap`, `OOBInner`, `OOBOuter`, `OOBBeforeEnd`,
 `OOBAfterBegin`, `OOBBeforeBegin`, `OOBAfterEnd`, `OOBDelete`, and `OOBNone`.
-`Target` adds the selector. `String` renders the `hx-swap-oob` value. `Attr`
-returns it as `template.HTMLAttr`.
+`Target` adds the selector. `String` returns the unescaped `hx-swap-oob` value.
+`Attr` HTML-escapes that value once and returns the complete attribute as
+`template.HTMLAttr`. CSS selectors, including quoted attribute selectors, are
+preserved after the browser decodes the HTML attribute. Escaping does not
+restrict which DOM elements a selector can target.
 
-`OOBWrap(id)` builds a wrapper. `Tag` defaults to `div` when empty. `Swap`
-selects the out-of-band swap. `Class` adds classes. `Open` returns the start
-tag with `id` and `hx-swap-oob`. `Close` returns the end tag.
+`OOBWrap(id)` builds a wrapper. `Tag` defaults to `div` when empty and normalizes
+supported names to lowercase. `Swap` selects the out-of-band swap. `Class` adds
+classes. `Open` escapes the `id`, swap value, and classes before returning the
+start tag as `template.HTML`. `Close` returns the matching end tag.
+
+`Tag` accepts these paired HTML content elements:
+
+```text
+a abbr address article aside b bdi bdo blockquote button caption cite code
+colgroup data datalist dd del details dfn dialog div dl dt em fieldset figcaption
+figure footer form h1 h2 h3 h4 h5 h6 header hgroup i ins kbd label legend li main
+mark menu meter nav ol optgroup option output p pre progress q rp rt ruby s samp
+section select small span strong sub summary sup table tbody td template tfoot
+th thead time tr u ul var
+```
+
+Malformed, unsupported, raw-text, embedded, void, custom, and namespaced tags
+panic before changing the wrapper. `Open` and `Close` also validate their tag
+before returning trusted HTML. Use application-owned tags and the correct
+HTML nesting context; this builder does not sanitize content inserted between
+`Open` and `Close`.
 
 ## Template functions
 

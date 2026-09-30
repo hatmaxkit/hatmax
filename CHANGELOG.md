@@ -52,6 +52,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   proxy networks; internal restrictions always check the connection peer.
 - Local image storage now confines reads, writes, and deletes to its configured
   root, rejecting path traversal and preventing escapes through symbolic links.
+- Out-of-band HTMX swaps now escape selector values instead of allowing quotes
+  to inject HTML attributes or elements. Wrappers accept supported paired HTML
+  content tags; malformed or unsupported tags now panic.
 
 ## [0.5.0] - 2026-09-29
 
