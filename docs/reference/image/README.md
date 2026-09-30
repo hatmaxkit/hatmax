@@ -42,11 +42,32 @@ package does not supply an implementation.
 
 ## Local store
 
-`local.NewStore(basePath, baseURL)` stores those strings. `Put` creates
-missing parent directories with mode `0755` and writes the file under
-`basePath`. `Get` opens that file. `Delete` removes that file and does not
-remove directories. `URL` returns `baseURL + "/" + path`. `BasePath` returns
-the filesystem root.
+`local.NewStore(basePath, baseURL)` stores those strings without opening the
+filesystem. The configured root and its ancestors must be controlled by the
+application. `Put` creates a missing root and parent directories with mode
+`0755`. `Get` and `Delete` do not create the root.
+
+All three operations require a local, non-root object path. Empty paths,
+absolute paths, paths that escape lexically, and paths that normalize to `.`
+return an `os.PathError` wrapping `fs.ErrInvalid`. Nested paths remain valid;
+each accepted path is normalized with `filepath.Clean`.
+
+Each operation opens and closes an `os.Root` handle. Parent creation, file
+access, and deletion stay beneath that handle, including when a path component
+is replaced by an escaping symbolic link during the operation. Relative
+symlinks that resolve within the root are allowed. Absolute symlinks are not
+followed, even when their targets are inside the root.
+
+`Get` returns an independent file handle; the caller must close it. `Delete`
+removes the named entry without recursive deletion. A final symlink is
+unlinked, not followed, so removing it does not remove its target.
+
+Confinement inherits the [platform guarantees of Go's os.Root](https://pkg.go.dev/os#Root).
+It does not sandbox hard links, privileged mounts, or device files.
+`GOOS=js` does not provide protection against symlink replacement races.
+
+`URL` remains `baseURL + "/" + path`, without object-path validation or
+filesystem access. `BasePath` returns the configured string unchanged.
 
 ## S3 store
 

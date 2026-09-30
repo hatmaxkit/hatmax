@@ -8,6 +8,7 @@ package local
 import (
 	"context"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -22,21 +23,28 @@ type Store struct {
 
 // NewStore creates a new local filesystem store.
 // basePath is the root directory for file storage.
+// The configured root and its ancestors must be controlled by the application.
 // baseURL is the URL prefix for serving files (e.g., "/uploads").
 func NewStore(basePath, baseURL string) *Store {
 	return &Store{basePath: basePath, baseURL: baseURL}
 }
 
-// Put stores data at the given path.
+// Put stores data at a local, non-root path confined to the configured directory.
 func (s *Store) Put(ctx context.Context, path string, data io.Reader) error {
-	fullPath := filepath.Join(s.basePath, path)
+	root, err := s.openRoot(path, true)
+	if err != nil {
+		return err
+	}
+	defer root.Close()
 
-	err := os.MkdirAll(filepath.Dir(fullPath), 0755)
+	path = filepath.Clean(path)
+
+	err = root.MkdirAll(filepath.Dir(path), 0755)
 	if err != nil {
 		return err
 	}
 
-	f, err := os.Create(fullPath)
+	f, err := root.Create(path)
 	if err != nil {
 		return err
 	}
@@ -49,12 +57,43 @@ func (s *Store) Put(ctx context.Context, path string, data io.Reader) error {
 
 // Get returns a reader for the file at the given path.
 func (s *Store) Get(ctx context.Context, path string) (io.ReadCloser, error) {
-	return os.Open(filepath.Join(s.basePath, path))
+	root, err := s.openRoot(path, false)
+	if err != nil {
+		return nil, err
+	}
+	defer root.Close()
+
+	return root.Open(filepath.Clean(path))
 }
 
 // Delete removes the file at the given path.
 func (s *Store) Delete(ctx context.Context, path string) error {
-	return os.Remove(filepath.Join(s.basePath, path))
+	root, err := s.openRoot(path, false)
+	if err != nil {
+		return err
+	}
+	defer root.Close()
+
+	return root.Remove(filepath.Clean(path))
+}
+
+func (s *Store) openRoot(path string, create bool) (*os.Root, error) {
+	if !filepath.IsLocal(path) || filepath.Clean(path) == "." {
+		return nil, &os.PathError{Op: "image", Path: path, Err: fs.ErrInvalid}
+	}
+
+	basePath := filepath.Clean(s.basePath)
+
+	if create {
+		err := os.MkdirAll(basePath, 0755)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// A root handle confines traversal during the operation, including symlink
+	// replacement races. Checking a resolved path before opening it is not enough.
+	return os.OpenRoot(basePath)
 }
 
 // URL returns a servable URL for the image.

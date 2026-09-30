@@ -1,7 +1,7 @@
 ---
 id: TKT-20260930211801
 title: Confine local image storage to its root
-status: open
+status: reviewing
 kind: bug
 severity: high
 priority: high
@@ -9,6 +9,11 @@ scope: persistence
 tags: architecture-review, persistence, hardening
 source: review
 reported_at: 2026-09-30T21:18:01Z
+ready_at: 2026-09-30T22:41:15Z
+started_at: 2026-09-30T22:41:15Z
+reviewed_at: 2026-09-30T22:51:18Z
+branch: fix/ticket-20260930211801-local-image-root
+pr: pending
 commits:
 ---
 <!--
@@ -37,3 +42,13 @@ Enforce root-confined operations for all three methods, including symlink traver
 Test traversal, nested keys, symlinks, and attempts to replace path components. Assert that outside-root sentinels remain unchanged.
 
 Review: [Architecture Nit Review](../../report/20260930211800-architecture-nit-review.md#f2).
+
+## Implementation
+
+All filesystem operations use per-call `os.Root` handles. Object keys must be
+local and must not normalize to the root itself. Valid nested keys and relative
+contained symlinks remain supported. Root creation stays lazy and the public
+constructor is unchanged. External final symlinks can be unlinked without
+following their targets.
+
+Delivery: [Local image root confinement](../../report/20260930225118-local-image-root-confinement.md).

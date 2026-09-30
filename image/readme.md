@@ -49,6 +49,12 @@ type Store interface {
 
 Implementations: `local/`, `s3/`. Processor: `stdprocessor/`.
 
+Local storage accepts relative object paths and confines filesystem operations
+to its configured root. Traversal and escaping symlinks cannot read, overwrite,
+or remove files outside that root. The application must control the root and
+its ancestors. See the [local store reference](../docs/reference/image/README.md#local-store)
+for path validation, symlink semantics, and platform guarantees.
+
 `DefaultVariantSpecs` returns the standard large, medium, and thumbnail
 dimensions. The application chooses paths and persists `Image` and `Variant`
 metadata through its `Repository` implementation.

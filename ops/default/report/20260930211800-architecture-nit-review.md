@@ -80,7 +80,7 @@ Reproduced by TestObservedInternalBypass and TestObservedRateLimitBypass.
 Severity: high
 Area: persistence
 File: `image/local/store.go:31-57`
-Ticket: [Confine local image storage to its root](../ticket/open/20260930211801-confine-local-image-storage-to-its-root.md)
+Ticket: [Confine local image storage to its root](../ticket/reviewing/20260930211801-confine-local-image-storage-to-its-root.md)
 
 Problem:
 Put, Get, and Delete join an unchecked key to basePath. A ../sentinel key accesses the parent directory. A symlink beneath the configured root can also redirect Put outside that root.
