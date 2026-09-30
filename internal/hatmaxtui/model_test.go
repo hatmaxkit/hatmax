@@ -439,11 +439,21 @@ func readyModelWithSession(session *fakeSession) model {
 }
 
 type fakeSession struct {
-	current           conversation.Conversation
-	turnResult        conversation.SessionResult
-	approveResult     conversation.SessionResult
-	approvedOperation string
-	approvedDigest    string
+	current            conversation.Conversation
+	turnResult         conversation.SessionResult
+	turnErr            error
+	turnRequest        conversation.TurnRequest
+	approveResult      conversation.SessionResult
+	approveErr         error
+	approvedOperation  string
+	approvedDigest     string
+	cancelResult       conversation.SessionResult
+	cancelErr          error
+	cancelledOperation string
+	resetValue         conversation.Conversation
+	resetErr           error
+	closed             bool
+	closeErr           error
 }
 
 func (session *fakeSession) Current() conversation.Conversation {
@@ -451,10 +461,12 @@ func (session *fakeSession) Current() conversation.Conversation {
 }
 
 func (session *fakeSession) Turn(
-	context.Context,
-	conversation.TurnRequest,
+	_ context.Context,
+	request conversation.TurnRequest,
 ) (conversation.SessionResult, error) {
-	return session.turnResult, nil
+	session.turnRequest = request
+
+	return session.turnResult, session.turnErr
 }
 
 func (session *fakeSession) Approve(
@@ -465,20 +477,24 @@ func (session *fakeSession) Approve(
 	session.approvedOperation = operationID
 	session.approvedDigest = digest
 
-	return session.approveResult, nil
+	return session.approveResult, session.approveErr
 }
 
 func (session *fakeSession) Cancel(
-	context.Context,
-	string,
+	_ context.Context,
+	operationID string,
 ) (conversation.SessionResult, error) {
-	return conversation.SessionResult{}, nil
+	session.cancelledOperation = operationID
+
+	return session.cancelResult, session.cancelErr
 }
 
 func (session *fakeSession) Reset(context.Context) (conversation.Conversation, error) {
-	return conversation.Conversation{}, nil
+	return session.resetValue, session.resetErr
 }
 
 func (session *fakeSession) Close() error {
-	return nil
+	session.closed = true
+
+	return session.closeErr
 }
