@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211801
 title: Confine local image storage to its root
-status: reviewing
+status: solved
+resolution: fixed
 kind: bug
 severity: high
 priority: high
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:01Z
 ready_at: 2026-09-30T22:41:15Z
 started_at: 2026-09-30T22:41:15Z
 reviewed_at: 2026-09-30T22:51:18Z
+closed_at: 2026-09-30T22:56:47Z
 branch: fix/ticket-20260930211801-local-image-root
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/69
-commits: 572354eed81bef370fb9dab3f8847915eb4437fe
+commits: 572354eed81bef370fb9dab3f8847915eb4437fe, 0faab6a30ea3644d11d04a64274395d5e16474bf
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -52,3 +54,6 @@ constructor is unchanged. External final symlinks can be unlinked without
 following their targets.
 
 Delivery: [Local image root confinement](../../report/20260930225118-local-image-root-confinement.md).
+
+Merged into `dev` through PR #69 at
+`0faab6a30ea3644d11d04a64274395d5e16474bf`.

@@ -7,10 +7,11 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # Local Image Root Confinement
 
-Status: reviewing
-Ticket: [TKT-20260930211801](../ticket/reviewing/20260930211801-confine-local-image-storage-to-its-root.md)
+Status: delivered
+Ticket: [TKT-20260930211801](../ticket/solved/20260930211801-confine-local-image-storage-to-its-root.md)
 Branch: `fix/ticket-20260930211801-local-image-root`
 PR: [#69](https://forge.adrianpk.com/hatmax/hatmax/pulls/69)
+Integrated into `dev`: `0faab6a30ea3644d11d04a64274395d5e16474bf`
 
 ## Delivered Behavior
 
