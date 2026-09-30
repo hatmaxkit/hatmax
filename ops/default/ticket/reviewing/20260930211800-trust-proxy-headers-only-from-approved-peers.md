@@ -13,8 +13,8 @@ ready_at: 2026-09-30T22:13:06Z
 started_at: 2026-09-30T22:13:06Z
 reviewed_at: 2026-09-30T22:22:30Z
 branch: fix/ticket-20260930211800-trusted-proxies
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/68
+commits: 50409d8aa1e6d32af809cb4c66b6add66042d9e1
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK

@@ -10,7 +10,7 @@ This file is part of Hatmax. See COPYING for license terms.
 Status: reviewing
 Ticket: [TKT-20260930211800](../ticket/reviewing/20260930211800-trust-proxy-headers-only-from-approved-peers.md)
 Branch: `fix/ticket-20260930211800-trusted-proxies`
-PR: pending
+PR: [#68](https://forge.adrianpk.com/hatmax/hatmax/pulls/68)
 
 ## Delivered Behavior
 
