@@ -1,8 +1,8 @@
 ---
 id: TKT-20260929202947
 title: Refine conversational TUI presentation
-status: in_progress
-kind: enhancement
+status: solved
+kind: task
 severity: low
 priority: normal
 scope: ui
@@ -11,7 +11,11 @@ source: manual_test
 reported_at: 2026-09-29T20:29:47Z
 ready_at: 2026-09-30T06:27:37Z
 started_at: 2026-09-30T06:27:37Z
-commits:
+reviewed_at: 2026-09-30T17:37:41Z
+closed_at: 2026-09-30T17:37:41Z
+resolution: fixed
+branch: dev
+commits: 41c3c91c723b
 ---
 
 ## Observed Behavior
