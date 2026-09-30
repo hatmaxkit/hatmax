@@ -1,6 +1,7 @@
-// Copyright 2024 The Hatmax Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
+// SPDX-FileCopyrightText: 2024-2026 Adrian PK
+// SPDX-License-Identifier: GPL-3.0-only
+//
+// This file is part of Hatmax. See COPYING for license terms.
 
 package testhelper
 

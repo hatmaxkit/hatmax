@@ -1,3 +1,10 @@
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: GPL-3.0-only
+
+This file is part of Hatmax. See COPYING for license terms.
+-->
+
 # Test with Postgres
 
 Use `testhelper` when a package test needs a real Postgres connection.

@@ -1,3 +1,10 @@
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: GPL-3.0-only
+
+This file is part of Hatmax. See COPYING for license terms.
+-->
+
 # Models and Data Flow
 
 A Hatmax application carries one fact through several representations. Each

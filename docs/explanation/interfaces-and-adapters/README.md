@@ -1,3 +1,10 @@
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: GPL-3.0-only
+
+This file is part of Hatmax. See COPYING for license terms.
+-->
+
 # Interfaces and Adapter Ownership
 
 Hatmax places small interfaces at boundaries where an application may need a

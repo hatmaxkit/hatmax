@@ -17,6 +17,13 @@ resolution: fixed
 branch: dev
 commits: def040e7a4090c91e51fa5d546541139ce80aa55
 ---
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: GPL-3.0-only
+
+This file is part of Hatmax. See COPYING for license terms.
+-->
+
 
 ## Observed Behavior
 

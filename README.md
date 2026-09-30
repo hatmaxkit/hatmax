@@ -1,3 +1,10 @@
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: GPL-3.0-only
+
+This file is part of Hatmax. See COPYING for license terms.
+-->
+
 # HatMax
 
 <p align="center">
@@ -171,4 +178,5 @@ During the Forge migration, the `hatmax.adrianpk.com` vanity import page is serv
 
 ## License
 
-MIT
+Copyright 2026 Adrian PK. Licensed under the GNU General Public License
+version 3 only (`GPL-3.0-only`). See [COPYING](COPYING).

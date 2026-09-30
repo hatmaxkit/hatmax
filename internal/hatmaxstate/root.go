@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2026 Adrian PK
+// SPDX-License-Identifier: GPL-3.0-only
+//
+// This file is part of Hatmax. See COPYING for license terms.
+
 // Package hatmaxstate persists bounded Hatmax-owned conversation snapshots in
 // the operating system's per-user state location.
 package hatmaxstate

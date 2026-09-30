@@ -18,6 +18,13 @@ branch: feat/documentation-readme-layout
 pr: 47
 commits: a854c2750876, 92320c0fab6c, 6ba9c6be5185, b6225d7ef17f
 ---
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: GPL-3.0-only
+
+This file is part of Hatmax. See COPYING for license terms.
+-->
+
 
 ## Observed Behavior
 

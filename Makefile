@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Adrian PK
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of Hatmax. See COPYING for license terms.
+
 # Variables
 LIB_NAME = hatmax
 MODULE_NAME = hatmax.adrianpk.com
@@ -36,7 +41,8 @@ help:
 	@echo "  format                - Format code"
 	@echo "  vet                   - Run go vet"
 	@echo "  docs-check            - Check documentation structure, links, examples, and whitespace"
-	@echo "  check                 - Run all quality checks (fmt, vet, test, test-coverage-check, lint-strict)"
+	@echo "  source-license-check  - Check SPDX notices and content-preserving license metadata"
+	@echo "  check                 - Run license, formatting, vet, tests, coverage, and lint checks"
 	@echo "  ci                    - Run CI pipeline and update badges"
 	@echo "  update-badge          - Update coverage badge"
 	@echo ""
@@ -75,6 +81,9 @@ lint-fix:
 
 docs-check:
 	@bash scripts/docs-check.sh
+
+source-license-check:
+	@bash scripts/source-license-check.sh
 
 # Format code
 format:
@@ -183,7 +192,7 @@ vet:
 	@go vet ./...
 
 # Run all quality checks
-check: format vet test test-coverage-check lint-strict
+check: source-license-check format vet test test-coverage-check lint-strict
 	@echo "✅ All quality checks passed!"
 
 # CI pipeline - strict checks including 100% coverage, updates badges
@@ -239,4 +248,4 @@ install-hooks:
 	@echo "✅ Git hooks installed (core.hooksPath=.githooks)"
 
 # Phony targets
-.PHONY: all test test-v test-short test-coverage test-coverage-profile test-coverage-html test-coverage-func test-coverage-check test-coverage-100 test-coverage-summary vet check ci update-badge lint lint-check lint-strict lint-fix docs-check format help clean tidy download install-hooks
+.PHONY: all test test-v test-short test-coverage test-coverage-profile test-coverage-html test-coverage-func test-coverage-check test-coverage-100 test-coverage-summary vet check ci update-badge lint lint-check lint-strict lint-fix docs-check source-license-check format help clean tidy download install-hooks

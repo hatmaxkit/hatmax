@@ -1,3 +1,8 @@
+-- SPDX-FileCopyrightText: 2026 Adrian PK
+-- SPDX-License-Identifier: GPL-3.0-only
+--
+-- This file is part of Hatmax. See COPYING for license terms.
+
 -- name: UpsertTodoList :exec
 INSERT INTO todo_lists (id, user_id, created_at, updated_at)
 VALUES ($1, $2, $3, $4)

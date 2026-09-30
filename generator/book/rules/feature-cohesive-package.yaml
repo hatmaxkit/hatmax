@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Adrian PK
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of Hatmax. See COPYING for license terms.
+
 id: hatmax.feature.cohesive_package
 level: required
 title: Keep generated feature behavior in one feature-owned package

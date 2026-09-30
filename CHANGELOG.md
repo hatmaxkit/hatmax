@@ -1,3 +1,10 @@
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: GPL-3.0-only
+
+This file is part of Hatmax. See COPYING for license terms.
+-->
+
 # Changelog
 
 All notable changes to Hatmax are documented in this file.
@@ -21,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Hatmax now uses GNU GPL version 3 only (`GPL-3.0-only`) for its libraries,
+  generator, examples, and templates. Earlier MIT-licensed versions retain
+  their original terms.
 - `hm` is the canonical command for interactive and headless generation.
   `hatmax` remains a behaviorally equivalent compatibility alias for the first
   two tagged minor releases containing `hm`.

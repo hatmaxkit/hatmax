@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2026 Adrian PK
+// SPDX-License-Identifier: GPL-3.0-only
+//
+// This file is part of Hatmax. See COPYING for license terms.
+
 // Package intent defines and validates typed Hatmax generator intents.
 package intent
 

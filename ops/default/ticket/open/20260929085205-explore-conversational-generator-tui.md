@@ -11,6 +11,13 @@ source: chat
 reported_at: 2026-09-29T08:52:05Z
 commits:
 ---
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: GPL-3.0-only
+
+This file is part of Hatmax. See COPYING for license terms.
+-->
+
 
 ## Observed Behavior
 

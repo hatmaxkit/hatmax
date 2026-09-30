@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2026 Adrian PK
+// SPDX-License-Identifier: GPL-3.0-only
+//
+// This file is part of Hatmax. See COPYING for license terms.
+
 // Package eval defines provider-neutral evaluation contracts for the Hatmax
 // generator planning kernel.
 //

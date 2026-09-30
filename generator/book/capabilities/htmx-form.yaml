@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Adrian PK
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of Hatmax. See COPYING for license terms.
+
 id: htmx_form
 intent: Accept and render a progressively enhanced server-side form with HTMX.
 requires:

@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2026 Adrian PK
+// SPDX-License-Identifier: GPL-3.0-only
+//
+// This file is part of Hatmax. See COPYING for license terms.
+
 // Package conversation defines bounded durable conversation state without
 // granting stored text, intent, plans, or backend history project authority.
 package conversation

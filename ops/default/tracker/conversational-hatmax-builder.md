@@ -1,6 +1,13 @@
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: GPL-3.0-only
+
+This file is part of Hatmax. See COPYING for license terms.
+-->
+
 # Conversational Hatmax Builder Tracker
 
-Status: Approved
+Status: Delivered
 Delivery set: conversational-hatmax-builder
 Plan: `ops/default/plan/conversational-hatmax-builder.md`
 Umbrella spec: `ops/default/spec/interactive-hatmax-generator.md`
@@ -106,14 +113,22 @@ Execution gate: satisfied by `cbea3e0838c4ef25229b3822aebcf0f1dbcd2a91`
 - [x] Slice 6 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 7 is delivered through its branch, report, pull request, and merge.
 - [x] Slice 8 is delivered through its branch, report, pull request, and merge.
-- [ ] The exact integrated `dev` candidate passes the delivery-set gate.
+- [x] The exact integrated `dev` candidate passes the delivery-set gate.
 
 ## Current Gate
 
-All eight slices are delivered; Slice 8 merged through #63 at exact integrated
-commit `c854355a7b4d4effa767523a87e5827b28c80eb0`. Post-merge scaffold,
-conversation, race, authenticated Codex, vet, lint, documentation, and
-whitespace gates passed. The delivery-set gate remains incomplete only because
-Testcontainers cannot access `/var/run/docker.sock`; `make check` stops on that
-environmental permission error before its Postgres integration containers
-start.
+All eight slices are delivered; Slice 8 merged through #63 at integrated commit
+`c854355a7b4d4effa767523a87e5827b28c80eb0`. Post-merge scaffold, conversation,
+race, authenticated Codex, vet, lint, documentation, and whitespace gates
+passed. The earlier Docker access limitation no longer blocks closure:
+`make check` passed for integrated candidate
+`52c9c4fd80e26191c4563db07d289b57fa65d185` on 2026-09-30, using the normal Go
+test cache, with total coverage of 82.6% and no lint issues. This closes the
+delivery set. The generated-project dependency follow-up remains a separate
+ticket, not an unfinished slice.
+
+During the subsequent source-license normalization, `make check` also passed
+with a temporary isolated PostgreSQL 18.6 instance supplied through the
+existing `DB_*` test configuration. This executed the database tests without
+Docker access, with coverage still at 82.6%. Docker socket permissions were
+not changed.

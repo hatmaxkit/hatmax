@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2026 Adrian PK
+// SPDX-License-Identifier: GPL-3.0-only
+//
+// This file is part of Hatmax. See COPYING for license terms.
+
 // Package codex connects the Hatmax interpreter boundary to a local Codex App
 // Server without granting the server authority over planning or execution.
 package codex

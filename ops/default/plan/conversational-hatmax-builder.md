@@ -1,6 +1,13 @@
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: GPL-3.0-only
+
+This file is part of Hatmax. See COPYING for license terms.
+-->
+
 # Conversational Hatmax Builder Delivery Plan
 
-Status: Approved
+Status: Delivered
 Delivery set: conversational-hatmax-builder
 Slice strategy: layered
 Reason: application bootstrap and the conversational TUI cross existing Book,

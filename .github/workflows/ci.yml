@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Adrian PK
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of Hatmax. See COPYING for license terms.
+
 name: CI
 
 on:
@@ -14,6 +19,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Check source licensing
+        run: make source-license-check
 
       - name: Set up Go
         uses: actions/setup-go@v5
