@@ -7,10 +7,11 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # Trusted Proxy Identity
 
-Status: reviewing
-Ticket: [TKT-20260930211800](../ticket/reviewing/20260930211800-trust-proxy-headers-only-from-approved-peers.md)
+Status: delivered
+Ticket: [TKT-20260930211800](../ticket/solved/20260930211800-trust-proxy-headers-only-from-approved-peers.md)
 Branch: `fix/ticket-20260930211800-trusted-proxies`
 PR: [#68](https://forge.adrianpk.com/hatmax/hatmax/pulls/68)
+Integrated into `dev`: `8fcaedd5e3e32f758b5203baec2fc7aa52c318e9`
 
 ## Delivered Behavior
 

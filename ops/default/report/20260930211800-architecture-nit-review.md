@@ -59,7 +59,7 @@ possible defect or production deployment condition has been audited.
 Severity: high
 Area: architecture
 File: `middleware/stack.go:19, middleware/stack.go:39, middleware/ratelimit.go:115`
-Ticket: [Bind proxy-derived identity to trusted peers](../ticket/reviewing/20260930211800-trust-proxy-headers-only-from-approved-peers.md)
+Ticket: [Bind proxy-derived identity to trusted peers](../ticket/solved/20260930211800-trust-proxy-headers-only-from-approved-peers.md)
 
 Problem:
 DefaultStack installs chi RealIP without a trusted-proxy boundary. DefaultInternal then checks the rewritten RemoteAddr. A request from 192.0.2.10 with X-Forwarded-For: 127.0.0.1 receives HTTP 200 instead of 403. RateLimit independently trusts X-Forwarded-For and X-Real-IP, so changing these headers also changes the rate bucket.

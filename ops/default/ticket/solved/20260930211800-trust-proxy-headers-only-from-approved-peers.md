@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211800
 title: Bind proxy-derived identity to trusted peers
-status: reviewing
+status: solved
+resolution: fixed
 kind: bug
 severity: high
 priority: high
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:00Z
 ready_at: 2026-09-30T22:13:06Z
 started_at: 2026-09-30T22:13:06Z
 reviewed_at: 2026-09-30T22:22:30Z
+closed_at: 2026-09-30T22:33:24Z
 branch: fix/ticket-20260930211800-trusted-proxies
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/68
-commits: 50409d8aa1e6d32af809cb4c66b6add66042d9e1
+commits: 50409d8aa1e6d32af809cb4c66b6add66042d9e1, 8fcaedd5e3e32f758b5203baec2fc7aa52c318e9
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -52,3 +54,6 @@ IPv4, IPv6, mapped IPv4, malformed headers, and unapproved chain boundaries
 are covered by regression tests and fuzzing.
 
 Delivery: [Trusted proxy identity](../../report/20260930222230-trusted-proxy-identity.md).
+
+Merged into `dev` through PR #68 at
+`8fcaedd5e3e32f758b5203baec2fc7aa52c318e9`.
