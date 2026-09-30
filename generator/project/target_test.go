@@ -80,7 +80,7 @@ func TestInspectTargetClassifiesCreationTargets(t *testing.T) {
 			name: "other Go module",
 			prepare: func(t *testing.T, _ string, target string) {
 				t.Helper()
-				writeProjectFile(t, target, "go.mod", "module example.com/other\n\ngo 1.24.0\n")
+				writeProjectFile(t, target, "go.mod", "module example.com/other\n\ngo 1.26.0\n")
 			},
 			admission: TargetIncompatible,
 			collision: "go.mod",

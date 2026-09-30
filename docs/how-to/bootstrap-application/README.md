@@ -11,7 +11,7 @@ Use this procedure to create a minimal Hatmax process with a health endpoint.
 
 ## Create the module
 
-Hatmax currently declares Go 1.24 in its module. Create a directory and add the
+Hatmax currently declares Go 1.26 in its module. Create a directory and add the
 dependency:
 
 ```sh

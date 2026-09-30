@@ -67,7 +67,7 @@ A todo list is the archetypical example for a reason: it's familiar, simple to u
 
 ## Prerequisites
 
-- Go 1.24+
+- Go 1.26.0+
 - PostgreSQL running locally
 - Make
 - sqlc (for regenerating queries)

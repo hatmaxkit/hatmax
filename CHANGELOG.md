@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Hatmax and newly scaffolded applications now require Go 1.26 or newer.
+- Dependencies now use their latest compatible module versions, including
+  updates that address known security advisories.
 - Hatmax now uses GNU GPL version 3 only (`GPL-3.0-only`) for its libraries,
   generator, examples, and templates. Earlier MIT-licensed versions retain
   their original terms.

@@ -125,7 +125,7 @@ func setupTestContainerWithConfig(t *testing.T, ctx context.Context) (*config.Co
 	cfg := &config.Config{
 		Database: config.DatabaseConfig{
 			Host:     host,
-			Port:     port.Int(),
+			Port:     int(port.Num()),
 			User:     "postgres",
 			Password: "postgres",
 			Database: "testdb",

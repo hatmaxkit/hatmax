@@ -26,7 +26,8 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
+          go-version: "1.26.x"
+          check-latest: true
 
       - name: Install golangci-lint
         run: |
@@ -61,7 +62,8 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
+          go-version: "1.26.x"
+          check-latest: true
 
       - name: Download dependencies
         run: go mod download
@@ -114,7 +116,8 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
+          go-version: "1.26.x"
+          check-latest: true
 
       - name: Build
         run: go build -v ./...

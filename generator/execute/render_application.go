@@ -46,18 +46,18 @@ var applicationFoundationRecipes = map[string]applicationRecipe{
 		target: "go.mod",
 		template: `module {{.ModulePath}}
 
-go 1.24.0
+go 1.26.0
 
 require (
-	github.com/go-chi/chi/v5 v5.2.3
+	github.com/go-chi/chi/v5 v5.3.2
 	hatmax.adrianpk.com {{.HatmaxVersion}}
 )
 `,
 	},
 	applicationChecksumsRecipe: {
 		target: "go.sum",
-		template: `github.com/go-chi/chi/v5 v5.2.3 h1:WQIt9uxdsAbgIYgid+BpYc+liqQZGMHRaUwp0JUcvdE=
-github.com/go-chi/chi/v5 v5.2.3/go.mod h1:L2yAIGWB3H+phAw1NxKwWM+7eUH/lU8pOMm5hHcoops=
+		template: `github.com/go-chi/chi/v5 v5.3.2 h1:5YQkICvTCSZ25hoRsyJazN0scjzKGiu4VAUc7H1o1nY=
+github.com/go-chi/chi/v5 v5.3.2/go.mod h1:R+tYY2hNuVUUjxoPtqUdgBqevM9s9njzkTLutVsOCto=
 hatmax.adrianpk.com v0.5.0 h1:9LptUn0pjo9c1um7rhwwYYAhmDyg/ejjQBzm7X7UM3U=
 hatmax.adrianpk.com v0.5.0/go.mod h1:X8IRNfizbKzpeyDUTs2iSuzpPvuF8zNa2ndkGC6c6Yg=
 `,
