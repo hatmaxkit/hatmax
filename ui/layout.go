@@ -168,7 +168,7 @@ func (h *PageHeader) Render() template.HTML {
 
 			if crumb.Href != "" {
 				fmt.Fprintf(&html, `<a href="%s">%s</a>`,
-					template.HTMLEscapeString(crumb.Href),
+					escapeURL(crumb.Href),
 					template.HTMLEscapeString(crumb.Label))
 			} else {
 				fmt.Fprintf(&html, `<span>%s</span>`, template.HTMLEscapeString(crumb.Label))

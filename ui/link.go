@@ -113,11 +113,11 @@ func (l *Link) HX() *LinkHX {
 	return &LinkHX{link: l, attrs: htmx.NewAttrs()}
 }
 
-// Render renders the link to HTML.
+// Render renders the link to HTML with standard template URL filtering.
 func (l *Link) Render() template.HTML {
 	var attrs []string
 
-	attrs = append(attrs, fmt.Sprintf(`href="%s"`, template.HTMLEscapeString(l.href)))
+	attrs = append(attrs, fmt.Sprintf(`href="%s"`, escapeURL(l.href)))
 
 	if l.class != "" {
 		attrs = append(attrs, fmt.Sprintf(`class="%s"`, template.HTMLEscapeString(l.class)))

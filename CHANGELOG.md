@@ -55,6 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Out-of-band HTMX swaps now escape selector values instead of allowing quotes
   to inject HTML attributes or elements. Wrappers accept supported paired HTML
   content tags; malformed or unsupported tags now panic.
+- UI links, navigation, breadcrumbs, and form actions now use standard Go
+  template URL filtering. Unsupported schemes such as `javascript:` and `data:`
+  are neutralized; relative URLs, HTTP, HTTPS, and `mailto:` remain supported.
 
 ## [0.5.0] - 2026-09-29
 

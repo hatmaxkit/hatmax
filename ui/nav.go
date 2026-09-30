@@ -79,7 +79,7 @@ func (n *NavGrid) Render() template.HTML {
 	fmt.Fprintf(&html, `<nav class="%s" style="--nav-cols: %d">`, strings.Join(classes, " "), n.cols)
 
 	for _, item := range n.items {
-		fmt.Fprintf(&html, `<a href="%s" class="nav-grid__item">`, template.HTMLEscapeString(item.Href))
+		fmt.Fprintf(&html, `<a href="%s" class="nav-grid__item">`, escapeURL(item.Href))
 
 		if item.Emoji != "" {
 			fmt.Fprintf(&html, `<span class="nav-grid__emoji">%s</span>`, item.Emoji)
@@ -170,7 +170,7 @@ func (n *Nav) Render() template.HTML {
 		}
 
 		fmt.Fprintf(&html, `<a href="%s" class="%s">`,
-			template.HTMLEscapeString(item.Href),
+			escapeURL(item.Href),
 			linkClass)
 
 		if item.Emoji != "" {

@@ -93,10 +93,35 @@ non-empty error marks the field. `bool` renders a checkbox. `enum` renders a
 select from `Options` and `Labels`. `Secret` renders a password input. Other
 types render a text input.
 
-`Form.Open` escapes action, method, class, id, enctype, the CSRF field name,
-and the token. `Render` is `Open` followed by `Close`. `HX` on a form, link,
-button, or delete button returns that component's HTMX builder. `Done` returns
-the component.
+`Form.Open` filters and escapes action, and HTML-escapes method, class, id,
+enctype, the CSRF field name, and the token. `Render` is `Open` followed by
+`Close`. `HX` on a form, link, button, or delete button returns that component's
+HTMX builder. `Done` returns the component.
+
+### URL attributes
+
+`Link`, `Nav`, `NavGrid`, and `PageHeader` breadcrumbs filter native `href`
+values. `Form`, `DeleteButton`, and `SettingsForm` apply the same policy to
+native `action` values. Filtering occurs when rendering, before returning
+trusted `template.HTML`.
+
+These values are passed as plain strings through `html/template`'s quoted URL
+context. It permits relative URLs and case-insensitive `http`, `https`, and
+`mailto` schemes. Unsupported schemes, including `javascript`, `data`, `file`,
+and `tel`, become the inert `#ZgotmplZ` fragment. Scheme detection is
+conservative: a colon before the first slash is treated as a candidate scheme,
+even in fragment or query text. For example, `#section:1` is rejected.
+
+Allowed URLs receive standard template URL normalization and HTML escaping.
+Spaces, quotes, controls, and non-ASCII bytes are percent-encoded; query
+ampersands are HTML-escaped once. Existing valid percent escapes are preserved.
+Encoded or entity-looking input is not recursively decoded into a scheme.
+
+Empty form actions remain omitted. Empty breadcrumb URLs still render labels
+without links; other links retain an empty `href`. External and network-relative
+HTTP destinations remain allowed. This is not an origin allowlist, URL validity
+check, or authorization policy. Caller-supplied trusted HTML and custom HTMX
+attributes remain application-owned and are not sanitized by this policy.
 
 ### Common builder groups
 

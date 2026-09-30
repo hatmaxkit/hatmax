@@ -122,7 +122,7 @@ TestObservedOOBInjection reproduced a new data-review-injected attribute through
 Severity: high
 Area: architecture
 File: `ui/link.go:117-154`
-Ticket: [Filter unsafe URL schemes in trusted link rendering](../ticket/open/20260930211803-filter-unsafe-link-url-schemes.md)
+Ticket: [Filter unsafe URL schemes in trusted link rendering](../ticket/reviewing/20260930211803-filter-unsafe-link-url-schemes.md)
 
 Problem:
 Link.Render HTML-escapes href but does not apply URL-context filtering before returning template.HTML. javascript:alert(1) is rendered unchanged; a normal html/template href renders the same value as #ZgotmplZ.

@@ -122,7 +122,7 @@ func (f *Form) Open() template.HTML {
 	var attrs []string
 
 	if f.action != "" {
-		attrs = append(attrs, fmt.Sprintf(`action="%s"`, template.HTMLEscapeString(f.action)))
+		attrs = append(attrs, fmt.Sprintf(`action="%s"`, escapeURL(f.action)))
 	}
 
 	attrs = append(attrs, fmt.Sprintf(`method="%s"`, template.HTMLEscapeString(f.method)))
@@ -314,7 +314,7 @@ func (d *DeleteButton) Render() template.HTML {
 
 	formAttrs := `method="post" class="inline-form"`
 	if d.action != "" {
-		formAttrs += fmt.Sprintf(` action="%s"`, template.HTMLEscapeString(d.action))
+		formAttrs += fmt.Sprintf(` action="%s"`, escapeURL(d.action))
 	}
 
 	if d.attrs != nil {

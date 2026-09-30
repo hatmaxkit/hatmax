@@ -93,7 +93,7 @@ func (f *SettingsForm) Render() template.HTML {
 		template.HTMLEscapeString(f.method))
 
 	if f.action != "" {
-		fmt.Fprintf(&html, ` action="%s"`, template.HTMLEscapeString(f.action))
+		fmt.Fprintf(&html, ` action="%s"`, escapeURL(f.action))
 	}
 
 	html.WriteString(`>`)
