@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211802
 title: Escape OOB attributes before trusting HTML
-status: reviewing
+status: solved
+resolution: fixed
 kind: bug
 severity: high
 priority: high
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:02Z
 ready_at: 2026-09-30T23:04:07Z
 started_at: 2026-09-30T23:04:07Z
 reviewed_at: 2026-09-30T23:11:12Z
+closed_at: 2026-09-30T23:35:19Z
 branch: fix/ticket-20260930211802-oob-escaping
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/70
-commits: 3b466c5f4c3611e3552d0cc60336f6f4aafc9d48
+commits: 3b466c5f4c3611e3552d0cc60336f6f4aafc9d48, 2570c4a68c7456bec9c8364d939ec0f156ee4287
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -52,3 +54,6 @@ when empty. Unsupported tags panic before mutation; both rendering methods
 also validate the tag before returning trusted HTML.
 
 Delivery: [OOB rendering safety](../../report/20260930231112-oob-rendering-safety.md).
+
+Merged into `dev` through PR #70 at
+`2570c4a68c7456bec9c8364d939ec0f156ee4287`.

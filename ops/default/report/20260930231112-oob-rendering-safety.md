@@ -7,11 +7,12 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # OOB Rendering Safety
 
-Status: reviewing
-Ticket: [TKT-20260930211802](../ticket/reviewing/20260930211802-escape-oob-selectors-before-trusting-html.md)
+Status: delivered
+Ticket: [TKT-20260930211802](../ticket/solved/20260930211802-escape-oob-selectors-before-trusting-html.md)
 Branch: `fix/ticket-20260930211802-oob-escaping`
 PR: [#70](https://forge.adrianpk.com/hatmax/hatmax/pulls/70)
 Implementation: `3b466c5f4c3611e3552d0cc60336f6f4aafc9d48`
+Integrated into `dev`: `2570c4a68c7456bec9c8364d939ec0f156ee4287`
 
 ## Delivered Behavior
 
