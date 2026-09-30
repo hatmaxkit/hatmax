@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `hm` is the canonical command for interactive and headless generation.
   `hatmax` remains a behaviorally equivalent compatibility alias for the first
   two tagged minor releases containing `hm`.
+- The `hm` TUI now uses the full terminal as a restrained chat surface, keeps
+  exceptional controls and active phases in one contextual footer, groups
+  related clarification questions for one combined reply, animates
+  indeterminate work, and presents human plan summaries before optional
+  typed-plan and diagnostic details.
 - Complete application requests now preserve an explicitly supplied Go module
   path through target inspection instead of asking for it again.
 

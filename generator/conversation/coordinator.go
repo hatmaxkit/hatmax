@@ -53,8 +53,8 @@ type SessionOptions struct {
 	Fresh          bool
 }
 
-// TurnRequest is one visible user turn. Decisions is optional when exactly
-// one focused clarification is pending; in that case Content is its answer.
+// TurnRequest is one visible user turn. Decisions is optional while focused
+// clarifications are pending; in that case Content is their combined answer.
 type TurnRequest struct {
 	Content   string
 	Decisions []Decision
@@ -665,11 +665,15 @@ func plannedOperation(value Conversation, id string) (ProposedOperation, error) 
 
 func bindTurnDecisions(operation ProposedOperation, request TurnRequest) ([]Decision, error) {
 	decisions := append([]Decision{}, request.Decisions...)
-	if len(decisions) == 0 && len(operation.Pending) == 1 {
-		decisions = []Decision{{
-			Field: operation.Pending[0].Field, Question: operation.Pending[0].Question,
-			Answer: strings.TrimSpace(request.Content),
-		}}
+	if len(decisions) == 0 {
+		answer := strings.TrimSpace(request.Content)
+		decisions = make([]Decision, 0, len(operation.Pending))
+
+		for _, pending := range operation.Pending {
+			decisions = append(decisions, Decision{
+				Field: pending.Field, Question: pending.Question, Answer: answer,
+			})
+		}
 	}
 
 	if len(decisions) != len(operation.Pending) {
@@ -781,11 +785,13 @@ func resultSummary(result interaction.Result) string {
 		summary = "interaction failed"
 	}
 
-	if len(result.Diagnostics) > 0 {
-		summary += ": " + result.Diagnostics[0].Message
+	if result.Outcome == interaction.OutcomeValidationIncomplete {
+		summary += ": generated changes were applied; required external tests could not run"
+	} else if len(result.Diagnostics) > 0 {
+		summary += ": " + conversationDiagnosticMessage(result.Diagnostics[0])
 	}
 
-	if len(result.RetainedChanges) > 0 {
+	if result.Outcome != interaction.OutcomeValidationIncomplete && len(result.RetainedChanges) > 0 {
 		targets := make([]string, 0, len(result.RetainedChanges))
 		for _, change := range result.RetainedChanges {
 			targets = append(targets, change.Target)
@@ -810,13 +816,38 @@ func appendResultTurns(value *Conversation, operationID string, result interacti
 	}
 
 	for _, diagnostic := range result.Diagnostics {
-		err := value.AppendTurn(RoleHatmax, TurnDiagnostic, diagnostic.Code+": "+diagnostic.Message, operationID, now)
+		message := diagnostic.Code + ": " + conversationDiagnosticMessage(diagnostic)
+
+		err := value.AppendTurn(RoleHatmax, TurnDiagnostic, message, operationID, now)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func conversationDiagnosticMessage(diagnostic interaction.Diagnostic) string {
+	normalized := strings.ToLower(diagnostic.Code + " " + diagnostic.Message)
+	if strings.Contains(normalized, "docker") || strings.Contains(normalized, "testcontainers") {
+		if strings.Contains(normalized, "permission denied") {
+			return "Docker-based tests could not run because Docker is not accessible to the current user."
+		}
+
+		return "Docker-based tests could not run because Docker infrastructure is unavailable."
+	}
+
+	message, _, _ := strings.Cut(strings.TrimSpace(diagnostic.Message), "\n")
+	if strings.HasPrefix(strings.ToLower(message), "observed ") {
+		return "validation did not meet the expected condition"
+	}
+
+	const maximumConversationDiagnosticBytes = 512
+	if len(message) > maximumConversationDiagnosticBytes {
+		message = message[:maximumConversationDiagnosticBytes]
+	}
+
+	return message
 }
 
 func randomLocalID(prefix string) (string, error) {

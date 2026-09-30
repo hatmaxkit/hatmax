@@ -62,14 +62,38 @@ Any other `generate` shape prints usage and exits with status `2`.
 | `Enter` | Send the composer contents. |
 | `Ctrl+J` | Insert a newline. |
 | `Ctrl+A` | Approve the currently displayed plan. |
+| `Ctrl+D` | Toggle the typed plan and technical details when available. |
 | `Esc` | Cancel in-flight work, cancel the pending proposal, or clear the composer. |
 | `Ctrl+N` | Start a new conversation for the same scope. |
-| `Ctrl+H` | Toggle the complete key help. |
+| `F1` or `Ctrl+H` | Toggle the complete key help. |
 | `Ctrl+C` | Cancel in-flight work and exit. |
 
 Approval is available only for the exact pending plan digest. Ordinary
 conversation, questions, and informal replies never create an implicit
 operation.
+
+The approval view presents a human summary of the concrete application or
+feature change by default. Use `Ctrl+D` to inspect the complete typed plan,
+Book evidence, and machine diagnostic identifiers. Conversation results keep
+validation failures concise; raw command output and stack traces are not
+rendered into the chat.
+
+The compact footer omits conventional send and quit reminders. It shows only
+contextual actions, active work phases, and the `F1` help entrypoint. Multiple
+clarification questions appear as one numbered Hatmax message and accept one
+combined response.
+
+## Development Playground
+
+From a Hatmax source checkout, create a fresh isolated scope, compile the
+current `hm`, prepare its local generation tools, and open the TUI with:
+
+```sh
+make generator-playground
+```
+
+Each invocation creates a new timestamped directory under
+`~/Projects/playground/hatmax`; it never resumes an earlier test conversation.
 
 ## Supported Operations
 

@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
-	"charm.land/bubbles/v2/help"
 	"charm.land/bubbles/v2/key"
-	"charm.land/bubbles/v2/progress"
 	"charm.land/bubbles/v2/textarea"
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
@@ -17,9 +16,9 @@ import (
 )
 
 const (
-	defaultWidth  = 80
-	defaultHeight = 24
-	composerLines = 4
+	defaultWidth     = 80
+	defaultHeight    = 24
+	composerMaxLines = 6
 )
 
 // Session is the conversational kernel surface consumed by the TUI adapter.
@@ -46,6 +45,7 @@ type keyMap struct {
 	cancel  key.Binding
 	reset   key.Binding
 	help    key.Binding
+	details key.Binding
 	quit    key.Binding
 }
 
@@ -56,19 +56,9 @@ func newKeyMap() keyMap {
 		approve: key.NewBinding(key.WithKeys("ctrl+a"), key.WithHelp("ctrl+a", "approve plan")),
 		cancel:  key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel")),
 		reset:   key.NewBinding(key.WithKeys("ctrl+n"), key.WithHelp("ctrl+n", "new conversation")),
-		help:    key.NewBinding(key.WithKeys("ctrl+h"), key.WithHelp("ctrl+h", "more help")),
+		help:    key.NewBinding(key.WithKeys("f1", "ctrl+h"), key.WithHelp("f1", "help")),
+		details: key.NewBinding(key.WithKeys("ctrl+d"), key.WithHelp("ctrl+d", "details")),
 		quit:    key.NewBinding(key.WithKeys("ctrl+c"), key.WithHelp("ctrl+c", "quit")),
-	}
-}
-
-func (bindings keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{bindings.submit, bindings.approve, bindings.cancel, bindings.help, bindings.quit}
-}
-
-func (bindings keyMap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{bindings.submit, bindings.newline, bindings.approve, bindings.cancel},
-		{bindings.reset, bindings.help, bindings.quit},
 	}
 }
 
@@ -88,63 +78,74 @@ type resetFinishedMsg struct {
 	err   error
 }
 
+type activityTickMsg struct {
+	id uint64
+}
+
 type model struct {
-	ctx       context.Context
-	root      string
-	sessions  SessionFactory
-	session   Session
-	value     conversation.Conversation
-	viewport  viewport.Model
-	composer  textarea.Model
-	help      help.Model
-	progress  progress.Model
-	keys      keyMap
-	width     int
-	height    int
-	status    string
-	detail    string
-	pendingID string
-	digest    string
-	busy      bool
-	cancel    context.CancelFunc
+	ctx           context.Context
+	root          string
+	sessions      SessionFactory
+	session       Session
+	value         conversation.Conversation
+	viewport      viewport.Model
+	composer      textarea.Model
+	keys          keyMap
+	width         int
+	height        int
+	status        string
+	summary       string
+	detail        string
+	showDetail    bool
+	showHelp      bool
+	pendingID     string
+	digest        string
+	busy          bool
+	activityID    uint64
+	activityFrame int
+	cancel        context.CancelFunc
 }
 
 func newModel(ctx context.Context, root string, sessions SessionFactory) model {
 	composer := textarea.New()
 	composer.Placeholder = "Describe what you want to build with Hatmax"
-	composer.Prompt = "> "
+	composer.ShowLineNumbers = false
+	composer.SetPromptFunc(composerPromptWidth, composerPrompt)
 	composer.CharLimit = conversation.MaximumTurnBytes
 	composer.KeyMap.InsertNewline.SetKeys("ctrl+j")
-	composer.SetHeight(composerLines)
-	composer.SetWidth(defaultWidth)
+	composer.MaxHeight = composerMaxLines
+	composer.SetHeight(1)
+	composer.SetWidth(defaultWidth - composerHorizontalFrame)
+	composer.SetStyles(composerStyles(composer.Styles()))
 	composer.Focus()
 
 	conversationView := viewport.New(
 		viewport.WithWidth(defaultWidth),
-		viewport.WithHeight(defaultHeight-composerLines-6),
+		viewport.WithHeight(defaultHeight-4),
 	)
 	conversationView.SetContent("Opening the local Hatmax conversation...")
 
-	helpModel := help.New()
-	helpModel.SetWidth(defaultWidth)
-
-	progressModel := progress.New(progress.WithDefaultBlend())
-	progressModel.SetWidth(defaultWidth)
-
-	return model{
+	value := model{
 		ctx: ctx, root: root, sessions: sessions,
 		viewport: conversationView,
 		composer: composer,
-		help:     helpModel,
-		progress: progressModel,
 		keys:     newKeyMap(),
 		width:    defaultWidth, height: defaultHeight,
-		status: "Opening conversation", busy: true,
+		status: "Opening", busy: true, activityID: 1,
 	}
+	value.resizeSurfaces()
+
+	return value
 }
 
 func (m model) Init() tea.Cmd {
-	return tea.Batch(textarea.Blink, m.openSession())
+	return tea.Batch(textarea.Blink, m.openSession(), activityTick(m.activityID))
+}
+
+func activityTick(id uint64) tea.Cmd {
+	return tea.Tick(120*time.Millisecond, func(time.Time) tea.Msg {
+		return activityTickMsg{id: id}
+	})
 }
 
 func (m model) openSession() tea.Cmd {
@@ -168,11 +169,21 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	switch message := message.(type) {
 	case tea.WindowSizeMsg:
 		m.resize(message.Width, message.Height)
+	case activityTickMsg:
+		if !m.busy || message.id != m.activityID {
+			return m, nil
+		}
+
+		m.activityFrame++
+
+		return m, activityTick(m.activityID)
 	case sessionOpenedMsg:
 		m.busy = false
 		if message.err != nil {
-			m.status = "Conversation unavailable"
+			m.status = "Unavailable"
+			m.summary = failureSummary("Hatmax could not open the local conversation.", message.err)
 			m.detail = message.err.Error()
+			m.resizeSurfaces()
 			m.refreshViewport()
 
 			return m, nil
@@ -181,6 +192,7 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		m.session = message.session
 		m.value = message.value
 		m.status = "Ready"
+		m.resizeSurfaces()
 		m.refreshViewport()
 
 		return m, nil
@@ -194,15 +206,19 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		m.cancel = nil
 		if message.err != nil {
 			m.status = "Reset failed"
+			m.summary = failureSummary("Hatmax could not start a new conversation.", message.err)
 			m.detail = message.err.Error()
 		} else {
 			m.value = message.value
 			m.pendingID = ""
 			m.digest = ""
+			m.summary = ""
 			m.detail = ""
+			m.showDetail = false
 			m.status = "New conversation"
 		}
 
+		m.resizeSurfaces()
 		m.refreshViewport()
 
 		return m, nil
@@ -213,22 +229,29 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 
 			return m, tea.Quit
 		case key.Matches(message, m.keys.help):
-			m.help.ShowAll = !m.help.ShowAll
+			m.showHelp = !m.showHelp
+
+			return m, nil
+		case key.Matches(message, m.keys.details) && m.detail != "":
+			m.showDetail = !m.showDetail
+			m.refreshViewport()
+
+			return m, nil
 		case key.Matches(message, m.keys.approve):
 			if command := m.approve(); command != nil {
-				return m, command
+				return m, tea.Batch(command, activityTick(m.activityID))
 			}
 		case key.Matches(message, m.keys.reset):
 			if command := m.reset(); command != nil {
-				return m, command
+				return m, tea.Batch(command, activityTick(m.activityID))
 			}
 		case key.Matches(message, m.keys.cancel):
 			if command := m.cancelOperation(); command != nil {
-				return m, command
+				return m, tea.Batch(command, activityTick(m.activityID))
 			}
 		case key.Matches(message, m.keys.submit):
 			if command := m.submit(); command != nil {
-				return m, command
+				return m, tea.Batch(command, activityTick(m.activityID))
 			}
 
 			return m, nil
@@ -239,9 +262,10 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 
 	m.composer, command = m.composer.Update(message)
 	commands = append(commands, command)
+
+	m.resizeComposer()
+	m.resizeSurfaces()
 	m.viewport, command = m.viewport.Update(message)
-	commands = append(commands, command)
-	m.progress, command = m.progress.Update(message)
 	commands = append(commands, command)
 
 	return m, tea.Batch(commands...)
@@ -255,10 +279,13 @@ func (m *model) submit() tea.Cmd {
 
 	ctx, cancel := context.WithCancel(m.ctx)
 	m.cancel = cancel
-	m.busy = true
-	m.status = "Interpreting"
+	m.beginActivity("Planning")
+	m.summary = ""
 	m.detail = ""
+	m.showDetail = false
 	m.composer.Reset()
+	m.resizeComposer()
+	m.resizeSurfaces()
 
 	session := m.session
 
@@ -276,8 +303,7 @@ func (m *model) approve() tea.Cmd {
 
 	ctx, cancel := context.WithCancel(m.ctx)
 	m.cancel = cancel
-	m.busy = true
-	m.status = "Executing approved plan"
+	m.beginActivity("Executing")
 
 	session := m.session
 	operationID := m.pendingID
@@ -307,8 +333,7 @@ func (m *model) cancelOperation() tea.Cmd {
 
 	ctx, cancel := context.WithCancel(m.ctx)
 	m.cancel = cancel
-	m.busy = true
-	m.status = "Cancelling proposal"
+	m.beginActivity("Cancelling")
 
 	session := m.session
 	operationID := m.pendingID
@@ -327,8 +352,7 @@ func (m *model) reset() tea.Cmd {
 
 	ctx, cancel := context.WithCancel(m.ctx)
 	m.cancel = cancel
-	m.busy = true
-	m.status = "Starting new conversation"
+	m.beginActivity("Resetting")
 
 	session := m.session
 
@@ -347,8 +371,11 @@ func (m *model) finishWork(result conversation.SessionResult, err error) {
 	}
 
 	if err != nil {
-		m.status = "Operation failed"
+		m.status = "Failed"
+		m.summary = failureSummary("Hatmax could not complete the operation.", err)
 		m.detail = err.Error()
+		m.showDetail = false
+		m.resizeSurfaces()
 		m.refreshViewport()
 
 		return
@@ -356,7 +383,9 @@ func (m *model) finishWork(result conversation.SessionResult, err error) {
 
 	m.value = result.Conversation
 	m.status = outcomeStatus(result.Interaction.Outcome)
+	m.summary = resultSummary(result)
 	m.detail = resultDetail(result)
+	m.showDetail = false
 	m.pendingID = ""
 	m.digest = ""
 
@@ -365,6 +394,7 @@ func (m *model) finishWork(result conversation.SessionResult, err error) {
 		m.digest = result.Interaction.Plan.Digest
 	}
 
+	m.resizeSurfaces()
 	m.refreshViewport()
 }
 
@@ -373,6 +403,14 @@ func (m *model) cancelWork() {
 		m.cancel()
 		m.cancel = nil
 	}
+}
+
+func (m *model) beginActivity(status string) {
+	m.busy = true
+	m.status = status
+	m.activityID++
+	m.activityFrame = 0
+	m.resizeSurfaces()
 }
 
 func (m model) close() {
@@ -390,122 +428,34 @@ func (m *model) resize(width, height int) {
 
 	m.width = width
 	m.height = height
-	m.composer.SetWidth(width)
-	m.help.SetWidth(width)
-	m.progress.SetWidth(width)
-	m.viewport.SetWidth(width)
-	m.viewport.SetHeight(max(1, height-composerLines-6))
+	m.composer.SetWidth(max(1, width-composerHorizontalFrame))
+	m.resizeComposer()
+	m.resizeSurfaces()
+	m.refreshViewport()
 }
 
 func (m *model) refreshViewport() {
-	m.viewport.SetContent(conversationPresentation(m.value, m.detail))
+	m.viewport.SetContent(conversationPresentation(
+		m.value,
+		m.summary,
+		m.detail,
+		m.showDetail,
+		m.viewport.Width(),
+	))
 	m.viewport.GotoBottom()
 }
 
 func (m model) View() tea.View {
-	heading := lipgloss.NewStyle().Bold(true).Render("Hatmax")
-	status := lipgloss.NewStyle().Faint(true).Render("Status: " + m.status)
-
-	parts := []string{heading, m.viewport.View(), m.composer.View(), status}
+	parts := []string{headingView()}
 	if m.busy {
-		parts = append(parts, m.progress.ViewAs(0.55))
+		parts = append(parts, activityView(m.width, m.activityFrame))
 	}
 
-	parts = append(parts, m.help.View(m.keys))
+	parts = append(parts, m.viewport.View(), composerView(m.composer.View(), m.width), m.footerView())
 
 	view := tea.NewView(lipgloss.JoinVertical(lipgloss.Left, parts...))
 	view.AltScreen = true
 	view.WindowTitle = "Hatmax"
 
 	return view
-}
-
-func conversationPresentation(value conversation.Conversation, detail string) string {
-	var output strings.Builder
-
-	if len(value.Turns) == 0 {
-		output.WriteString("Build and evolve Hatmax applications through conversation.")
-	}
-
-	for _, turn := range value.Turns {
-		speaker := "You"
-		if turn.Role == conversation.RoleHatmax {
-			speaker = "Hatmax"
-		}
-
-		fmt.Fprintf(&output, "%s [%s]\n%s\n\n", speaker, turn.Kind, turn.Content)
-	}
-
-	if detail != "" {
-		fmt.Fprintf(&output, "Details\n%s", detail)
-	}
-
-	return strings.TrimSpace(output.String())
-}
-
-func outcomeStatus(outcome interaction.Outcome) string {
-	switch outcome {
-	case interaction.OutcomeConversationResponse:
-		return "Conversation"
-	case interaction.OutcomeClarificationRequired:
-		return "Clarification required"
-	case interaction.OutcomePlanReady:
-		return "Plan ready for approval"
-	case interaction.OutcomeCompleted:
-		return "Completed"
-	case interaction.OutcomeValidationIncomplete:
-		return "Completed; validation incomplete"
-	case interaction.OutcomeUnsupported:
-		return "Unsupported Hatmax request"
-	case interaction.OutcomeIntentRejected:
-		return "Intent rejected"
-	case interaction.OutcomePlanStale:
-		return "Plan stale"
-	case interaction.OutcomeExecutionFailed:
-		return "Execution failed"
-	case interaction.OutcomeCancelled:
-		return "Cancelled"
-	default:
-		return "Failed"
-	}
-}
-
-func resultDetail(result conversation.SessionResult) string {
-	var detail strings.Builder
-
-	interactionResult := result.Interaction
-
-	if len(interactionResult.PlanYAML) > 0 {
-		fmt.Fprintf(&detail, "Plan\n%s", interactionResult.PlanYAML)
-
-		if !strings.HasSuffix(detail.String(), "\n") {
-			detail.WriteByte('\n')
-		}
-	}
-
-	for _, diagnostic := range interactionResult.Diagnostics {
-		fmt.Fprintf(&detail, "Diagnostic %s (%s): %s\n", diagnostic.Code, diagnostic.Phase, diagnostic.Message)
-	}
-
-	for _, change := range interactionResult.FreshnessChanges {
-		fmt.Fprintf(&detail, "Stale %s: %s\n", change.Kind, change.Path)
-	}
-
-	for _, change := range interactionResult.RetainedChanges {
-		fmt.Fprintf(&detail, "Retained %s: %s\n", change.Kind, change.Target)
-	}
-
-	if interactionResult.Report != nil {
-		fmt.Fprintf(&detail, "Conformance: %t\n", interactionResult.Report.Conformance.Passed)
-
-		for _, command := range interactionResult.Report.Commands {
-			fmt.Fprintf(&detail, "Validation %s: exit %d\n", command.Name, command.ExitCode)
-		}
-	}
-
-	if result.PersistenceFailed {
-		detail.WriteString("Local conversation persistence failed; this session continues in memory only.\n")
-	}
-
-	return strings.TrimSpace(detail.String())
 }

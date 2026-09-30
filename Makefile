@@ -41,6 +41,7 @@ help:
 	@echo "  update-badge          - Update coverage badge"
 	@echo ""
 	@echo "Utilities:"
+	@echo "  generator-playground  - Build hm and open a fresh fully tooled TUI playground"
 	@echo "  clean                 - Clean coverage files and test cache"
 	@echo "  tidy                  - Run go mod tidy"
 	@echo "  download              - Download dependencies"
@@ -106,6 +107,9 @@ generator-scaffold-acceptance:
 generator-conversation-acceptance:
 	@go test -tags=acceptance -count=1 ./generator/conversation
 	@go test -count=1 ./internal/hatmaxstate ./internal/hatmaxtui ./internal/hatmaxcli
+
+generator-playground:
+	@bash scripts/generator-playground.sh
 
 # Run tests with coverage
 test-coverage:

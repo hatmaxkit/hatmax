@@ -92,6 +92,10 @@ result: application identity, requested features and fields, affected layers,
 validation, tests, and documentation scope. No project file has changed at
 this point.
 
+The default view summarizes that result in product terms. Press `Ctrl+D` when
+you need the complete typed plan, Book evidence, or machine diagnostic
+identifiers; press it again to return to the summary.
+
 Press `Ctrl+A` to approve the plan currently displayed in the TUI. Approval is
 bound to that exact plan and the inspected project state; it is not a reusable
 permission for later changes.
@@ -154,9 +158,10 @@ does not require `hm` or Codex at runtime.
 | `Enter` | Send the composer contents. |
 | `Ctrl+J` | Insert a newline in the composer. |
 | `Ctrl+A` | Approve the currently displayed plan. |
+| `Ctrl+D` | Toggle technical details when the current result provides them. |
 | `Esc` | Cancel current work or the pending proposal; otherwise clear the composer. |
 | `Ctrl+N` | Start a new conversation for the current directory or project. |
-| `Ctrl+H` | Show or hide complete key help. |
+| `F1` or `Ctrl+H` | Show or hide complete key help. |
 | `Ctrl+C` | Cancel active work and exit safely. |
 
 ## Resume or Reset Conversation State

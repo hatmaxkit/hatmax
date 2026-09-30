@@ -102,6 +102,52 @@ func TestCoordinatorResumesClarificationReinspectsAndReplacesThread(t *testing.T
 	}
 }
 
+func TestCoordinatorBindsOneCombinedTurnToEveryPendingClarification(t *testing.T) {
+	ctx := context.Background()
+	root := t.TempDir()
+	writeModule(t, root)
+
+	clock := &testClock{value: time.Date(2026, time.September, 30, 9, 0, 0, 0, time.UTC)}
+	engine := &fakeTurnEngine{fingerprint: testFingerprintA, previews: []interaction.Result{
+		multipleClarificationResult("thread-old"),
+		featurePlanResult("thread-replacement"),
+	}}
+	coordinator := newConversationCoordinator(t, engine, clock)
+
+	session, err := coordinator.Open(ctx, root, conversation.SessionOptions{})
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+	defer session.Close()
+
+	_, err = session.Turn(ctx, conversation.TurnRequest{Content: "Add an invoice feature."})
+	if err != nil {
+		t.Fatalf("Turn(goal) error = %v", err)
+	}
+
+	answer := "Use /invoices with a required number string field."
+
+	result, err := session.Turn(ctx, conversation.TurnRequest{Content: answer})
+	if err != nil {
+		t.Fatalf("Turn(combined answer) error = %v", err)
+	}
+
+	if result.Interaction.Outcome != interaction.OutcomePlanReady {
+		t.Fatalf("outcome = %q, want %q", result.Interaction.Outcome, interaction.OutcomePlanReady)
+	}
+
+	clarifications := engine.requests[1].Clarifications
+	if len(clarifications) != 2 {
+		t.Fatalf("clarifications = %#v, want two bound answers", clarifications)
+	}
+
+	for _, clarification := range clarifications {
+		if clarification.Answer != answer {
+			t.Errorf("answer for %q = %q, want combined answer", clarification.Field, clarification.Answer)
+		}
+	}
+}
+
 func TestCoordinatorRebindsApplicationConversationAndSupportsFreshReset(t *testing.T) {
 	ctx := context.Background()
 	parent := t.TempDir()
@@ -513,6 +559,15 @@ func clarificationResult(threadID string) interaction.Result {
 			Timing: eval.TimingUnderSecond,
 		}}},
 	}
+}
+
+func multipleClarificationResult(threadID string) interaction.Result {
+	result := clarificationResult(threadID)
+	result.Clarifications = append(result.Clarifications, intent.Clarification{
+		Field: "domain.fields", Question: "Which fields belong to invoices?",
+	})
+
+	return result
 }
 
 func featurePlanResult(threadID string) interaction.Result {
