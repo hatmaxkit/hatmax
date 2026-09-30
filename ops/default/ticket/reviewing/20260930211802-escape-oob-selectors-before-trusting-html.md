@@ -13,8 +13,8 @@ ready_at: 2026-09-30T23:04:07Z
 started_at: 2026-09-30T23:04:07Z
 reviewed_at: 2026-09-30T23:11:12Z
 branch: fix/ticket-20260930211802-oob-escaping
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/70
+commits: 3b466c5f4c3611e3552d0cc60336f6f4aafc9d48
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK

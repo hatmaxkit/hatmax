@@ -10,7 +10,8 @@ This file is part of Hatmax. See COPYING for license terms.
 Status: reviewing
 Ticket: [TKT-20260930211802](../ticket/reviewing/20260930211802-escape-oob-selectors-before-trusting-html.md)
 Branch: `fix/ticket-20260930211802-oob-escaping`
-PR: pending
+PR: [#70](https://forge.adrianpk.com/hatmax/hatmax/pulls/70)
+Implementation: `3b466c5f4c3611e3552d0cc60336f6f4aafc9d48`
 
 ## Delivered Behavior
 
