@@ -7,11 +7,12 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # UI URL Rendering Safety
 
-Status: reviewing
-Ticket: [TKT-20260930211803](../ticket/reviewing/20260930211803-filter-unsafe-link-url-schemes.md)
+Status: delivered
+Ticket: [TKT-20260930211803](../ticket/solved/20260930211803-filter-unsafe-link-url-schemes.md)
 Branch: `fix/ticket-20260930211803-safe-ui-urls`
 PR: [#71](https://forge.adrianpk.com/hatmax/hatmax/pulls/71)
 Implementation: `e2aaefae1d35ba92d0d14cdec6473b8104ef855a`
+Integrated into `dev`: `1ba19698199ac9d75c95fce1cfa4606760636163`
 
 ## Delivered Behavior
 

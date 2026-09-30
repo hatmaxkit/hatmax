@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211803
 title: Filter unsafe URL schemes in trusted link rendering
-status: reviewing
+status: solved
+resolution: fixed
 kind: bug
 severity: high
 priority: high
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:03Z
 ready_at: 2026-09-30T23:38:26Z
 started_at: 2026-09-30T23:38:26Z
 reviewed_at: 2026-09-30T23:45:18Z
+closed_at: 2026-09-30T23:49:15Z
 branch: fix/ticket-20260930211803-safe-ui-urls
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/71
-commits: e2aaefae1d35ba92d0d14cdec6473b8104ef855a
+commits: e2aaefae1d35ba92d0d14cdec6473b8104ef855a, 1ba19698199ac9d75c95fce1cfa4606760636163
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -52,3 +54,6 @@ Unsupported schemes become `#ZgotmplZ`; existing empty-value behavior remains
 unchanged. Custom trusted HTML and HTMX attributes are outside this policy.
 
 Delivery: [UI URL rendering safety](../../report/20260930234518-ui-url-rendering-safety.md).
+
+Merged into `dev` through PR #71 at
+`1ba19698199ac9d75c95fce1cfa4606760636163`.
