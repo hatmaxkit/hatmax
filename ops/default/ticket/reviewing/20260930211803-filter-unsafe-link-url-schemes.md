@@ -13,8 +13,8 @@ ready_at: 2026-09-30T23:38:26Z
 started_at: 2026-09-30T23:38:26Z
 reviewed_at: 2026-09-30T23:45:18Z
 branch: fix/ticket-20260930211803-safe-ui-urls
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/71
+commits: e2aaefae1d35ba92d0d14cdec6473b8104ef855a
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
