@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"hatmax.adrianpk.com/config"
 	"hatmax.adrianpk.com/log"
 	"hatmax.adrianpk.com/pubsub"
@@ -61,7 +62,7 @@ type DBProvider interface {
 
 // Broker implements pubsub.Broker using PostgreSQL.
 // Messages are stored in an append-only table and delivered via polling.
-// Each subscriber maintains its own offset for fan-out semantics.
+// Each subscriber maintains its own message acknowledgements for fan-out.
 type Broker struct {
 	dbProvider    DBProvider
 	db            *sql.DB
@@ -100,9 +101,20 @@ func (b *Broker) Start(ctx context.Context) error {
 		return fmt.Errorf("database connection not available")
 	}
 
-	_, err := b.db.ExecContext(ctx, Schema)
+	tx, err := b.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("cannot begin pubsub schema migration: %w", err)
+	}
+	defer tx.Rollback()
+
+	_, err = tx.ExecContext(ctx, Schema)
 	if err != nil {
 		return fmt.Errorf("cannot create pubsub schema: %w", err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("cannot commit pubsub schema migration: %w", err)
 	}
 
 	b.log.Info("PubSub schema initialized")
@@ -156,7 +168,7 @@ func (b *Broker) Publish(ctx context.Context, topic string, env pubsub.Envelope)
 // Subscribe registers a handler for the given topic.
 // Each call creates a new subscription with fan-out semantics.
 // If opts.SubscriberID is empty, a UUID is generated (ephemeral subscription).
-// Named subscribers resume from their last offset after restart.
+// Named subscribers resume their unacknowledged messages after restart.
 func (b *Broker) Subscribe(ctx context.Context, topic string, handler pubsub.Handler, opts pubsub.SubscribeOptions) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -245,30 +257,22 @@ func (b *Broker) getOrCreateSubscription(ctx context.Context, subscriberID, topi
 	).Scan(&lastOffset)
 
 	if err == sql.ErrNoRows {
-		// Create new subscription starting from current position
-		// This means new subscribers only see messages published after they subscribe
-		var maxID sql.NullInt64
-
-		err = b.db.QueryRowContext(ctx,
-			"SELECT COALESCE(MAX(id), 0) FROM pubsub_messages WHERE topic = $1",
-			topic,
-		).Scan(&maxID)
-		if err != nil {
-			return 0, err
-		}
-
-		lastOffset = maxID.Int64
-
-		_, err = b.db.ExecContext(ctx,
-			`INSERT INTO pubsub_subscriptions (id, topic, last_message_id, created_at, updated_at)
-			 VALUES ($1, $2, $3, NOW(), NOW())`,
-			subscriberID, topic, lastOffset,
-		)
-		if err != nil {
-			return 0, err
-		}
-
-		return lastOffset, nil
+		// One statement snapshot excludes only committed history visible now.
+		// In-flight messages, including lower IDs, remain eligible after commit.
+		err = b.db.QueryRowContext(ctx, `
+			WITH registered AS (
+				INSERT INTO pubsub_subscriptions
+					(id, topic, last_message_id, acknowledgements_initialized)
+				VALUES ($1, $2,
+					(SELECT COALESCE(MAX(id), 0) FROM pubsub_messages WHERE topic = $2), TRUE)
+				RETURNING id, last_message_id
+			), history AS (
+				INSERT INTO pubsub_acknowledgements (subscriber_id, message_id)
+				SELECT s.id, m.id FROM registered s
+				JOIN pubsub_messages m ON m.topic = $2
+			)
+			SELECT last_message_id FROM registered`, subscriberID, topic,
+		).Scan(&lastOffset)
 	}
 
 	return lastOffset, err
@@ -295,20 +299,25 @@ func (b *Broker) pollLoop(ctx context.Context, sub *subscription) {
 
 func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
 	query := `
-		SELECT id, message_id, topic, payload, metadata, created_at
-		FROM pubsub_messages
-		WHERE topic = $1 AND id > $2
-		ORDER BY id
+		SELECT m.id, m.message_id, m.topic, m.payload, m.metadata, m.created_at
+		FROM pubsub_messages m
+		WHERE m.topic = $1 AND NOT EXISTS (
+			SELECT 1 FROM pubsub_acknowledgements a
+			WHERE a.subscriber_id = $2 AND a.message_id = m.id
+		)
+		ORDER BY m.id
 		LIMIT $3
 	`
 
-	rows, err := b.db.QueryContext(ctx, query, sub.topic, sub.lastOffset, b.cfg.BatchSize)
+	rows, err := b.db.QueryContext(ctx, query, sub.topic, sub.id, b.cfg.BatchSize)
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
 
-	var lastProcessedID int64
+	var processedIDs []int64
+
+	lastProcessedID := sub.lastOffset
 
 	for rows.Next() {
 		var (
@@ -325,13 +334,14 @@ func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
 			return err
 		}
 
+		processedIDs = append(processedIDs, id)
+		lastProcessedID = max(lastProcessedID, id)
+
 		var payloadData any
 
 		err = json.Unmarshal(payload, &payloadData)
 		if err != nil {
 			b.log.Errorf("Cannot unmarshal payload for message %s: %v", messageID, err)
-
-			lastProcessedID = id
 
 			continue
 		}
@@ -356,8 +366,6 @@ func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
 			b.log.Errorf("Handler error for message %s: %v", messageID, err)
 			// Continue processing other messages
 		}
-
-		lastProcessedID = id
 	}
 
 	err = rows.Err()
@@ -365,9 +373,9 @@ func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
 		return err
 	}
 
-	// Update offset if we processed any messages
-	if lastProcessedID > sub.lastOffset {
-		err := b.updateOffset(ctx, sub.id, lastProcessedID)
+	// Persist exact rows, even when their IDs are below the diagnostic offset.
+	if len(processedIDs) > 0 {
+		err := b.acknowledgeBatch(ctx, sub.id, processedIDs, lastProcessedID)
 		if err != nil {
 			return err
 		}
@@ -378,11 +386,17 @@ func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
 	return nil
 }
 
-func (b *Broker) updateOffset(ctx context.Context, subscriberID string, offset int64) error {
-	_, err := b.db.ExecContext(ctx,
-		"UPDATE pubsub_subscriptions SET last_message_id = $1, updated_at = NOW() WHERE id = $2",
-		offset, subscriberID,
-	)
+func (b *Broker) acknowledgeBatch(ctx context.Context, subscriberID string, ids []int64, offset int64) error {
+	// A single statement commits acknowledgements and diagnostic progress together.
+	_, err := b.db.ExecContext(ctx, `
+		WITH acknowledged AS (
+			INSERT INTO pubsub_acknowledgements (subscriber_id, message_id)
+			SELECT $1, UNNEST($2::bigint[])
+			ON CONFLICT DO NOTHING
+		)
+		UPDATE pubsub_subscriptions
+		SET last_message_id = GREATEST(last_message_id, $3), updated_at = NOW()
+		WHERE id = $1`, subscriberID, pq.Array(ids), offset)
 
 	return err
 }

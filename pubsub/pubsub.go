@@ -33,9 +33,9 @@ type Handler func(ctx context.Context, env Envelope) error
 
 // SubscribeOptions configures subscription behavior.
 type SubscribeOptions struct {
-	// SubscriberID identifies this subscriber for offset tracking.
+	// SubscriberID identifies this subscriber for durable delivery tracking.
 	// If empty, a UUID is auto-generated (ephemeral subscription).
-	// Named subscribers resume from their last offset after restart.
+	// Named subscribers resume from their stored progress after restart.
 	SubscriberID string
 }
 

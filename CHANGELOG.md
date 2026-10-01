@@ -45,6 +45,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Complete application requests now preserve an explicitly supplied Go module
   path through target inspection instead of asking for it again.
 
+### Fixed
+
+- PostgreSQL subscribers no longer miss messages whose transactions commit
+  after messages with higher IDs. Per-message delivery tracking survives named
+  subscriber restarts and preserves independent fan-out delivery.
+
 ### Security
 
 - Forged forwarded-IP headers no longer bypass internal network restrictions

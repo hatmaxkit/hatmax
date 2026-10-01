@@ -1,7 +1,7 @@
 ---
 id: TKT-20260930211804
 title: Prevent pubsub loss across out-of-order commits
-status: open
+status: reviewing
 kind: bug
 severity: high
 priority: high
@@ -9,6 +9,11 @@ scope: persistence
 tags: architecture-review, persistence, hardening
 source: review
 reported_at: 2026-09-30T21:18:04Z
+ready_at: 2026-09-30T23:54:34Z
+started_at: 2026-09-30T23:54:34Z
+reviewed_at: 2026-10-01T00:09:27Z
+branch: fix/ticket-20260930211804-pubsub-commits
+pr: pending
 commits:
 ---
 <!--
@@ -37,3 +42,17 @@ Use a durable delivery or acknowledgement strategy that cannot skip late-committ
 Add a deterministic two-transaction PostgreSQL regression, then verify restart, batch boundaries, and ordinary fan-out delivery.
 
 Review: [Architecture Nit Review](../../report/20260930211800-architecture-nit-review.md#f5).
+
+## Implementation
+
+PostgreSQL polling now selects rows without an exact acknowledgement for the
+subscriber instead of excluding every ID below a scalar cursor. Late commits
+remain eligible across polls and named-subscriber restarts. Registration excludes
+only visible topic history in one statement snapshot; legacy offsets are migrated
+once, transactionally, without replaying their visible processed history.
+
+Batch acknowledgements and diagnostic progress commit atomically. Batch bounds,
+fan-out, startup rollback, and persistence rollback have deterministic database
+coverage. Handler-error retry policy remains assigned to the separate F6 ticket.
+
+Delivery: [Pubsub commit-safe delivery](../../report/20261001000927-pubsub-commit-safe-delivery.md).

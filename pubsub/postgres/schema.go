@@ -18,9 +18,10 @@ CREATE TABLE IF NOT EXISTS pubsub_messages (
 );
 
 CREATE INDEX IF NOT EXISTS idx_pubsub_messages_topic ON pubsub_messages(topic);
+CREATE INDEX IF NOT EXISTS idx_pubsub_messages_topic_id ON pubsub_messages(topic, id);
 CREATE INDEX IF NOT EXISTS idx_pubsub_messages_created_at ON pubsub_messages(created_at);
 
--- Subscriber offsets (per-subscriber cursor for fan-out)
+-- Legacy offsets remain diagnostic; acknowledgements determine pending delivery.
 CREATE TABLE IF NOT EXISTS pubsub_subscriptions (
     id TEXT PRIMARY KEY,
     topic TEXT NOT NULL,
@@ -30,4 +31,26 @@ CREATE TABLE IF NOT EXISTS pubsub_subscriptions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_pubsub_subscriptions_topic ON pubsub_subscriptions(topic);
+
+ALTER TABLE pubsub_subscriptions
+    ADD COLUMN IF NOT EXISTS acknowledgements_initialized BOOLEAN NOT NULL DEFAULT FALSE;
+
+CREATE TABLE IF NOT EXISTS pubsub_acknowledgements (
+    subscriber_id TEXT NOT NULL REFERENCES pubsub_subscriptions(id) ON DELETE CASCADE,
+    message_id BIGINT NOT NULL REFERENCES pubsub_messages(id) ON DELETE CASCADE,
+    PRIMARY KEY (subscriber_id, message_id)
+);
+
+-- Seed visible legacy history once. Later low-ID commits must not be reseeded.
+WITH initialized AS (
+    UPDATE pubsub_subscriptions
+    SET acknowledgements_initialized = TRUE
+    WHERE NOT acknowledgements_initialized
+    RETURNING id, topic, last_message_id
+)
+INSERT INTO pubsub_acknowledgements (subscriber_id, message_id)
+SELECT s.id, m.id
+FROM initialized s
+JOIN pubsub_messages m ON m.topic = s.topic AND m.id <= s.last_message_id
+ON CONFLICT DO NOTHING;
 `

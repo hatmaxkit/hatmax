@@ -44,4 +44,6 @@ type Subscriber interface {
 }
 ```
 
-At-least-once delivery. Named subscribers resume from last offset.
+Named PostgreSQL subscribers resume from per-message acknowledgement records.
+See the [delivery contract](../docs/reference/pubsub/README.md#postgres) for
+commit visibility, migration, and failure behavior.
