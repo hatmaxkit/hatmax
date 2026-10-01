@@ -6,6 +6,7 @@
 package s3
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -18,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"hatmax.adrianpk.com/image"
+	"hatmax.adrianpk.com/image/internal/ingest"
 )
 
 // Store implements image.Store using S3-compatible storage.
@@ -73,9 +75,10 @@ func NewStore(ctx context.Context, opts Options) (*Store, error) {
 	}, nil
 }
 
-// Put stores data at the given path.
+// Put accepts at most 20 MiB before uploading data at the given path. It checks
+// cancellation between reads without taking ownership of the input reader.
 func (s *Store) Put(ctx context.Context, path string, data io.Reader) error {
-	buf, err := io.ReadAll(data)
+	buf, err := ingest.ReadAll(ctx, data)
 	if err != nil {
 		return fmt.Errorf("s3: cannot read data: %w", err)
 	}
@@ -85,7 +88,7 @@ func (s *Store) Put(ctx context.Context, path string, data io.Reader) error {
 	_, err = s.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(s.bucket),
 		Key:         aws.String(path),
-		Body:        strings.NewReader(string(buf)),
+		Body:        bytes.NewReader(buf),
 		ContentType: aws.String(contentType),
 	})
 	if err != nil {

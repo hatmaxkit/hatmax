@@ -87,6 +87,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Image resizing and S3 uploads now reject encoded inputs above 20 MiB.
+  The standard processor rejects images above 25 million pixels before full
+  decoding and checks cancellation between input reads and processing phases.
 - SMTP now enforces `StartTLS=true` instead of silently sending in plaintext
   when the server does not advertise STARTTLS. Both STARTTLS and implicit TLS
   verify certificates unless verification is explicitly disabled.

@@ -49,6 +49,16 @@ type Store interface {
 
 Implementations: `local/`, `s3/`. Processor: `stdprocessor/`.
 
+Standard resizing and S3 uploads accept at most 20 MiB of encoded input.
+The standard processor checks dimensions before full decoding and rejects
+images above 25 million pixels. Dimension inspection uses the same pixel
+limit without reading the full body. Resize bounds must be positive.
+Both adapters check cancellation between reads; resizing also checks between
+CPU phases. They do not close caller-owned readers or preempt blocked reads
+and codec/scaling computation. See the
+[image reference](../docs/reference/image/README.md#standard-processor)
+for the fixed limits and cancellation contract.
+
 Local storage accepts relative object paths and confines filesystem operations
 to its configured root. Traversal and escaping symlinks cannot read, overwrite,
 or remove files outside that root. The application must control the root and
