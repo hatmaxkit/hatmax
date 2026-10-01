@@ -1,7 +1,7 @@
 ---
 id: TKT-20260930211815
 title: Bound generator command output during capture
-status: reviewing
+status: solved
 kind: bug
 severity: medium
 priority: normal
@@ -14,7 +14,9 @@ started_at: 2026-10-01T12:42:32Z
 reviewed_at: 2026-10-01T12:56:38Z
 branch: fix/ticket-20260930211815-command-capture
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/83
-commits: 8d0fd2fedc9611a6bccc1d04d0b0b3f8f4c097a3
+commits: 8d0fd2fedc9611a6bccc1d04d0b0b3f8f4c097a3, b1e914a2f1fe2969d609a34990258044ce13e881
+resolution: fixed
+closed_at: 2026-10-01T13:12:31Z
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -50,3 +52,5 @@ Both execution paths now drain stdout and stderr into the same bounded capture. 
 `make check`, `make docs-check`, and 20 focused race-enabled repetitions passed. The subprocess fixture emits a finite 2 MiB across stdout and stderr, covering success, nonzero exit, unavailable test infrastructure, and cancellation after overflow.
 
 Report: [Bounded Command Capture](../../report/20261001125505-command-capture.md).
+
+Merged into `dev` through [PR #83](https://forge.adrianpk.com/hatmax/hatmax/pulls/83), verified at `b1e914a2f1fe2969d609a34990258044ce13e881`.
