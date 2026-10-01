@@ -10,7 +10,8 @@ This file is part of Hatmax. See COPYING for license terms.
 Status: reviewing
 Ticket: [TKT-20260930211804](../ticket/reviewing/20260930211804-make-pubsub-cursors-safe-for-late-commits.md)
 Branch: `fix/ticket-20260930211804-pubsub-commits`
-PR: pending
+PR: [#72](https://forge.adrianpk.com/hatmax/hatmax/pulls/72)
+Implementation: `a061bda59b92403791d1f189bd8479bed0797fcc`
 
 ## Delivered Behavior
 
