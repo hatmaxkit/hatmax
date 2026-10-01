@@ -1,7 +1,9 @@
 ---
 id: TKT-20261001155116
 title: Register scaffold template functions
-status: reviewing
+status: solved
+resolution: fixed
+closed_at: 2026-10-01T16:24:11Z
 kind: bug
 severity: high
 priority: high
@@ -14,7 +16,7 @@ started_at: 2026-10-01T15:57:00Z
 reviewed_at: 2026-10-01T16:02:07Z
 branch: fix/ticket-20261001155116-scaffold-template-functions
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/89
-commits: a7f40fa3ea0ef7cf9bebc9e55625db0012c183e8
+commits: a7f40fa3ea0ef7cf9bebc9e55625db0012c183e8, ce2ce2b89d38393a6e12e4e7a2693d511300a9f6
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -48,3 +50,5 @@ Both generated template managers now use web.WithFuncMap(ui.FuncMap()), matching
 Real terse and detailed application creation passed against published Hatmax v0.5.0 with no replacement and PostgreSQL available. The detailed case includes initial invoice generation, sqlc, compilation, and generated tests. `make check` and `make docs-check` passed; total coverage is 81.7%. Dependency baseline changes remain separate in F22.
 
 Report: [Scaffold Template Functions](../../report/20261001160207-scaffold-template-functions.md).
+
+Integration verified on Forgejo: PR #89 merged into dev at ce2ce2b89d38393a6e12e4e7a2693d511300a9f6. F22 remains a separate pending delivery.

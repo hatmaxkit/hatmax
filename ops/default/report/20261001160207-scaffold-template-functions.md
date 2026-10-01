@@ -7,12 +7,13 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # Scaffold Template Functions
 
-Status: reviewing
-Ticket: [TKT-20261001155116](../ticket/reviewing/20261001155116-register-scaffold-template-functions.md)
+Status: delivered
+Ticket: [TKT-20261001155116](../ticket/solved/20261001155116-register-scaffold-template-functions.md)
 Related: [F22 scaffold baseline](../ticket/open/20260930211821-refresh-the-published-scaffold-dependency-baseline.md)
 Branch: `fix/ticket-20261001155116-scaffold-template-functions`
 PR: [#89](https://forge.adrianpk.com/hatmax/hatmax/pulls/89)
 Implementation: `a7f40fa3ea0ef7cf9bebc9e55625db0012c183e8`
+Integrated dev: `ce2ce2b89d38393a6e12e4e7a2693d511300a9f6`
 
 ## Delivered Behavior
 
@@ -39,4 +40,4 @@ All checks used Go 1.26.7. Database tests used an isolated native PostgreSQL 18.
 
 ## Boundary
 
-This independently approved ticket fixes the template-registration defect discovered during F22 validation. F22 dependency overrides, its security gate, existing application rewrites, publication, tags, and mirrors are outside this PR. F22 remains pending until this fix is merged and its full acceptance is repeated.
+This independently approved ticket fixes the template-registration defect discovered during F22 validation. F22 dependency overrides, its security gate, existing application rewrites, publication, tags, and mirrors are outside this PR. PR #89 is integrated into dev; F22 remains pending until its full acceptance is repeated.
