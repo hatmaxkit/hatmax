@@ -136,6 +136,23 @@ documentation-only request may affect only documentation. A combined request
 may document the admitted implementation. Generated pages use the selected
 Diataxis quadrant and preserve text outside Hatmax-managed sections.
 
+### Scaffold Dependency Baseline
+
+New applications require Go 1.26 and the Book-selected published Hatmax
+v0.5.0. The scaffold explicitly selects chi v5.3.2, pgx v5.11.0, and
+x/text v0.42.0 and seeds their archive and module checksums. Module validation
+runs `go mod tidy` to resolve the complete dependency graph and checksums.
+The pgx and x/text requirements override older versions required transitively
+by Hatmax v0.5.0; they do not replace Hatmax or select unpublished code.
+Existing applications are not rewritten automatically.
+
+`make generator-scaffold-acceptance` validates a standalone application using
+published modules and checks the selected versions without local replacements.
+`make generator-scaffold-security` additionally requires `govulncheck` on
+`PATH` and scans that generated application, not the Hatmax checkout. The scan
+reports reachable vulnerable symbols separately from advisories in unused
+modules; a passing scan is not a claim that every dependency is advisory-free.
+
 ## Interaction Contract
 
 For a project-changing request, Hatmax:

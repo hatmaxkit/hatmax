@@ -9,7 +9,7 @@ This file is part of Hatmax. See COPYING for license terms.
 
 Status: delivered
 Ticket: [TKT-20261001155116](../ticket/solved/20261001155116-register-scaffold-template-functions.md)
-Related: [F22 scaffold baseline](../ticket/open/20260930211821-refresh-the-published-scaffold-dependency-baseline.md)
+Related: [F22 scaffold baseline](../ticket/reviewing/20260930211821-refresh-the-published-scaffold-dependency-baseline.md)
 Branch: `fix/ticket-20261001155116-scaffold-template-functions`
 PR: [#89](https://forge.adrianpk.com/hatmax/hatmax/pulls/89)
 Implementation: `a7f40fa3ea0ef7cf9bebc9e55625db0012c183e8`

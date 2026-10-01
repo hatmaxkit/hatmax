@@ -50,6 +50,8 @@ go 1.26.0
 
 require (
 	github.com/go-chi/chi/v5 v5.3.2
+	github.com/jackc/pgx/v5 v5.11.0
+	golang.org/x/text v0.42.0
 	hatmax.adrianpk.com {{.HatmaxVersion}}
 )
 `,
@@ -58,6 +60,10 @@ require (
 		target: "go.sum",
 		template: `github.com/go-chi/chi/v5 v5.3.2 h1:5YQkICvTCSZ25hoRsyJazN0scjzKGiu4VAUc7H1o1nY=
 github.com/go-chi/chi/v5 v5.3.2/go.mod h1:R+tYY2hNuVUUjxoPtqUdgBqevM9s9njzkTLutVsOCto=
+github.com/jackc/pgx/v5 v5.11.0 h1:IzBBtyK9AHqf98cctWFifYSci2hgQR/cd56wB4p+ogg=
+github.com/jackc/pgx/v5 v5.11.0/go.mod h1:mal1tBGAFfLHvZzaYh77YS/eC6IX9OWbRV1QIIM0Jn4=
+golang.org/x/text v0.42.0 h1:JbOZXgfeCPU9gacVtYliJqOhD+zhrEqK4LfdpmlUZqI=
+golang.org/x/text v0.42.0/go.mod h1:ojzP1Z+2QtioaF8DTtO8K5q7JWVVYwZKenzujK0Zd0E=
 hatmax.adrianpk.com v0.5.0 h1:9LptUn0pjo9c1um7rhwwYYAhmDyg/ejjQBzm7X7UM3U=
 hatmax.adrianpk.com v0.5.0/go.mod h1:X8IRNfizbKzpeyDUTs2iSuzpPvuF8zNa2ndkGC6c6Yg=
 `,

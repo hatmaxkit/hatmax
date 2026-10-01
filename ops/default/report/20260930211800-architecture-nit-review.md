@@ -269,7 +269,7 @@ TestObservedSMTPTransport delivered to a plaintext loopback server with StartTLS
 Severity: high
 Area: tooling
 File: `generator/execute/render_application.go:46-63, generator/book`
-Ticket: [Refresh the published scaffold dependency baseline](../ticket/open/20260930211821-refresh-the-published-scaffold-dependency-baseline.md)
+Ticket: [Refresh the published scaffold dependency baseline](../ticket/reviewing/20260930211821-refresh-the-published-scaffold-dependency-baseline.md)
 
 Problem:
 The updated scaffold uses chi v5.3.2 but still requires the Book-selected Hatmax v0.5.0. A standalone consumer with the same application lifecycle imports resolves older pgx and x/text versions from that published module. govulncheck reports reachable GO-2026-5004 and GO-2026-5970; upgrading the checkout does not upgrade the published module.

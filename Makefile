@@ -24,6 +24,7 @@ help:
 	@echo "  generator-live-smoke  - Run the opt-in authenticated Codex generator smoke"
 	@echo "  generator-project-acceptance - Generate and validate a real representative project"
 	@echo "  generator-scaffold-acceptance - Render, publish, and validate a canonical application scaffold"
+	@echo "  generator-scaffold-security - Scan a standalone published-dependency scaffold"
 	@echo "  generator-conversation-acceptance - Validate persistent conversation and terminal adapters"
 	@echo "  test-coverage         - Run tests with coverage report"
 	@echo "  test-coverage-profile - Generate coverage profile"
@@ -112,6 +113,10 @@ generator-project-acceptance:
 
 generator-scaffold-acceptance:
 	@go test -tags=acceptance -count=1 -run '^TestApplicationScaffoldAcceptance$$' ./generator/execute
+
+generator-scaffold-security:
+	@command -v govulncheck >/dev/null || { echo "govulncheck is required"; exit 1; }
+	@go test -tags=acceptance -v -count=1 -run '^TestScaffoldSecurity$$' ./generator/execute
 
 generator-conversation-acceptance:
 	@go test -tags=acceptance -count=1 ./generator/conversation

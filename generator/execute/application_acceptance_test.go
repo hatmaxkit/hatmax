@@ -9,13 +9,41 @@ package execute
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 )
 
+// Published consumer checks must resolve the corrected module graph without
+// local replacements and leave a reproducible readonly test surface.
 func TestApplicationScaffoldAcceptance(t *testing.T) {
+	root := publishedScaffold(t)
+	assertPublishedModules(t, root)
+	publishedCommand(t, root, "go", "test", "-mod=readonly", "./...")
+}
+
+// Scan the generated application, not Hatmax's checkout: their module graphs
+// differ while the scaffold uses the existing published Hatmax release.
+func TestScaffoldSecurity(t *testing.T) {
+	_, err := exec.LookPath("govulncheck")
+	if err != nil {
+		t.Fatal("govulncheck is required for scaffold security acceptance")
+	}
+
+	root := publishedScaffold(t)
+	assertPublishedModules(t, root)
+	output := publishedCommand(t, root, "govulncheck", "./...")
+	t.Log(strings.TrimSpace(string(output)))
+}
+
+func publishedScaffold(t *testing.T) string {
+	t.Helper()
+
 	value, target, selectedBook := applicationExecutionPlan(t, nil)
+
 	manifest, err := PrepareApplication(value, target, selectedBook)
 	if err != nil {
 		t.Fatalf("PrepareApplication() error = %v", err)
@@ -32,7 +60,8 @@ func TestApplicationScaffoldAcceptance(t *testing.T) {
 	}
 
 	for _, mutation := range mutations {
-		if _, err := workspace.Stage(mutation); err != nil {
+		_, err = workspace.Stage(mutation)
+		if err != nil {
 			t.Fatalf("Stage(%s) error = %v", mutation.EditID, err)
 		}
 	}
@@ -52,12 +81,67 @@ func TestApplicationScaffoldAcceptance(t *testing.T) {
 		}
 	}
 
-	command := exec.Command("go", "test", "-mod=readonly", "./...")
-	command.Dir = target.Target
+	return target.Target
+}
+
+func publishedCommand(t *testing.T, root, name string, args ...string) []byte {
+	t.Helper()
+
+	command := exec.CommandContext(t.Context(), name, args...)
+	command.Dir = root
+
 	command.Env = append(os.Environ(), "GOWORK=off")
 
 	output, err := command.CombinedOutput()
 	if err != nil {
-		t.Fatalf("published scaffold is not reproducible: %v\n%s", err, output)
+		t.Fatalf("published scaffold %s %v: %v\n%s", name, args, err, output)
+	}
+
+	return output
+}
+
+func assertPublishedModules(t *testing.T, root string) {
+	t.Helper()
+
+	output := publishedCommand(t, root, "go", "list", "-mod=readonly", "-m", "-json", "all")
+	decoder := json.NewDecoder(strings.NewReader(string(output)))
+	expected := map[string]string{
+		"hatmax.adrianpk.com":     "v0.5.0",
+		"github.com/jackc/pgx/v5": "v5.11.0",
+		"golang.org/x/text":       "v0.42.0",
+	}
+
+	for {
+		var module struct {
+			Path    string
+			Version string
+			Replace *struct{}
+		}
+
+		err := decoder.Decode(&module)
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if module.Replace != nil {
+			t.Fatalf("published scaffold replaces %s", module.Path)
+		}
+
+		if version, exists := expected[module.Path]; exists {
+			if module.Version != version {
+				// Continue through the graph to report each incorrect requirement.
+				t.Errorf("%s resolves to %s; want %s", module.Path, module.Version, version)
+			}
+
+			delete(expected, module.Path)
+		}
+	}
+
+	if len(expected) != 0 {
+		t.Fatalf("published scaffold lacks required modules: %v", expected)
 	}
 }

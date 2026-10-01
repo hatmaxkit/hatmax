@@ -106,6 +106,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Newly scaffolded applications now select corrected PostgreSQL driver and
+  Unicode text dependencies even when using the published Hatmax v0.5.0 library.
+  Existing applications must update those dependencies separately.
 - Email delivery now rejects custom header names with invalid characters and
   values containing CR or LF before transport, preventing additional headers
   or a premature message body. Pass unfolded custom values instead of folded lines.

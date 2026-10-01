@@ -13,6 +13,8 @@ import (
 	"strings"
 	"testing"
 
+	"golang.org/x/mod/modfile"
+
 	"hatmax.adrianpk.com/generator/book"
 	"hatmax.adrianpk.com/generator/intent"
 	"hatmax.adrianpk.com/generator/plan"
@@ -31,6 +33,54 @@ var applicationFoundationOrder = []string{
 	applicationDatabaseRecipe,
 	applicationCompositionRecipe,
 	applicationTestsRecipe,
+}
+
+// A published Hatmax dependency has its own module graph. The scaffold must
+// select corrected transitive versions rather than relying on a local checkout.
+func TestScaffoldBaseline(t *testing.T) {
+	value := applicationRenderPlan(t)
+	manifest := applicationFoundationManifest(t, value)
+
+	mutations, err := RenderApplicationFoundation(value, manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	contents := mutationContents(manifest, mutations)
+
+	module, err := modfile.Parse("go.mod", []byte(contents["go.mod"]), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(module.Replace) != 0 {
+		t.Fatal("scaffold depends on a module replacement")
+	}
+
+	for _, expected := range []struct {
+		path    string
+		version string
+	}{
+		{"hatmax.adrianpk.com", "v0.5.0"},
+		{"github.com/jackc/pgx/v5", "v5.11.0"},
+		{"golang.org/x/text", "v0.42.0"},
+	} {
+		t.Run(expected.path, func(t *testing.T) {
+			found := false
+
+			for _, requirement := range module.Require {
+				if requirement.Mod.Path == expected.path && requirement.Mod.Version == expected.version {
+					found = true
+				}
+			}
+
+			if !found {
+				t.Errorf("missing scaffold requirement %s %s", expected.path, expected.version)
+			}
+
+			assertContains(t, contents["go.sum"], expected.path+" "+expected.version+" h1:", expected.path+" "+expected.version+"/go.mod h1:")
+		})
+	}
 }
 
 func TestRenderApplicationFoundationUsesCanonicalIdentityAndBoundaries(t *testing.T) {
