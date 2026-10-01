@@ -50,6 +50,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PostgreSQL subscribers no longer miss messages whose transactions commit
   after messages with higher IDs. Per-message delivery tracking survives named
   subscriber restarts and preserves independent fan-out delivery.
+- PostgreSQL subscribers now retry messages whose handlers return an error,
+  including after a named restart, without replaying successful messages from
+  the same batch. Retries wait for the configured polling interval; persistent
+  failures remain pending for application remediation.
 
 ### Security
 

@@ -35,7 +35,7 @@ err := broker.Subscribe(ctx, "orders", handleOrder, pubsub.SubscribeOptions{
 })
 ```
 
-A stable subscriber ID resumes from its stored offset. An empty ID creates a
+A stable subscriber ID resumes its pending deliveries. An empty ID creates a
 new ephemeral subscriber and does not resume previous state.
 
 ## Publish
@@ -47,11 +47,15 @@ err := broker.Publish(ctx, "orders", event)
 
 Publishing stores the envelope. Handlers run later in polling goroutines.
 Design handlers for at-least-once delivery and make repeated processing safe.
+Return an error when processing fails: the message remains pending for a later
+poll, while successful messages in the same batch can be acknowledged. Monitor
+persistent failures; they can fill a batch and delay newer messages.
 
 ## Verify the result
 
 Publish an envelope after the subscriber starts. Confirm that the handler
 receives it and that restarting with the same subscriber ID does not replay
-already acknowledged offsets.
+already acknowledged messages. Make a handler fail once, then succeed: confirm
+that only the failed message is retried, including after a named restart.
 
 See [Pubsub Reference](../../reference/pubsub/README.md).

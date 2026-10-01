@@ -22,6 +22,7 @@ import (
 
 // Config holds PostgreSQL pubsub configuration.
 type Config struct {
+	// PollInterval is the delay before the first poll and between completed polls.
 	PollInterval time.Duration
 	BatchSize    int
 }
@@ -281,18 +282,21 @@ func (b *Broker) getOrCreateSubscription(ctx context.Context, subscriberID, topi
 func (b *Broker) pollLoop(ctx context.Context, sub *subscription) {
 	defer close(sub.done)
 
-	ticker := time.NewTicker(b.cfg.PollInterval)
-	defer ticker.Stop()
+	timer := time.NewTimer(b.cfg.PollInterval)
+	defer timer.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-ticker.C:
+		case <-timer.C:
 			err := b.pollMessages(ctx, sub)
 			if err != nil {
 				b.log.Errorf("Poll error for subscriber %s: %v", sub.id, err)
 			}
+
+			// Wait after completion; slow failed handlers cannot queue an immediate retry.
+			timer.Reset(b.cfg.PollInterval)
 		}
 	}
 }
@@ -315,7 +319,7 @@ func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
 	}
 	defer rows.Close()
 
-	var processedIDs []int64
+	var successfulIDs []int64
 
 	lastProcessedID := sub.lastOffset
 
@@ -333,9 +337,6 @@ func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
 		if err != nil {
 			return err
 		}
-
-		processedIDs = append(processedIDs, id)
-		lastProcessedID = max(lastProcessedID, id)
 
 		var payloadData any
 
@@ -364,8 +365,12 @@ func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
 		err = sub.handler(ctx, env)
 		if err != nil {
 			b.log.Errorf("Handler error for message %s: %v", messageID, err)
-			// Continue processing other messages
+
+			continue
 		}
+
+		successfulIDs = append(successfulIDs, id)
+		lastProcessedID = max(lastProcessedID, id)
 	}
 
 	err = rows.Err()
@@ -374,8 +379,8 @@ func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
 	}
 
 	// Persist exact rows, even when their IDs are below the diagnostic offset.
-	if len(processedIDs) > 0 {
-		err := b.acknowledgeBatch(ctx, sub.id, processedIDs, lastProcessedID)
+	if len(successfulIDs) > 0 {
+		err := b.acknowledgeBatch(ctx, sub.id, successfulIDs, lastProcessedID)
 		if err != nil {
 			return err
 		}

@@ -45,5 +45,7 @@ type Subscriber interface {
 ```
 
 Named PostgreSQL subscribers resume from per-message acknowledgement records.
+Handler errors leave deliveries pending for interval-spaced retries; successful
+messages in the same batch can complete independently.
 See the [delivery contract](../docs/reference/pubsub/README.md#postgres) for
 commit visibility, migration, and failure behavior.

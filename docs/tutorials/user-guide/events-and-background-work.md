@@ -38,8 +38,11 @@ models.
 
 The memory broker invokes subscribers synchronously and is useful for tests.
 The Postgres broker persists JSON envelopes and polls them. Named subscriber
-IDs retain offsets across restarts; delivery is at-least-once, so handlers
-must tolerate retries and repeated external effects.
+IDs retain pending deliveries across restarts. Returning an error leaves a
+message pending for another poll; successful messages in the same batch can
+complete. Handlers must tolerate retries and repeated external effects. Monitor
+persistent failures, which can fill a batch and delay newer messages; see the
+[retry contract](../../reference/pubsub/README.md#failures-and-retries).
 
 Publishing after a database commit still leaves a gap between the state
 change and event insertion. When losing that event is unacceptable, the

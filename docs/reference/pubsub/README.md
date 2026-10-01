@@ -67,9 +67,30 @@ atomically after processing. The scalar field is retained as diagnostic
 progress, not used to exclude pending messages. A crash or persistence failure
 between handler execution and durable acknowledgement can repeat delivery;
 handlers must tolerate duplicates. The poll loop uses a background context,
-not the subscribe context. Handler errors and invalid payloads are currently
-logged and acknowledged, without automatic retry; this is not a guarantee of
-successful processing after handler failure.
+not the subscribe context.
+
+### Failures and retries
+
+A message is acknowledged only after its handler returns nil. Handler errors
+and invalid JSON payloads are logged and remain pending. Failure does not stop
+the batch: later selected messages are attempted and successful ones are
+acknowledged independently. A failed message can therefore succeed after a
+later message; strict processing order is not guaranteed. Restarting with the
+same subscriber ID retains the failed delivery without replaying acknowledged
+successes. Invalid metadata retains the existing empty-map fallback.
+
+Each pending message gets at most one handler attempt per poll, within
+`BatchSize`. The first poll waits `PollInterval`; subsequent polls wait that
+interval after the previous poll completes, including processing and persistence.
+There is no immediate retry loop or accumulated ticker backlog. `Close` cancels
+the poll context and waits for its loop; handlers must honor cancellation.
+
+There is no total attempt limit, exponential backoff, or automatic dead-letter
+queue. A message remains pending until processing succeeds or the application
+explicitly removes it. Persistent failures can occupy every batch slot and
+delay later messages. Applications own monitoring, remediation, handler
+timeouts, and external-effect idempotency. Returning nil means the application
+accepts successful processing; the broker cannot verify external side effects.
 
 ### Existing databases and storage
 
@@ -84,6 +105,9 @@ Previously skipped rows already below a legacy offset cannot be distinguished
 from successfully processed history and are not recovered automatically.
 Pending rows above that offset remain pending. Applications that need to
 recover older skipped work require an explicit replay policy.
+
+Messages already acknowledged by older brokers, including failed deliveries,
+are not automatically replayed by this retry policy.
 
 Acknowledgement storage grows by one row per subscriber/message pair, including
 history excluded at registration. The message log and acknowledgement ledger

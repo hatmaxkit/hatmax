@@ -8,7 +8,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -498,50 +497,6 @@ func TestBrokerCloseIdempotent(t *testing.T) {
 	closeErr = broker.Close()
 	if closeErr != nil {
 		t.Fatalf("Second close failed: %v", closeErr)
-	}
-}
-
-func TestBrokerHandlerError(t *testing.T) {
-	db, _, cleanup := testhelper.SetupTestDB(t)
-	defer cleanup()
-
-	cfg := DefaultConfig()
-	cfg.PollInterval = 10 * time.Millisecond
-
-	broker := NewBroker(wrapDB(db), cfg, testhelper.TestLogger())
-	ctx := context.Background()
-
-	startErr := broker.Start(ctx)
-	if startErr != nil {
-		t.Fatalf("Start failed: %v", startErr)
-	}
-	defer broker.Close()
-
-	var (
-		callCount int
-		mu        sync.Mutex
-	)
-
-	broker.Subscribe(ctx, "test-topic", func(ctx context.Context, env pubsub.Envelope) error {
-		mu.Lock()
-
-		callCount++
-
-		mu.Unlock()
-
-		return fmt.Errorf("handler error")
-	}, pubsub.SubscribeOptions{SubscriberID: "test-sub"})
-
-	broker.Publish(ctx, "test-topic", pubsub.NewEnvelope("test-topic", "msg1"))
-	broker.Publish(ctx, "test-topic", pubsub.NewEnvelope("test-topic", "msg2"))
-
-	time.Sleep(50 * time.Millisecond)
-
-	mu.Lock()
-	defer mu.Unlock()
-
-	if callCount != 2 {
-		t.Errorf("expected 2 calls despite errors, got %d", callCount)
 	}
 }
 

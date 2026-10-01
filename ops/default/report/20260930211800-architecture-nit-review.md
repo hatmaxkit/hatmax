@@ -164,7 +164,7 @@ TestObservedPubsubCommitOrder held one insert transaction open, delivered a late
 Severity: high
 Area: persistence
 File: `pubsub/postgres/broker.go:354-375, docs/reference/pubsub/README.md:10-12`
-Ticket: [Do not acknowledge failed pubsub handlers](../ticket/open/20260930211805-retain-failed-pubsub-deliveries-for-retry.md)
+Ticket: [Do not acknowledge failed pubsub handlers](../ticket/reviewing/20260930211805-retain-failed-pubsub-deliveries-for-retry.md)
 
 Problem:
 A handler error is logged, but lastProcessedID still advances and the durable offset is saved. The failed message is skipped on future polls and restarts. Existing handler-error tests assert one attempt rather than redelivery.
