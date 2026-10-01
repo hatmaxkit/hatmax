@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211809
 title: Make scheduler shutdown bounded and idempotent
-status: reviewing
+status: solved
+resolution: fixed
 kind: bug
 severity: medium
 priority: normal
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:09Z
 ready_at: 2026-10-01T09:20:01Z
 started_at: 2026-10-01T09:20:01Z
 reviewed_at: 2026-10-01T09:30:49Z
+closed_at: 2026-10-01T09:37:23Z
 branch: fix/ticket-20260930211809-scheduler-lifecycle
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/77
-commits: f07bb73b603d7a4fd16838e9f18dba3e9bf8f192
+commits: f07bb73b603d7a4fd16838e9f18dba3e9bf8f192, f1927241605ac578f159e1dc4c7e84b418668208
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -52,3 +54,5 @@ Stop before startup is a no-op. Active Stop cancels execution and waits on one s
 Tick stops admitting jobs when cancellation is observed, including while waiting for worker capacity, and joins already admitted handlers. Direct Tick calls remain caller-owned and are not joined by Stop. Handlers and adapters must cooperate with cancellation; there is no forced termination or unbounded cleanup context. Interrupted PostgreSQL run claims remain excluded and require explicit repair, rather than being falsely completed or automatically retried.
 
 Delivery: [Scheduler lifecycle](../../report/20261001093049-scheduler-lifecycle.md).
+
+Merged into `dev` through PR #77 at `f1927241605ac578f159e1dc4c7e84b418668208`.

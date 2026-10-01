@@ -7,11 +7,12 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # Scheduler Lifecycle
 
-Status: reviewing
-Ticket: [TKT-20260930211809](../ticket/reviewing/20260930211809-bound-and-idempotently-stop-the-scheduler.md)
+Status: delivered
+Ticket: [TKT-20260930211809](../ticket/solved/20260930211809-bound-and-idempotently-stop-the-scheduler.md)
 Branch: `fix/ticket-20260930211809-scheduler-lifecycle`
 PR: [#77](https://forge.adrianpk.com/hatmax/hatmax/pulls/77)
 Implementation: `f07bb73b603d7a4fd16838e9f18dba3e9bf8f192`
+Integrated into `dev`: `f1927241605ac578f159e1dc4c7e84b418668208`
 
 ## Delivered Behavior
 
