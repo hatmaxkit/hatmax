@@ -13,8 +13,8 @@ ready_at: 2026-10-01T09:39:48Z
 started_at: 2026-10-01T09:39:48Z
 reviewed_at: 2026-10-01T09:49:27Z
 branch: fix/ticket-20260930211810-settings-errors
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/78
+commits: fa2b51b970a8314ac209543a8ee1378ab0fa621a
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK

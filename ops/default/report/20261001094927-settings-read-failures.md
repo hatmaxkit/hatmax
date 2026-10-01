@@ -10,7 +10,8 @@ This file is part of Hatmax. See COPYING for license terms.
 Status: reviewing
 Ticket: [TKT-20260930211810](../ticket/reviewing/20260930211810-propagate-settings-persistence-failures.md)
 Branch: `fix/ticket-20260930211810-settings-errors`
-PR: pending
+PR: [#78](https://forge.adrianpk.com/hatmax/hatmax/pulls/78)
+Implementation: `fa2b51b970a8314ac209543a8ee1378ab0fa621a`
 
 ## Delivered Behavior
 
