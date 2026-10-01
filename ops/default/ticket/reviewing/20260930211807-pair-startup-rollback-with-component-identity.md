@@ -13,8 +13,8 @@ ready_at: 2026-10-01T06:55:22Z
 started_at: 2026-10-01T06:55:22Z
 reviewed_at: 2026-10-01T07:04:45Z
 branch: fix/ticket-20260930211807-startup-rollback
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/75
+commits: da6fa8463a9ba64f4a90943596f4996724b99980
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK

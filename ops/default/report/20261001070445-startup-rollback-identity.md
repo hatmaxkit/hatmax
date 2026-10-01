@@ -10,7 +10,8 @@ This file is part of Hatmax. See COPYING for license terms.
 Status: reviewing
 Ticket: [TKT-20260930211807](../ticket/reviewing/20260930211807-pair-startup-rollback-with-component-identity.md)
 Branch: `fix/ticket-20260930211807-startup-rollback`
-PR: pending
+PR: [#75](https://forge.adrianpk.com/hatmax/hatmax/pulls/75)
+Implementation: `da6fa8463a9ba64f4a90943596f4996724b99980`
 
 ## Delivered Behavior
 
