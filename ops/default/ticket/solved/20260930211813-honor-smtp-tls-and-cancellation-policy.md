@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211813
 title: Honor SMTP STARTTLS and cancellation policy
-status: reviewing
+status: solved
+resolution: fixed
 kind: bug
 severity: high
 priority: high
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:13Z
 ready_at: 2026-10-01T11:20:43Z
 started_at: 2026-10-01T11:20:43Z
 reviewed_at: 2026-10-01T11:34:15Z
+closed_at: 2026-10-01T11:44:09Z
 branch: fix/ticket-20260930211813-smtp-policy
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/81
-commits: b9937c408f9f20982f4c8a9ba90531ea8681fc43
+commits: b9937c408f9f20982f4c8a9ba90531ea8681fc43, 09b3c1822ee45bb3c6c2b159a79c012f94d814da
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -52,3 +54,5 @@ The transport transaction has a total 30-second limit, with shorter caller deadl
 Validation passed: make check with Go 1.26.7 and isolated PostgreSQL 18.6 (81.3% total coverage, 86.0% mailer), make docs-check, 20 race-enabled mailer repetitions, and git diff --check. Local SMTP servers cover encryption policy, certificate rejection, authentication ordering, canceled callers, and interruption of greeting, hello, TLS handshakes, AUTH, DATA, and QUIT.
 
 Delivery: [SMTP transport policy](../../report/20261001113415-smtp-policy.md).
+
+Merged into `dev` through PR #81 at `09b3c1822ee45bb3c6c2b159a79c012f94d814da`.
