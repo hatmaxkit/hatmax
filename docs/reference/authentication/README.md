@@ -11,8 +11,9 @@ This file is part of Hatmax. See COPYING for license terms.
 implementation. The implementation note is
 [auth/readme.md](../../../auth/readme.md).
 
-Password hashes for signup and sign-in use `model.HashPassword` and
-`model.ComparePassword`. Session identifiers and tokens use `model.NewID`.
+Signup uses `model.HashPasswordWithCost(password, cfg.Auth.BCryptCost)`;
+sign-in uses `model.ComparePassword`. Session identifiers and tokens use
+`model.NewID`.
 
 ## User and session
 
@@ -60,7 +61,14 @@ sentinels.
 An inactive user on sign-in or session validation returns the error text
 `user is not active`. That value is not one of the sentinels above.
 
-`Signup` returns the created user. `Signin` parses `cfg.Auth.SessionTTL`. An
+`Signup` returns the created user. Password hashing uses `auth.bcrypt_cost`,
+which defaults to 12 and accepts 4 through 31. An invalid cost returns a wrapped
+`bcrypt.InvalidCostError`, without falling back to another cost or creating a
+user. Hashing failures, including bcrypt's 72-byte password limit, also prevent
+user creation. Increasing the configured cost affects future signups only;
+existing hashes remain valid and are not rehashed automatically.
+
+`Signin` parses `cfg.Auth.SessionTTL`. An
 invalid duration uses 24 hours. The session token is a new model ID.
 `Signout` deletes the session found by token. `ValidateSession` returns the
 user when the session exists, has not expired, and the user is active.

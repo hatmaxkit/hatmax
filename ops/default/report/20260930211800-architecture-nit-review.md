@@ -437,7 +437,7 @@ TestObservedDSNEncoding reproduced the space-containing password failure. Schema
 Severity: medium
 Area: architecture
 File: `auth/service.go:79, model/password.go:17-18, config/config.go:198`
-Ticket: [Honor configured bcrypt cost during signup](../ticket/open/20260930211817-honor-configured-bcrypt-cost-during-signup.md)
+Ticket: [Honor configured bcrypt cost during signup](../ticket/reviewing/20260930211817-honor-configured-bcrypt-cost-during-signup.md)
 
 Problem:
 Signup calls model.HashPassword, which always uses bcrypt.DefaultCost. Auth.BCryptCost is validated and defaults to 12, but the resulting password hash has cost 10.

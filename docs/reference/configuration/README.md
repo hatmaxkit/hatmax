@@ -92,6 +92,10 @@ remainder, and turning each `_` into `.`. `HATMAX_DATABASE_HOST` with prefix
 `contact` and `property` keys default to empty. Auth encryption and lookup
 keys also default to empty.
 
+`auth.bcrypt_cost` governs hashing during [signup](../authentication/README.md).
+It does not change existing hashes or the standalone `model.HashPassword`
+helper's default cost. Higher values increase hashing work.
+
 ### Validation
 
 `Validate` returns an error when any of these holds:

@@ -53,6 +53,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Signup now honors `auth.bcrypt_cost`, including Hatmax's default of 12,
+  instead of always using cost 10. Existing password hashes remain valid.
 - PostgreSQL connection values now preserve spaces, quotes, backslashes, and
   empty passwords. Schema creation and selection use the configured name
   literally, including case and punctuation, instead of treating it as SQL.

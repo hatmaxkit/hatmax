@@ -21,9 +21,18 @@ string, or a string that is not a UUID. `FromNullUUID` returns nil when
 
 ## Passwords
 
-`HashPassword` returns a bcrypt hash at `bcrypt.DefaultCost`, or wraps a
-bcrypt error as `cannot hash password`. `ComparePassword` reports whether the
-hash matches the password.
+`HashPassword(password)` retains its one-argument signature and returns a
+bcrypt hash at `bcrypt.DefaultCost` (10), independent of authentication
+configuration.
+
+`HashPasswordWithCost(password, cost)` uses the explicit cost. Values outside
+`bcrypt.MinCost` through `bcrypt.MaxCost` (4 through 31) return a wrapped
+`bcrypt.InvalidCostError`; there is no default-cost fallback. Both helpers
+wrap bcrypt errors as `cannot hash password`, return no hash on failure, and
+preserve bcrypt's 72-byte password limit.
+
+`ComparePassword` reports whether the hash matches the password, using the cost
+stored in the hash rather than the current authentication configuration.
 
 `GenerateRandomPassword(length)` reads that many random bytes, encodes them
 as raw URL Base64, and returns the first `length` characters of that

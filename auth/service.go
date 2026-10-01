@@ -55,7 +55,7 @@ func NewService(queries Queries, cfg *config.Config, log log.Logger) *Service {
 	}
 }
 
-// Signup creates a new user account.
+// Signup creates a new user account using cfg.Auth.BCryptCost for password hashing.
 func (s *Service) Signup(ctx context.Context, email, password string) (*User, error) {
 	if email == "" {
 		return nil, ErrInvalidEmail
@@ -76,7 +76,7 @@ func (s *Service) Signup(ctx context.Context, email, password string) (*User, er
 	}
 
 	// Hash password
-	passwordHash, err := model.HashPassword(password)
+	passwordHash, err := model.HashPasswordWithCost(password, s.cfg.Auth.BCryptCost)
 	if err != nil {
 		return nil, fmt.Errorf("cannot hash password: %w", err)
 	}
