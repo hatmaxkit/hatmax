@@ -13,8 +13,8 @@ ready_at: 2026-10-01T09:20:01Z
 started_at: 2026-10-01T09:20:01Z
 reviewed_at: 2026-10-01T09:30:49Z
 branch: fix/ticket-20260930211809-scheduler-lifecycle
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/77
+commits: f07bb73b603d7a4fd16838e9f18dba3e9bf8f192
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK

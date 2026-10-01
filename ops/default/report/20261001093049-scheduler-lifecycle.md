@@ -10,7 +10,8 @@ This file is part of Hatmax. See COPYING for license terms.
 Status: reviewing
 Ticket: [TKT-20260930211809](../ticket/reviewing/20260930211809-bound-and-idempotently-stop-the-scheduler.md)
 Branch: `fix/ticket-20260930211809-scheduler-lifecycle`
-PR: pending
+PR: [#77](https://forge.adrianpk.com/hatmax/hatmax/pulls/77)
+Implementation: `f07bb73b603d7a4fd16838e9f18dba3e9bf8f192`
 
 ## Delivered Behavior
 
