@@ -7,11 +7,12 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # Scheduler Retry Contract
 
-Status: reviewing
-Ticket: [TKT-20260930211818](../ticket/reviewing/20260930211818-resolve-the-scheduler-retry-contract.md)
+Status: delivered
+Ticket: [TKT-20260930211818](../ticket/solved/20260930211818-resolve-the-scheduler-retry-contract.md)
 Branch: `fix/ticket-20260930211818-scheduler-retry`
 PR: [#86](https://forge.adrianpk.com/hatmax/hatmax/pulls/86)
 Implementation: `6a17dd58bc1228641d7fc1a6b88c745aa5bbf988`
+Integrated into dev: `c980a50eecfa74c7b0ea44294350d0c6e75ff6d4`
 
 ## Delivered Behavior
 

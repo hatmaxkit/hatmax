@@ -458,7 +458,7 @@ TestObservedIgnoredPasswordCost configured cost 12, created a user through Signu
 Severity: medium
 Area: architecture
 File: `scheduler/config.go:14-20, scheduler/runner.go:194-240, scheduler/postgres/store.go:64-72`
-Ticket: [Resolve inert scheduler retry configuration](../ticket/reviewing/20260930211818-resolve-the-scheduler-retry-contract.md)
+Ticket: [Resolve inert scheduler retry configuration](../ticket/solved/20260930211818-resolve-the-scheduler-retry-contract.md)
 
 Problem:
 RetryAttempts and RetryBackoff are accepted and defaulted, but never used by process. CreateRun always records attempt 1. scheduler/README.md presents these as retry settings while the reference correctly states that retries are not implemented.

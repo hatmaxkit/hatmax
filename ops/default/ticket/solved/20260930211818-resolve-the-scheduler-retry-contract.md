@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211818
 title: Resolve inert scheduler retry configuration
-status: reviewing
+status: solved
+resolution: fixed
 kind: follow_up
 severity: medium
 priority: normal
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:18Z
 ready_at: 2026-10-01T14:10:39Z
 started_at: 2026-10-01T14:10:39Z
 reviewed_at: 2026-10-01T14:31:52Z
+closed_at: 2026-10-01T14:43:48Z
 branch: fix/ticket-20260930211818-scheduler-retry
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/86
-commits: 6a17dd58bc1228641d7fc1a6b88c745aa5bbf988
+commits: 6a17dd58bc1228641d7fc1a6b88c745aa5bbf988, c980a50eecfa74c7b0ea44294350d0c6e75ff6d4
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -54,3 +56,5 @@ The runner admits persisted retry waits through atomic ClaimRetry and records ha
 `make check`, `make docs-check`, `go test -race ./scheduler/... -count=1`, and 20 repetitions of the focused retry suite passed. Total coverage is 81.6%; scheduler is 93.4% and its PostgreSQL adapter is 92.7%. Store implementers must adopt the extended JobStore interface, and existing PostgreSQL installations must apply the additive schema upgrade before starting the new runner.
 
 Report: [Scheduler Retry Contract](../../report/20261001143152-scheduler-retry-contract.md).
+
+PR #86 merged into dev at c980a50eecfa74c7b0ea44294350d0c6e75ff6d4. The canonical forge merge was verified before closing this ticket.
