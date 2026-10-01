@@ -13,8 +13,8 @@ ready_at: 2026-10-01T13:14:41Z
 started_at: 2026-10-01T13:14:41Z
 reviewed_at: 2026-10-01T13:23:12Z
 branch: fix/ticket-20260930211816-postgres-encoding
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/84
+commits: e296ebd0b9656b1c191dbaaf563f62763b4c8d6b
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK

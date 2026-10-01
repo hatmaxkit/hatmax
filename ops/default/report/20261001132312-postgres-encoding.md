@@ -10,8 +10,8 @@ This file is part of Hatmax. See COPYING for license terms.
 Status: reviewing
 Ticket: [TKT-20260930211816](../ticket/reviewing/20260930211816-encode-postgres-values-and-schema-identifiers.md)
 Branch: `fix/ticket-20260930211816-postgres-encoding`
-PR: pending
-Implementation: pending
+PR: [#84](https://forge.adrianpk.com/hatmax/hatmax/pulls/84)
+Implementation: `e296ebd0b9656b1c191dbaaf563f62763b4c8d6b`
 
 ## Delivered Behavior
 
