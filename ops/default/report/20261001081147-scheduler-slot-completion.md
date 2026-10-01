@@ -7,11 +7,12 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # Scheduler Slot Completion
 
-Status: reviewing
-Ticket: [TKT-20260930211808](../ticket/reviewing/20260930211808-advance-or-retire-completed-scheduler-slots.md)
+Status: delivered
+Ticket: [TKT-20260930211808](../ticket/solved/20260930211808-advance-or-retire-completed-scheduler-slots.md)
 Branch: `fix/ticket-20260930211808-scheduler-slots`
 PR: [#76](https://forge.adrianpk.com/hatmax/hatmax/pulls/76)
 Implementation: `2517372dc878bf6b6b5bb0154c0caf4e6f183b05`
+Integrated into `dev`: `0911826fc1ad4a12c5e611f37aa9d5e801feb3a3`
 
 ## Delivered Behavior
 

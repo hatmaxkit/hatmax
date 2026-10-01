@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211808
 title: Advance or retire completed scheduler slots
-status: reviewing
+status: solved
+resolution: fixed
 kind: follow_up
 severity: high
 priority: high
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:08Z
 ready_at: 2026-10-01T07:54:14Z
 started_at: 2026-10-01T07:54:14Z
 reviewed_at: 2026-10-01T08:11:47Z
+closed_at: 2026-10-01T08:21:30Z
 branch: fix/ticket-20260930211808-scheduler-slots
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/76
-commits: 2517372dc878bf6b6b5bb0154c0caf4e6f183b05
+commits: 2517372dc878bf6b6b5bb0154c0caf4e6f183b05, 0911826fc1ad4a12c5e611f37aa9d5e801feb3a3
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -52,3 +54,5 @@ Due selection excludes all claimed slots, including pending or running claims, s
 The existing PostgreSQL schedule_spec column stores a documented JSON rule; an empty specification is one-shot work. The database schema and JobStore method signatures are unchanged. Custom stores must implement the terminal-transition contract. No same-slot retry, lease recovery, cron parser, or catch-up replay was added.
 
 Delivery: [Scheduler slot completion](../../report/20261001081147-scheduler-slot-completion.md).
+
+Merged into `dev` through PR #76 at `0911826fc1ad4a12c5e611f37aa9d5e801feb3a3`.
