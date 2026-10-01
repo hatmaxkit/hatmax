@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211807
 title: Pair startup rollback with component identity
-status: reviewing
+status: solved
+resolution: fixed
 kind: bug
 severity: high
 priority: high
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:07Z
 ready_at: 2026-10-01T06:55:22Z
 started_at: 2026-10-01T06:55:22Z
 reviewed_at: 2026-10-01T07:04:45Z
+closed_at: 2026-10-01T07:23:32Z
 branch: fix/ticket-20260930211807-startup-rollback
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/75
-commits: da6fa8463a9ba64f4a90943596f4996724b99980
+commits: da6fa8463a9ba64f4a90943596f4996724b99980, 7520c38c0b9e640ffa851cd0b6129085fd426b50
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -50,3 +52,5 @@ Setup now returns StartupStep values pairing each Start with the same component'
 Existing Setup-based calls retain their source form, including generated applications pinned to the current published Hatmax version. Manually assembled startup lists now use []app.StartupStep rather than function slices. The lifecycle reference, User Guide, explanation, package note, and Unreleased document that contract.
 
 Delivery: [Startup rollback identity](../../report/20261001070445-startup-rollback-identity.md).
+
+Merged into `dev` through PR #75 at `7520c38c0b9e640ffa851cd0b6129085fd426b50`.

@@ -7,11 +7,12 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # Startup Rollback Identity
 
-Status: reviewing
-Ticket: [TKT-20260930211807](../ticket/reviewing/20260930211807-pair-startup-rollback-with-component-identity.md)
+Status: delivered
+Ticket: [TKT-20260930211807](../ticket/solved/20260930211807-pair-startup-rollback-with-component-identity.md)
 Branch: `fix/ticket-20260930211807-startup-rollback`
 PR: [#75](https://forge.adrianpk.com/hatmax/hatmax/pulls/75)
 Implementation: `da6fa8463a9ba64f4a90943596f4996724b99980`
+Integrated into `dev`: `7520c38c0b9e640ffa851cd0b6129085fd426b50`
 
 ## Delivered Behavior
 
