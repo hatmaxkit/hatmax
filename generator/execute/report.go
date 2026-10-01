@@ -6,7 +6,6 @@
 package execute
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"os/exec"
@@ -157,25 +156,17 @@ func runRepositoryCommand(ctx context.Context, root string, command Command) (Co
 	process := exec.CommandContext(ctx, command.Args[0], command.Args[1:]...)
 	process.Dir = workingDirectory
 
-	var output bytes.Buffer
+	var output commandOutput
 
 	process.Stdout = &output
 	process.Stderr = &output
 
 	err := process.Run()
 
-	evidence.Output = boundedCommandOutput(output.String())
+	evidence.Output = output.String()
 	if process.ProcessState != nil {
 		evidence.ExitCode = process.ProcessState.ExitCode()
 	}
 
 	return evidence, err
-}
-
-func boundedCommandOutput(value string) string {
-	if len(value) <= maximumCommandEvidenceBytes {
-		return value
-	}
-
-	return value[:maximumCommandEvidenceBytes] + "\n[output truncated]"
 }

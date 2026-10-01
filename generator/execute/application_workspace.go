@@ -414,14 +414,18 @@ func validateApplicationStaging(ctx context.Context, root string, commands []Com
 
 		process.Env = append(os.Environ(), "GOWORK=off")
 
-		output, err := process.CombinedOutput()
+		output := commandOutput{checkInfrastructure: command.Name == "validation.test"}
+		process.Stdout = &output
+		process.Stderr = &output
+
+		err := process.Run()
 
 		result := ValidationCommandResult{Name: command.Name, Status: ValidationCommandPassed}
 		if err != nil {
-			result.Output = strings.TrimSpace(string(output))
+			result.Output = strings.TrimSpace(output.String())
 			result.Status = ValidationCommandFailed
 
-			if command.Name == "validation.test" && testInfrastructureUnavailable(result.Output) {
+			if command.Name == "validation.test" && output.infrastructureUnavailable {
 				result.Status = ValidationCommandIncomplete
 				results = append(results, result)
 

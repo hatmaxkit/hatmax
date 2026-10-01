@@ -85,6 +85,13 @@ Book evidence, and machine diagnostic identifiers. Conversation results keep
 validation failures concise; raw command output and stack traces are not
 rendered into the chat.
 
+Validation commands continuously drain stdout and stderr while retaining at
+most 8 KiB of output per command. Longer output keeps its beginning and end,
+with an `[output truncated]` marker included in that budget. The middle is
+discarded during capture, not after command completion. Exit status and
+cancellation remain unchanged; staging test infrastructure classification
+also inspects discarded output. Successful staging commands retain no output.
+
 The compact footer omits conventional send and quit reminders. It shows only
 contextual actions, active work phases, and the `F1` help entrypoint. Multiple
 clarification questions appear as one numbered Hatmax message and accept one

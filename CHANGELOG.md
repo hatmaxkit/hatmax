@@ -53,6 +53,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Generator validation now limits noisy command output during execution while
+  retaining initial context and final failure details.
 - SMTP delivery now stops when canceled and has a total 30-second limit, with
   shorter caller deadlines respected throughout connection and message delivery.
 - Mailgun now sends attachments instead of silently dropping them, preserving

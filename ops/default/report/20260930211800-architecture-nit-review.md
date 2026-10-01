@@ -395,7 +395,7 @@ Source-confirmed; no unbounded allocation or denial-of-service probe was run.
 Severity: medium
 Area: tooling
 File: `generator/execute/report.go:146-183, generator/execute/application_workspace.go:409-430`
-Ticket: [Bound generator command output during capture](../ticket/open/20260930211815-bound-generator-command-output-during-capture.md)
+Ticket: [Bound generator command output during capture](../ticket/reviewing/20260930211815-bound-generator-command-output-during-capture.md)
 
 Problem:
 Repository validation captures stdout and stderr in an unbounded bytes.Buffer or CombinedOutput. The evidence limit is applied only after the command exits; application staging retains full output.
