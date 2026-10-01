@@ -13,8 +13,8 @@ ready_at: 2026-10-01T10:29:16Z
 started_at: 2026-10-01T10:29:16Z
 reviewed_at: 2026-10-01T10:36:16Z
 branch: fix/ticket-20260930211811-mailer-defaults
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/79
+commits: e07e684f5b0770ca0b463394436c292b6829875e
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK

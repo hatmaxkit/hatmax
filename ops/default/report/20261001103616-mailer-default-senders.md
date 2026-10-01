@@ -10,7 +10,8 @@ This file is part of Hatmax. See COPYING for license terms.
 Status: reviewing
 Ticket: [TKT-20260930211811](../ticket/reviewing/20260930211811-apply-mailer-default-senders-before-validation.md)
 Branch: `fix/ticket-20260930211811-mailer-defaults`
-PR: pending
+PR: [#79](https://forge.adrianpk.com/hatmax/hatmax/pulls/79)
+Implementation: `e07e684f5b0770ca0b463394436c292b6829875e`
 
 ## Delivered Behavior
 
