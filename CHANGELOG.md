@@ -104,6 +104,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Email delivery now rejects custom header names with invalid characters and
+  values containing CR or LF before transport, preventing additional headers
+  or a premature message body. Pass unfolded custom values instead of folded lines.
 - Image resizing and S3 uploads now reject encoded inputs above 20 MiB.
   The standard processor rejects images above 25 million pixels before full
   decoding and checks cancellation between input reads and processing phases.

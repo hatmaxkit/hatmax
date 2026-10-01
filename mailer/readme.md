@@ -37,6 +37,12 @@ complete default address, including its name, is used without changing `msg`.
 If neither address supplies an email, delivery fails before transport.
 Direct `Message.Validate` and `NoopMailer` still require an explicit sender.
 
+Custom `Message.Headers` must have non-empty printable ASCII names without
+spaces or colons and values without CR or LF. All providers reject unsafe
+headers before transport; SMTP and SES raw MIME also check before serialization.
+Pass unfolded values, not pre-folded lines. Valid values remain unchanged.
+See the [message reference](../docs/reference/mailer/README.md#message).
+
 SMTP honors required STARTTLS (`StartTLS=true`) and implicit TLS (`TLS=true`).
 Implicit TLS takes precedence when both are enabled. With neither enabled,
 SMTP upgrades opportunistically when the server advertises STARTTLS, otherwise

@@ -23,6 +23,19 @@ set. `AllRecipients` returns `To`, then `CC`, then `BCC`.
 
 `Attachment` has `Filename`, `ContentType`, and byte `Data`.
 
+`Headers` contains unfolded custom fields. Names must be non-empty and use
+ASCII bytes 33-126 except colon, following
+[RFC 5322 field-name syntax](https://www.rfc-editor.org/rfc/rfc5322#section-3.6.8).
+Spaces, tabs, control characters, and non-ASCII names are invalid. Values must
+not contain CR or LF, including pre-folded lines. Empty values, horizontal
+whitespace, punctuation, MIME encoded words, and non-ASCII values are preserved.
+This check does not encode custom values or validate field-specific semantics.
+
+`Validate` and every provider reject invalid custom fields before transport.
+Errors report an invalid name or a line break without echoing header contents.
+SMTP and SES raw MIME also check headers before serialization and return no
+message bytes on rejection. Header validation does not mutate the message.
+
 ## Interface and constructors
 
 `Mailer` has `Send(context.Context, *Message) error`.

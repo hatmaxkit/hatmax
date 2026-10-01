@@ -193,6 +193,11 @@ func deliverSMTP(client *smtp.Client, auth smtp.Auth, from string, to []string, 
 }
 
 func (m *SMTPMailer) buildRawMessage(msg *Message) ([]byte, error) {
+	err := msg.validateHeaders()
+	if err != nil {
+		return nil, err
+	}
+
 	var buf bytes.Buffer
 
 	m.writeHeader(&buf, "From", msg.From.String())

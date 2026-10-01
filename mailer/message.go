@@ -8,6 +8,7 @@ package mailer
 import (
 	"fmt"
 	"net/mail"
+	"strings"
 )
 
 // Address represents an email address with optional display name.
@@ -45,7 +46,9 @@ type Message struct {
 	Text        string
 	HTML        string
 	Attachments []Attachment
-	Headers     map[string]string
+	// Headers holds unfolded custom fields. Names use printable ASCII except
+	// spaces and colons; values must not contain CR or LF.
+	Headers map[string]string
 }
 
 // withDefaultFrom normalizes a provider-owned copy without changing caller data.
@@ -57,7 +60,7 @@ func (m Message) withDefaultFrom(from Address) Message {
 	return m
 }
 
-// Validate checks if the message has minimum required fields.
+// Validate checks required fields and custom-header safety before delivery.
 func (m *Message) Validate() error {
 	if m.From.Email == "" {
 		return fmt.Errorf("from address is required")
@@ -79,6 +82,27 @@ func (m *Message) Validate() error {
 
 	if m.Text == "" && m.HTML == "" {
 		return fmt.Errorf("message body is required (text or html)")
+	}
+
+	return m.validateHeaders()
+}
+
+func (m *Message) validateHeaders() error {
+	for name, value := range m.Headers {
+		if name == "" {
+			return fmt.Errorf("custom header name is invalid")
+		}
+
+		// RFC 5322 field-name is 1*ftext: ASCII 33-57 or 59-126.
+		for i := 0; i < len(name); i++ {
+			if name[i] < 33 || name[i] > 126 || name[i] == ':' {
+				return fmt.Errorf("custom header name is invalid")
+			}
+		}
+
+		if strings.ContainsAny(value, "\r\n") {
+			return fmt.Errorf("custom header value contains a line break")
+		}
 	}
 
 	return nil

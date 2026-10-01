@@ -500,7 +500,7 @@ Source-confirmed. The canonical generated application is a non-affected comparis
 Severity: medium
 Area: architecture
 File: `mailer/smtp.go:323-328, mailer/message.go:55-85`
-Ticket: [Reject SMTP header line injection](../ticket/open/20260930211820-reject-smtp-header-line-injection.md)
+Ticket: [Reject SMTP header line injection](../ticket/reviewing/20260930211820-reject-smtp-header-line-injection.md)
 
 Problem:
 Custom Message.Headers are written as raw key/value lines without CR/LF validation. A header value containing CRLF creates an additional header in the delivered MIME message.
