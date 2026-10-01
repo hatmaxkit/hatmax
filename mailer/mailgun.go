@@ -6,10 +6,14 @@
 package mailer
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"mime"
+	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"net/url"
 	"strings"
 )
@@ -84,12 +88,17 @@ func (m *MailgunMailer) Send(ctx context.Context, msg *Message) error {
 
 	endpoint := fmt.Sprintf("%s/v3/%s/messages", baseURL, strings.TrimSpace(m.cfg.Domain))
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, strings.NewReader(values.Encode()))
+	body, contentType, err := mailgunBody(values, msg.Attachments)
+	if err != nil {
+		return fmt.Errorf("mailgun send: build request: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, body)
 	if err != nil {
 		return fmt.Errorf("mailgun send: cannot create request: %w", err)
 	}
 
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", contentType)
 	req.SetBasicAuth("api", m.cfg.APIKey)
 
 	resp, err := m.client.Do(req)
@@ -105,6 +114,74 @@ func (m *MailgunMailer) Send(ctx context.Context, msg *Message) error {
 	}
 
 	return nil
+}
+
+func mailgunBody(values url.Values, attachments []Attachment) (io.Reader, string, error) {
+	if len(attachments) == 0 {
+		return strings.NewReader(values.Encode()), "application/x-www-form-urlencoded", nil
+	}
+
+	var body bytes.Buffer
+
+	writer := multipart.NewWriter(&body)
+
+	for key, entries := range values {
+		for _, value := range entries {
+			header := textproto.MIMEHeader{}
+			header.Set("Content-Disposition", mime.FormatMediaType("form-data", map[string]string{"name": key}))
+
+			part, err := writer.CreatePart(header)
+			if err != nil {
+				return nil, "", err
+			}
+
+			_, err = io.WriteString(part, value)
+			if err != nil {
+				return nil, "", err
+			}
+		}
+	}
+
+	for i, attachment := range attachments {
+		if attachment.Filename == "" {
+			return nil, "", fmt.Errorf("attachment %d: filename is required", i)
+		}
+
+		contentType := attachment.ContentType
+		if contentType == "" {
+			contentType = "application/octet-stream"
+		}
+
+		mediaType, params, err := mime.ParseMediaType(contentType)
+		if err != nil {
+			return nil, "", fmt.Errorf("attachment %d: invalid content type: %w", i, err)
+		}
+
+		if !strings.Contains(mediaType, "/") {
+			return nil, "", fmt.Errorf("attachment %d: invalid content type", i)
+		}
+
+		header := textproto.MIMEHeader{}
+		header.Set("Content-Disposition", mime.FormatMediaType("form-data", map[string]string{"name": "attachment", "filename": attachment.Filename}))
+		header.Set("Content-Type", mime.FormatMediaType(mediaType, params))
+
+		part, err := writer.CreatePart(header)
+		if err != nil {
+			return nil, "", fmt.Errorf("attachment %d: %w", i, err)
+		}
+
+		_, err = part.Write(attachment.Data)
+		if err != nil {
+			return nil, "", fmt.Errorf("attachment %d: %w", i, err)
+		}
+	}
+
+	err := writer.Close()
+	if err != nil {
+		return nil, "", err
+	}
+
+	return &body, writer.FormDataContentType(), nil
 }
 
 func joinEmails(addrs []Address) string {

@@ -46,6 +46,15 @@ same effective sender as their envelope or API source.
 `Message.Validate` still requires an explicit sender when called directly.
 `NoopMailer` does not apply a default sender.
 
+Mailgun sends messages with attachments as `multipart/form-data`, with one
+`attachment` file part per entry, as required by the
+[Mailgun message API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/messages/post-v3--domain-name--messages).
+Each part carries the filename, raw bytes, and supplied MIME type; an empty
+MIME type defaults to `application/octet-stream`. Empty files are valid.
+An absent filename or malformed MIME type returns an error before the HTTP
+request. Messages without attachments keep URL-encoded form delivery.
+Both encodings preserve recipients, body parts, reply-to, and custom headers.
+
 | Configuration | Fields |
 | --- | --- |
 | `Config` | `DefaultFrom`, `Provider` |

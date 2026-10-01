@@ -37,6 +37,11 @@ complete default address, including its name, is used without changing `msg`.
 If neither address supplies an email, delivery fails before transport.
 Direct `Message.Validate` and `NoopMailer` still require an explicit sender.
 
+Mailgun supports `Message.Attachments` through multipart file parts. Filenames
+and bytes are preserved, including empty files; an omitted MIME type uses
+`application/octet-stream`. Missing filenames or invalid MIME types fail before
+delivery. Messages without attachments retain URL-encoded delivery.
+
 ## Runtime Resolution
 
 ```go
