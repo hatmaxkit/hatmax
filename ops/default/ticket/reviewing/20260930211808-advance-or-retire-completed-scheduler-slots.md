@@ -1,7 +1,7 @@
 ---
 id: TKT-20260930211808
 title: Advance or retire completed scheduler slots
-status: open
+status: reviewing
 kind: follow_up
 severity: high
 priority: high
@@ -9,6 +9,11 @@ scope: persistence
 tags: architecture-review, persistence, hardening
 source: review
 reported_at: 2026-09-30T21:18:08Z
+ready_at: 2026-10-01T07:54:14Z
+started_at: 2026-10-01T07:54:14Z
+reviewed_at: 2026-10-01T08:11:47Z
+branch: fix/ticket-20260930211808-scheduler-slots
+pr: pending
 commits:
 ---
 <!--
@@ -37,3 +42,13 @@ Make ownership of next-run advancement explicit and implement the corresponding 
 Verify one-shot completion, two recurring slots, slot uniqueness, and agreement between fake and PostgreSQL behavior. Confirm exhausted slots no longer consume due batches.
 
 Review: [Architecture Nit Review](../../report/20260930211800-architecture-nit-review.md#f9).
+
+## Implementation
+
+JobStore terminal operations now own atomic result and schedule completion. One-shot jobs retire; recurring jobs advance from completion time using Daily, Weekly, or Interval rules. The PostgreSQL store locks and updates the job and run in one transaction. The fake follows the same transition and slot-uniqueness contract.
+
+Due selection excludes all claimed slots, including pending or running claims, so exhausted work cannot starve later batches. Terminal writes are idempotent and preserve explicit manual rescheduling or disabling. Terminal persistence failures are logged, not reported as completed runs.
+
+The existing PostgreSQL schedule_spec column stores a documented JSON rule; an empty specification is one-shot work. The database schema and JobStore method signatures are unchanged. Custom stores must implement the terminal-transition contract. No same-slot retry, lease recovery, cron parser, or catch-up replay was added.
+
+Delivery: [Scheduler slot completion](../../report/20261001081147-scheduler-slot-completion.md).

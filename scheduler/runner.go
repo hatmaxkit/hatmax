@@ -209,7 +209,11 @@ func (r *Runner) process(ctx context.Context, job Job) {
 	r.mu.RUnlock()
 
 	if !ok {
-		r.store.MarkFailed(ctx, runID, r.clock.Now(), "unknown task type: "+job.TaskType)
+		err := r.store.MarkFailed(ctx, runID, r.clock.Now(), "unknown task type: "+job.TaskType)
+		if err != nil {
+			r.log.Errorf("scheduler: cannot mark failed %s: %v", runID, err)
+		}
+
 		r.log.Errorf("scheduler: unknown task type: %s", job.TaskType)
 
 		return
@@ -234,7 +238,11 @@ func (r *Runner) process(ctx context.Context, job Job) {
 	}
 
 	outputBytes, _ := json.Marshal(output)
-	r.store.MarkSuccess(ctx, runID, r.clock.Now(), outputBytes)
+
+	err = r.store.MarkSuccess(ctx, runID, r.clock.Now(), outputBytes)
+	if err != nil {
+		r.log.Errorf("scheduler: cannot mark success %s: %v", runID, err)
+	}
 }
 
 // Recover only application handler calls, on the goroutine invoking them.

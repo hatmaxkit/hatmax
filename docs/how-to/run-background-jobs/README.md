@@ -42,9 +42,26 @@ scheduler:
   workers: 2
 ```
 
-The current runner records each attempt but does not calculate or persist the
-next run and does not apply retry configuration. The application or store must
-schedule later runs explicitly.
+## Define the schedule
+
+For one-shot work, leave `schedule_spec` empty. For recurring work, insert a
+rule with the initial due time:
+
+```sql
+INSERT INTO scheduled_jobs (id, name, task_type, next_run_at, schedule_spec)
+VALUES ('daily-report', 'daily-report', 'send-report', NOW(),
+        '{"type":"daily","hour":9,"minute":0}');
+```
+
+Daily and weekly rules use `schedule_tz`, defaulting to UTC. Interval rules use
+a positive Go duration, such as `{"type":"interval","every":"30m"}`.
+In fake-store tests, set `Job.Schedule` to the corresponding `scheduler.Daily`,
+`scheduler.Weekly`, or `scheduler.Interval`; leave it nil for one-shot work.
+
+The store records the terminal result and advances or retires the slot
+atomically. Recurring work advances from completion time after success or
+failure; missed occurrences are skipped. Do not manually advance the schedule
+from a handler. Configured retry fields are not applied.
 
 ## Verify the result
 
@@ -54,5 +71,10 @@ with the handler error.
 Trigger a handler panic and verify a failed run with `handler panic:` detail.
 A later healthy job should still execute. Check logs for failed-state write
 errors before assuming that the failure was persisted.
+
+Tick again at the same time and confirm the old slot does not execute again.
+For one-shot work, check `enabled = false`; for recurring work, check the new
+`next_run_at` and run at that time to confirm a second distinct slot. Claimed
+but unfinished runs stay excluded from due batches and require explicit repair.
 
 See [Scheduler Reference](../../reference/scheduler/README.md).

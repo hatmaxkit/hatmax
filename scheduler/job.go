@@ -18,6 +18,8 @@ type Job struct {
 	ScheduledFor time.Time
 	Attempt      int
 	Metadata     map[string]string
+	// Schedule is nil for one-shot jobs; stores advance recurring jobs on completion.
+	Schedule Schedule
 }
 
 type Result struct {

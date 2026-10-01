@@ -7,6 +7,8 @@ package scheduler
 
 import (
 	"context"
+	"fmt"
+	"sort"
 	"sync"
 	"time"
 )
@@ -42,9 +44,10 @@ func (c *FakeClock) Advance(d time.Duration) {
 }
 
 type FakeStore struct {
-	mu   sync.Mutex
-	Jobs []Job
-	Runs map[string]*FakeRun
+	mu      sync.Mutex
+	Jobs    []Job
+	Runs    map[string]*FakeRun
+	retired map[string]bool
 }
 
 type FakeRun struct {
@@ -60,7 +63,8 @@ type FakeRun struct {
 
 func NewFakeStore() *FakeStore {
 	return &FakeStore{
-		Runs: make(map[string]*FakeRun),
+		Runs:    make(map[string]*FakeRun),
+		retired: make(map[string]bool),
 	}
 }
 
@@ -78,12 +82,15 @@ func (s *FakeStore) ListDue(ctx context.Context, now time.Time, limit int) ([]Jo
 	var due []Job
 
 	for _, j := range s.Jobs {
-		if !j.ScheduledFor.After(now) {
+		if !s.retired[j.ID] && !j.ScheduledFor.After(now) && !s.hasSlot(j.ID, j.ScheduledFor) {
 			due = append(due, j)
-			if len(due) >= limit {
-				break
-			}
 		}
+	}
+
+	sort.SliceStable(due, func(i, j int) bool { return due[i].ScheduledFor.Before(due[j].ScheduledFor) })
+
+	if limit >= 0 && len(due) > limit {
+		due = due[:limit]
 	}
 
 	return due, nil
@@ -92,6 +99,10 @@ func (s *FakeStore) ListDue(ctx context.Context, now time.Time, limit int) ([]Jo
 func (s *FakeStore) CreateRun(ctx context.Context, jobID, runID string, scheduledFor time.Time) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if _, exists := s.Runs[runID]; exists || s.hasSlot(jobID, scheduledFor) {
+		return fmt.Errorf("scheduler: run or job slot already exists")
+	}
 
 	s.Runs[runID] = &FakeRun{
 		ID:           runID,
@@ -119,26 +130,59 @@ func (s *FakeStore) MarkSuccess(ctx context.Context, runID string, finishedAt ti
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if run, ok := s.Runs[runID]; ok {
-		run.Status = "success"
-		run.FinishedAt = finishedAt
-		run.Output = output
-	}
-
-	return nil
+	return s.finish(runID, finishedAt, "success", output, "")
 }
 
 func (s *FakeStore) MarkFailed(ctx context.Context, runID string, finishedAt time.Time, errMsg string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if run, ok := s.Runs[runID]; ok {
-		run.Status = "failed"
-		run.FinishedAt = finishedAt
-		run.Error = errMsg
+	return s.finish(runID, finishedAt, "failed", nil, errMsg)
+}
+
+// The caller holds mu so the outcome and job transition share one atomic boundary.
+func (s *FakeStore) finish(runID string, finishedAt time.Time, status string, output []byte, detail string) error {
+	run, ok := s.Runs[runID]
+	if !ok || run.Status == "success" || run.Status == "failed" {
+		return nil
 	}
 
+	for index, job := range s.Jobs {
+		if job.ID != run.JobID || s.retired[job.ID] || !job.ScheduledFor.Equal(run.ScheduledFor) {
+			continue
+		}
+
+		if job.Schedule == nil {
+			s.retired[job.ID] = true
+		} else {
+			next := job.Schedule.Next(finishedAt)
+			if !next.After(finishedAt) || !next.After(run.ScheduledFor) {
+				return fmt.Errorf("scheduler: next slot must follow completion")
+			}
+
+			s.Jobs[index].ScheduledFor = next
+		}
+
+		break
+	}
+
+	run.Status = status
+	run.FinishedAt = finishedAt
+	run.Output = output
+	run.Error = detail
+
 	return nil
+}
+
+// The caller holds mu. All run states reserve their scheduled slot.
+func (s *FakeStore) hasSlot(jobID string, scheduledFor time.Time) bool {
+	for _, run := range s.Runs {
+		if run.JobID == jobID && run.ScheduledFor.Equal(scheduledFor) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (s *FakeStore) UpdateNextRun(ctx context.Context, jobID string, lastRun, nextRun time.Time) error {
@@ -147,7 +191,12 @@ func (s *FakeStore) UpdateNextRun(ctx context.Context, jobID string, lastRun, ne
 
 	for i, j := range s.Jobs {
 		if j.ID == jobID {
-			s.Jobs[i].ScheduledFor = nextRun
+			if nextRun.IsZero() {
+				s.retired[j.ID] = true
+			} else {
+				delete(s.retired, j.ID)
+				s.Jobs[i].ScheduledFor = nextRun
+			}
 
 			break
 		}

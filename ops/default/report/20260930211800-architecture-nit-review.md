@@ -227,7 +227,7 @@ TestObservedRollbackPanic reproduced the index panic. docs/explanation/component
 Severity: high
 Area: persistence
 File: `scheduler/runner.go:194-240, scheduler/postgres/store.go:25-72, scheduler/postgres/schema.go:40`
-Ticket: [Advance or retire completed scheduler slots](../ticket/open/20260930211808-advance-or-retire-completed-scheduler-slots.md)
+Ticket: [Advance or retire completed scheduler slots](../ticket/reviewing/20260930211808-advance-or-retire-completed-scheduler-slots.md)
 
 Problem:
 A completed job remains due because process never calls UpdateNextRun or retires a one-shot job. PostgreSQL then rejects the same slot through UNIQUE(job_id, scheduled_for). The fake store instead permits the handler to run repeatedly.

@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Custom scheduler stores now own atomic run completion and schedule advancement.
+  PostgreSQL recurring jobs use documented JSON schedule specifications;
+  existing non-empty opaque specifications must be converted.
 - Manually assembled application startup lists now use `app.StartupStep` values
   with an optional stop function per component. Existing calls using the outputs
   of `app.Setup` keep the same source form.
@@ -50,6 +53,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Completed scheduled jobs no longer remain stuck on an exhausted slot.
+  One-shot jobs retire; daily, weekly, and interval jobs advance after success
+  or failure. Result and schedule changes are saved together, and claimed slots
+  no longer consume later due batches.
 - Application startup failure now stops only successfully started components
   that own a stop capability, in reverse order, without stopping the wrong
   component or losing the original error when capabilities are mixed.

@@ -103,6 +103,18 @@ interval := scheduler.Interval{Every: 30 * time.Minute}
 next := daily.Next(time.Now())
 ```
 
+Stores own completion of a slot. `MarkSuccess` and `MarkFailed` record the
+result and advance a recurring schedule from finish time, or retire a one-shot
+job, atomically. Errors and panics consume the slot just like success; recurrence
+does not retry that same slot. Missed occurrences are skipped.
+
+For fake-store jobs, set `Job.Schedule` to one of these schedule values. Nil
+means one-shot work. In PostgreSQL, use the existing `schedule_spec` column:
+empty for one-shot work, or JSON such as `{"type":"interval","every":"30m"}`.
+Calendar rules use `schedule_tz`. See the
+[Scheduler Reference](../docs/reference/scheduler/README.md#stored-schedule-format)
+for the complete format and interrupted-run recovery boundary.
+
 ## Testing
 
 Use fakes for deterministic tests:

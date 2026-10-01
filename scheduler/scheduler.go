@@ -19,6 +19,10 @@ type Scheduler interface {
 	Tick(ctx context.Context) error
 }
 
+// JobStore owns slot claims and completion. ListDue excludes claimed slots;
+// CreateRun enforces one run per (jobID, scheduledFor). MarkSuccess and MarkFailed
+// atomically record the outcome and advance the schedule, or retire a one-shot job.
+// Recurrence uses the finish time, skips missed slots, and also advances after failure.
 type JobStore interface {
 	ListDue(ctx context.Context, now time.Time, limit int) ([]Job, error)
 	CreateRun(ctx context.Context, jobID, runID string, scheduledFor time.Time) error

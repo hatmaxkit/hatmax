@@ -83,10 +83,14 @@ at the configured interval.
 
 Handlers return `scheduler.Result`. The runner records running, successful,
 failed, and unknown-task outcomes. A handler panic records a failed run without
-stopping other jobs; failures to persist that state are logged. Current behavior
-does not update the next run or apply configured retry fields automatically, so
-applications must not
-assume recurring advancement or retry semantics that are not implemented.
+stopping other jobs; failures to persist that state are logged. Stores complete
+the run and its schedule together: a one-shot job is retired, while a recurring
+job advances from completion time, including after failure. Missed occurrences
+are skipped. Configure the schedule on the job rather than updating its next
+run from a handler. The Postgres reference defines its stored schedule format.
+
+The next scheduled occurrence is not a retry of a failed slot. Configured retry
+fields remain inactive, and interrupted claimed runs require application repair.
 
 Use deterministic clocks and fake stores in unit tests. Use Postgres tests for
 locking, due-job selection, and persisted run state.
