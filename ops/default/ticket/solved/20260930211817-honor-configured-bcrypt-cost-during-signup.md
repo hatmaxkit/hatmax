@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211817
 title: Honor configured bcrypt cost during signup
-status: reviewing
+status: solved
+resolution: fixed
 kind: bug
 severity: medium
 priority: normal
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:17Z
 ready_at: 2026-10-01T13:50:24Z
 started_at: 2026-10-01T13:50:24Z
 reviewed_at: 2026-10-01T13:57:31Z
+closed_at: 2026-10-01T14:06:06Z
 branch: fix/ticket-20260930211817-bcrypt-cost
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/85
-commits: b5885d2f0f5c1fcddfc8072e179d9fbcecbf43b8
+commits: b5885d2f0f5c1fcddfc8072e179d9fbcecbf43b8, 423b7b69b0c2e4ae4f71eb232d1173699d09041d
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -50,3 +52,5 @@ Signup now passes Auth.BCryptCost through model.HashPasswordWithCost. The explic
 `make check`, `make docs-check`, the auth/model race-enabled suite, and 20 repetitions of the focused cost, failure, and compatibility tests passed. Configured signup costs 4, 6, and Hatmax's default 12 are checked through bcrypt.Cost; sign-in remains valid after changing the configured cost.
 
 Report: [Configured Signup Bcrypt Cost](../../report/20261001135731-bcrypt-cost.md).
+
+PR #85 merged into dev at 423b7b69b0c2e4ae4f71eb232d1173699d09041d. The canonical forge merge was verified before closing this ticket.
