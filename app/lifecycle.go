@@ -7,6 +7,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -102,11 +103,26 @@ func Start(ctx context.Context, log log.Logger, starts []StartupStep, _ []func(c
 	return nil
 }
 
-// Serve starts the HTTP server and blocks until it's shut down.
-func Serve(router chi.Router, port string) error {
-	srv := &http.Server{
-		Addr:    port,
-		Handler: router,
+// Serve listens on the caller's server and blocks until shutdown. Pass the same
+// instance to Shutdown. Configure it before calling Serve; do not mutate it while
+// serving. Zero header and idle timeouts default to 5s and 60s, respectively;
+// negative values are rejected. ReadTimeout and WriteTimeout are left unchanged
+// so callers retain body and streaming policy. ErrServerClosed is a normal exit.
+func Serve(srv *http.Server) error {
+	if srv == nil {
+		return fmt.Errorf("app: HTTP server is required")
+	}
+
+	if srv.ReadHeaderTimeout < 0 || srv.IdleTimeout < 0 {
+		return fmt.Errorf("app: HTTP header and idle timeouts must not be negative")
+	}
+
+	if srv.ReadHeaderTimeout == 0 {
+		srv.ReadHeaderTimeout = 5 * time.Second
+	}
+
+	if srv.IdleTimeout == 0 {
+		srv.IdleTimeout = time.Minute
 	}
 
 	err := srv.ListenAndServe()

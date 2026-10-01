@@ -9,6 +9,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -99,10 +100,12 @@ func main() {
 
 	logger.Infof("%s(%s) started successfully", name, version)
 
+	server := &http.Server{Addr: cfg.Server.Port, Handler: router}
+
 	go func() {
 		logger.Infof("Server listening on %s", cfg.Server.Port)
 
-		serveErr := app.Serve(router, cfg.Server.Port)
+		serveErr := app.Serve(server)
 		if serveErr != nil {
 			logger.Errorf("Server error: %v", serveErr)
 		}
@@ -113,12 +116,5 @@ func main() {
 	<-stop
 
 	logger.Infof("Shutting down %s(%s)...", name, version)
-	cancel()
-
-	for index := len(stops) - 1; index >= 0; index-- {
-		stopErr := stops[index](context.Background())
-		if stopErr != nil {
-			logger.Errorf("Error stopping component: %v", stopErr)
-		}
-	}
+	app.Shutdown(server, logger, stops)
 }

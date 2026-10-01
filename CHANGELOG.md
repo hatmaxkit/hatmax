@@ -31,6 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `app.Serve` now takes a caller-owned `*http.Server`; use that same instance
+  for `app.Shutdown`. Missing header and idle timeouts default to 5 and 60
+  seconds, while positive custom limits and streaming response policy remain
+  under application control. Existing router-and-port calls must migrate.
 - Custom scheduler stores must support atomic retry claims and persisted retry
   waits. Existing PostgreSQL job tables require the additive retry-column upgrade
   included in the scheduler schema before running the upgraded scheduler.

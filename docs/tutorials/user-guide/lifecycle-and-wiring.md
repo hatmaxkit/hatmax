@@ -90,6 +90,14 @@ Handlers therefore do not receive traffic while a declared startup dependency
 is unavailable. The application calls `app.Serve` only after `app.Start`
 returns successfully.
 
+The composition root also owns the HTTP server. Construct
+`&http.Server{Addr: cfg.Server.Port, Handler: router}`, pass it to
+`app.Serve(server)`, and retain the same pointer for
+`app.Shutdown(server, logger, stops)`. Serving supplies missing header and idle
+timeouts without imposing a response-wide streaming deadline. The
+[Application Lifecycle Reference](../../reference/application-lifecycle/README.md#serve)
+defines the defaults and caller-owned configuration.
+
 ## Rollback Preserves Ownership
 
 Each startup step retains the same component's optional stop function. On a
@@ -112,7 +120,9 @@ Normal shutdown stops resource-owning components from last to first. This is
 the inverse of startup: subscribers stop before brokers, stores stop before the
 database, and downstream work stops before the resources it uses.
 
-The process should stop accepting new work, propagate cancellation, and then
+Call `app.Shutdown` with the same server used for serving and wait for it to
+complete before exiting; a return from `app.Serve` only reports that its
+listener closed. The process should stop accepting new work, propagate cancellation, and then
 walk the collected stop functions in reverse order. A stop error is logged,
 but remaining components still receive their stop call.
 

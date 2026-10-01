@@ -479,7 +479,7 @@ Source review found no retry execution path; docs/reference/scheduler/README.md:
 Severity: medium
 Area: architecture
 File: `app/lifecycle.go:91-104`
-Ticket: [Allow owned and bounded HTTP serving](../ticket/open/20260930211819-allow-owned-and-bounded-http-serving.md)
+Ticket: [Allow owned and bounded HTTP serving](../ticket/reviewing/20260930211819-allow-owned-and-bounded-http-serving.md)
 
 Problem:
 Serve creates a private http.Server with no header timeout or idle timeout and does not expose that server to callers. Shutdown accepts a different caller-owned server, so it cannot shut down the server created by Serve.

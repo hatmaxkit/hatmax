@@ -38,7 +38,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"hatmax.adrianpk.com/app"
 	"hatmax.adrianpk.com/config"
@@ -67,9 +70,24 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = app.Serve(router, cfg.Server.Port); err != nil {
-		logger.Errorf("cannot serve: %v", err)
-		os.Exit(1)
+	server := &http.Server{Addr: cfg.Server.Port, Handler: router}
+	serveErrors := make(chan error, 1)
+	go func() {
+		serveErrors <- app.Serve(server)
+	}()
+
+	stopContext, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	select {
+	case <-stopContext.Done():
+		app.Shutdown(server, logger, stops)
+	case err = <-serveErrors:
+		app.Shutdown(server, logger, stops)
+		if err != nil {
+			logger.Errorf("cannot serve: %v", err)
+			os.Exit(1)
+		}
 	}
 }
 ```
@@ -88,7 +106,10 @@ In another terminal:
 curl -fsS http://localhost:8080/ping
 ```
 
-The response is `{"status":"ok"}`. Stop the application with Ctrl+C.
+The response is `{"status":"ok"}`. Stop the application with Ctrl+C; it
+shuts down the same server before stopping components. `app.Serve` defaults
+missing header and idle limits to 5 and 60 seconds without imposing a
+whole-response deadline. Set positive values on `server` to customize them.
 
 For component ordering and shutdown behavior, see
 [Application Lifecycle](../../reference/application-lifecycle/README.md).

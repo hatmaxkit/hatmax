@@ -60,6 +60,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 
 	"hatmax.adrianpk.com/app"
@@ -90,7 +91,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = app.Serve(router, cfg.Server.Port); err != nil {
+	server := &http.Server{Addr: cfg.Server.Port, Handler: router}
+	if err = app.Serve(server); err != nil {
 		logger.Errorf("cannot serve: %v", err)
 		os.Exit(1)
 	}

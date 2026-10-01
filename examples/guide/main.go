@@ -372,7 +372,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = app.Serve(router, cfg.Server.Port)
+	server := &http.Server{Addr: cfg.Server.Port, Handler: router}
+
+	err = app.Serve(server)
 	if err != nil {
 		logger.Errorf("cannot serve: %v", err)
 		os.Exit(1)

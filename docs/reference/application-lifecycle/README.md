@@ -60,16 +60,46 @@ stop function. Calls using the outputs of `Setup` need no source change.
 
 ## Serve
 
-`Serve(router, port)` listens on `port` with the given router and blocks.
-`http.ErrServerClosed` is returned as a nil error. Any other listen error is
-returned.
+`Serve(server *http.Server)` calls `ListenAndServe` on that exact caller-owned
+instance and blocks until its listener closes. Pass the same pointer to
+`Shutdown`; Hatmax does not create or substitute a private server.
+`http.ErrServerClosed` is returned as nil; other listen errors are returned unchanged.
+
+Configure the server before calling `Serve` and do not mutate it while serving.
+Missing connection limits receive these defaults before listening:
+
+| Field | Zero-value default | Caller value |
+| --- | --- | --- |
+| `ReadHeaderTimeout` | `5s` | Positive durations are preserved; negative durations are rejected. |
+| `IdleTimeout` | `60s` | Positive durations are preserved; negative durations are rejected. |
+
+A nil server or a negative limit returns an error before listening, without
+partially applying defaults. Incomplete headers and idle keep-alive connections
+are bounded. These limits do not cap an active handler or response stream.
+
+`ReadTimeout`, `WriteTimeout`, handlers, address, hooks, and other configuration
+remain unchanged. Zero read/write timeouts remain zero so streaming responses
+can outlive the header and idle limits. Applications own request-body limits,
+per-handler deadlines, and any deliberate response timeout or streaming policy.
+
+Migrate `Serve(router, port)` calls by constructing
+`&http.Server{Addr: port, Handler: router}` and calling `Serve(server)`.
+Retain that pointer for shutdown; configure custom positive connection limits
+on it when needed. The canonical generated application already owns its server
+and uses the standard library directly, so this signature change does not alter
+generated code.
 
 ## Shutdown
 
-`Shutdown(server, logger, stops)` gives the HTTP server five seconds to shut
+`Shutdown(server, logger, stops)` gives the same serving HTTP server five seconds to shut
 down. A server shutdown error is logged. `Shutdown` then calls the stop
 functions from the last index to the first, using `context.Background()`. A
 stop error is logged and does not stop the remaining calls.
+
+Server shutdown closes the listener and idle connections while allowing active
+requests to finish within that wait. `Serve` can return as soon as the listener
+closes; that return alone does not mean active requests or component shutdown
+have finished. Wait for `Shutdown` to complete before exiting the process.
 
 ## Router options
 
