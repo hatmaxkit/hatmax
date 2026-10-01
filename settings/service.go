@@ -7,6 +7,7 @@ package settings
 
 import (
 	"context"
+	"errors"
 	"strconv"
 )
 
@@ -21,31 +22,46 @@ func NewService(registry *Registry, store Store) *Service {
 	return &Service{registry: registry, store: store}
 }
 
-// GetString returns the setting value or its default.
+// GetString returns the stored value, including empty strings. Only ErrNotFound
+// selects the registered default; all other store errors are returned unchanged.
 func (s *Service) GetString(ctx context.Context, key string) (string, error) {
 	raw, err := s.store.Get(ctx, key)
-	if err != nil || raw == "" {
+	if errors.Is(err, ErrNotFound) {
 		return s.defaultFor(key), nil
+	}
+
+	if err != nil {
+		return "", err
 	}
 
 	return raw, nil
 }
 
-// GetInt returns the setting value parsed as int, or its default.
+// GetInt parses the stored value, or the registered default only for ErrNotFound.
+// Stored empty strings are invalid integers. Store and parse errors are returned.
 func (s *Service) GetInt(ctx context.Context, key string) (int, error) {
 	raw, err := s.store.Get(ctx, key)
-	if err != nil || raw == "" {
+	if errors.Is(err, ErrNotFound) {
 		return s.defaultInt(key)
+	}
+
+	if err != nil {
+		return 0, err
 	}
 
 	return strconv.Atoi(raw)
 }
 
-// GetBool returns the setting value parsed as bool, or its default.
+// GetBool parses the stored value, or the registered default only for ErrNotFound.
+// Stored empty strings are invalid booleans. Store and parse errors are returned.
 func (s *Service) GetBool(ctx context.Context, key string) (bool, error) {
 	raw, err := s.store.Get(ctx, key)
-	if err != nil || raw == "" {
+	if errors.Is(err, ErrNotFound) {
 		return s.defaultBool(key)
+	}
+
+	if err != nil {
+		return false, err
 	}
 
 	return strconv.ParseBool(raw)

@@ -21,11 +21,21 @@ func newMemStore() *memStore {
 }
 
 func (m *memStore) Get(ctx context.Context, key string) (string, error) {
-	if m.err != nil {
-		return "", m.err
+	err := ctx.Err()
+	if err != nil {
+		return "", err
 	}
 
-	return m.data[key], nil
+	if m.err != nil {
+		return m.data[key], m.err
+	}
+
+	value, ok := m.data[key]
+	if !ok {
+		return "", ErrNotFound
+	}
+
+	return value, nil
 }
 
 func (m *memStore) Set(ctx context.Context, key, value string) error {
@@ -294,14 +304,10 @@ func TestServiceStoreError(t *testing.T) {
 	svc := NewService(reg, store)
 	ctx := context.Background()
 
-	t.Run("GetString returns default on error", func(t *testing.T) {
+	t.Run("GetString returns store error", func(t *testing.T) {
 		got, err := svc.GetString(ctx, "test.key")
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-
-		if got != "fallback" {
-			t.Errorf("got %q, want %q", got, "fallback")
+		if !errors.Is(err, store.err) || got != "" {
+			t.Fatalf("got %q, %v; want empty value and store error", got, err)
 		}
 	})
 

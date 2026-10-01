@@ -8,7 +8,6 @@ package main
 import (
 	"context"
 	"embed"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -38,13 +37,18 @@ type memorySettings struct {
 	values map[string]string
 }
 
-func (m *memorySettings) Get(_ context.Context, key string) (string, error) {
+func (m *memorySettings) Get(ctx context.Context, key string) (string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	err := ctx.Err()
+	if err != nil {
+		return "", err
+	}
+
 	value, ok := m.values[key]
 	if !ok {
-		return "", errors.New("setting not found")
+		return "", settings.ErrNotFound
 	}
 
 	return value, nil

@@ -53,10 +53,21 @@ reg.Register(settings.Schema{
 // Create service
 svc := settings.NewService(reg, postgresStore)
 
-// Read (returns default if not set)
-name, _ := svc.GetString(ctx, "site.name")
-limit, _ := svc.GetInt(ctx, "site.items_per_page")
-enabled, _ := svc.GetBool(ctx, "feature.dark_mode")
+// Read (only ErrNotFound selects a default)
+name, err := svc.GetString(ctx, "site.name")
+if err != nil {
+    return err
+}
+
+limit, err := svc.GetInt(ctx, "site.items_per_page")
+if err != nil {
+    return err
+}
+
+enabled, err := svc.GetBool(ctx, "feature.dark_mode")
+if err != nil {
+    return err
+}
 
 // Write (validates against schema)
 svc.Set(ctx, "site.name", "New Name")
@@ -108,7 +119,20 @@ type Store interface {
 }
 ```
 
+`Store.Get` returns `settings.ErrNotFound` only when a key is absent. Wrapped
+sentinels are supported through `errors.Is`; translate backend-specific
+not-found errors in your adapter. Present empty strings return nil error, and
+read or context failures must propagate. Update custom adapters that previously
+returned `"", nil` or an unrelated error for absence.
+
+Service getters use defaults only for absence. `GetString` preserves a stored
+empty string; `GetInt` and `GetBool` reject it with a parse error. Delete a key
+to restore its default. Missing unregistered keys or empty defaults retain
+zero-value behavior. Getters do not persist fallback values.
+
 ## Value Helpers
+
+The standalone helpers below keep their own empty-to-zero parsing behavior.
 
 ```go
 // Parse from string (returns zero value if empty)

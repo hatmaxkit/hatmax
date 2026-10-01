@@ -90,11 +90,16 @@ Schemas define type, required state, bounds, enum choices, defaults, and
 display labels. The application owns the registry and the `settings.Store`
 adapter; Hatmax does not provide a Postgres settings store.
 
-Registered values are validated before `Set`. Typed getters parse stored raw
-values and fall back to the registered default when the store returns an error
-or an empty value. Decide whether that fallback is suitable for each setting:
-a visual preference can tolerate it, while a safety-critical switch may need
-an application workflow that surfaces store failure explicitly.
+Registered values are validated before `Set`. Your adapter must distinguish an
+absent key with `settings.ErrNotFound` from a present value or a read failure.
+Only absence selects the registered default. Typed getters propagate storage,
+cancellation, and parse errors; always check those errors before using a value.
+
+A stored empty string stays empty through `GetString`; empty numbers and
+booleans return parse errors. Delete a key to restore its default instead of
+storing an empty string. Keep the failure policy in the application workflow:
+decide whether to fail the operation, preserve a last known value, or show an
+error rather than allowing persistence failure to silently change behavior.
 
 Do not use settings for database credentials, encryption keys, listener ports,
 or dependencies whose construction changes. Updating a setting does not

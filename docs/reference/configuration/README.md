@@ -142,19 +142,39 @@ checking the type. A required empty value returns `setting "<key>" is required`.
 `Store` is `Get`, `Set`, `All`, and `Delete`. The settings package does not
 supply a Postgres store.
 
+`Store.Get` must return `settings.ErrNotFound` only for an absent key. Adapters
+may wrap that sentinel; the service checks it with `errors.Is`. Translate
+backend-specific absence, such as `sql.ErrNoRows`, at the adapter boundary.
+Present values, including `""`, return nil error. Read failures, cancellation,
+and expired deadlines must remain errors rather than being reported as absence.
+
+Custom adapters that previously used `"", nil`, an arbitrary error, or a
+backend-specific error for absence must adopt this contract. Matching error
+text is not sufficient. Delete a key to restore its default; storing an empty
+string is no longer a default-reset operation.
+
 `NewService(registry, store)` returns a `Service`.
 
 | Method | Result |
 | --- | --- |
-| `GetString` | The stored raw value. A store error or an empty raw value returns the schema default, or `""` when the key is not registered, and a nil error. |
-| `GetInt` | The stored value parsed with `Atoi`. A store error or an empty raw value returns the default parsed as an int. An empty default returns `0` and a nil error. A non-empty invalid default or stored value returns the parse error. |
-| `GetBool` | The stored value parsed with `ParseBool`. A store error or an empty raw value returns the default parsed as a bool. An empty default returns `false` and a nil error. |
+| `GetString` | The stored raw value, including `""`. Only `ErrNotFound` selects the schema default, or `""` for an unregistered key. Any other store error returns `""` and that error unchanged. |
+| `GetInt` | The stored value parsed with `Atoi`. Only `ErrNotFound` selects the parsed default. An absent key with no default returns `0`, nil. Invalid stored values, including `""`, or non-empty invalid defaults return parse errors. Other store errors return `0` and the original error. |
+| `GetBool` | The stored value parsed with `ParseBool`. Only `ErrNotFound` selects the parsed default. An absent key with no default returns `false`, nil. Invalid stored values, including `""`, or non-empty invalid defaults return parse errors. Other store errors return `false` and the original error. |
 | `Set` | Validates the value when the key is registered, then stores it. An unregistered key is stored without validation. |
 | `Delete` | Deletes the key through the store. |
 | `All` | Returns the stored values. |
 
+Always check a getter's error before using its value. Defaults are not written
+back to the store. An invalid default matters only when the key is absent; it
+does not replace a present value. `Schema.Validate` still allows optional
+empty values, but typed getters do not interpret a stored empty number or
+boolean as a valid value.
+
 `ParseBool` and `ParseInt` parse a raw string. An empty string returns the
 zero value and a nil error. `FormatBool` and `FormatInt` render a value with
 `strconv`.
+
+These standalone parsing helpers retain their empty-to-zero behavior; they
+do not implement the service's absence/default policy.
 
 Settings do not reload `config.Config`.

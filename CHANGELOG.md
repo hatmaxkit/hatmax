@@ -53,6 +53,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Runtime settings now use defaults only for missing keys, without hiding
+  persistence or cancellation failures. Custom stores must report absence with
+  `settings.ErrNotFound`; explicit empty values no longer reset a setting to
+  its default. Delete the key to reset it.
 - Scheduler shutdown is now safe to repeat and respects the caller's deadline.
   Startup cancellation stops polling and active execution; repeated starts no
   longer launch duplicate loops. Restarting after shutdown requires a new runner.
