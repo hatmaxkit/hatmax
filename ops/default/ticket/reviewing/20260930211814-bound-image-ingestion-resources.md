@@ -13,8 +13,8 @@ ready_at: 2026-10-01T11:47:23Z
 started_at: 2026-10-01T11:47:23Z
 reviewed_at: 2026-10-01T12:00:35Z
 branch: fix/ticket-20260930211814-image-ingestion
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/82
+commits: 45f6c8047d257798df7195db1b45889888eae8b9
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
