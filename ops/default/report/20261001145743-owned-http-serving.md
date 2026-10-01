@@ -10,8 +10,8 @@ This file is part of Hatmax. See COPYING for license terms.
 Status: reviewing
 Ticket: [TKT-20260930211819](../ticket/reviewing/20260930211819-allow-owned-and-bounded-http-serving.md)
 Branch: `fix/ticket-20260930211819-owned-http-server`
-PR: pending
-Implementation: pending
+PR: [#87](https://forge.adrianpk.com/hatmax/hatmax/pulls/87)
+Implementation: `abfa220d93f6ea6e75a4cb5521a6654873bb6621`
 
 ## Delivered Behavior
 

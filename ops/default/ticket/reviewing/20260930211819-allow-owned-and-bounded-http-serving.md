@@ -13,8 +13,8 @@ ready_at: 2026-10-01T14:46:15Z
 started_at: 2026-10-01T14:46:15Z
 reviewed_at: 2026-10-01T14:57:43Z
 branch: fix/ticket-20260930211819-owned-http-server
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/87
+commits: abfa220d93f6ea6e75a4cb5521a6654873bb6621
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
