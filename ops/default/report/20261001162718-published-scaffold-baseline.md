@@ -11,7 +11,8 @@ Status: reviewing
 Ticket: [TKT-20260930211821](../ticket/reviewing/20260930211821-refresh-the-published-scaffold-dependency-baseline.md)
 Review: [F22](20260930211800-architecture-nit-review.md#f22)
 Branch: `fix/ticket-20260930211821-scaffold-baseline`
-PR: pending
+PR: [#90](https://forge.adrianpk.com/hatmax/hatmax/pulls/90)
+Implementation: `ac9355a08a966aa129f84cbcc481560b685f08bf`
 
 ## Delivered Behavior
 
@@ -28,7 +29,7 @@ The original generated consumer scan reached symbols affected by [GO-2026-5004](
 
 ## Validation
 
-Checks used Go 1.26.7. Database tests used an isolated native PostgreSQL 18.6 cluster. Published scaffold and real application creation used Hatmax v0.5.0 with no local replacement. The existing feature acceptance uses the local Hatmax checkout and is not the published-consumer security proof.
+Checks used Go 1.26.7. Database tests used an isolated native PostgreSQL 18.6 cluster, stopped after validation. Published scaffold and real application creation used Hatmax v0.5.0 with no local replacement. The existing feature acceptance uses the local Hatmax checkout and is not the published-consumer security proof.
 
 - Before the fix, the baseline regression reproduced missing explicit requirements and checksum seeds. The published-consumer scan reported two reachable vulnerabilities.
 - `make check`: passed licensing, formatting, vet, all tests, the 80% coverage gate, and strict lint. Total coverage: 81.7%; generator/execute: 79.1%. The first invocation stopped in licensing because the moved ticket was not yet staged; staging the lifecycle move resolved that index-path check before the successful full run.

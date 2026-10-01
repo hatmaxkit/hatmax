@@ -13,8 +13,8 @@ ready_at: 2026-10-01T15:43:00Z
 started_at: 2026-10-01T15:43:00Z
 reviewed_at: 2026-10-01T16:28:02Z
 branch: fix/ticket-20260930211821-scaffold-baseline
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/90
+commits: ac9355a08a966aa129f84cbcc481560b685f08bf
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
