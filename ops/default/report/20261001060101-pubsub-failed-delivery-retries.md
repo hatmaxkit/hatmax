@@ -10,7 +10,8 @@ This file is part of Hatmax. See COPYING for license terms.
 Status: reviewing
 Ticket: [TKT-20260930211805](../ticket/reviewing/20260930211805-retain-failed-pubsub-deliveries-for-retry.md)
 Branch: `fix/ticket-20260930211805-pubsub-retry`
-PR: pending
+PR: [#73](https://forge.adrianpk.com/hatmax/hatmax/pulls/73)
+Implementation: `6d7aacf71c15e9ac95f081de1dd831b4803a4399`
 
 ## Delivered Behavior
 

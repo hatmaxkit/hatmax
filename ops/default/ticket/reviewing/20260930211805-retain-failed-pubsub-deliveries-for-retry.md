@@ -13,8 +13,8 @@ ready_at: 2026-10-01T05:52:50Z
 started_at: 2026-10-01T05:52:50Z
 reviewed_at: 2026-10-01T06:01:01Z
 branch: fix/ticket-20260930211805-pubsub-retry
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/73
+commits: 6d7aacf71c15e9ac95f081de1dd831b4803a4399
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
