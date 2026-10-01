@@ -13,7 +13,8 @@ ready_at: 2026-10-01T15:30:00Z
 started_at: 2026-10-01T15:30:00Z
 reviewed_at: 2026-10-01T15:37:29Z
 branch: fix/ticket-20260930211820-smtp-headers
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/88
+commits: bbbda2650a33c2b1be7e93ebefd76e7b2520fddc
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK

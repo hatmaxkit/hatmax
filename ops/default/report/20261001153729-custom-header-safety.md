@@ -10,8 +10,8 @@ This file is part of Hatmax. See COPYING for license terms.
 Status: reviewing
 Ticket: [TKT-20260930211820](../ticket/reviewing/20260930211820-reject-smtp-header-line-injection.md)
 Branch: `fix/ticket-20260930211820-smtp-headers`
-PR: pending
-Implementation: pending
+PR: [#88](https://forge.adrianpk.com/hatmax/hatmax/pulls/88)
+Implementation: `bbbda2650a33c2b1be7e93ebefd76e7b2520fddc`
 
 ## Delivered Behavior
 
