@@ -13,8 +13,8 @@ ready_at: 2026-10-01T07:54:14Z
 started_at: 2026-10-01T07:54:14Z
 reviewed_at: 2026-10-01T08:11:47Z
 branch: fix/ticket-20260930211808-scheduler-slots
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/76
+commits: 2517372dc878bf6b6b5bb0154c0caf4e6f183b05
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
