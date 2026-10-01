@@ -24,6 +24,14 @@ func (NoopStore) MarkRunning(ctx context.Context, runID string, startedAt time.T
 	return nil
 }
 
+func (NoopStore) ClaimRetry(ctx context.Context, runID string, attempt int, startedAt time.Time) error {
+	return nil
+}
+
+func (NoopStore) MarkRetry(ctx context.Context, runID string, maxAttempts int, finishedAt, retryAt time.Time, errMsg string) error {
+	return nil
+}
+
 func (NoopStore) MarkSuccess(ctx context.Context, runID string, finishedAt time.Time, output []byte) error {
 	return nil
 }

@@ -133,6 +133,11 @@ returns 100 milliseconds.
 `SchedulerConfig.IntervalDuration` and `RetryBackoffDuration` parse their
 fields. An invalid value returns one minute.
 
+`scheduler.retry_attempts` bounds total attempts for a new job slot, including
+the first; `1` disables retries. `retry_backoff` is a fixed delay after a failed
+attempt. Persisted retry waits retain their original total budget across runner
+restarts. See the [scheduler retry contract](../scheduler/README.md#retries).
+
 ## Settings
 
 A setting is a `Value`: `Key`, `Raw`, and `UpdatedAt`.

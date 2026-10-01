@@ -33,6 +33,8 @@ CREATE TABLE IF NOT EXISTS job_runs (
     finished_at TIMESTAMPTZ,
     status TEXT NOT NULL DEFAULT 'pending',
     attempt INT NOT NULL DEFAULT 1,
+    retry_at TIMESTAMPTZ,
+    retry_limit INT,
     error TEXT,
     output JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -42,4 +44,8 @@ CREATE TABLE IF NOT EXISTS job_runs (
 
 CREATE INDEX IF NOT EXISTS idx_job_runs_status ON job_runs(status);
 CREATE INDEX IF NOT EXISTS idx_job_runs_job_id ON job_runs(job_id);
+
+-- Upgrade installations created before retry waits were supported.
+ALTER TABLE job_runs ADD COLUMN IF NOT EXISTS retry_at TIMESTAMPTZ;
+ALTER TABLE job_runs ADD COLUMN IF NOT EXISTS retry_limit INT;
 `

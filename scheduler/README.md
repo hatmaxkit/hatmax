@@ -90,8 +90,8 @@ by `Stop`. See the [lifecycle contract](../docs/reference/scheduler/README.md#li
 | Interval | 1m | Polling interval |
 | BatchSize | 20 | Max jobs per tick |
 | Workers | 1 | Concurrent workers |
-| RetryAttempts | 3 | Max retry attempts |
-| RetryBackoff | 1m | Base backoff duration |
+| RetryAttempts | 3 | Maximum total attempts per slot, including the first; 1 disables retries |
+| RetryBackoff | 1m | Fixed delay from failed-attempt completion |
 
 ### Dynamic (SettingsProvider)
 
@@ -131,8 +131,18 @@ next := daily.Next(time.Now())
 
 Stores own completion of a slot. `MarkSuccess` and `MarkFailed` record the
 result and advance a recurring schedule from finish time, or retire a one-shot
-job, atomically. Errors and panics consume the slot just like success; recurrence
-does not retry that same slot. Missed occurrences are skipped.
+job, atomically. Errors and panics wait for retry while budget remains, without
+advancing the schedule. Exhausted failures consume the slot just like success;
+recurrence is separate from retries. Missed occurrences are skipped.
+
+Retry waits persist the attempt count, deadline, and initial total budget. A
+new runner resumes them without resetting the budget or holding a worker idle.
+Handlers receive one-based `Job.Attempt`, stable `RunID`, and `MaxAttempts`.
+Custom stores must implement atomic `ClaimRetry` and durable `MarkRetry`.
+Existing PostgreSQL installations must apply the schema's additive retry-column
+upgrade before starting the new runner. See the
+[retry contract](../docs/reference/scheduler/README.md#retries) for the method
+signatures, restart policy, and failure boundaries.
 
 For fake-store jobs, set `Job.Schedule` to one of these schedule values. Nil
 means one-shot work. In PostgreSQL, use the existing `schedule_spec` column:

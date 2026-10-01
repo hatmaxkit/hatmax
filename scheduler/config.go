@@ -12,12 +12,14 @@ import (
 )
 
 type Config struct {
-	Enabled       bool
-	Interval      time.Duration
-	BatchSize     int
-	Workers       int
+	Enabled   bool
+	Interval  time.Duration
+	BatchSize int
+	Workers   int
+	// RetryAttempts bounds total attempts, including the first. 1 disables retries.
 	RetryAttempts int
-	RetryBackoff  time.Duration
+	// RetryBackoff is the fixed delay after a failed attempt, without worker sleeps.
+	RetryBackoff time.Duration
 }
 
 // ConfigFromRoot maps the shared root config into scheduler config.

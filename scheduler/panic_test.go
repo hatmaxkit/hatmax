@@ -46,7 +46,7 @@ func TestPanicProcess(t *testing.T) {
 
 	store := NewFakeStore()
 	now := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
-	runner := New(store, Config{Workers: workers, BatchSize: 3}, &FakeLogger{}, WithClock(NewFakeClock(now)))
+	runner := New(store, Config{Workers: workers, BatchSize: 3, RetryAttempts: 1}, &FakeLogger{}, WithClock(NewFakeClock(now)))
 
 	if os.Getenv("HATMAX_SCHEDULER_STORE_PANIC") == "1" {
 		runner.store = &panicStore{FakeStore: store, panicList: true}
@@ -144,7 +144,7 @@ func TestFailedRunWrite(t *testing.T) {
 		t.Run(fmt.Sprintf("panic %t", handlerPanic), func(t *testing.T) {
 			store := &panicStore{FakeStore: NewFakeStore(), markErr: errors.New("failed-state write unavailable")}
 			logger := &panicLogger{}
-			runner := New(store, Config{}, logger)
+			runner := New(store, Config{RetryAttempts: 1}, logger)
 			runner.Register("broken", func(_ context.Context, _ Job) Result {
 				if handlerPanic {
 					panic("broken job")

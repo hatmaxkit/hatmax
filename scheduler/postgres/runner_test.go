@@ -42,7 +42,7 @@ func TestPanicRun(t *testing.T) {
 				}
 			}
 
-			runner := scheduler.New(NewStore(db), scheduler.Config{Workers: workers, BatchSize: 3},
+			runner := scheduler.New(NewStore(db), scheduler.Config{Workers: workers, BatchSize: 3, RetryAttempts: 1},
 				&scheduler.FakeLogger{}, scheduler.WithClock(scheduler.NewFakeClock(now)))
 			for _, name := range []string{"failed-first", "failed-second"} {
 				runner.Register(name, func(_ context.Context, _ scheduler.Job) scheduler.Result {

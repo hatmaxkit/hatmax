@@ -54,6 +54,9 @@ type FakeRun struct {
 	ID           string
 	JobID        string
 	ScheduledFor time.Time
+	Attempt      int
+	MaxAttempts  int
+	RetryAt      time.Time
 	StartedAt    time.Time
 	FinishedAt   time.Time
 	Status       string
@@ -82,12 +85,34 @@ func (s *FakeStore) ListDue(ctx context.Context, now time.Time, limit int) ([]Jo
 	var due []Job
 
 	for _, j := range s.Jobs {
-		if !s.retired[j.ID] && !j.ScheduledFor.After(now) && !s.hasSlot(j.ID, j.ScheduledFor) {
-			due = append(due, j)
+		if s.retired[j.ID] || j.ScheduledFor.After(now) {
+			continue
 		}
+
+		run := s.slot(j.ID, j.ScheduledFor)
+		if run == nil {
+			j.RunID = ""
+			j.Attempt = 1
+			j.MaxAttempts = 0
+		} else if run.Status == "retry_wait" && !run.RetryAt.After(now) {
+			j.RunID = run.ID
+			j.Attempt = run.Attempt + 1
+			j.MaxAttempts = run.MaxAttempts
+		} else {
+			continue
+		}
+
+		due = append(due, j)
 	}
 
-	sort.SliceStable(due, func(i, j int) bool { return due[i].ScheduledFor.Before(due[j].ScheduledFor) })
+	sort.SliceStable(due, func(i, j int) bool {
+		left, right := s.dueTime(due[i]), s.dueTime(due[j])
+		if left.Equal(right) {
+			return due[i].ID < due[j].ID
+		}
+
+		return left.Before(right)
+	})
 
 	if limit >= 0 && len(due) > limit {
 		due = due[:limit]
@@ -96,11 +121,21 @@ func (s *FakeStore) ListDue(ctx context.Context, now time.Time, limit int) ([]Jo
 	return due, nil
 }
 
+// Retry deadlines order admission, but never replace the original scheduled slot.
+// The caller holds mu.
+func (s *FakeStore) dueTime(job Job) time.Time {
+	if job.RunID != "" {
+		return s.Runs[job.RunID].RetryAt
+	}
+
+	return job.ScheduledFor
+}
+
 func (s *FakeStore) CreateRun(ctx context.Context, jobID, runID string, scheduledFor time.Time) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, exists := s.Runs[runID]; exists || s.hasSlot(jobID, scheduledFor) {
+	if _, exists := s.Runs[runID]; exists || s.slot(jobID, scheduledFor) != nil {
 		return fmt.Errorf("scheduler: run or job slot already exists")
 	}
 
@@ -108,6 +143,7 @@ func (s *FakeStore) CreateRun(ctx context.Context, jobID, runID string, schedule
 		ID:           runID,
 		JobID:        jobID,
 		ScheduledFor: scheduledFor,
+		Attempt:      1,
 		Status:       "pending",
 	}
 
@@ -118,10 +154,69 @@ func (s *FakeStore) MarkRunning(ctx context.Context, runID string, startedAt tim
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if run, ok := s.Runs[runID]; ok {
-		run.Status = "running"
-		run.StartedAt = startedAt
+	run, ok := s.Runs[runID]
+	if !ok || run.Status != "pending" {
+		return ErrRunClaim
 	}
+
+	run.Status = "running"
+	run.StartedAt = startedAt
+
+	return nil
+}
+
+func (s *FakeStore) ClaimRetry(ctx context.Context, runID string, attempt int, startedAt time.Time) error {
+	err := ctx.Err()
+	if err != nil {
+		return err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	run, ok := s.Runs[runID]
+	if !ok || run.Status != "retry_wait" || attempt < 2 || attempt > run.MaxAttempts || run.Attempt != attempt-1 || run.RetryAt.After(startedAt) {
+		return ErrRunClaim
+	}
+
+	for _, job := range s.Jobs {
+		if job.ID == run.JobID && !s.retired[job.ID] && job.ScheduledFor.Equal(run.ScheduledFor) {
+			run.Status = "running"
+			run.Attempt = attempt
+			run.StartedAt = startedAt
+			run.FinishedAt = time.Time{}
+			run.RetryAt = time.Time{}
+
+			return nil
+		}
+	}
+
+	return ErrRunClaim
+}
+
+func (s *FakeStore) MarkRetry(ctx context.Context, runID string, maxAttempts int, finishedAt, retryAt time.Time, errMsg string) error {
+	err := ctx.Err()
+	if err != nil {
+		return err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	run, ok := s.Runs[runID]
+	if !ok || run.Status != "running" || !retryAt.After(finishedAt) {
+		return ErrRunClaim
+	}
+
+	if maxAttempts <= run.Attempt || (run.MaxAttempts != 0 && run.MaxAttempts != maxAttempts) {
+		return ErrRunClaim
+	}
+
+	run.Status = "retry_wait"
+	run.FinishedAt = finishedAt
+	run.RetryAt = retryAt
+	run.MaxAttempts = maxAttempts
+	run.Error = errMsg
 
 	return nil
 }
@@ -170,19 +265,20 @@ func (s *FakeStore) finish(runID string, finishedAt time.Time, status string, ou
 	run.FinishedAt = finishedAt
 	run.Output = output
 	run.Error = detail
+	run.RetryAt = time.Time{}
 
 	return nil
 }
 
 // The caller holds mu. All run states reserve their scheduled slot.
-func (s *FakeStore) hasSlot(jobID string, scheduledFor time.Time) bool {
+func (s *FakeStore) slot(jobID string, scheduledFor time.Time) *FakeRun {
 	for _, run := range s.Runs {
 		if run.JobID == jobID && run.ScheduledFor.Equal(scheduledFor) {
-			return true
+			return run
 		}
 	}
 
-	return false
+	return nil
 }
 
 func (s *FakeStore) UpdateNextRun(ctx context.Context, jobID string, lastRun, nextRun time.Time) error {

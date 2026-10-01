@@ -212,7 +212,7 @@ func TestRunner_TickHandlerError(t *testing.T) {
 	clock := NewFakeClock(time.Date(2026, 2, 18, 10, 0, 0, 0, time.UTC))
 	log := &FakeLogger{}
 
-	r := New(store, Config{Enabled: true}, log)
+	r := New(store, Config{Enabled: true, RetryAttempts: 1}, log)
 	r.SetClock(clock)
 
 	r.Register("failing", func(ctx context.Context, job Job) Result {

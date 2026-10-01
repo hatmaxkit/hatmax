@@ -88,15 +88,21 @@ and handle its error: a timed-out wait does not mean the handler has exited.
 Repeated stops are safe; restarting after shutdown requires a new runner.
 
 Handlers return `scheduler.Result`. The runner records running, successful,
-failed, and unknown-task outcomes. A handler panic records a failed run without
-stopping other jobs; failures to persist that state are logged. Stores complete
+failed, retry-waiting, and unknown-task outcomes. A handler panic follows the
+retry policy without stopping other jobs; failures to persist that state are logged. Stores complete
 the run and its schedule together: a one-shot job is retired, while a recurring
-job advances from completion time, including after failure. Missed occurrences
+job advances from terminal completion time, including after exhausted failure. Missed occurrences
 are skipped. Configure the schedule on the job rather than updating its next
 run from a handler. The Postgres reference defines its stored schedule format.
 
-The next scheduled occurrence is not a retry of a failed slot. Configured retry
-fields remain inactive, and interrupted claimed runs require application repair.
+Set `scheduler.retry_attempts` to the maximum total attempts per slot, including
+the first (`3` by default, `1` for no retries). `scheduler.retry_backoff` controls
+the fixed wait after a failed attempt. Retry waits survive restart and keep the
+slot's original budget; they do not hold workers or advance its schedule. Make
+handlers safe to repeat and use the stable `Job.RunID` when tracking effects.
+The next scheduled occurrence is separate from a retry. Interrupted pending or
+running claims still require application repair; see the
+[retry contract](../../reference/scheduler/README.md#retries).
 
 Use deterministic clocks and fake stores in unit tests. Use Postgres tests for
 locking, due-job selection, and persisted run state.

@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Scheduled jobs now retry handler failures within a configured total attempt
+  limit and fixed delay. PostgreSQL retry waits survive restarts without resetting
+  their budget; recurring schedules advance only after terminal completion.
 - `hm` now provides a resumable conversational TUI for creating canonical
   compiling Hatmax applications, optionally with initial features, and for
   evolving existing Hatmax projects through explicit digest-bound plans.
@@ -28,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Custom scheduler stores must support atomic retry claims and persisted retry
+  waits. Existing PostgreSQL job tables require the additive retry-column upgrade
+  included in the scheduler schema before running the upgraded scheduler.
 - Custom scheduler stores now own atomic run completion and schedule advancement.
   PostgreSQL recurring jobs use documented JSON schedule specifications;
   existing non-empty opaque specifications must be converted.

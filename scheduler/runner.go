@@ -305,22 +305,19 @@ func (r *Runner) process(ctx context.Context, job Job) {
 		return
 	}
 
-	runID := uuid.New().String()
-	now := r.clock.Now()
+	if job.RunID == "" {
+		job.Attempt = 1
+		job.MaxAttempts = r.cfg.RetryAttempts
+	}
 
-	err := r.store.CreateRun(ctx, job.ID, runID, job.ScheduledFor)
+	runID, err := r.claim(ctx, job)
 	if err != nil {
-		r.log.Errorf("scheduler: cannot create run for job %s: %v", job.ID, err)
+		r.log.Errorf("scheduler: cannot claim job %s attempt %d: %v", job.ID, job.Attempt, err)
 
 		return
 	}
 
-	err = r.store.MarkRunning(ctx, runID, now)
-	if err != nil {
-		r.log.Errorf("scheduler: cannot mark running %s: %v", runID, err)
-
-		return
-	}
+	job.RunID = runID
 
 	r.mu.RLock()
 	handler, ok := r.handlers[job.TaskType]
@@ -340,12 +337,7 @@ func (r *Runner) process(ctx context.Context, job Job) {
 	result := invokeHandler(ctx, handler, job)
 
 	if result.Failed() {
-		err := r.store.MarkFailed(ctx, runID, r.clock.Now(), result.Err.Error())
-		if err != nil {
-			r.log.Errorf("scheduler: cannot mark failed %s: %v", runID, err)
-		}
-
-		r.log.Errorf("scheduler: job %s failed: %v", job.ID, result.Err)
+		r.fail(ctx, job, runID, result.Err)
 
 		return
 	}
@@ -361,6 +353,40 @@ func (r *Runner) process(ctx context.Context, job Job) {
 	if err != nil {
 		r.log.Errorf("scheduler: cannot mark success %s: %v", runID, err)
 	}
+}
+
+func (r *Runner) claim(ctx context.Context, job Job) (string, error) {
+	if job.RunID != "" {
+		return job.RunID, r.store.ClaimRetry(ctx, job.RunID, job.Attempt, r.clock.Now())
+	}
+
+	runID := uuid.New().String()
+
+	err := r.store.CreateRun(ctx, job.ID, runID, job.ScheduledFor)
+	if err != nil {
+		return "", err
+	}
+
+	return runID, r.store.MarkRunning(ctx, runID, r.clock.Now())
+}
+
+func (r *Runner) fail(ctx context.Context, job Job, runID string, failure error) {
+	finishedAt := r.clock.Now()
+
+	var err error
+	if job.Attempt < job.MaxAttempts {
+		err = r.store.MarkRetry(ctx, runID, job.MaxAttempts, finishedAt, finishedAt.Add(r.cfg.RetryBackoff), failure.Error())
+		if err != nil {
+			r.log.Errorf("scheduler: cannot mark retry %s: %v", runID, err)
+		}
+	} else {
+		err = r.store.MarkFailed(ctx, runID, finishedAt, failure.Error())
+		if err != nil {
+			r.log.Errorf("scheduler: cannot mark failed %s: %v", runID, err)
+		}
+	}
+
+	r.log.Errorf("scheduler: job %s attempt %d failed: %v", job.ID, job.Attempt, failure)
 }
 
 // Recover only application handler calls, on the goroutine invoking them.

@@ -44,7 +44,7 @@ func TestSlotTransition(t *testing.T) {
 					job := scheduler.Job{ID: "job", TaskType: "task", ScheduledFor: now, Schedule: rule}
 					store, db := slotStore(t, backend, job, schedule.spec)
 					clock := scheduler.NewFakeClock(now)
-					runner := scheduler.New(store, scheduler.Config{Workers: 2}, &scheduler.FakeLogger{}, scheduler.WithClock(clock))
+					runner := scheduler.New(store, scheduler.Config{Workers: 2, RetryAttempts: 1}, &scheduler.FakeLogger{}, scheduler.WithClock(clock))
 
 					var calls atomic.Int32
 

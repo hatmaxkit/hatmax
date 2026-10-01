@@ -14,7 +14,7 @@ This file is part of Hatmax. See COPYING for license terms.
 | Boundary | Methods |
 | --- | --- |
 | `Scheduler` | `Register`, `Start`, `Stop`, `Tick` |
-| `JobStore` | `ListDue`, `CreateRun`, `MarkRunning`, `MarkSuccess`, `MarkFailed`, `UpdateNextRun` |
+| `JobStore` | `ListDue`, `CreateRun`, `MarkRunning`, `ClaimRetry`, `MarkRetry`, `MarkSuccess`, `MarkFailed`, `UpdateNextRun` |
 | `SettingsProvider` | `GetBool`, `GetInt` |
 | `Clock` | `Now` |
 | `Logger` | `Info`, `Infof`, `Error`, `Errorf` |
@@ -24,7 +24,7 @@ This file is part of Hatmax. See COPYING for license terms.
 
 ## Jobs and schedules
 
-`Job` has `ID`, `Name`, `TaskType`, `Payload`, `ScheduledFor`, `Attempt`, and
+`Job` has `ID`, `Name`, `TaskType`, `Payload`, `ScheduledFor`, `RunID`, `Attempt`, `MaxAttempts`, and
 `Metadata`, and an optional `Schedule`. A nil schedule is a one-shot job.
 `Result.Failed` is true when `Err` is non-nil.
 
@@ -83,31 +83,33 @@ is not paused. `Tick` lists due jobs up to `BatchSize`. One worker runs them
 in order. More than one worker runs that many jobs at a time and waits for
 the batch.
 
-`process` creates a run, marks it running, and marks it failed for an unknown
-task type or a failed result. Success JSON-encodes `Output`, or an empty
+`process` creates and claims an initial run, or claims the exact next attempt
+of a persisted retry. Unknown task types fail immediately without retries.
+Success JSON-encodes `Output`, or an empty
 object when `Output` is nil. Stores own the terminal transition: `MarkSuccess`
 and `MarkFailed` record the result and advance or retire the slot atomically.
 The runner logs terminal-write errors; it does not claim completion when a
-write fails. It does not use `RetryAttempts` or `RetryBackoff`.
+write fails.
 
 Completion retires a one-shot job. A recurring job schedules `Schedule.Next`
 from the finish time, not the old due time. The next slot must be strictly
 after both finish time and the current slot. This skips missed occurrences
-rather than replaying a backlog. Success, handler errors, panics, and unknown
-task types consume the current slot and use the same schedule transition.
+rather than replaying a backlog. Success, exhausted handler errors or panics,
+and unknown task types consume the current slot and use the same schedule transition.
 The next recurring occurrence is not a retry of the failed slot.
 
 Handler panics are converted to a failed result with `handler panic:` detail on
-the goroutine invoking the handler. The run is marked failed, and processing
+the goroutine invoking the handler. The run waits for retry or is marked failed,
+according to its remaining budget, and processing
 continues with the next job; concurrent workers release their slot as usual.
-If `MarkFailed` returns an error, the runner logs that persistence failure and
+If `MarkRetry` or `MarkFailed` returns an error, the runner logs that persistence failure and
 the run may remain running. `Tick` still returns a `ListDue` error unchanged.
 
 Recovery is limited to the synchronous handler invocation, not the whole tick.
 Panics in stores, clocks, settings, or logging are not suppressed. Panics in
 goroutines started by a handler, `runtime.Goexit`, process exits, and fatal
 runtime failures are outside this boundary. Applications remain responsible
-for diagnosing handler defects and scheduling any later attempt; recording a
+for diagnosing handler defects and repairing interrupted claims; recording a
 failed run does not roll back application side effects.
 
 `WithClock` and `WithSettings` are constructor options. `SetClock` and
@@ -118,18 +120,55 @@ The runtime reads only `scheduler.paused`. `scheduler.enabled` and
 `scheduler.interval_seconds` are exported setting keys but are not consulted
 by the current runner after construction.
 
+## Retries
+
+`RetryAttempts` is the maximum total attempts per scheduled slot, including the
+first. It defaults to `3`; `1` disables retries. `RetryBackoff` is a fixed delay
+from failed-attempt completion, defaulting to one minute. There is no exponential
+growth, jitter, or worker sleep. A retry becomes eligible at its stored deadline
+and executes on a later poll, subject to pause, batch size, and worker limits.
+
+Handler errors and recovered handler panics use this policy. Unknown task types
+are terminal immediately. Infrastructure errors are logged, not retried as
+handler work. A canceled execution cannot guarantee a persisted result or retry.
+
+Handlers receive a one-based `Job.Attempt`, stable `Job.RunID`, original
+`ScheduledFor`, and `MaxAttempts`. The budget is captured when the initial attempt
+starts and persisted with the first retry wait. A restarted runner retains that
+budget and count even if its configured limit changes; new limits apply to new
+slots. The already stored deadline also survives restart. A later failure uses
+the current runner's backoff to establish its next deadline.
+
+`MarkRetry(ctx, runID, maxAttempts, finishedAt, retryAt, errMsg)` records
+`retry_wait`, the last failure, finish time, fixed budget, and future deadline
+without moving or retiring the job. The deadline must follow completion, and the
+budget must permit another attempt. `ClaimRetry(ctx, runID, attempt, startedAt)`
+atomically moves an eligible wait to `running` and increments to exactly that
+next attempt, within the stored budget. An early, duplicate, stale, disabled,
+rescheduled, or terminal claim returns `ErrRunClaim`. Only a successful claimant
+may invoke the handler. The same run row and slot key cover all attempts; the
+row retains the latest outcome, not a separate history row for each attempt.
+
+An exhausted failure calls `MarkFailed`; a success calls `MarkSuccess`. Only
+these terminal outcomes advance recurrence or retire a one-shot job. Handlers
+must tolerate repeated side effects: neither retries nor slot uniqueness provide
+transactional or exactly-once application effects.
+
 ## Stores
 
-`JobStore` is `ListDue`, `CreateRun`, `MarkRunning`, `MarkSuccess`,
+`JobStore` is `ListDue`, `CreateRun`, `MarkRunning`, `ClaimRetry`, `MarkRetry`, `MarkSuccess`,
 `MarkFailed`, and `UpdateNextRun`. `NoopStore` returns nil from each method
 and no jobs. `postgres.NewStore` implements the same methods against the
 package schema. `NewFakeStore` records jobs and runs in memory. `NewFakeClock`
 returns the time set by `Set` and `Advance`.
 
 The Postgres schema contains `scheduled_jobs` and `job_runs`. `ListDue` selects
-enabled jobs ordered by `next_run_at` with `FOR UPDATE SKIP LOCKED`, excluding
-any slot already present in `job_runs`. Pending and running claims are also
-excluded. The unique `(job_id, scheduled_for)` key enforces one run per slot;
+enabled unclaimed slots and due `retry_wait` runs with `FOR UPDATE SKIP LOCKED`,
+ordered by the initial due time or retry deadline, then job ID. Pending, running,
+and terminal claims are excluded. `ListDue` returns attempt `1` and an empty
+`RunID` for new work; retry work carries the run ID, next attempt, and saved budget.
+Admission still requires `CreateRun` or atomic `ClaimRetry`: a polling result is
+not exclusive ownership. The unique `(job_id, scheduled_for)` key enforces one run per slot;
 the fake store enforces the same rule and due-job ordering.
 
 Terminal writes lock the run and job and update both within one transaction.
@@ -143,9 +182,21 @@ overwritten by that handler's completion.
 time disables the job; a non-zero time enables it and replaces its next slot.
 The runner does not need to call it after recording a terminal outcome.
 
-If a claim or terminal write is interrupted, the claimed slot remains excluded
+Custom `JobStore` implementations must add `ClaimRetry` and `MarkRetry` with
+the same atomic admission and persistent-wait semantics. Built-in fake,
+PostgreSQL, and no-op stores implement the extended interface.
+
+Before starting the upgraded PostgreSQL runner, apply `postgres.Schema` or a
+migration that adds nullable `retry_at TIMESTAMPTZ` and `retry_limit INT` columns
+to `job_runs`. The schema includes idempotent `ADD COLUMN IF NOT EXISTS` statements
+for existing tables. Existing terminal runs remain terminal; pending/running
+claims are not automatically recovered. The legacy `scheduled_jobs.max_retries`
+column is not consulted; the runner's configuration supplies new-slot budgets.
+
+If a claim or result write is interrupted, the claimed slot remains excluded
 from due batches. Inspect and repair the run before scheduling a later slot.
-There is no lease, automatic recovery, or same-slot retry. Slot uniqueness does
+Persisted retry waits resume normally, but there is no lease or automatic recovery
+of interrupted pending/running claims. Slot uniqueness does
 not make handler side effects transactional or guarantee exactly-once effects.
 
 ## Stored schedule format
@@ -168,4 +219,5 @@ on daily schedules. Calendar rules cannot include an interval duration.
 Unknown fields, unsupported types, invalid zones, malformed JSON, and multiple
 JSON values return a `ListDue` error before any handler receives that batch.
 Existing non-empty opaque specifications must be converted to this format;
-there is no cron expression parser. No schema migration is required.
+there is no cron expression parser. Schedule fields require no migration; the
+retry columns are described above.

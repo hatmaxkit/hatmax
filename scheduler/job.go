@@ -16,8 +16,12 @@ type Job struct {
 	TaskType     string
 	Payload      json.RawMessage
 	ScheduledFor time.Time
-	Attempt      int
-	Metadata     map[string]string
+	// RunID identifies a handler's slot run. Stores populate it for retry admission.
+	RunID   string
+	Attempt int
+	// MaxAttempts is the slot's fixed total budget, retained across retries.
+	MaxAttempts int
+	Metadata    map[string]string
 	// Schedule is nil for one-shot jobs; stores advance recurring jobs on completion.
 	Schedule Schedule
 }

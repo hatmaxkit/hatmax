@@ -25,11 +25,13 @@ func NewStore(db *sql.DB) *Store {
 
 func (s *Store) ListDue(ctx context.Context, now time.Time, limit int) ([]scheduler.Job, error) {
 	query := `
-		SELECT j.id, j.name, j.task_type, j.payload, j.next_run_at, j.metadata, j.schedule_spec, j.schedule_tz
+		SELECT j.id, j.name, j.task_type, j.payload, j.next_run_at, j.metadata, j.schedule_spec, j.schedule_tz,
+		COALESCE(r.id, ''), COALESCE(r.attempt + 1, 1), COALESCE(r.retry_limit, 0)
 		FROM scheduled_jobs j
+		LEFT JOIN job_runs r ON r.job_id = j.id AND r.scheduled_for = j.next_run_at
 		WHERE j.enabled = true AND j.next_run_at <= $1
-		AND NOT EXISTS (SELECT 1 FROM job_runs r WHERE r.job_id = j.id AND r.scheduled_for = j.next_run_at)
-		ORDER BY j.next_run_at
+		AND (r.id IS NULL OR (r.status = 'retry_wait' AND r.retry_at <= $1))
+		ORDER BY COALESCE(r.retry_at, j.next_run_at), j.id
 		FOR UPDATE OF j SKIP LOCKED
 		LIMIT $2
 	`
@@ -49,7 +51,7 @@ func (s *Store) ListDue(ctx context.Context, now time.Time, limit int) ([]schedu
 			spec, zone    string
 		)
 
-		err = rows.Scan(&j.ID, &j.Name, &j.TaskType, &j.Payload, &j.ScheduledFor, &metadataBytes, &spec, &zone)
+		err = rows.Scan(&j.ID, &j.Name, &j.TaskType, &j.Payload, &j.ScheduledFor, &metadataBytes, &spec, &zone, &j.RunID, &j.Attempt, &j.MaxAttempts)
 		if err != nil {
 			return nil, err
 		}
@@ -81,10 +83,54 @@ func (s *Store) CreateRun(ctx context.Context, jobID, runID string, scheduledFor
 }
 
 func (s *Store) MarkRunning(ctx context.Context, runID string, startedAt time.Time) error {
-	query := `UPDATE job_runs SET status = 'running', started_at = $2, updated_at = $2 WHERE id = $1`
-	_, err := s.db.ExecContext(ctx, query, runID, startedAt)
+	query := `UPDATE job_runs SET status = 'running', started_at = $2, updated_at = $2 WHERE id = $1 AND status = 'pending'`
+	result, err := s.db.ExecContext(ctx, query, runID, startedAt)
 
-	return err
+	return claimed(result, err)
+}
+
+func (s *Store) ClaimRetry(ctx context.Context, runID string, attempt int, startedAt time.Time) error {
+	if attempt < 2 {
+		return scheduler.ErrRunClaim
+	}
+
+	result, err := s.db.ExecContext(ctx, `UPDATE job_runs r SET status = 'running',
+		attempt = $2, started_at = $3, finished_at = NULL, retry_at = NULL, updated_at = $3
+		FROM scheduled_jobs j WHERE r.id = $1 AND r.job_id = j.id
+		AND j.enabled = true AND j.next_run_at = r.scheduled_for
+		AND r.status = 'retry_wait' AND r.attempt = $2 - 1 AND $2 <= r.retry_limit AND r.retry_at <= $3`, runID, attempt, startedAt)
+
+	return claimed(result, err)
+}
+
+func (s *Store) MarkRetry(ctx context.Context, runID string, maxAttempts int, finishedAt, retryAt time.Time, errMsg string) error {
+	if !retryAt.After(finishedAt) {
+		return scheduler.ErrRunClaim
+	}
+
+	result, err := s.db.ExecContext(ctx, `UPDATE job_runs SET status = 'retry_wait',
+		finished_at = $2, retry_at = $3, error = $4, updated_at = $2, retry_limit = $5
+		WHERE id = $1 AND status = 'running' AND attempt < $5
+		AND (retry_limit IS NULL OR retry_limit = $5)`, runID, finishedAt, retryAt, errMsg, maxAttempts)
+
+	return claimed(result, err)
+}
+
+func claimed(result sql.Result, err error) error {
+	if err != nil {
+		return err
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if count != 1 {
+		return scheduler.ErrRunClaim
+	}
+
+	return nil
 }
 
 func (s *Store) MarkSuccess(ctx context.Context, runID string, finishedAt time.Time, output []byte) error {
@@ -148,7 +194,7 @@ func (s *Store) finish(ctx context.Context, runID string, finishedAt time.Time, 
 	}
 
 	_, err = tx.ExecContext(ctx, `UPDATE job_runs SET status = $2, finished_at = $3,
-		output = $4, error = NULLIF($5, ''), updated_at = $3 WHERE id = $1`, runID, status, finishedAt, output, detail)
+		output = $4, error = NULLIF($5, ''), retry_at = NULL, updated_at = $3 WHERE id = $1`, runID, status, finishedAt, output, detail)
 	if err != nil {
 		return err
 	}
