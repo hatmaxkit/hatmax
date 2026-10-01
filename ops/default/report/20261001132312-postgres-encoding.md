@@ -7,11 +7,12 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # PostgreSQL Connection and Schema Encoding
 
-Status: reviewing
-Ticket: [TKT-20260930211816](../ticket/reviewing/20260930211816-encode-postgres-values-and-schema-identifiers.md)
+Status: delivered
+Ticket: [TKT-20260930211816](../ticket/solved/20260930211816-encode-postgres-values-and-schema-identifiers.md)
 Branch: `fix/ticket-20260930211816-postgres-encoding`
 PR: [#84](https://forge.adrianpk.com/hatmax/hatmax/pulls/84)
 Implementation: `e296ebd0b9656b1c191dbaaf563f62763b4c8d6b`
+Integrated into `dev`: `a1099b016720ea7ed18c180ca2908ed71fe64263`
 
 ## Delivered Behavior
 

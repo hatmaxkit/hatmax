@@ -1,7 +1,7 @@
 ---
 id: TKT-20260930211816
 title: Encode PostgreSQL connection values and schema identifiers
-status: reviewing
+status: solved
 kind: bug
 severity: medium
 priority: normal
@@ -14,7 +14,9 @@ started_at: 2026-10-01T13:14:41Z
 reviewed_at: 2026-10-01T13:23:12Z
 branch: fix/ticket-20260930211816-postgres-encoding
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/84
-commits: e296ebd0b9656b1c191dbaaf563f62763b4c8d6b
+commits: e296ebd0b9656b1c191dbaaf563f62763b4c8d6b, a1099b016720ea7ed18c180ca2908ed71fe64263
+resolution: fixed
+closed_at: 2026-10-01T13:48:40Z
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -50,3 +52,5 @@ Connection values now use PostgreSQL keyword/value quoting and escaping. A confi
 `make check`, `make docs-check`, `go test -race ./config ./db -count=20`, and a 10-second driver-parser fuzz run passed. Native PostgreSQL integration checks verify literal schema creation, idempotency, and selection on two pooled connections.
 
 Report: [PostgreSQL Connection and Schema Encoding](../../report/20261001132312-postgres-encoding.md).
+
+Merged into `dev` through [PR #84](https://forge.adrianpk.com/hatmax/hatmax/pulls/84), verified at `a1099b016720ea7ed18c180ca2908ed71fe64263`.

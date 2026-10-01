@@ -416,7 +416,7 @@ Source-confirmed buffer ownership and post-execution truncation; no unbounded-ou
 Severity: medium
 Area: persistence
 File: `config/config.go:375-384, db/database.go:82-95`
-Ticket: [Encode PostgreSQL connection values and schema identifiers](../ticket/reviewing/20260930211816-encode-postgres-values-and-schema-identifiers.md)
+Ticket: [Encode PostgreSQL connection values and schema identifiers](../ticket/solved/20260930211816-encode-postgres-values-and-schema-identifiers.md)
 
 Problem:
 ConnectionString interpolates keyword values without quoting. A password containing a space does not round-trip through pgx.ParseConfig. ensureSchema interpolates a schema name into SQL without identifier quoting.
