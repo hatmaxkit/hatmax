@@ -7,12 +7,13 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # Published Scaffold Baseline
 
-Status: reviewing
-Ticket: [TKT-20260930211821](../ticket/reviewing/20260930211821-refresh-the-published-scaffold-dependency-baseline.md)
+Status: delivered
+Ticket: [TKT-20260930211821](../ticket/solved/20260930211821-refresh-the-published-scaffold-dependency-baseline.md)
 Review: [F22](20260930211800-architecture-nit-review.md#f22)
 Branch: `fix/ticket-20260930211821-scaffold-baseline`
 PR: [#90](https://forge.adrianpk.com/hatmax/hatmax/pulls/90)
 Implementation: `ac9355a08a966aa129f84cbcc481560b685f08bf`
+Integrated dev: `352bd5a7f97541f1129bd172e057a03cf8feb998`
 
 ## Delivered Behavior
 
@@ -40,6 +41,8 @@ Checks used Go 1.26.7. Database tests used an isolated native PostgreSQL 18.6 cl
 - `go test ./generator/execute ./generator/book ./generator/plan -count=1`: passed.
 - `golangci-lint run --build-tags=acceptance --default=none --enable=nlreturn --enable=noinlineerr --enable=wsl_v5 ./generator/execute/...`: passed with zero issues.
 - `git diff --check`: passed.
+
+Final integration validation repeated the aggregate, documentation, scaffold, security, real application creation, and existing-project feature checks on dev commit 352bd5a7f97541f1129bd172e057a03cf8feb998. `go test -race ./...` also passed. The checkout scan found zero reachable vulnerabilities and zero affected imported packages, plus one module-only advisory; the published scaffold scan still reports 17 module-only advisories. The owned database cluster was stopped after this validation. The [review closure](20260930211800-architecture-nit-review.md#delivery-closure) records the complete F1-F22 result.
 
 ## Boundary
 

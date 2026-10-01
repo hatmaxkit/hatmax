@@ -9,10 +9,12 @@ This file is part of Hatmax. See COPYING for license terms.
 
 Date: 2026-09-30
 Baseline: `e66730f471d33f41da94148891a58557731eece1`
-Status: review complete; dependency modernization applied locally; findings open
-Publication: proposed for dev integration; no tag or release
+Status: delivered; F1-F22 solved and validated on dev
+Publication: integrated into dev; no main alignment, tag, or release
 
-## Outcome
+The review outcome, findings, and implementation order below preserve the original baseline assessment. The [Delivery Closure](#delivery-closure) records their resolution and current integration evidence.
+
+## Original Review Outcome
 
 The review produced **22 new tickets: 11 high and 11 medium**. Security boundary
 failures, pubsub message loss, startup rollback, and scheduler worker failure
@@ -269,7 +271,7 @@ TestObservedSMTPTransport delivered to a plaintext loopback server with StartTLS
 Severity: high
 Area: tooling
 File: `generator/execute/render_application.go:46-63, generator/book`
-Ticket: [Refresh the published scaffold dependency baseline](../ticket/reviewing/20260930211821-refresh-the-published-scaffold-dependency-baseline.md)
+Ticket: [Refresh the published scaffold dependency baseline](../ticket/solved/20260930211821-refresh-the-published-scaffold-dependency-baseline.md)
 
 Problem:
 The updated scaffold uses chi v5.3.2 but still requires the Book-selected Hatmax v0.5.0. A standalone consumer with the same application lifecycle imports resolves older pgx and x/text versions from that published module. govulncheck reports reachable GO-2026-5004 and GO-2026-5970; upgrading the checkout does not upgrade the published module.
@@ -658,3 +660,23 @@ was validated through the existing native PostgreSQL test mode.
 
 The dependency and Go migration can be reviewed independently of the open
 hardening tickets. It does not resolve them.
+
+## Delivery Closure
+
+Closed: 2026-10-01T17:08:47Z
+Validated dev: `352bd5a7f97541f1129bd172e057a03cf8feb998`
+
+All 22 findings, F1-F22, are implemented and their tickets are solved with resolution fixed. Their 22 pull requests are verified merged into dev, and all recorded implementation commits are ancestors of the validated commit. The independently approved scaffold template-function fix in PR #89 is also integrated; [F22's report](20261001162718-published-scaffold-baseline.md) records the published-consumer baseline separately.
+
+Final local checks ran on that exact commit with Go 1.26.7 and an isolated native PostgreSQL 18.6 cluster:
+
+- `make check`: passed source licensing, formatting, vet, all tests, coverage, and strict lint. Total coverage: 81.7%.
+- `make docs-check`: passed documentation structure, local links, example compilation, and whitespace.
+- `go test -race ./...`: passed all packages.
+- `make generator-scaffold-acceptance generator-scaffold-security`: passed. The generated consumer uses published Hatmax v0.5.0, pgx v5.11.0, and x/text v0.42.0 without replacements. Its scan reports zero reachable vulnerabilities and zero affected imported packages, with 17 module-only advisories.
+- `HATMAX_REAL_APPLICATION_COMMANDS=1 GO_TEST_COMMAND='go test ./...' go test -v -count=1 -run '^TestTerminalSurfaceCreatesTerseAndDetailedApplications$' ./internal/hatmaxcli`: passed terse clarified and detailed composite creation, including real Go/sqlc commands and PostgreSQL-backed generated tests.
+- `make generator-project-acceptance`: passed real feature generation and project validation, including rejection of uncompilable output. This acceptance uses the local Hatmax checkout, not the published-consumer security baseline.
+- `govulncheck ./...`: passed for the checkout, with zero reachable vulnerabilities, zero affected imported packages, and one module-only advisory.
+- `git diff --check`: passed; the validated checkout remained clean.
+
+The owned database cluster was stopped after validation. These are local checks, not PostgreSQL 16 container/CI results or deployment evidence. The closure changes only operational metadata and links after validation; it does not change the tested runtime sources. Existing applications must update dependencies separately, and published Hatmax v0.5.0 does not acquire other checkout fixes without a later release. Unrelated open tickets remain outside this series. No main alignment, tag, release, or mirror update is part of this closure.

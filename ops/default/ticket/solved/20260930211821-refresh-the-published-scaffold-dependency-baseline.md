@@ -1,7 +1,9 @@
 ---
 id: TKT-20260930211821
 title: Refresh the published scaffold dependency baseline
-status: reviewing
+status: solved
+resolution: fixed
+closed_at: 2026-10-01T17:08:47Z
 kind: follow_up
 severity: high
 priority: high
@@ -14,7 +16,7 @@ started_at: 2026-10-01T15:43:00Z
 reviewed_at: 2026-10-01T16:28:02Z
 branch: fix/ticket-20260930211821-scaffold-baseline
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/90
-commits: ac9355a08a966aa129f84cbcc481560b685f08bf
+commits: ac9355a08a966aa129f84cbcc481560b685f08bf, 352bd5a7f97541f1129bd172e057a03cf8feb998
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -61,3 +63,7 @@ Keep the Book's supported published Hatmax v0.5.0 and add explicit scaffold requ
 - `make check` and `make docs-check` passed. Total coverage is 81.7%; acceptance-tagged strict lint reports zero issues.
 
 Report: [Published Scaffold Baseline](../../report/20261001162718-published-scaffold-baseline.md).
+
+## Integration
+
+PR #90 is verified merged into dev at 352bd5a7f97541f1129bd172e057a03cf8feb998. Final validation on that exact commit passed make check, make docs-check, all race-enabled tests, standalone scaffold acceptance and security, real terse and detailed application creation, existing-project feature acceptance, and checkout govulncheck. Total coverage is 81.7%. All F1-F22 tickets are solved; publication remains outside this delivery.

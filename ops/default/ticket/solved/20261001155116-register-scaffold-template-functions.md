@@ -41,7 +41,7 @@ Register the appropriate Hatmax-owned template functions on every scaffold-creat
 
 Run the real terse and detailed application acceptance with PostgreSQL available. Both generated applications must build and pass tests. Cover required template-function registration in renderer regression tests and confirm no alternate helper implementation or dependency is introduced.
 
-Related: [F22 scaffold dependency baseline](../reviewing/20260930211821-refresh-the-published-scaffold-dependency-baseline.md).
+Related: [F22 scaffold dependency baseline](../solved/20260930211821-refresh-the-published-scaffold-dependency-baseline.md).
 
 ## Delivery
 
