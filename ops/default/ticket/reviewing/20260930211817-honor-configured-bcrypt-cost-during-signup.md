@@ -13,8 +13,8 @@ ready_at: 2026-10-01T13:50:24Z
 started_at: 2026-10-01T13:50:24Z
 reviewed_at: 2026-10-01T13:57:31Z
 branch: fix/ticket-20260930211817-bcrypt-cost
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/85
+commits: b5885d2f0f5c1fcddfc8072e179d9fbcecbf43b8
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
