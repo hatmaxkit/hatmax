@@ -49,10 +49,36 @@ func main() {
         return scheduler.Result{Output: map[string]any{"sent": true}}
     })
 
-    sched.Start(ctx)
-    defer sched.Stop(ctx)
+    err := sched.Start(ctx)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    defer func() {
+        shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        defer cancel()
+
+        err := sched.Stop(shutdownCtx)
+        if err != nil {
+            log.Printf("scheduler shutdown: %v", err)
+        }
+    }()
 }
 ```
+
+## Lifecycle
+
+An enabled runner starts one polling loop. Repeated active `Start` calls are
+no-ops. Canceling the first startup context or calling `Stop` cancels polling
+and active execution. Handlers and adapters must honor that execution context.
+`Stop` before startup is a no-op; repeated and concurrent stops are safe.
+
+Pass a fresh timeout context to `Stop`. Its deadline bounds the wait, not the
+lifetime of a handler that ignores cancellation. A later stop can wait again;
+keep the store alive until it succeeds. Interrupted persisted runs may require
+explicit repair. After shutdown begins, `Start` returns `ErrStopped`; create a
+new runner to restart. Manual `Tick` calls are caller-owned and are not joined
+by `Stop`. See the [lifecycle contract](../docs/reference/scheduler/README.md#lifecycle).
 
 ## Configuration
 

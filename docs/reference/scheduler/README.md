@@ -41,7 +41,42 @@ worker, and three retry attempts.
 `New` and `NewWithConfig` build a runner. `Register` stores one handler per
 task type and replaces an existing type. `Start` returns nil without a
 goroutine when `Enabled` is false. Otherwise it ticks immediately and then on
-`Interval`. `Stop` closes the stop channel and waits.
+`Interval`.
+
+### Lifecycle
+
+An enabled runner has one lifecycle: idle, running, stopping, stopped. `Start`
+rejects an already canceled or expired context with its context error, without
+consuming the idle instance. Repeated or concurrent `Start` calls on a running
+instance return nil and do not create another loop. Only the first successful
+start's context owns that loop. `Start` after shutdown begins returns
+`ErrStopped`; construct a new runner to restart.
+
+`Stop` before startup is a no-op, including for a disabled runner. On an active
+runner, it cancels polling and the context supplied to stores, settings, and
+handlers. Cancellation of the original start context has the same effect.
+Shutdown stops admitting further jobs when cancellation is observed and joins
+the admitted batch before marking the runner stopped.
+
+Repeated and concurrent `Stop` calls wait on the same completion signal. The
+caller's context bounds only that wait: an expired deadline returns
+`context.DeadlineExceeded`, cancellation returns `context.Canceled`. Shutdown
+continues, and a later call can wait again. Completed shutdown returns nil even
+with a canceled wait context. No extra waiter goroutine is created per call.
+
+Handlers and adapters must honor their execution context. Go cannot forcibly
+terminate a handler that ignores cancellation; a timed-out `Stop` does not mean
+the handler exited or its result was saved. Persistence uses the canceled
+execution context rather than an unbounded cleanup context. An interrupted
+claim or terminal write can leave an unfinished run requiring the explicit
+repair described below. Keep the job store available until shutdown completes.
+
+Direct `Tick` calls remain caller-owned, independent of background lifecycle.
+`Tick` rejects a canceled context before querying, checks cancellation after
+the query and during admission, and returns the context error after admitted
+handlers finish. Worker admission observes cancellation rather than waiting
+indefinitely to launch more work. `Stop` does not join independent `Tick` calls;
+their callers must cancel and join them separately.
 
 A tick does nothing when `scheduler.paused` is true. A nil settings provider
 is not paused. `Tick` lists due jobs up to `BatchSize`. One worker runs them

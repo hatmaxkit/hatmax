@@ -290,7 +290,7 @@ A separate consumer requiring Hatmax v0.5.0 and chi v5.3.2 was tidied and scanne
 Severity: medium
 Area: architecture
 File: `scheduler/runner.go:82-121`
-Ticket: [Make scheduler shutdown bounded and idempotent](../ticket/open/20260930211809-bound-and-idempotently-stop-the-scheduler.md)
+Ticket: [Make scheduler shutdown bounded and idempotent](../ticket/reviewing/20260930211809-bound-and-idempotently-stop-the-scheduler.md)
 
 Problem:
 Stop closes the same channel on every call, so a second call panics. It ignores its context while waiting. The run loop does not select ctx.Done, and repeated Start calls launch additional loops.

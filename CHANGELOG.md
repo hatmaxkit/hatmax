@@ -53,6 +53,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Scheduler shutdown is now safe to repeat and respects the caller's deadline.
+  Startup cancellation stops polling and active execution; repeated starts no
+  longer launch duplicate loops. Restarting after shutdown requires a new runner.
 - Completed scheduled jobs no longer remain stuck on an exhausted slot.
   One-shot jobs retire; daily, weekly, and interval jobs advance after success
   or failure. Result and schedule changes are saved together, and claimed slots

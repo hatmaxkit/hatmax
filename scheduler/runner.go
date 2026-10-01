@@ -8,6 +8,7 @@ package scheduler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -24,10 +25,26 @@ type Runner struct {
 	cfg      Config
 	log      Logger
 
-	mu   sync.RWMutex
-	stop chan struct{}
-	wg   sync.WaitGroup
+	mu sync.RWMutex
+
+	lifecycleMu sync.Mutex
+	state       runnerState
+	runCtx      context.Context
+	cancel      context.CancelFunc
+	done        chan struct{}
 }
+
+type runnerState uint8
+
+const (
+	runnerIdle runnerState = iota
+	runnerRunning
+	runnerStopping
+	runnerStopped
+)
+
+// ErrStopped means this runner has begun shutdown. Construct a new runner to restart.
+var ErrStopped = errors.New("scheduler: runner is stopping or stopped")
 
 type Option func(*Runner)
 
@@ -50,7 +67,6 @@ func New(store JobStore, cfg Config, log Logger, opts ...Option) *Runner {
 		clock:    realClock{},
 		cfg:      cfg.WithDefaults(),
 		log:      log,
-		stop:     make(chan struct{}),
 	}
 	for _, opt := range opts {
 		opt(r)
@@ -80,32 +96,98 @@ func (r *Runner) Register(taskType string, handler Handler) {
 	r.handlers[taskType] = handler
 }
 
+// Start launches at most one polling loop. A canceled context is rejected before
+// startup. Repeated active starts are no-ops; shutdown is terminal for this instance.
 func (r *Runner) Start(ctx context.Context) error {
+	err := ctx.Err()
+	if err != nil {
+		return err
+	}
+
 	if !r.cfg.Enabled {
 		r.log.Info("scheduler: disabled")
 
 		return nil
 	}
 
-	r.wg.Add(1)
+	r.lifecycleMu.Lock()
 
-	go r.run(ctx)
+	if r.state == runnerRunning && r.runCtx.Err() != nil {
+		r.state = runnerStopping
+	}
+
+	switch r.state {
+	case runnerRunning:
+		r.lifecycleMu.Unlock()
+
+		return nil
+	case runnerStopping, runnerStopped:
+		r.lifecycleMu.Unlock()
+
+		return ErrStopped
+	}
+
+	runCtx, cancel := context.WithCancel(ctx)
+	r.runCtx = runCtx
+	r.cancel = cancel
+	r.done = make(chan struct{})
+	r.state = runnerRunning
+
+	go r.run(runCtx)
+	r.lifecycleMu.Unlock()
 
 	r.log.Info("scheduler: started")
 
 	return nil
 }
 
+// Stop cancels polling and active work, then waits within ctx's deadline. It is
+// safe before Start and on repeated or concurrent calls. A timeout does not mean
+// handlers have exited; another Stop can wait for the same shutdown to complete.
 func (r *Runner) Stop(ctx context.Context) error {
-	close(r.stop)
-	r.wg.Wait()
+	r.lifecycleMu.Lock()
+	if r.state == runnerIdle {
+		r.lifecycleMu.Unlock()
+
+		return nil
+	}
+
+	if r.state == runnerRunning {
+		r.state = runnerStopping
+		r.cancel()
+	}
+
+	done := r.done
+	r.lifecycleMu.Unlock()
+
+	// Prefer completed shutdown over an already canceled caller context.
+	select {
+	case <-done:
+		return nil
+	default:
+	}
+
+	select {
+	case <-done:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (r *Runner) finish() {
 	r.log.Info("scheduler: stopped")
 
-	return nil
+	r.lifecycleMu.Lock()
+	defer r.lifecycleMu.Unlock()
+
+	r.cancel()
+	r.state = runnerStopped
+	close(r.done)
 }
 
 func (r *Runner) run(ctx context.Context) {
-	defer r.wg.Done()
+	defer r.finish()
 
 	ticker := time.NewTicker(r.cfg.Interval)
 	defer ticker.Stop()
@@ -114,7 +196,7 @@ func (r *Runner) run(ctx context.Context) {
 
 	for {
 		select {
-		case <-r.stop:
+		case <-ctx.Done():
 			return
 		case <-ticker.C:
 			r.tick(ctx)
@@ -123,6 +205,10 @@ func (r *Runner) run(ctx context.Context) {
 }
 
 func (r *Runner) tick(ctx context.Context) {
+	if ctx.Err() != nil {
+		return
+	}
+
 	if r.isPaused(ctx) {
 		return
 	}
@@ -143,10 +229,23 @@ func (r *Runner) isPaused(ctx context.Context) bool {
 	return paused
 }
 
+// Tick runs one caller-owned batch. Cancellation stops admission of further jobs;
+// already admitted handlers must return before Tick does. Stop only joins the
+// background loop, not independent calls to Tick.
 func (r *Runner) Tick(ctx context.Context) error {
+	err := ctx.Err()
+	if err != nil {
+		return err
+	}
+
 	now := r.clock.Now()
 
 	jobs, err := r.store.ListDue(ctx, now, r.cfg.BatchSize)
+	if err != nil {
+		return err
+	}
+
+	err = ctx.Err()
 	if err != nil {
 		return err
 	}
@@ -159,19 +258,34 @@ func (r *Runner) Tick(ctx context.Context) error {
 
 	if r.cfg.Workers <= 1 {
 		for _, job := range jobs {
+			err = ctx.Err()
+			if err != nil {
+				return err
+			}
+
 			r.process(ctx, job)
 		}
 
-		return nil
+		return ctx.Err()
 	}
 
 	sem := make(chan struct{}, r.cfg.Workers)
 
 	var wg sync.WaitGroup
-	for _, job := range jobs {
-		wg.Add(1)
 
-		sem <- struct{}{}
+dispatch:
+	for _, job := range jobs {
+		if ctx.Err() != nil {
+			break
+		}
+
+		select {
+		case <-ctx.Done():
+			break dispatch
+		case sem <- struct{}{}:
+		}
+
+		wg.Add(1)
 
 		go func(j Job) {
 			defer wg.Done()
@@ -183,10 +297,14 @@ func (r *Runner) Tick(ctx context.Context) error {
 
 	wg.Wait()
 
-	return nil
+	return ctx.Err()
 }
 
 func (r *Runner) process(ctx context.Context, job Job) {
+	if ctx.Err() != nil {
+		return
+	}
+
 	runID := uuid.New().String()
 	now := r.clock.Now()
 

@@ -77,4 +77,25 @@ For one-shot work, check `enabled = false`; for recurring work, check the new
 `next_run_at` and run at that time to confirm a second distinct slot. Claimed
 but unfinished runs stay excluded from due batches and require explicit repair.
 
+## Shut down polling
+
+Use a fresh timeout context for shutdown, not the canceled application context:
+
+```go
+shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+defer cancel()
+
+err := runner.Stop(shutdownCtx)
+if err != nil {
+	logger.Errorf("scheduler shutdown: %v", err)
+}
+```
+
+`Stop` cancels active execution and waits for the admitted batch. Handlers must
+observe `ctx.Done()` and pass that context to blocking operations. A timeout
+bounds the wait, not the handler's lifetime; keep the store alive and wait again
+before assuming shutdown is complete. Inspect interrupted run claims before
+explicit repair or rescheduling. Repeated stops are safe. Construct a new
+runner rather than calling `Start` on one that has begun shutdown.
+
 See [Scheduler Reference](../../reference/scheduler/README.md).

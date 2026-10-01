@@ -81,6 +81,12 @@ optional settings provider. Register every handler before startup. Disabled
 runners start without a goroutine; enabled runners tick immediately and then
 at the configured interval.
 
+The first startup context owns the polling loop. Repeated starts do not launch
+extra loops. Canceling that context or calling `Stop` cancels active execution;
+handlers must cooperate with cancellation. Give `Stop` a fresh timeout context
+and handle its error: a timed-out wait does not mean the handler has exited.
+Repeated stops are safe; restarting after shutdown requires a new runner.
+
 Handlers return `scheduler.Result`. The runner records running, successful,
 failed, and unknown-task outcomes. A handler panic records a failed run without
 stopping other jobs; failures to persist that state are logged. Stores complete
