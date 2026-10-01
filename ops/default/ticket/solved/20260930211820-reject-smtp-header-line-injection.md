@@ -1,7 +1,9 @@
 ---
 id: TKT-20260930211820
 title: Reject SMTP header line injection
-status: reviewing
+status: solved
+resolution: fixed
+closed_at: 2026-10-01T15:41:24Z
 kind: bug
 severity: medium
 priority: normal
@@ -14,7 +16,7 @@ started_at: 2026-10-01T15:30:00Z
 reviewed_at: 2026-10-01T15:37:29Z
 branch: fix/ticket-20260930211820-smtp-headers
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/88
-commits: bbbda2650a33c2b1be7e93ebefd76e7b2520fddc
+commits: bbbda2650a33c2b1be7e93ebefd76e7b2520fddc, 6e3fea1326a3713fc362e535d17d6fbbadc95d7a
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -54,3 +56,5 @@ Custom headers now pass a common validation check before provider delivery and a
 `make check`, `make docs-check`, `go test -race ./mailer -count=1`, and `go test ./mailer -run '^TestHeader' -count=20` passed. Total coverage is 81.6%; mailer coverage is 86.5%.
 
 Report: [Custom Header Safety](../../report/20261001153729-custom-header-safety.md).
+
+PR #88 was verified merged into dev at 6e3fea1326a3713fc362e535d17d6fbbadc95d7a. F21 is resolved.

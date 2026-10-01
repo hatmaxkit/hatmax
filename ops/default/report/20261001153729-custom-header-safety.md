@@ -7,11 +7,12 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # Custom Header Safety
 
-Status: reviewing
-Ticket: [TKT-20260930211820](../ticket/reviewing/20260930211820-reject-smtp-header-line-injection.md)
+Status: delivered
+Ticket: [TKT-20260930211820](../ticket/solved/20260930211820-reject-smtp-header-line-injection.md)
 Branch: `fix/ticket-20260930211820-smtp-headers`
 PR: [#88](https://forge.adrianpk.com/hatmax/hatmax/pulls/88)
 Implementation: `bbbda2650a33c2b1be7e93ebefd76e7b2520fddc`
+Integrated into dev: `6e3fea1326a3713fc362e535d17d6fbbadc95d7a`
 
 ## Delivered Behavior
 
