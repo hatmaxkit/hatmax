@@ -11,6 +11,7 @@ import (
 	"embed"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"hatmax.adrianpk.com/config"
 	"hatmax.adrianpk.com/log"
@@ -84,7 +85,7 @@ func (d *Database) ensureSchema(ctx context.Context) error {
 		return nil
 	}
 
-	query := fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", d.schema)
+	query := "CREATE SCHEMA IF NOT EXISTS " + pgx.Identifier{d.schema}.Sanitize()
 
 	_, err := d.DB.ExecContext(ctx, query)
 	if err != nil {

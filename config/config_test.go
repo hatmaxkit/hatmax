@@ -283,6 +283,8 @@ func TestValidate(t *testing.T) {
 	}
 }
 
+// Connection strings retain keyword order, explicit SSL policy, and optional
+// search_path while quoting configured values and the schema identifier.
 func TestConnectionString(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -300,7 +302,7 @@ func TestConnectionString(t *testing.T) {
 				Schema:   "hatmax",
 				SSLMode:  "disable",
 			},
-			expected: "host=localhost port=5432 user=dev password=dev dbname=dev sslmode=disable search_path=hatmax",
+			expected: `host='localhost' port=5432 user='dev' password='dev' dbname='dev' sslmode='disable' search_path='"hatmax"'`,
 		},
 		{
 			name: "without schema",
@@ -313,7 +315,7 @@ func TestConnectionString(t *testing.T) {
 				Schema:   "",
 				SSLMode:  "disable",
 			},
-			expected: "host=localhost port=5432 user=dev password=dev dbname=dev sslmode=disable",
+			expected: `host='localhost' port=5432 user='dev' password='dev' dbname='dev' sslmode='disable'`,
 		},
 		{
 			name: "with SSL enabled",
@@ -326,7 +328,7 @@ func TestConnectionString(t *testing.T) {
 				Schema:   "public",
 				SSLMode:  "require",
 			},
-			expected: "host=db.example.com port=5432 user=produser password=secret dbname=proddb sslmode=require search_path=public",
+			expected: `host='db.example.com' port=5432 user='produser' password='secret' dbname='proddb' sslmode='require' search_path='"public"'`,
 		},
 	}
 

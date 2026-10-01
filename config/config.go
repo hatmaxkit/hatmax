@@ -371,14 +371,27 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-// ConnectionString builds a PostgreSQL connection string with schema support.
+// ConnectionString builds a PostgreSQL keyword/value connection string.
+// Values are quoted and escaped; Schema selects one literal SQL identifier.
 func (d DatabaseConfig) ConnectionString() string {
 	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		d.Host, d.Port, d.User, d.Password, d.Database, d.SSLMode)
+		connectionValue(d.Host), d.Port, connectionValue(d.User), connectionValue(d.Password),
+		connectionValue(d.Database), connectionValue(d.SSLMode))
 
 	if d.Schema != "" {
-		connStr += fmt.Sprintf(" search_path=%s", d.Schema)
+		// search_path has SQL identifier syntax inside a connection value.
+		// Keep NUL bytes intact so pgx rejects them instead of changing the name.
+		schema := `"` + strings.ReplaceAll(d.Schema, `"`, `""`) + `"`
+		connStr += " search_path=" + connectionValue(schema)
 	}
 
 	return connStr
+}
+
+func connectionValue(value string) string {
+	// PostgreSQL keyword values escape backslashes and apostrophes with \.
+	value = strings.ReplaceAll(value, `\`, `\\`)
+	value = strings.ReplaceAll(value, `'`, `\'`)
+
+	return "'" + value + "'"
 }

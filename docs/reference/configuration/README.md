@@ -111,8 +111,17 @@ keys also default to empty.
 ### Derived values
 
 `DatabaseConfig.ConnectionString` returns
-`host=<host> port=<port> user=<user> password=<password> dbname=<database> sslmode=<sslmode>`.
-A non-empty schema appends ` search_path=<schema>`.
+`host='<host>' port=<port> user='<user>' password='<password>' dbname='<database>' sslmode='<sslmode>'`.
+Each string value uses PostgreSQL keyword/value escaping: apostrophes and
+backslashes are backslash-escaped, and empty values remain explicit `''`.
+Spaces, quotes, and connection-option text remain part of their configured
+value. Existing driver validation and defaults still apply.
+
+A non-empty schema appends `search_path` containing one double-quoted SQL
+identifier, itself escaped as a connection value. Schema names preserve case,
+spaces, punctuation, and embedded quotes; the field is not a search-path list
+or SQL expression. An empty schema omits `search_path` and retains the driver's
+default. NUL-containing connection strings are rejected by pgx.
 
 `PubSubConfig.PollIntervalDuration` parses `poll_interval`. An invalid value
 returns 100 milliseconds.

@@ -53,6 +53,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- PostgreSQL connection values now preserve spaces, quotes, backslashes, and
+  empty passwords. Schema creation and selection use the configured name
+  literally, including case and punctuation, instead of treating it as SQL.
 - Generator validation now limits noisy command output during execution while
   retaining initial context and final failure details.
 - SMTP delivery now stops when canceled and has a total 30-second limit, with

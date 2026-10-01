@@ -21,7 +21,13 @@ open a connection.
 `Start` opens the connection with the `pgx` driver and pings it. A ping
 failure closes the connection and returns `cannot ping database`. A successful
 ping stores `*sql.DB` and, when `Schema` is non-empty, runs
-`CREATE SCHEMA IF NOT EXISTS` with that name interpolated into the statement.
+`CREATE SCHEMA IF NOT EXISTS` with that name quoted through `pgx.Identifier`.
+The connection's `search_path` selects the same literal schema on each pooled
+connection. Configured names are not SQL or search-path expressions; mixed
+case and embedded quotes are preserved. PostgreSQL identifier length limits
+and schema privileges still apply. No existing schema is renamed or migrated.
+If an existing deployment relied on unquoted case folding, configure its actual
+schema name before upgrading rather than expecting an automatic rename.
 A schema error returns `cannot ensure schema` and leaves the connection open.
 `Stop` closes the connection when one is stored, and returns nil otherwise.
 `GetDB` returns the stored connection, or nil before a successful `Start`.
