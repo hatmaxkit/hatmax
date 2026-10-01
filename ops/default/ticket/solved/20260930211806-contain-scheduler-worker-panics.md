@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211806
 title: Contain scheduler handler panics in each worker
-status: reviewing
+status: solved
+resolution: fixed
 kind: bug
 severity: high
 priority: high
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:06Z
 ready_at: 2026-10-01T06:11:32Z
 started_at: 2026-10-01T06:11:32Z
 reviewed_at: 2026-10-01T06:20:17Z
+closed_at: 2026-10-01T06:33:50Z
 branch: fix/ticket-20260930211806-scheduler-panics
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/74
-commits: c397833d36532468cbd60929d2859da9d2720193
+commits: c397833d36532468cbd60929d2859da9d2720193, 9ec0623a4b0422b37bab4ddf650cbe1bade45ccb
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -56,3 +58,6 @@ timestamps, panic detail, and subsequent success. No retry or lifecycle policy
 was added.
 
 Delivery: [Scheduler handler panic containment](../../report/20261001062017-scheduler-handler-panic-containment.md).
+
+Merged into `dev` through PR #74 at
+`9ec0623a4b0422b37bab4ddf650cbe1bade45ccb`.

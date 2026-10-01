@@ -185,7 +185,7 @@ TestObservedFailedPubsubAck verified a nonzero durable offset after a handler re
 Severity: high
 Area: architecture
 File: `scheduler/runner.go:124-137, scheduler/runner.go:175-189`
-Ticket: [Contain scheduler handler panics in each worker](../ticket/reviewing/20260930211806-contain-scheduler-worker-panics.md)
+Ticket: [Contain scheduler handler panics in each worker](../ticket/solved/20260930211806-contain-scheduler-worker-panics.md)
 
 Problem:
 The recover in tick protects only its own goroutine. With Workers greater than one, a handler runs in a child goroutine and its panic terminates the process.
