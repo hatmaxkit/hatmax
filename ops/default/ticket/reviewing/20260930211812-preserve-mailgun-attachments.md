@@ -13,8 +13,8 @@ ready_at: 2026-10-01T10:59:14Z
 started_at: 2026-10-01T10:59:14Z
 reviewed_at: 2026-10-01T11:06:45Z
 branch: fix/ticket-20260930211812-mailgun-attachments
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/80
+commits: 55389df1de84c39bd800bbd7fac3274343e20d39
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
