@@ -13,8 +13,8 @@ ready_at: 2026-10-01T14:10:39Z
 started_at: 2026-10-01T14:10:39Z
 reviewed_at: 2026-10-01T14:31:52Z
 branch: fix/ticket-20260930211818-scheduler-retry
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/86
+commits: 6a17dd58bc1228641d7fc1a6b88c745aa5bbf988
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK

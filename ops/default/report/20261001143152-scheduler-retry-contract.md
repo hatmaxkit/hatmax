@@ -10,8 +10,8 @@ This file is part of Hatmax. See COPYING for license terms.
 Status: reviewing
 Ticket: [TKT-20260930211818](../ticket/reviewing/20260930211818-resolve-the-scheduler-retry-contract.md)
 Branch: `fix/ticket-20260930211818-scheduler-retry`
-PR: pending
-Implementation: pending
+PR: [#86](https://forge.adrianpk.com/hatmax/hatmax/pulls/86)
+Implementation: `6a17dd58bc1228641d7fc1a6b88c745aa5bbf988`
 
 ## Delivered Behavior
 
