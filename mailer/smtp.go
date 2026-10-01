@@ -10,15 +10,21 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"mime"
 	"mime/multipart"
 	"mime/quotedprintable"
+	"net"
 	"net/smtp"
 	"net/textproto"
 	"strings"
+	"time"
 )
+
+// Bound the entire SMTP transaction even when callers supply no deadline.
+const smtpSendTimeout = 30 * time.Second
 
 // SMTPMailer sends emails via SMTP.
 type SMTPMailer struct {
@@ -30,7 +36,8 @@ func NewSMTPMailer(cfg SMTPConfig) *SMTPMailer {
 	return &SMTPMailer{cfg: cfg}
 }
 
-// Send sends an email via SMTP.
+// Send sends an email via SMTP, respecting cancellation and a total 30-second
+// transport timeout. A shorter caller deadline takes precedence.
 func (m *SMTPMailer) Send(ctx context.Context, msg *Message) error {
 	message := msg.withDefaultFrom(m.cfg.DefaultFrom)
 	msg = &message
@@ -50,46 +57,112 @@ func (m *SMTPMailer) Send(ctx context.Context, msg *Message) error {
 		recipients = append(recipients, addr.Email)
 	}
 
-	addr := fmt.Sprintf("%s:%d", m.cfg.Host, m.cfg.Port)
+	return m.send(ctx, msg.From.Email, recipients, raw)
+}
+
+func (m *SMTPMailer) send(ctx context.Context, from string, to []string, msg []byte) (err error) {
+	ctx, cancel := context.WithTimeout(ctx, smtpSendTimeout)
+	defer cancel()
+
+	// Preserve the context cause when a closed socket interrupts an SMTP call.
+	defer func() {
+		if err == nil {
+			return
+		}
+
+		cause := ctx.Err()
+		if cause != nil {
+			err = fmt.Errorf("smtp send: %w", cause)
+
+			return
+		}
+
+		var networkError net.Error
+
+		deadline, _ := ctx.Deadline()
+		if errors.As(err, &networkError) && networkError.Timeout() && !time.Now().Before(deadline) {
+			err = fmt.Errorf("smtp send: %w", context.DeadlineExceeded)
+		}
+	}()
+
+	addr := net.JoinHostPort(m.cfg.Host, fmt.Sprintf("%d", m.cfg.Port))
+
+	conn, err := (&net.Dialer{}).DialContext(ctx, "tcp", addr)
+	if err != nil {
+		return fmt.Errorf("smtp dial: %w", err)
+	}
+	defer conn.Close()
+
+	stop := context.AfterFunc(ctx, func() { conn.Close() })
+	defer stop()
+
+	deadline, _ := ctx.Deadline()
+
+	err = conn.SetDeadline(deadline)
+	if err != nil {
+		return fmt.Errorf("smtp deadline: %w", err)
+	}
+
+	tlsConfig := &tls.Config{
+		ServerName:         m.cfg.Host,
+		InsecureSkipVerify: m.cfg.InsecureSkipVerify,
+	}
+
+	var transport net.Conn = conn
+	if m.cfg.TLS {
+		tlsConn := tls.Client(conn, tlsConfig)
+
+		err = tlsConn.HandshakeContext(ctx)
+		if err != nil {
+			return fmt.Errorf("smtp tls: %w", err)
+		}
+
+		transport = tlsConn
+	}
+
+	client, err := smtp.NewClient(transport, m.cfg.Host)
+	if err != nil {
+		return fmt.Errorf("smtp client: %w", err)
+	}
+	defer client.Close()
+
+	err = client.Hello("localhost")
+	if err != nil {
+		return fmt.Errorf("smtp hello: %w", err)
+	}
+
+	// Implicit TLS already satisfies encryption, including when both flags are set.
+	if !m.cfg.TLS {
+		available, _ := client.Extension("STARTTLS")
+		if m.cfg.StartTLS && !available {
+			return fmt.Errorf("smtp: STARTTLS is required but unavailable")
+		}
+
+		if available {
+			err = client.StartTLS(tlsConfig)
+			if err != nil {
+				return fmt.Errorf("smtp starttls: %w", err)
+			}
+		}
+	}
 
 	var auth smtp.Auth
 	if m.cfg.Username != "" {
 		auth = smtp.PlainAuth("", m.cfg.Username, m.cfg.Password, m.cfg.Host)
 	}
 
-	if m.cfg.TLS {
-		return m.sendTLS(addr, auth, msg.From.Email, recipients, raw)
-	}
-
-	return smtp.SendMail(addr, auth, msg.From.Email, recipients, raw)
+	return deliverSMTP(client, auth, from, to, msg)
 }
 
-func (m *SMTPMailer) sendTLS(addr string, auth smtp.Auth, from string, to []string, msg []byte) error {
-	tlsConfig := &tls.Config{
-		ServerName:         m.cfg.Host,
-		InsecureSkipVerify: m.cfg.InsecureSkipVerify,
-	}
-
-	conn, err := tls.Dial("tcp", addr, tlsConfig)
-	if err != nil {
-		return fmt.Errorf("tls dial: %w", err)
-	}
-	defer conn.Close()
-
-	client, err := smtp.NewClient(conn, m.cfg.Host)
-	if err != nil {
-		return fmt.Errorf("smtp client: %w", err)
-	}
-	defer client.Close()
-
+func deliverSMTP(client *smtp.Client, auth smtp.Auth, from string, to []string, msg []byte) error {
 	if auth != nil {
-		err = client.Auth(auth)
+		err := client.Auth(auth)
 		if err != nil {
 			return fmt.Errorf("smtp auth: %w", err)
 		}
 	}
 
-	err = client.Mail(from)
+	err := client.Mail(from)
 	if err != nil {
 		return fmt.Errorf("smtp mail: %w", err)
 	}

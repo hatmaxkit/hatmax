@@ -53,6 +53,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- SMTP delivery now stops when canceled and has a total 30-second limit, with
+  shorter caller deadlines respected throughout connection and message delivery.
 - Mailgun now sends attachments instead of silently dropping them, preserving
   filenames, file contents, and MIME types alongside the message fields.
 - Email providers now apply the configured default sender before validation,
@@ -85,6 +87,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- SMTP now enforces `StartTLS=true` instead of silently sending in plaintext
+  when the server does not advertise STARTTLS. Both STARTTLS and implicit TLS
+  verify certificates unless verification is explicitly disabled.
 - Forged forwarded-IP headers no longer bypass internal network restrictions
   or reset rate limits. Proxy deployments must explicitly configure trusted
   proxy networks; internal restrictions always check the connection peer.

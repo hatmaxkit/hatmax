@@ -63,8 +63,26 @@ Both encodings preserve recipients, body parts, reply-to, and custom headers.
 | `SendGridConfig` | `APIKey` |
 | `SESConfig` | `Region`, `AccessKeyID`, `SecretAccessKey`, `ConfigurationSetName` |
 
-SMTP uses implicit TLS when `TLS` is true. `StartTLS` is accepted by the
-configuration type but is not used by the current SMTP send path.
+## SMTP transport
+
+`TLS=true` establishes implicit TLS before reading the SMTP greeting. It takes
+precedence when both `TLS` and `StartTLS` are true; no second upgrade is needed.
+With `TLS=false`, `StartTLS=true` requires the server to advertise STARTTLS and
+complete the upgrade before authentication or message delivery. A server without
+the extension causes an error instead of plaintext delivery.
+
+With both flags false, SMTP retains opportunistic STARTTLS: it upgrades when
+advertised, otherwise permits plaintext. An advertised upgrade that fails never
+falls back to plaintext. Both TLS paths verify the server certificate against
+the configured `Host` and system trust roots by default. `InsecureSkipVerify`
+disables certificate verification only when explicitly enabled.
+
+The complete transport transaction, including dial, greeting, TLS handshake,
+authentication, DATA, and QUIT, has a total 30-second limit. A shorter caller
+deadline takes precedence. Cancellation closes the connection and interrupts
+blocking SMTP operations; returned errors support `errors.Is` with
+`context.Canceled` or `context.DeadlineExceeded`. Cancellation or an error after
+DATA can leave delivery uncertain; the mailer does not automatically retry.
 
 ## Runtime
 

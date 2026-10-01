@@ -23,12 +23,16 @@ type Config struct {
 // SMTPConfig holds SMTP-specific configuration.
 type SMTPConfig struct {
 	Config
-	Host               string
-	Port               int
-	Username           string
-	Password           string
-	TLS                bool
-	StartTLS           bool
+	Host     string
+	Port     int
+	Username string
+	Password string
+	// TLS requires implicit TLS and takes precedence over StartTLS.
+	TLS bool
+	// StartTLS requires an advertised, successful upgrade when TLS is false.
+	// When both flags are false, an advertised upgrade remains opportunistic.
+	StartTLS bool
+	// InsecureSkipVerify disables certificate verification for both TLS paths.
 	InsecureSkipVerify bool
 }
 

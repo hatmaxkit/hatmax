@@ -248,7 +248,7 @@ TestObservedPostgresScheduleStall ran two ticks: the handler ran once, but the j
 Severity: high
 Area: architecture
 File: `mailer/smtp.go:34-85, mailer/mailer.go:22-32`
-Ticket: [Honor SMTP STARTTLS and cancellation policy](../ticket/open/20260930211813-honor-smtp-tls-and-cancellation-policy.md)
+Ticket: [Honor SMTP STARTTLS and cancellation policy](../ticket/reviewing/20260930211813-honor-smtp-tls-and-cancellation-policy.md)
 
 Problem:
 SMTP Send ignores ctx and never consults StartTLS. With TLS false, smtp.SendMail upgrades opportunistically but does not require STARTTLS. StartTLS true therefore permits plaintext delivery to a server that does not advertise the extension.

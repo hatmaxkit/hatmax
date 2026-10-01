@@ -37,6 +37,15 @@ complete default address, including its name, is used without changing `msg`.
 If neither address supplies an email, delivery fails before transport.
 Direct `Message.Validate` and `NoopMailer` still require an explicit sender.
 
+SMTP honors required STARTTLS (`StartTLS=true`) and implicit TLS (`TLS=true`).
+Implicit TLS takes precedence when both are enabled. With neither enabled,
+SMTP upgrades opportunistically when the server advertises STARTTLS, otherwise
+allows plaintext. Failed TLS negotiation never falls back to plaintext.
+Certificates are verified unless `InsecureSkipVerify` is explicitly enabled.
+The entire SMTP transaction is limited to 30 seconds or a shorter caller
+deadline; cancellation closes the connection. See the
+[transport reference](../docs/reference/mailer/README.md#smtp-transport).
+
 Mailgun supports `Message.Attachments` through multipart file parts. Filenames
 and bytes are preserved, including empty files; an omitted MIME type uses
 `application/octet-stream`. Missing filenames or invalid MIME types fail before
