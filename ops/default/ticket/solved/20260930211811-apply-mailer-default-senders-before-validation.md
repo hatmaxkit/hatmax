@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211811
 title: Apply default mail senders before validation
-status: reviewing
+status: solved
+resolution: fixed
 kind: bug
 severity: medium
 priority: normal
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:11Z
 ready_at: 2026-10-01T10:29:16Z
 started_at: 2026-10-01T10:29:16Z
 reviewed_at: 2026-10-01T10:36:16Z
+closed_at: 2026-10-01T10:55:40Z
 branch: fix/ticket-20260930211811-mailer-defaults
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/79
-commits: e07e684f5b0770ca0b463394436c292b6829875e
+commits: e07e684f5b0770ca0b463394436c292b6829875e, 971b65c6ba7c133aef411472e6eb06706fb5a3fd
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -50,3 +52,5 @@ SMTP, Mailgun, SendGrid, and SES now normalize a local message copy before valid
 The normalized sender is used consistently in the SMTP envelope and MIME header, Mailgun and SendGrid requests, and both SES simple and raw delivery. Direct Message.Validate and NoopMailer keep their explicit-sender requirement. Tests exercise actual local transport boundaries, all default and explicit sender cases, other required fields, and caller immutability.
 
 Delivery: [Mailer default senders](../../report/20261001103616-mailer-default-senders.md).
+
+Merged into `dev` through PR #79 at `971b65c6ba7c133aef411472e6eb06706fb5a3fd`.

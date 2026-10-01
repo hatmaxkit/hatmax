@@ -7,11 +7,12 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # Mailer Default Senders
 
-Status: reviewing
-Ticket: [TKT-20260930211811](../ticket/reviewing/20260930211811-apply-mailer-default-senders-before-validation.md)
+Status: delivered
+Ticket: [TKT-20260930211811](../ticket/solved/20260930211811-apply-mailer-default-senders-before-validation.md)
 Branch: `fix/ticket-20260930211811-mailer-defaults`
 PR: [#79](https://forge.adrianpk.com/hatmax/hatmax/pulls/79)
 Implementation: `e07e684f5b0770ca0b463394436c292b6829875e`
+Integrated into `dev`: `971b65c6ba7c133aef411472e6eb06706fb5a3fd`
 
 ## Delivered Behavior
 
