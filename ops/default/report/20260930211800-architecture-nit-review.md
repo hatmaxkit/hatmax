@@ -374,7 +374,7 @@ TestObservedMailgunAttachment sent to a loopback HTTP server and confirmed that 
 Severity: medium
 Area: architecture
 File: `image/stdprocessor/processor.go:49-64, image/s3/store.go:77-93`
-Ticket: [Bound image ingestion before buffering and decoding](../ticket/reviewing/20260930211814-bound-image-ingestion-resources.md)
+Ticket: [Bound image ingestion before buffering and decoding](../ticket/solved/20260930211814-bound-image-ingestion-resources.md)
 
 Problem:
 Resize reads the complete input without a byte limit and decodes the full image before inspecting dimensions. S3 Put also buffers the entire input and creates an additional string copy. Resize does not consult ctx.

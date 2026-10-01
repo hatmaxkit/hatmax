@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211814
 title: Bound image ingestion before buffering and decoding
-status: reviewing
+status: solved
+resolution: fixed
 kind: bug
 severity: medium
 priority: normal
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:14Z
 ready_at: 2026-10-01T11:47:23Z
 started_at: 2026-10-01T11:47:23Z
 reviewed_at: 2026-10-01T12:00:35Z
+closed_at: 2026-10-01T12:36:01Z
 branch: fix/ticket-20260930211814-image-ingestion
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/82
-commits: 45f6c8047d257798df7195db1b45889888eae8b9
+commits: 45f6c8047d257798df7195db1b45889888eae8b9, 9768c02c9a34cfe269128a865bb143a495c6a6fb
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -54,3 +56,5 @@ Readers remain caller-owned. Cancellation cannot preempt an arbitrary blocked Re
 Validation passed: make check with Go 1.26.7 and isolated PostgreSQL 18.6 (81.3% total coverage), make docs-check, 20 race-enabled image-package repetitions, and git diff --check. Bounded fixtures cover exact/over byte limits, large PNG dimensions without allocating pixels, long JPEG header scans, cancellation, ordinary resizing, and local S3-compatible uploads.
 
 Delivery: [Bounded image ingestion](../../report/20261001120035-image-ingestion.md).
+
+Merged into `dev` through PR #82 at `9768c02c9a34cfe269128a865bb143a495c6a6fb`.
