@@ -13,7 +13,8 @@ ready_at: 2026-10-01T15:57:00Z
 started_at: 2026-10-01T15:57:00Z
 reviewed_at: 2026-10-01T16:02:07Z
 branch: fix/ticket-20261001155116-scaffold-template-functions
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/89
+commits: a7f40fa3ea0ef7cf9bebc9e55625db0012c183e8
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK

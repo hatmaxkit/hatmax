@@ -11,8 +11,8 @@ Status: reviewing
 Ticket: [TKT-20261001155116](../ticket/reviewing/20261001155116-register-scaffold-template-functions.md)
 Related: [F22 scaffold baseline](../ticket/open/20260930211821-refresh-the-published-scaffold-dependency-baseline.md)
 Branch: `fix/ticket-20261001155116-scaffold-template-functions`
-PR: pending
-Implementation: pending
+PR: [#89](https://forge.adrianpk.com/hatmax/hatmax/pulls/89)
+Implementation: `a7f40fa3ea0ef7cf9bebc9e55625db0012c183e8`
 
 ## Delivered Behavior
 
