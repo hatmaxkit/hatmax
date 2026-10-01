@@ -13,8 +13,8 @@ ready_at: 2026-10-01T12:42:32Z
 started_at: 2026-10-01T12:42:32Z
 reviewed_at: 2026-10-01T12:56:38Z
 branch: fix/ticket-20260930211815-command-capture
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/83
+commits: 8d0fd2fedc9611a6bccc1d04d0b0b3f8f4c097a3
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
