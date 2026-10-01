@@ -35,6 +35,7 @@ import (
 	"hatmax.adrianpk.com/app"
 	"hatmax.adrianpk.com/log"
 	"hatmax.adrianpk.com/middleware"
+	"hatmax.adrianpk.com/ui"
 	"hatmax.adrianpk.com/web"
 )
 
@@ -57,7 +58,7 @@ func newWeb(logger log.Logger) (chi.Router, []any) {
 		app.WithMiddleware(middleware.DefaultStack()...),
 		app.WithPing(),
 	)
-	templates := web.NewTemplateManager(assetsFS, logger)
+	templates := web.NewTemplateManager(assetsFS, logger, web.WithFuncMap(ui.FuncMap()))
 	pages := &pageHandler{assets: assetsFS, templates: templates, logger: logger}
 
 	return router, []any{templates, pages}

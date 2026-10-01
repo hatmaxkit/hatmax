@@ -185,6 +185,7 @@ import (
 	"hatmax.adrianpk.com/config"
 	"hatmax.adrianpk.com/db"
 	"hatmax.adrianpk.com/log"
+	"hatmax.adrianpk.com/ui"
 	"hatmax.adrianpk.com/web"
 )
 
@@ -213,7 +214,7 @@ func Run(ctx context.Context, args []string) int {
 
 func run(ctx context.Context, cfg *config.Config, logger log.Logger) error {
 	router, webComponents := newWeb(logger)
-	templates := web.NewTemplateManager(assetsFS, logger)
+	templates := web.NewTemplateManager(assetsFS, logger, web.WithFuncMap(ui.FuncMap()))
 	database := newDatabase(assetsFS, cfg, logger)
 	migrator := db.NewMigrator(database, assetsFS, db.Postgres, logger)
 %s

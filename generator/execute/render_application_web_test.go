@@ -23,6 +23,30 @@ var applicationWebOrder = []string{
 	applicationWebTestsRecipe,
 }
 
+// Both application assembly paths must register the full Hatmax helper map,
+// rather than depending on the function maps used by feature handler tests.
+func TestScaffoldTemplateFunctions(t *testing.T) {
+	value := applicationRenderPlan(t)
+	value.Units = append(value.Units, plan.Unit{Feature: "invoice"})
+
+	composite, err := renderCompositeApplication(value)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, source := range []struct {
+		name string
+		text string
+	}{
+		{"web", applicationWebRecipes[applicationWebRecipe].template},
+		{"composite", string(composite)},
+	} {
+		t.Run(source.name, func(t *testing.T) {
+			assertContains(t, source.text, "web.WithFuncMap(ui.FuncMap())", `"hatmax.adrianpk.com/ui"`)
+		})
+	}
+}
+
 func TestRenderApplicationWebUsesHatmaxPrimitivesAndNeutralContent(t *testing.T) {
 	value := applicationRenderPlan(t)
 	manifest := applicationManifestForRecipes(t, value, applicationWebOrder)
@@ -64,6 +88,10 @@ func TestRenderedApplicationCompilesAndPassesGeneratedTests(t *testing.T) {
 
 	root := t.TempDir()
 	writeApplicationMutations(t, root, manifest, mutations)
+
+	// Exercise parsing through the generated manager, not a test-owned map.
+	writeExecutionFile(t, root, "internal/application/assets/templates/probe.html",
+		`{{define "probe"}}<div {{hxAttrs (hxPost "/probe") (hxTargetID "probe") hxSwapOuter}}></div>{{end}}`)
 
 	repositoryRoot, err := filepath.Abs(filepath.Join("..", ".."))
 	if err != nil {
