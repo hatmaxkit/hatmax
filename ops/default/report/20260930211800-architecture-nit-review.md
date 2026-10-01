@@ -353,7 +353,7 @@ TestObservedDefaultSender received 'from address is required' despite a configur
 Severity: medium
 Area: architecture
 File: `mailer/mailgun.go:32-119`
-Ticket: [Do not silently drop Mailgun attachments](../ticket/reviewing/20260930211812-preserve-mailgun-attachments.md)
+Ticket: [Do not silently drop Mailgun attachments](../ticket/solved/20260930211812-preserve-mailgun-attachments.md)
 
 Problem:
 Send serializes a URL-encoded message without reading Message.Attachments and returns success after HTTP 2xx.

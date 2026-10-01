@@ -7,11 +7,12 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # Mailgun Attachments
 
-Status: reviewing
-Ticket: [TKT-20260930211812](../ticket/reviewing/20260930211812-preserve-mailgun-attachments.md)
+Status: delivered
+Ticket: [TKT-20260930211812](../ticket/solved/20260930211812-preserve-mailgun-attachments.md)
 Branch: `fix/ticket-20260930211812-mailgun-attachments`
 PR: [#80](https://forge.adrianpk.com/hatmax/hatmax/pulls/80)
 Implementation: `55389df1de84c39bd800bbd7fac3274343e20d39`
+Integrated into `dev`: `30dbde7b87634a23a1665df6a3b4a2da4d58e06e`
 
 ## Delivered Behavior
 
