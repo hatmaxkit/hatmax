@@ -13,8 +13,8 @@ ready_at: 2026-10-01T11:20:43Z
 started_at: 2026-10-01T11:20:43Z
 reviewed_at: 2026-10-01T11:34:15Z
 branch: fix/ticket-20260930211813-smtp-policy
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/81
+commits: b9937c408f9f20982f4c8a9ba90531ea8681fc43
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
