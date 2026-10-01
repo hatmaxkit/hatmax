@@ -7,11 +7,12 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # Owned HTTP Serving
 
-Status: reviewing
-Ticket: [TKT-20260930211819](../ticket/reviewing/20260930211819-allow-owned-and-bounded-http-serving.md)
+Status: delivered
+Ticket: [TKT-20260930211819](../ticket/solved/20260930211819-allow-owned-and-bounded-http-serving.md)
 Branch: `fix/ticket-20260930211819-owned-http-server`
 PR: [#87](https://forge.adrianpk.com/hatmax/hatmax/pulls/87)
 Implementation: `abfa220d93f6ea6e75a4cb5521a6654873bb6621`
+Integrated into dev: `fe57453d71830be11f3ebca36dc21f10258d625b`
 
 ## Delivered Behavior
 

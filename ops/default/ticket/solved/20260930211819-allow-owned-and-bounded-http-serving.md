@@ -1,7 +1,9 @@
 ---
 id: TKT-20260930211819
 title: Allow owned and bounded HTTP serving
-status: reviewing
+status: solved
+resolution: fixed
+closed_at: 2026-10-01T15:29:33Z
 kind: follow_up
 severity: medium
 priority: normal
@@ -14,7 +16,7 @@ started_at: 2026-10-01T14:46:15Z
 reviewed_at: 2026-10-01T14:57:43Z
 branch: fix/ticket-20260930211819-owned-http-server
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/87
-commits: abfa220d93f6ea6e75a4cb5521a6654873bb6621
+commits: abfa220d93f6ea6e75a4cb5521a6654873bb6621, fe57453d71830be11f3ebca36dc21f10258d625b
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -54,3 +56,5 @@ The serving helper now accepts the application-owned server, validates connectio
 `make check`, `make docs-check`, `go test -race ./app -count=1`, and `go test ./app -run '^TestServe' -count=20` passed. Total coverage is 81.6%; app coverage is 93.9%. Real TCP tests verify incomplete-header and idle connection limits, normal requests, streaming beyond connection deadlines, exact serving-instance shutdown, request draining, and dependency-stop ordering.
 
 Report: [Owned HTTP Serving](../../report/20261001145743-owned-http-serving.md).
+
+PR #87 was verified merged into dev at fe57453d71830be11f3ebca36dc21f10258d625b. F20 is resolved.
