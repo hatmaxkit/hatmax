@@ -206,7 +206,7 @@ TestObservedWorkerPanic ran a two-worker scheduler in a subprocess and confirmed
 Severity: high
 Area: architecture
 File: `app/lifecycle.go:39-84`
-Ticket: [Pair startup rollback with component identity](../ticket/open/20260930211807-pair-startup-rollback-with-component-identity.md)
+Ticket: [Pair startup rollback with component identity](../ticket/reviewing/20260930211807-pair-startup-rollback-with-component-identity.md)
 
 Problem:
 Setup collects start and stop capabilities independently, while Start indexes stops using a start index. A start-only component before a failing component causes an index panic; other mixed capability layouts can stop the wrong component.

@@ -16,7 +16,7 @@ HTTP, and stops them. The implementation note is
 | Interface | Method | When it runs |
 | --- | --- | --- |
 | `Startable` | `Start(context.Context) error` | During `Start`, in setup order |
-| `Stoppable` | `Stop(context.Context) error` | From the rollback stop slice and during `Shutdown` |
+| `Stoppable` | `Stop(context.Context) error` | During rollback of its completed startup step and during `Shutdown` |
 | `RouteRegistrar` | `RegisterRoutes(chi.Router)` | After every start function succeeds |
 
 A component may implement any subset of these interfaces.
@@ -26,34 +26,37 @@ A component may implement any subset of these interfaces.
 `Setup(ctx, router, components...)` walks the components in argument order
 and builds three lists:
 
-- start functions, one for each `Startable`;
+- `StartupStep` values, one for each `Startable`, pairing its start function
+  with the same component's stop function when it implements `Stoppable`;
 - stop functions, one for each `Stoppable`;
 - route registrars, one for each `RouteRegistrar`.
 
-The three lists are independent. A component that implements only one
-interface appears in only one list. `Setup` does not call `Start`, `Stop`, or
-`RegisterRoutes`.
+`StartupStep` has `Start` and `Stop` fields of type
+`func(context.Context) error`. `Start` must be non-nil; `Stop` is nil for a
+start-only component. Stop-only components appear only in the shutdown list.
+`Setup` does not call `Start`, `Stop`, or `RegisterRoutes`.
 
 ## Start
 
-`Start` calls the start functions in order. When a start function returns an
+`Start(ctx, logger, starts, stops, registrars, router)` calls the startup steps in order. When a start function returns an
 error at index `i`, `Start` logs `error starting component #<index>` and then
-calls `stops[j]` for each `j` from `i-1` down to `0`. Rollback uses
+walks completed steps from `i-1` down to `0`, calling each non-nil `Stop`.
+Rollback uses
 `context.Background()`. A stop error during rollback is logged and does not
 replace the original start error. `Start` then returns the start error.
 
 Routes are registered only after every start function returns nil.
 
-The stop list is indexed independently from the start list. The indexes refer
-to the same components only while every relevant component contributes to
-both lists in the same order. A component that is `Startable` but not
-`Stoppable`, or `Stoppable` but not `Startable`, shifts the later indexes.
+The failing step and later steps are not stopped. A failing `Start` must clean
+up its own partial initialization before returning an error. Start-only steps
+have no rollback operation; stop-only and route-only components do not enter
+the startup sequence. No positional alignment with the shutdown list is required.
 
-An application that relies on startup rollback must keep those slices aligned:
-each ordered startup component should implement both interfaces. `Start` does
-not validate alignment and can panic when a failure index requires a stop
-entry that does not exist. This constraint does not affect the reverse walk
-performed by normal `Shutdown`.
+The `stops` argument is retained so existing `Setup`-based calls keep their
+shape, but `Start` does not read it. Pass the separate stop list to `Shutdown`.
+Code that manually assembled `[]func(context.Context) error` for startup must
+instead use `[]app.StartupStep`, assigning each start function its own optional
+stop function. Calls using the outputs of `Setup` need no source change.
 
 ## Serve
 

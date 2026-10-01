@@ -32,13 +32,22 @@ type RouteRegistrar interface {
 	RegisterRoutes(chi.Router)
 }
 
+// StartupStep pairs a component's Start function with its optional Stop function.
+// Stop is nil for a component that does not implement Stoppable. A failing Start
+// owns cleanup of its own partial initialization; only completed steps roll back.
+type StartupStep struct {
+	Start func(context.Context) error
+	Stop  func(context.Context) error
+}
+
 // Setup discovers component capabilities and builds startup/shutdown pipelines.
 // It inspects each component for RouteRegistrar, Startable, and Stoppable interfaces,
-// collecting start/stop functions and route registrars in order.
+// collecting paired startup steps, shutdown functions, and route registrars in order.
 //
-// Returns slices of start functions, stop functions, and route registrars to be executed by Start.
+// Start consumes startup steps and registrars; Shutdown consumes all stop functions,
+// including those belonging to components without a Start capability.
 func Setup(ctx context.Context, r chi.Router, comps ...any) (
-	starts []func(context.Context) error,
+	starts []StartupStep,
 	stops []func(context.Context) error,
 	registrars []RouteRegistrar,
 ) {
@@ -47,30 +56,36 @@ func Setup(ctx context.Context, r chi.Router, comps ...any) (
 			registrars = append(registrars, rr)
 		}
 
-		if s, ok := c.(Startable); ok {
-			starts = append(starts, s.Start)
+		var stop func(context.Context) error
+		if st, ok := c.(Stoppable); ok {
+			stop = st.Stop
+			stops = append(stops, stop)
 		}
 
-		if st, ok := c.(Stoppable); ok {
-			stops = append(stops, st.Stop)
+		if s, ok := c.(Startable); ok {
+			starts = append(starts, StartupStep{Start: s.Start, Stop: stop})
 		}
 	}
 
 	return
 }
 
-// Start executes startup functions in order and registers routes after startup.
-// If a start function fails at index i, Start calls stop functions i-1 through
-// zero. Setup collects start and stop functions independently, so callers that
-// rely on this rollback must keep those slices positionally aligned.
-func Start(ctx context.Context, log log.Logger, starts []func(context.Context) error, stops []func(context.Context) error, registrars []RouteRegistrar, router chi.Router) error {
-	for i, start := range starts {
-		err := start(ctx)
+// Start executes startup steps in order and registers routes after startup.
+// On failure it stops only completed steps with a Stop function, in reverse order,
+// using context.Background(). Stop errors are logged; the original Start error is returned.
+// The stop slice is retained for existing Setup-based calls but is not used for rollback.
+func Start(ctx context.Context, log log.Logger, starts []StartupStep, _ []func(context.Context) error, registrars []RouteRegistrar, router chi.Router) error {
+	for i, step := range starts {
+		err := step.Start(ctx)
 		if err != nil {
 			log.Errorf("error starting component #%d: %v", i, err)
 
 			for j := i - 1; j >= 0; j-- {
-				rErr := stops[j](context.Background())
+				if starts[j].Stop == nil {
+					continue
+				}
+
+				rErr := starts[j].Stop(context.Background())
 				if rErr != nil {
 					log.Errorf("error stopping component #%d during rollback: %v", j, rErr)
 				}

@@ -77,7 +77,7 @@ state.
 
 ## Startup and Route Visibility
 
-`app.Setup` inspects components and collects start functions, stop functions,
+`app.Setup` inspects components and collects paired startup steps, stop functions,
 and route registrars in the order supplied. It does not execute them.
 
 `app.Start` then:
@@ -90,21 +90,19 @@ Handlers therefore do not receive traffic while a declared startup dependency
 is unavailable. The application calls `app.Serve` only after `app.Start`
 returns successfully.
 
-## Rollback Alignment
+## Rollback Preserves Ownership
 
-Startup and stop capabilities are collected into independent slices. On a
-startup failure, Hatmax uses the failing start position to stop earlier
-components in reverse order.
+Each startup step retains the same component's optional stop function. On a
+startup failure, Hatmax stops successfully started components in reverse order,
+skipping those without a stop capability.
 
-An application that relies on this rollback must keep startup and stop entries
-positionally aligned. Ordered resource components should normally implement
-both `Startable` and `Stoppable`. Inserting a start-only or stop-only component
-among them shifts one slice and breaks that correspondence.
+Start-only, stop-only, and route-only components can appear in the same list
+without shifting cleanup onto another component. Stop-only components still
+participate in normal shutdown; they do not participate in startup rollback.
 
-Route-only components do not affect this alignment because they enter neither
-slice. Plain services also remain outside both slices.
-
-This is a current application-lifecycle constraint. The
+The failing component must clean up its own partial initialization before
+returning an error. Rollback continues after stop errors and returns the
+original startup error. The
 [Application Lifecycle Reference](../../reference/application-lifecycle/README.md)
 defines its exact failure behavior.
 

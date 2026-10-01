@@ -28,7 +28,7 @@ starts, stops, registrars := app.Setup(ctx, router,
     &anotherService,
 )
 
-// Start executes in order and uses the aligned stop slice on failure.
+// Start executes in order and rolls back completed steps by component identity.
 if err := app.Start(ctx, log, starts, stops, registrars, router); err != nil {
     log.Fatal(err)
 }
@@ -51,12 +51,20 @@ type Stoppable interface {
 type RouteRegistrar interface {
     RegisterRoutes(chi.Router)
 }
+
+type StartupStep struct {
+    Start func(context.Context) error
+    Stop  func(context.Context) error // nil for start-only components
+}
 ```
 
 Components implement the interfaces they need. Setup inspects and groups them.
 
-`Setup` collects start and stop functions into independent slices. If an
-application relies on startup rollback, every ordered startup component must
-also implement `Stoppable` so those slices stay positionally aligned. See the
+`Setup` pairs each startup function with the same component's optional stop
+function. Startup rollback stops only completed steps, in reverse order, and
+preserves the original start error. The separate stop list belongs to normal
+shutdown, including stop-only components; `Start` retains that argument for
+existing calls but does not use it. Manual startup lists now use
+`[]app.StartupStep` instead of function slices. See the
 [Application Lifecycle Reference](../docs/reference/application-lifecycle/README.md)
 for the exact failure behavior.

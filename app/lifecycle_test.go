@@ -184,20 +184,16 @@ func TestStartSuccess(t *testing.T) {
 	comp1 := &fakeComponent{}
 	comp2 := &fakeComponent{}
 
-	starts := []func(context.Context) error{
-		comp1.Start,
-		comp2.Start,
-	}
-	stops := []func(context.Context) error{
-		comp1.Stop,
-		comp2.Stop,
+	starts := []StartupStep{
+		{Start: comp1.Start, Stop: comp1.Stop},
+		{Start: comp2.Start, Stop: comp2.Stop},
 	}
 	registrars := []RouteRegistrar{comp1, comp2}
 	r := chi.NewRouter()
 
 	logger := log.NewTestLogger("error")
 
-	err := Start(context.Background(), logger, starts, stops, registrars, r)
+	err := Start(context.Background(), logger, starts, nil, registrars, r)
 	if err != nil {
 		t.Errorf("expected no error, got %v", err)
 	}
@@ -224,18 +220,14 @@ func TestStartWithFirstComponentFailure(t *testing.T) {
 	comp1 := &fakeComponent{fakeStartable: fakeStartable{err: testErr}}
 	comp2 := &fakeComponent{}
 
-	starts := []func(context.Context) error{
-		comp1.Start,
-		comp2.Start,
-	}
-	stops := []func(context.Context) error{
-		comp1.Stop,
-		comp2.Stop,
+	starts := []StartupStep{
+		{Start: comp1.Start, Stop: comp1.Stop},
+		{Start: comp2.Start, Stop: comp2.Stop},
 	}
 
 	r := chi.NewRouter()
 	logger := log.NewTestLogger("error")
-	err := Start(context.Background(), logger, starts, stops, nil, r)
+	err := Start(context.Background(), logger, starts, nil, nil, r)
 
 	if err != testErr {
 		t.Errorf("expected error %v, got %v", testErr, err)
@@ -263,18 +255,14 @@ func TestStartWithSecondComponentFailure(t *testing.T) {
 	comp1 := &fakeComponent{}
 	comp2 := &fakeComponent{fakeStartable: fakeStartable{err: testErr}}
 
-	starts := []func(context.Context) error{
-		comp1.Start,
-		comp2.Start,
-	}
-	stops := []func(context.Context) error{
-		comp1.Stop,
-		comp2.Stop,
+	starts := []StartupStep{
+		{Start: comp1.Start, Stop: comp1.Stop},
+		{Start: comp2.Start, Stop: comp2.Stop},
 	}
 
 	r := chi.NewRouter()
 	logger := log.NewTestLogger("error")
-	err := Start(context.Background(), logger, starts, stops, nil, r)
+	err := Start(context.Background(), logger, starts, nil, nil, r)
 
 	if err != testErr {
 		t.Errorf("expected error %v, got %v", testErr, err)
@@ -303,18 +291,14 @@ func TestStartWithRollbackFailure(t *testing.T) {
 	comp1 := &fakeComponent{fakeStoppable: fakeStoppable{err: stopErr}}
 	comp2 := &fakeComponent{fakeStartable: fakeStartable{err: testErr}}
 
-	starts := []func(context.Context) error{
-		comp1.Start,
-		comp2.Start,
-	}
-	stops := []func(context.Context) error{
-		comp1.Stop,
-		comp2.Stop,
+	starts := []StartupStep{
+		{Start: comp1.Start, Stop: comp1.Stop},
+		{Start: comp2.Start, Stop: comp2.Stop},
 	}
 
 	r := chi.NewRouter()
 	logger := log.NewTestLogger("error")
-	err := Start(context.Background(), logger, starts, stops, nil, r)
+	err := Start(context.Background(), logger, starts, nil, nil, r)
 
 	if err != testErr {
 		t.Errorf("expected error %v, got %v", testErr, err)

@@ -25,17 +25,19 @@ dependency graph or hide startup in constructors.
 
 ## Startup and shutdown capabilities are independent
 
-`Setup` collects `Startable` and `Stoppable` values into separate slices.
-`Start` uses the position of a failing start function to select rollback stop
-functions. Consequently, rollback corresponds to components only while the
-startup and shutdown slices remain positionally aligned.
+`Setup` pairs each start function with the same component's optional stop
+function. A startup failure rolls back completed pairs in reverse order.
+Start-only components do not borrow another component's stop function;
+stop-only components participate in normal shutdown, not startup rollback.
+Route-only components do not affect either sequence.
 
-Applications that rely on rollback should make every ordered startup
-component implement both `Startable` and `Stoppable`. A component with only
-one of those capabilities shifts one slice and invalidates that assumption.
-Normal shutdown still calls every collected stop function in reverse order.
+Components implement only the capabilities they genuinely own. No placeholder
+stop function or positional alignment is needed. Normal shutdown still calls
+every collected stop function in reverse component order.
 
-This is a current API constraint, not a general transaction guarantee. The
+This pairing preserves cleanup ownership, not a general transaction guarantee.
+A failing start must clean up its own partial initialization, and a component
+without a stop capability has no rollback operation. The
 [Application Lifecycle Reference](../../reference/application-lifecycle/README.md)
 states the exact execution behavior.
 

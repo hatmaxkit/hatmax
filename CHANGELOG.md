@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Manually assembled application startup lists now use `app.StartupStep` values
+  with an optional stop function per component. Existing calls using the outputs
+  of `app.Setup` keep the same source form.
 - Hatmax and newly scaffolded applications now require Go 1.26 or newer.
 - Dependencies now use their latest compatible module versions, including
   updates that address known security advisories.
@@ -47,6 +50,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Application startup failure now stops only successfully started components
+  that own a stop capability, in reverse order, without stopping the wrong
+  component or losing the original error when capabilities are mixed.
 - Scheduled job handler panics no longer terminate the application when using
   concurrent workers or interrupt a single-worker batch. Failed runs are recorded
   and healthy jobs continue; failed-state persistence errors are logged.
