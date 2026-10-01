@@ -14,6 +14,8 @@ type Mailer interface {
 
 // Config holds common mailer configuration.
 type Config struct {
+	// DefaultFrom replaces an empty Message.From.Email before active-provider
+	// validation. Send does not change the caller's message.
 	DefaultFrom Address
 	Provider    string
 }

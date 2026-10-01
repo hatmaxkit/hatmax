@@ -332,7 +332,7 @@ TestObservedSettingsFailure returned a valid true default and no error after the
 Severity: medium
 Area: architecture
 File: `mailer/message.go:55-58, mailer/smtp.go:34-42, mailer/mailgun.go:32-41, mailer/sendgrid.go, mailer/ses.go`
-Ticket: [Apply default mail senders before validation](../ticket/open/20260930211811-apply-mailer-default-senders-before-validation.md)
+Ticket: [Apply default mail senders before validation](../ticket/reviewing/20260930211811-apply-mailer-default-senders-before-validation.md)
 
 Problem:
 Every active provider validates Message before applying its configured DefaultFrom. Validate rejects an empty From, so the fallback branch cannot supply a missing sender.

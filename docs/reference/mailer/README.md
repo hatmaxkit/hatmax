@@ -36,7 +36,14 @@ set. `AllRecipients` returns `To`, then `CC`, then `BCC`.
 | `NewNoopMailer` | logger | `*NoopMailer` |
 
 Every provider validates the message before delivery. SMTP, Mailgun, SendGrid,
-and SES use their configured `DefaultFrom` when `Message.From.Email` is empty.
+and SES first apply their configured `DefaultFrom` to a local message copy when
+`Message.From.Email` is empty. The complete default address replaces `From`,
+including its display name. An explicit sender takes precedence. A missing
+sender and a default without an email still fail validation before transport.
+`Send` leaves the caller's message unchanged; SMTP and SES raw MIME use the
+same effective sender as their envelope or API source.
+
+`Message.Validate` still requires an explicit sender when called directly.
 `NoopMailer` does not apply a default sender.
 
 | Configuration | Fields |

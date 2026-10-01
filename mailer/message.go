@@ -48,6 +48,15 @@ type Message struct {
 	Headers     map[string]string
 }
 
+// withDefaultFrom normalizes a provider-owned copy without changing caller data.
+func (m Message) withDefaultFrom(from Address) Message {
+	if m.From.Email == "" {
+		m.From = from
+	}
+
+	return m
+}
+
 // Validate checks if the message has minimum required fields.
 func (m *Message) Validate() error {
 	if m.From.Email == "" {

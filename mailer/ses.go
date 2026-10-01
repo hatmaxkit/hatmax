@@ -65,15 +65,15 @@ func NewSESMailer(ctx context.Context, cfg SESConfig) (*SESMailer, error) {
 
 // Send sends an email via AWS SES.
 func (m *SESMailer) Send(ctx context.Context, msg *Message) error {
+	message := msg.withDefaultFrom(m.cfg.DefaultFrom)
+	msg = &message
+
 	err := msg.Validate()
 	if err != nil {
 		return err
 	}
 
 	from := msg.From
-	if from.Email == "" {
-		from = m.cfg.DefaultFrom
-	}
 
 	if msg.HasAttachments() {
 		return m.sendRawEmail(ctx, msg, from)

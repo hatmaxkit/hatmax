@@ -32,13 +32,12 @@ func NewSMTPMailer(cfg SMTPConfig) *SMTPMailer {
 
 // Send sends an email via SMTP.
 func (m *SMTPMailer) Send(ctx context.Context, msg *Message) error {
+	message := msg.withDefaultFrom(m.cfg.DefaultFrom)
+	msg = &message
+
 	err := msg.Validate()
 	if err != nil {
 		return err
-	}
-
-	if msg.From.Email == "" {
-		msg.From = m.cfg.DefaultFrom
 	}
 
 	raw, err := m.buildRawMessage(msg)

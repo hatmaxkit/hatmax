@@ -31,6 +31,12 @@ msg := &mailer.Message{
 if err := mailer.Send(ctx, msg); err != nil { ... }
 ```
 
+SMTP, Mailgun, SendGrid, and SES apply `DefaultFrom` before validation when
+`msg.From.Email` is empty. An explicit sender overrides the default. The
+complete default address, including its name, is used without changing `msg`.
+If neither address supplies an email, delivery fails before transport.
+Direct `Message.Validate` and `NoopMailer` still require an explicit sender.
+
 ## Runtime Resolution
 
 ```go

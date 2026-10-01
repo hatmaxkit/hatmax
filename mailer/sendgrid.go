@@ -36,15 +36,15 @@ func NewSendGridMailer(cfg SendGridConfig) *SendGridMailer {
 
 // Send sends an email via SendGrid.
 func (m *SendGridMailer) Send(ctx context.Context, msg *Message) error {
+	message := msg.withDefaultFrom(m.cfg.DefaultFrom)
+	msg = &message
+
 	err := msg.Validate()
 	if err != nil {
 		return err
 	}
 
 	from := msg.From
-	if from.Email == "" {
-		from = m.cfg.DefaultFrom
-	}
 
 	sgFrom := mail.NewEmail(from.Name, from.Email)
 

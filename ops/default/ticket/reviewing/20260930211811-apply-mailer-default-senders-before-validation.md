@@ -1,7 +1,7 @@
 ---
 id: TKT-20260930211811
 title: Apply default mail senders before validation
-status: open
+status: reviewing
 kind: bug
 severity: medium
 priority: normal
@@ -9,6 +9,11 @@ scope: domain
 tags: architecture-review, domain, correctness
 source: review
 reported_at: 2026-09-30T21:18:11Z
+ready_at: 2026-10-01T10:29:16Z
+started_at: 2026-10-01T10:29:16Z
+reviewed_at: 2026-10-01T10:36:16Z
+branch: fix/ticket-20260930211811-mailer-defaults
+pr: pending
 commits:
 ---
 <!--
@@ -37,3 +42,11 @@ Normalize the sender before sender-dependent validation in each active provider.
 Test a missing sender with a configured default, an explicit sender overriding the default, and a missing sender without a default for each active provider.
 
 Review: [Architecture Nit Review](../../report/20260930211800-architecture-nit-review.md#f12).
+
+## Implementation
+
+SMTP, Mailgun, SendGrid, and SES now normalize a local message copy before validation. When From.Email is empty, the complete configured DefaultFrom is applied. Explicit senders remain unchanged. Missing sender emails still fail validation before transport, and the caller's Message is not modified.
+
+The normalized sender is used consistently in the SMTP envelope and MIME header, Mailgun and SendGrid requests, and both SES simple and raw delivery. Direct Message.Validate and NoopMailer keep their explicit-sender requirement. Tests exercise actual local transport boundaries, all default and explicit sender cases, other required fields, and caller immutability.
+
+Delivery: [Mailer default senders](../../report/20261001103616-mailer-default-senders.md).

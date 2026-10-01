@@ -30,19 +30,15 @@ func NewMailgunMailer(cfg MailgunConfig) *MailgunMailer {
 
 // Send sends an email via Mailgun.
 func (m *MailgunMailer) Send(ctx context.Context, msg *Message) error {
+	message := msg.withDefaultFrom(m.cfg.DefaultFrom)
+	msg = &message
+
 	err := msg.Validate()
 	if err != nil {
 		return err
 	}
 
 	from := msg.From
-	if from.Email == "" {
-		from = m.cfg.DefaultFrom
-	}
-
-	if from.Email == "" {
-		return fmt.Errorf("mailgun send: from address is required")
-	}
 
 	if strings.TrimSpace(m.cfg.APIKey) == "" {
 		return fmt.Errorf("mailgun send: api key is required")

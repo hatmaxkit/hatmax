@@ -53,6 +53,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Email providers now apply the configured default sender before validation,
+  allowing messages to omit `From` without changing the caller's message.
+  Explicit senders continue to override the default.
 - Runtime settings now use defaults only for missing keys, without hiding
   persistence or cancellation failures. Custom stores must report absence with
   `settings.ErrNotFound`; explicit empty values no longer reset a setting to
