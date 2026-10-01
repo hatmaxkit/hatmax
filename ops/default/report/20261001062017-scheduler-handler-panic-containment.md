@@ -10,7 +10,8 @@ This file is part of Hatmax. See COPYING for license terms.
 Status: reviewing
 Ticket: [TKT-20260930211806](../ticket/reviewing/20260930211806-contain-scheduler-worker-panics.md)
 Branch: `fix/ticket-20260930211806-scheduler-panics`
-PR: pending
+PR: [#74](https://forge.adrianpk.com/hatmax/hatmax/pulls/74)
+Implementation: `c397833d36532468cbd60929d2859da9d2720193`
 
 ## Delivered Behavior
 

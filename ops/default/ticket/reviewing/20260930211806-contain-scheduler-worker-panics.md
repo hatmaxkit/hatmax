@@ -13,8 +13,8 @@ ready_at: 2026-10-01T06:11:32Z
 started_at: 2026-10-01T06:11:32Z
 reviewed_at: 2026-10-01T06:20:17Z
 branch: fix/ticket-20260930211806-scheduler-panics
-pr: pending
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/74
+commits: c397833d36532468cbd60929d2859da9d2720193
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
