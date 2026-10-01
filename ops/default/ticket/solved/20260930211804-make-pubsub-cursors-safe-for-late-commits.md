@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211804
 title: Prevent pubsub loss across out-of-order commits
-status: reviewing
+status: solved
+resolution: fixed
 kind: bug
 severity: high
 priority: high
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:04Z
 ready_at: 2026-09-30T23:54:34Z
 started_at: 2026-09-30T23:54:34Z
 reviewed_at: 2026-10-01T00:09:27Z
+closed_at: 2026-10-01T05:49:34Z
 branch: fix/ticket-20260930211804-pubsub-commits
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/72
-commits: a061bda59b92403791d1f189bd8479bed0797fcc
+commits: a061bda59b92403791d1f189bd8479bed0797fcc, 4015e895b583de703201ef73cd02d77a32ea1b4e
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -56,3 +58,6 @@ fan-out, startup rollback, and persistence rollback have deterministic database
 coverage. Handler-error retry policy remains assigned to the separate F6 ticket.
 
 Delivery: [Pubsub commit-safe delivery](../../report/20261001000927-pubsub-commit-safe-delivery.md).
+
+Merged into `dev` through PR #72 at
+`4015e895b583de703201ef73cd02d77a32ea1b4e`.

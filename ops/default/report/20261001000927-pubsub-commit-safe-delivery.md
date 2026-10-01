@@ -7,11 +7,12 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # Pubsub Commit-Safe Delivery
 
-Status: reviewing
-Ticket: [TKT-20260930211804](../ticket/reviewing/20260930211804-make-pubsub-cursors-safe-for-late-commits.md)
+Status: delivered
+Ticket: [TKT-20260930211804](../ticket/solved/20260930211804-make-pubsub-cursors-safe-for-late-commits.md)
 Branch: `fix/ticket-20260930211804-pubsub-commits`
 PR: [#72](https://forge.adrianpk.com/hatmax/hatmax/pulls/72)
 Implementation: `a061bda59b92403791d1f189bd8479bed0797fcc`
+Integrated into `dev`: `4015e895b583de703201ef73cd02d77a32ea1b4e`
 
 ## Delivered Behavior
 

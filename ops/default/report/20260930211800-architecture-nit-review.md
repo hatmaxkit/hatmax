@@ -143,7 +143,7 @@ TestObservedLinkScheme compares the public link renderer with html/template's UR
 Severity: high
 Area: persistence
 File: `pubsub/postgres/broker.go:296-375, pubsub/postgres/schema.go`
-Ticket: [Prevent pubsub loss across out-of-order commits](../ticket/reviewing/20260930211804-make-pubsub-cursors-safe-for-late-commits.md)
+Ticket: [Prevent pubsub loss across out-of-order commits](../ticket/solved/20260930211804-make-pubsub-cursors-safe-for-late-commits.md)
 
 Problem:
 The subscriber selects id > lastOffset and advances to the highest delivered ID. PostgreSQL assigns sequence IDs before commit. A lower-ID transaction committed after a higher ID has been acknowledged becomes permanently invisible to the subscriber.
