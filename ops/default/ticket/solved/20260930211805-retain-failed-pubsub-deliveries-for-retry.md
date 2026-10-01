@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211805
 title: Do not acknowledge failed pubsub handlers
-status: reviewing
+status: solved
+resolution: fixed
 kind: bug
 severity: high
 priority: high
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:05Z
 ready_at: 2026-10-01T05:52:50Z
 started_at: 2026-10-01T05:52:50Z
 reviewed_at: 2026-10-01T06:01:01Z
+closed_at: 2026-10-01T06:09:40Z
 branch: fix/ticket-20260930211805-pubsub-retry
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/73
-commits: 6d7aacf71c15e9ac95f081de1dd831b4803a4399
+commits: 6d7aacf71c15e9ac95f081de1dd831b4803a4399, f7cfb4232e69f233909b9658297408d824b647c9
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -56,3 +58,6 @@ cannot queue immediate retries. There is no total attempt cap or automatic disca
 persistent failures may fill the batch and require application remediation.
 
 Delivery: [Pubsub failed-delivery retries](../../report/20261001060101-pubsub-failed-delivery-retries.md).
+
+Merged into `dev` through PR #73 at
+`f7cfb4232e69f233909b9658297408d824b647c9`.
