@@ -1,7 +1,8 @@
 ---
 id: TKT-20260930211810
 title: Distinguish missing settings from persistence failures
-status: reviewing
+status: solved
+resolution: fixed
 kind: bug
 severity: medium
 priority: normal
@@ -12,9 +13,10 @@ reported_at: 2026-09-30T21:18:10Z
 ready_at: 2026-10-01T09:39:48Z
 started_at: 2026-10-01T09:39:48Z
 reviewed_at: 2026-10-01T09:49:27Z
+closed_at: 2026-10-01T10:25:32Z
 branch: fix/ticket-20260930211810-settings-errors
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/78
-commits: fa2b51b970a8314ac209543a8ee1378ab0fa621a
+commits: fa2b51b970a8314ac209543a8ee1378ab0fa621a, 352d4f19a50d9e215d52bf66d6c4cabf4c0cf466
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -52,3 +54,5 @@ GetString preserves present empty strings. GetInt and GetBool parse present valu
 The guide's in-memory adapter now reports ErrNotFound and propagates context errors. Tests cover the three typed getters, wrapped absence, stored empty and zero values, malformed values, invalid defaults, partial read failures, cancellation, and the example adapter. Documentation states the custom-adapter migration and deletion-based default reset.
 
 Delivery: [Settings read failures](../../report/20261001094927-settings-read-failures.md).
+
+Merged into `dev` through PR #78 at `352d4f19a50d9e215d52bf66d6c4cabf4c0cf466`.

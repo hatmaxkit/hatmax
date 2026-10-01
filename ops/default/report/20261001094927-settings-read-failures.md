@@ -7,11 +7,12 @@ This file is part of Hatmax. See COPYING for license terms.
 
 # Settings Read Failures
 
-Status: reviewing
-Ticket: [TKT-20260930211810](../ticket/reviewing/20260930211810-propagate-settings-persistence-failures.md)
+Status: delivered
+Ticket: [TKT-20260930211810](../ticket/solved/20260930211810-propagate-settings-persistence-failures.md)
 Branch: `fix/ticket-20260930211810-settings-errors`
 PR: [#78](https://forge.adrianpk.com/hatmax/hatmax/pulls/78)
 Implementation: `fa2b51b970a8314ac209543a8ee1378ab0fa621a`
+Integrated into `dev`: `352d4f19a50d9e215d52bf66d6c4cabf4c0cf466`
 
 ## Delivered Behavior
 

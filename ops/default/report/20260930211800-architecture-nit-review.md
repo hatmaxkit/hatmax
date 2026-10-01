@@ -311,7 +311,7 @@ TestObservedRepeatedStopPanic reproduced the closed-channel panic. Cancellation 
 Severity: medium
 Area: persistence
 File: `settings/service.go:27-58`
-Ticket: [Distinguish missing settings from persistence failures](../ticket/reviewing/20260930211810-propagate-settings-persistence-failures.md)
+Ticket: [Distinguish missing settings from persistence failures](../ticket/solved/20260930211810-propagate-settings-persistence-failures.md)
 
 Problem:
 GetString, GetInt, and GetBool replace every store error with a default value and a nil error. A storage outage is indistinguishable from an absent setting.
