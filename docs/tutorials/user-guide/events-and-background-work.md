@@ -82,8 +82,10 @@ runners start without a goroutine; enabled runners tick immediately and then
 at the configured interval.
 
 Handlers return `scheduler.Result`. The runner records running, successful,
-failed, and unknown-task outcomes. Current behavior does not update the next
-run or apply configured retry fields automatically, so applications must not
+failed, and unknown-task outcomes. A handler panic records a failed run without
+stopping other jobs; failures to persist that state are logged. Current behavior
+does not update the next run or apply configured retry fields automatically, so
+applications must not
 assume recurring advancement or retry semantics that are not implemented.
 
 Use deterministic clocks and fake stores in unit tests. Use Postgres tests for

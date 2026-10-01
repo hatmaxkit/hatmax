@@ -47,6 +47,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Scheduled job handler panics no longer terminate the application when using
+  concurrent workers or interrupt a single-worker batch. Failed runs are recorded
+  and healthy jobs continue; failed-state persistence errors are logged.
 - PostgreSQL subscribers no longer miss messages whose transactions commit
   after messages with higher IDs. Per-message delivery tracking survives named
   subscriber restarts and preserves independent fan-out delivery.

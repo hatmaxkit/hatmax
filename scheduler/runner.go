@@ -8,6 +8,7 @@ package scheduler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -122,12 +123,6 @@ func (r *Runner) run(ctx context.Context) {
 }
 
 func (r *Runner) tick(ctx context.Context) {
-	defer func() {
-		if rec := recover(); rec != nil {
-			r.log.Errorf("scheduler: panic: %v", rec)
-		}
-	}()
-
 	if r.isPaused(ctx) {
 		return
 	}
@@ -220,10 +215,14 @@ func (r *Runner) process(ctx context.Context, job Job) {
 		return
 	}
 
-	result := handler(ctx, job)
+	result := invokeHandler(ctx, handler, job)
 
 	if result.Failed() {
-		r.store.MarkFailed(ctx, runID, r.clock.Now(), result.Err.Error())
+		err := r.store.MarkFailed(ctx, runID, r.clock.Now(), result.Err.Error())
+		if err != nil {
+			r.log.Errorf("scheduler: cannot mark failed %s: %v", runID, err)
+		}
+
 		r.log.Errorf("scheduler: job %s failed: %v", job.ID, result.Err)
 
 		return
@@ -236,6 +235,25 @@ func (r *Runner) process(ctx context.Context, job Job) {
 
 	outputBytes, _ := json.Marshal(output)
 	r.store.MarkSuccess(ctx, runID, r.clock.Now(), outputBytes)
+}
+
+// Recover only application handler calls, on the goroutine invoking them.
+// Store, clock, and logger failures remain outside this job failure boundary.
+// Completion tracking also distinguishes legacy nil panic values from success.
+func invokeHandler(ctx context.Context, handler Handler, job Job) (result Result) {
+	completed := false
+
+	defer func() {
+		value := recover()
+		if !completed {
+			result = Result{Err: fmt.Errorf("handler panic: %v", value)}
+		}
+	}()
+
+	result = handler(ctx, job)
+	completed = true
+
+	return result
 }
 
 type realClock struct{}

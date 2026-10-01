@@ -51,5 +51,8 @@ schedule later runs explicitly.
 Insert a due job with a registered `task_type`, start the process, and inspect
 its `job_runs` row. It should move to `success` with JSON output or `failed`
 with the handler error.
+Trigger a handler panic and verify a failed run with `handler panic:` detail.
+A later healthy job should still execute. Check logs for failed-state write
+errors before assuming that the failure was persisted.
 
 See [Scheduler Reference](../../reference/scheduler/README.md).

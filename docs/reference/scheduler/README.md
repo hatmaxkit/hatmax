@@ -52,6 +52,19 @@ task type or a failed result. Success JSON-encodes `Output`, or an empty
 object when `Output` is nil. The runner does not call `UpdateNextRun` and
 does not use `RetryAttempts` or `RetryBackoff`.
 
+Handler panics are converted to a failed result with `handler panic:` detail on
+the goroutine invoking the handler. The run is marked failed, and processing
+continues with the next job; concurrent workers release their slot as usual.
+If `MarkFailed` returns an error, the runner logs that persistence failure and
+the run may remain running. `Tick` still returns a `ListDue` error unchanged.
+
+Recovery is limited to the synchronous handler invocation, not the whole tick.
+Panics in stores, clocks, settings, or logging are not suppressed. Panics in
+goroutines started by a handler, `runtime.Goexit`, process exits, and fatal
+runtime failures are outside this boundary. Applications remain responsible
+for diagnosing handler defects and scheduling any later attempt; recording a
+failed run does not roll back application side effects.
+
 `WithClock` and `WithSettings` are constructor options. `SetClock` and
 `SetSettings` replace those dependencies after construction. Callers must not
 mutate them concurrently with scheduler work.

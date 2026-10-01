@@ -1,7 +1,7 @@
 ---
 id: TKT-20260930211806
 title: Contain scheduler handler panics in each worker
-status: open
+status: reviewing
 kind: bug
 severity: high
 priority: high
@@ -9,6 +9,11 @@ scope: domain
 tags: architecture-review, domain, hardening
 source: review
 reported_at: 2026-09-30T21:18:06Z
+ready_at: 2026-10-01T06:11:32Z
+started_at: 2026-10-01T06:11:32Z
+reviewed_at: 2026-10-01T06:20:17Z
+branch: fix/ticket-20260930211806-scheduler-panics
+pr: pending
 commits:
 ---
 <!--
@@ -37,3 +42,17 @@ Put the failure boundary around each handler invocation. Persist a failed run an
 Use a subprocess regression for concurrent workers. Verify single-worker behavior, failed run state, worker-slot release, and execution of a subsequent healthy job.
 
 Review: [Architecture Nit Review](../../report/20260930211800-architecture-nit-review.md#f7).
+
+## Implementation
+
+Each synchronous handler invocation now converts its own panic into a failed
+result, on the invoking goroutine. The normal failed-run path persists the panic
+detail and logs a failed-state persistence error when the store cannot complete
+that write. The enclosing tick no longer suppresses infrastructure panics.
+
+Subprocess regressions exercise one and two workers with failed jobs occupying
+the pool before a healthy job. PostgreSQL integration checks failed status,
+timestamps, panic detail, and subsequent success. No retry or lifecycle policy
+was added.
+
+Delivery: [Scheduler handler panic containment](../../report/20261001062017-scheduler-handler-panic-containment.md).
