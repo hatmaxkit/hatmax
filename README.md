@@ -183,8 +183,7 @@ During the Forge migration, the `hatmax.adrianpk.com` vanity import page is serv
 Copyright 2026 Adrian PK. Licensed under the Apache License, Version 2.0
 (`Apache-2.0`). See [LICENSE](LICENSE).
 
-On 2026-10-02, Adrian PK, as the sole author and copyright holder, relicensed
-Hatmax's libraries, generator, examples, and templates under Apache-2.0.
-The Git history is preserved. Copies previously distributed under MIT or
-GPLv3 retain the rights granted by those licenses. Third-party dependencies
-remain subject to their own licenses.
+Adrian PK, as the sole author and copyright holder, makes Hatmax's libraries,
+generator, examples, and templates available under Apache-2.0 for use in
+open-source and proprietary applications. This licensing decision is effective
+2026-10-02. Third-party dependencies remain subject to their own licenses.
