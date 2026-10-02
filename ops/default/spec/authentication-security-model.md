@@ -8,8 +8,10 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authentication Security Model
 
 Date: 2026-10-02
-Status: Draft; generic record and transaction proposals
-Behavior: [Authentication security foundation](authentication-security-draft.md)
+Status: Approved conceptual model; exact interfaces and representations require design
+Approved: 2026-10-02
+Revised: 2026-10-03; no legacy compatibility requirement
+Behavior: [Authentication security foundation](authentication-security.md)
 
 ## Ownership and Representation
 
@@ -27,10 +29,10 @@ and random salt without requiring redundant application columns. Define exact
 encoding and limits before implementation. Stored data cannot request arbitrary
 memory, iteration counts or algorithms.
 
-An upgrade operation verifies the expected old record/version before replacing
-it, so concurrent password reset cannot be overwritten by a stale rehash. Legacy
-bcrypt verification does not change how the original password was interpreted;
-normalization/version changes require an explicit migration contract.
+Credential changes validate current state and serialize their durable writes.
+Concurrent changes cannot overwrite a newer credential through a stale request.
+Define input processing for the selected format and use it consistently at
+creation/change/verification. There is no bcrypt reader or credential migration.
 
 ## Authenticator Record
 
@@ -49,9 +51,8 @@ by trusting a stored flag or client claim forever. Hardware/non-exportability
 assumptions require supported evidence and policy, not a fabricated Boolean.
 Backup-code consumption remains one-time even under concurrent transactions.
 
-Legacy backup codes with the shared-salt encoding require controlled replacement
-or a bounded migration policy. New writes cannot continue that encoding while
-claiming the proposed per-secret storage guarantee.
+Replace the shared-salt backup-code encoding. New records use the selected
+per-secret verifier; no reader or migration is required for the old encoding.
 
 ## Pending Authentication and Full Session
 
@@ -101,7 +102,7 @@ without performing the stronger method.
   affected sessions/challenges without a partial durable result.
 - Rotate session state with current-proof checks and invalidate the prior secret.
 - Count failed attempts durably even though the caller receives an auth failure.
-- Map duplicate identities and stale credential upgrades to classified outcomes.
+- Map duplicate identities and stale credential changes to classified outcomes.
 
 Exact consumer-owned interfaces must make these guarantees implementable without
 requiring consumers to duplicate core orchestration or pass an untyped database

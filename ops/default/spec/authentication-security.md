@@ -8,10 +8,12 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authentication Security Foundation
 
 Date: 2026-10-02
-Status: Draft for contract and compatibility review
-Implementation status: Proposed; existing behavior remains unchanged
+Status: Approved behavioral and ownership baseline
+Approved: 2026-10-02
+Revised: 2026-10-03; no legacy compatibility requirement
+Implementation status: Authorized; delivery planning and interface design required
 Inspected baseline: `dev`, `67023146f984b984509d32f176ea8522ddf9a301`
-Model: [Authentication security model](authentication-security-draft-model.md)
+Model: [Authentication security model](authentication-security-model.md)
 
 ## Purpose and Ownership
 
@@ -27,8 +29,13 @@ enrollment/recovery presentation, mail delivery, selected authentication policy,
 and their domain authorization. Organizations, workspace roles and subscriptions
 remain application domains.
 
-This draft proposes contracts and acceptance evidence. Exact Go interfaces,
-compatibility changes and delivery units require review before implementation.
+The behavior, ownership and acceptance obligations are approved. Exact Go
+interfaces and resource parameters are designed in the affected delivery unit.
+There are no existing credential datasets or supported consumers to preserve.
+Replace APIs, storage shapes and implementations where the approved design
+requires it; do not add compatibility wrappers or legacy authentication paths.
+Product or security tradeoffs are raised
+with the maintainer before they become implementation decisions.
 
 ## References and Verification Target
 
@@ -59,7 +66,7 @@ either policy does not establish an ASVS level or NIST AAL for the toolkit.
 | Gap | Source evidence | Consequence for the contract |
 | --- | --- | --- |
 | Password policy | `config/config.go` defaults minimum length to 8; `auth/service.go` counts bytes and has no weak/breached-password check | Explicit Unicode-aware policy and a blocklist boundary are required |
-| Password representation | `model/password.go` is bcrypt-only; its 72-byte cap prevents accepting every 64-character Unicode password | Review a versioned storage strategy; do not truncate or restrict the consumer to that legacy limit |
+| Password representation | `model/password.go` is bcrypt-only; its 72-byte cap prevents accepting every 64-character Unicode password | Replace the storage strategy; do not truncate or retain this limitation |
 | MFA sign-in | `auth.Service.Signin` creates a full session immediately after password verification; `RequireTOTP` checks enrollment | Distinguish incomplete authentication from an authorized application session |
 | Session bearer entropy | Sign-in uses `model.NewID`, which generates UUIDv4 with 122 random bits | Use an independent CSPRNG bearer secret; keep UUIDs for record identity |
 | Session lifecycle | Only creation/absolute expiry are modeled; malformed duration falls back to 24 hours; expiry uses `Before` | Validate duration, enforce equality boundary, inactivity/re-authentication, rotation and revocation |
@@ -69,13 +76,13 @@ either policy does not establish an ASVS level or NIST AAL for the toolkit.
 | Attempt controls | IP limiter is process-local and owns an unjoined cleanup loop | Account/challenge budgets and resource lifecycle need explicit boundaries |
 
 Existing Argon2 primitives in `crypto/crypto.go` do not supply an encoded password
-record, configurable resource envelope or migration policy. Their presence alone
+record or configurable resource envelope. Their presence alone
 does not satisfy the new password-storage contract.
 
-## Proposed Core Requirements
+## Core Requirements
 
-The identifiers below name requirements, not slices. All are proposed until
-this specification and its model are accepted.
+The identifiers below name approved requirements, not slices. They do not claim
+that existing code already implements the required behavior.
 
 ### AUTH-01 — Credential policy
 
@@ -92,7 +99,7 @@ with deadline/error semantics; failures cannot silently approve the password.
 Do not prescribe an external service, character-composition rules or periodic
 rotation. Support password managers, paste and clear policy feedback.
 
-### AUTH-02 — Stored credential format and migration
+### AUTH-02 — Stored credential format
 
 Use a self-describing, salted password record with bounded hashing parameters.
 Argon2id is the preferred direction for new records using a standard encoded
@@ -101,12 +108,12 @@ and the consumer's cryptographic requirements; FIPS-dependent deployments need
 an appropriate validated implementation/profile. No custom password prehash
 scheme is selected.
 
-Existing bcrypt records require an explicit verification and upgrade path.
-Upgrade a successfully verified legacy record atomically when safe. A failed
-opportunistic upgrade must not by itself reject otherwise valid authentication;
-concurrent credential/account changes still require fresh state checks. Never
-write a partial replacement. Do not
-promise a NIST/FIPS profile merely because Argon2id or bcrypt is supported.
+Replace the current bcrypt password path; verification supports only the selected
+record format. Unknown algorithms/versions and malformed records fail explicitly.
+No bcrypt verification, import, rehash or data-migration path is required.
+Concurrent credential/account changes require current-state checks before
+authentication succeeds. Never write a partial credential update. Do not
+promise a NIST/FIPS profile merely because Argon2id is supported.
 Hashing parameters from a stored record are untrusted input and must be bounded
 before allocating memory or performing expensive work.
 
@@ -197,13 +204,13 @@ destinations, retention and contextual risk policy.
 ## Initial Standards Trace
 
 This is an initial mapping, not a complete ASVS assessment. References identify
-controls in the pinned 5.0.0 release; descriptions are summaries of this draft's
+controls in the pinned 5.0.0 release; descriptions are summaries of this spec's
 work, not copied control text.
 
 | Core requirement | ASVS reference | Acceptance evidence to design |
 | --- | --- | --- |
 | AUTH-01 | v5.0.0-6.2.1, v5.0.0-6.2.4, v5.0.0-6.2.9, v5.0.0-6.2.12 | Unicode lengths, long passwords and disallowed candidate cases |
-| AUTH-02 | v5.0.0-11.4.2 | Versioned records, distinct salts, bounded parsing and legacy upgrade |
+| AUTH-02 | v5.0.0-11.4.2 | Encoded records, distinct salts, bounded parsing and rejection of unsupported formats |
 | AUTH-03/AUTH-05 | v5.0.0-6.3.3 | Incomplete and weak proof cannot enter strong-profile routes |
 | AUTH-04 | v5.0.0-7.2.3, v5.0.0-7.2.4, v5.0.0-7.3.1, v5.0.0-7.3.2 | Secret entropy, rotation and absolute/inactivity boundaries |
 | AUTH-04/AUTH-06 | v5.0.0-7.4.1, v5.0.0-7.4.2, v5.0.0-7.5.1, v5.0.0-7.5.2 | Revocation, reactivation and recent-proof transitions |
@@ -217,26 +224,30 @@ exhaustion and concurrent security changes. Include deterministic time tests,
 real adapter transactions, race/fuzz tests where material, browser authenticator
 journeys and measured KDF cost under bounded concurrency.
 
-## Compatibility and Consumer Integration
+## Consumer Integration
 
 Review affected auth/model/crypto/config APIs, examples, public documentation and
-generator output together. Existing passwords, sessions and backup codes each
-need an explicit migration/invalidation decision; incompatible security formats
-must not be accepted indefinitely by an undocumented fallback.
+generator output together. There is no historical API or persisted-format
+compatibility obligation. Remove superseded implementations/configuration and
+update repository-owned callers and tests as one coherent change. New formats
+do not require legacy readers or migration/invalidation workflows.
 
 Consumers implement persistence according to the agreed atomicity contract.
 Core must not require a private application package or ship domain-specific
-tables. Publish the compatible core dependency before validating consumers
+tables. Publish the selected core dependency before validating consumers
 independently of local workspace overrides.
 
-## Decisions Before Promotion
+## Implementation Design Gates
 
-Finalize the credential policy/KDF profile and migration behavior, authenticator
+Finalize the credential policy/KDF profile, authenticator
 classes and validation dependency, generic transaction interface, authentication
 result/session metadata, recovery proof and record formats. Set timeout/attempt/
-concurrency/retention budgets and identify behavior requiring compatibility release
-notes. Do not treat all consumers as using the same application assurance policy.
+concurrency/retention budgets and document the supported contracts. Do not treat
+all consumers as using the same application assurance policy.
 
-After acceptance, divide work into bounded credential, session, authenticator and
-recovery delivery units with consumer integration evidence. This draft is a core
-prerequisite proposal, not an implementation plan or a completed correction.
+Divide work into bounded credential, session, authenticator and recovery delivery
+units with consumer integration evidence. The first proposed delivery set is
+[credential security](../plan/credential-security.md), with its
+[tracker](../tracker/credential-security.md). Approval of this specification
+establishes implementation scope; each delivery plan still needs approval before
+its formal slices begin. No correction is complete until its evidence passes.
