@@ -1,7 +1,7 @@
 -- SPDX-FileCopyrightText: 2026 Adrian PK
--- SPDX-License-Identifier: GPL-3.0-only
+-- SPDX-License-Identifier: Apache-2.0
 --
--- This file is part of Hatmax. See COPYING for license terms.
+-- This file is part of Hatmax. See LICENSE for license terms.
 
 -- name: CreateUser :one
 INSERT INTO users (id, email, password_hash, roles, active, created_at, updated_at)

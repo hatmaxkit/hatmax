@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 Adrian PK
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: Apache-2.0
 #
-# This file is part of Hatmax. See COPYING for license terms.
+# This file is part of Hatmax. See LICENSE for license terms.
 
 set -euo pipefail
 
 repository_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repository_root"
 
-for required_file in COPYING REUSE.toml; do
+for required_file in LICENSE REUSE.toml; do
   if [[ ! -f "$required_file" ]]; then
     echo "Missing licensing file: $required_file" >&2
     exit 1
   fi
 done
 
-if ! grep -Fxq 'SPDX-License-Identifier = "GPL-3.0-only"' REUSE.toml ||
+if ! grep -Fxq 'SPDX-License-Identifier = "Apache-2.0"' REUSE.toml ||
   ! grep -Fxq 'SPDX-FileCopyrightText = "2026 Adrian PK"' REUSE.toml; then
-  echo "REUSE.toml must declare the canonical copyright and GPL-3.0-only." >&2
+  echo "REUSE.toml must declare the canonical copyright and Apache-2.0." >&2
   exit 1
 fi
 
@@ -35,7 +35,7 @@ while IFS= read -r -d '' path; do
   repository_paths["$path"]=1
 
   case "$path" in
-    COPYING | REUSE.toml | LICENSES/* | third_party/*)
+    LICENSE | REUSE.toml | LICENSES/* | third_party/*)
       continue
       ;;
   esac
@@ -64,10 +64,10 @@ while IFS= read -r -d '' path; do
   esac
 
   header=$(head -n 80 "$path")
-  if [[ "$header" != *"SPDX-License-Identifier: GPL-3.0-only"* ]] ||
+  if [[ "$header" != *"SPDX-License-Identifier: Apache-2.0"* ]] ||
     [[ "$header" != *"SPDX-FileCopyrightText: 2026 Adrian PK"* &&
        "$header" != *"SPDX-FileCopyrightText: 2024-2026 Adrian PK"* ]] ||
-    [[ "$header" != *"This file is part of Hatmax. See COPYING for license terms."* ]]; then
+    [[ "$header" != *"This file is part of Hatmax. See LICENSE for license terms."* ]]; then
     echo "Missing canonical SPDX header: $path" >&2
     failures=1
   else

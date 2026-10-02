@@ -1,8 +1,8 @@
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
-SPDX-License-Identifier: GPL-3.0-only
+SPDX-License-Identifier: Apache-2.0
 
-This file is part of Hatmax. See COPYING for license terms.
+This file is part of Hatmax. See LICENSE for license terms.
 -->
 
 # Changelog
@@ -47,9 +47,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hatmax and newly scaffolded applications now require Go 1.26 or newer.
 - Dependencies now use their latest compatible module versions, including
   updates that address known security advisories.
-- Hatmax now uses GNU GPL version 3 only (`GPL-3.0-only`) for its libraries,
-  generator, examples, and templates. Earlier MIT-licensed versions retain
-  their original terms.
+- Hatmax's libraries, generator, examples, and templates are now licensed under
+  Apache License 2.0 (`Apache-2.0`), allowing use in proprietary applications
+  under its terms. On 2026-10-02, Adrian PK authorized this relicensing as the
+  sole author and copyright holder. Copies previously distributed under MIT
+  or GPLv3 retain the rights granted by those licenses.
 - `hm` is the canonical command for interactive and headless generation.
   `hatmax` remains a behaviorally equivalent compatibility alias for the first
   two tagged minor releases containing `hm`.

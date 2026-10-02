@@ -1,8 +1,8 @@
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
-SPDX-License-Identifier: GPL-3.0-only
+SPDX-License-Identifier: Apache-2.0
 
-This file is part of Hatmax. See COPYING for license terms.
+This file is part of Hatmax. See LICENSE for license terms.
 -->
 
 # HatMax
@@ -180,5 +180,11 @@ During the Forge migration, the `hatmax.adrianpk.com` vanity import page is serv
 
 ## License
 
-Copyright 2026 Adrian PK. Licensed under the GNU General Public License
-version 3 only (`GPL-3.0-only`). See [COPYING](COPYING).
+Copyright 2026 Adrian PK. Licensed under the Apache License, Version 2.0
+(`Apache-2.0`). See [LICENSE](LICENSE).
+
+On 2026-10-02, Adrian PK, as the sole author and copyright holder, relicensed
+Hatmax's libraries, generator, examples, and templates under Apache-2.0.
+The Git history is preserved. Copies previously distributed under MIT or
+GPLv3 retain the rights granted by those licenses. Third-party dependencies
+remain subject to their own licenses.

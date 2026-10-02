@@ -20,9 +20,9 @@ commits: e2aaefae1d35ba92d0d14cdec6473b8104ef855a, 1ba19698199ac9d75c95fce1cfa46
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
-SPDX-License-Identifier: GPL-3.0-only
+SPDX-License-Identifier: Apache-2.0
 
-This file is part of Hatmax. See COPYING for license terms.
+This file is part of Hatmax. See LICENSE for license terms.
 -->
 
 ## Observed Behavior
