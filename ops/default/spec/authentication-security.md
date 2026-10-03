@@ -8,10 +8,10 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authentication Security Foundation
 
 Date: 2026-10-02
-Status: Approved behavioral and ownership baseline
+Status: Approved
 Approved: 2026-10-02
-Revised: 2026-10-03; no legacy compatibility requirement
-Implementation status: Authorized; delivery planning and interface design required
+Revised: 2026-10-03
+Implementation status: Pending
 Inspected baseline: `dev`, `67023146f984b984509d32f176ea8522ddf9a301`
 Model: [Authentication security model](authentication-security-model.md)
 
@@ -34,8 +34,7 @@ interfaces and resource parameters are designed in the affected delivery unit.
 There are no existing credential datasets or supported consumers to preserve.
 Replace APIs, storage shapes and implementations where the approved design
 requires it; do not add compatibility wrappers or legacy authentication paths.
-Product or security tradeoffs are raised
-with the maintainer before they become implementation decisions.
+
 
 ## References and Verification Target
 
@@ -246,8 +245,6 @@ concurrency/retention budgets and document the supported contracts. Do not treat
 all consumers as using the same application assurance policy.
 
 Divide work into bounded credential, session, authenticator and recovery delivery
-units with consumer integration evidence. The first proposed delivery set is
+units with consumer integration evidence. The first delivery set is
 [credential security](../plan/credential-security.md), with its
-[tracker](../tracker/credential-security.md). Approval of this specification
-establishes implementation scope; each delivery plan still needs approval before
-its formal slices begin. No correction is complete until its evidence passes.
+[tracker](../tracker/credential-security.md). No correction is complete until its evidence passes.

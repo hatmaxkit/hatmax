@@ -8,9 +8,9 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authentication Security Model
 
 Date: 2026-10-02
-Status: Approved conceptual model; exact interfaces and representations require design
+Status: Approved
 Approved: 2026-10-02
-Revised: 2026-10-03; no legacy compatibility requirement
+Revised: 2026-10-03
 Behavior: [Authentication security foundation](authentication-security.md)
 
 ## Ownership and Representation

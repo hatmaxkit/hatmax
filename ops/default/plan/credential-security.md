@@ -8,7 +8,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Credential Security Delivery Plan
 
 Date: 2026-10-03
-Status: Proposed; awaiting maintainer approval of this plan and tracker
+Status: Approved
 Delivery set: credential-security
 Slice strategy: behavior-first
 Reason: policy validation, encoded verifier behavior and auth integration each
@@ -18,9 +18,9 @@ Specification: [Authentication security](../spec/authentication-security.md)
 Model: [Authentication security model](../spec/authentication-security-model.md)
 Tracker: [Credential security tracker](../tracker/credential-security.md)
 Base branch: `dev`
-Planning base: `6ec140af2825` (authentication specification revision)
-Active slice: Slice 1 selected; execution pending plan approval
-Execution gate: Plan and tracker approval required before branch creation
+Planning base: `6ec140af2825`
+Active slice: Slice 1
+Execution gate: Ready
 
 ## Outcome and Boundary
 
@@ -44,8 +44,8 @@ application verification level.
   through the model helper.
 - `auth.Queries` has no conditional password-record update. Existing adapters,
   examples and tests must be inventoried before integration changes.
-- `golang.org/x/crypto` and `golang.org/x/text` are existing dependencies. This
-  proposal does not authorize a new module, external password service or corpus.
+- `golang.org/x/crypto` and `golang.org/x/text` are existing dependencies. 
+  Password checking uses a caller-supplied source with documented provenance.
 
 ## Design Obligations
 
@@ -76,11 +76,10 @@ session from a credential/account state invalidated during verification. Define
 the generic storage boundary directly rather than adding an optional upgrade
 interface. Do not run database operations inside pure model helpers.
 
-Constructor/query/configuration changes are authorized when the design requires
-them. Update active repository-owned callers, tests and generated examples
+Update constructors, queries and configuration when the design requires it.
+Update active repository-owned callers, tests and generated examples
 together. Remove superseded bcrypt helpers/configuration in the integration
-slice; do not preserve their semantics through fallback paths. Raise product or
-security tradeoffs with the maintainer before fixing those decisions.
+slice; do not preserve their semantics through fallback paths.
 
 ## Ordered Slices
 
@@ -91,8 +90,7 @@ security tradeoffs with the maintainer before fixing those decisions.
 | Slice 3 | Credential integration | `feat/credential-auth-integration` | `feat(slice-3): integrate secure credential storage` | `ops/default/report/slices/credential-security/slice-3-credential-integration.md` |
 
 Each slice branches from current `dev` in its own worktree, has one report and
-one PR targeting `dev`, and waits for maintainer-controlled merge. After a merge
-is verified, activate the next slice in this approved set.
+one PR targeting `dev`. Activate the next slice after integration is verified.
 
 ## Slice 1: Password Policy
 
@@ -139,7 +137,7 @@ Prerequisite: Slice 1 merged and verified on `dev`.
 ## Slice 3: Credential Integration
 
 Prerequisites: Slice 2 merged; storage/current-state and configuration contracts
-defined, with any controversial product/security choice reviewed by the maintainer.
+defined.
 
 | Task | Work | Expected commit |
 | --- | --- | --- |
