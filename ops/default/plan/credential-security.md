@@ -20,7 +20,7 @@ Tracker: [Credential security tracker](../tracker/credential-security.md)
 Base branch: `dev`
 Planning base: `6ec140af2825`
 Active slice: Slice 3
-Execution gate: Open
+Execution gate: Review
 Go baseline: 1.27.1
 
 ## Outcome and Boundary

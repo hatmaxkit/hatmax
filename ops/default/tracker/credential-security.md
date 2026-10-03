@@ -16,8 +16,8 @@ Model: [Authentication security model](../spec/authentication-security-model.md)
 Base branch: `dev`
 Planning base: `6ec140af2825`
 Active slice: Slice 3
-Active tasks: T3.1
-Execution gate: Open
+Active tasks: None
+Execution gate: Review
 
 ## Slice Status
 
@@ -25,7 +25,7 @@ Execution gate: Open
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Password policy | delivered | `feat/credential-password-policy` | `feat(slice-1): define bounded password policy` | `#92` | `ops/default/report/slices/credential-security/slice-1-password-policy.md` |
 | Slice 2 | Versioned verifier | delivered | `feat/credential-versioned-verifier` | `feat(slice-2): add versioned password verification` | `#93` | `ops/default/report/slices/credential-security/slice-2-versioned-verifier.md` |
-| Slice 3 | Credential integration | active | `feat/credential-auth-integration` | `feat(slice-3): integrate secure credential storage` | pending | `ops/default/report/slices/credential-security/slice-3-credential-integration.md` |
+| Slice 3 | Credential integration | reviewing | `feat/credential-auth-integration` | `feat(slice-3): integrate secure credential storage` | pending | `ops/default/report/slices/credential-security/slice-3-credential-integration.md` |
 
 ## Tasks
 
@@ -36,8 +36,8 @@ Execution gate: Open
 | T1.2 | completed | `test(auth): verify password policy boundaries` | `af94c2ab0c6d` | Unicode/limits/checker failure and cancellation; race and strict lint passed |
 | T2.1 | completed | `feat(model): add versioned password verifier` | `6b507e82d78c` | PHC Argon2id, strict bounds, classified outcomes, measured defaults and shared concurrency budget |
 | T2.2 | completed | `test(model): verify credential format boundaries` | `194b42196363` | Reference interoperability, Unicode, cancellation, concurrency, 20-second fuzz, benchmarks, race and static checks passed |
-| T3.1 | pending | `feat(auth): integrate versioned credential storage` | pending | Signup/sign-in integration, replaced storage/configuration contracts and current-state checks |
-| T3.2 | pending | `test(auth): validate credential integration` | pending | `DB_HOST=<test-host> DB_PORT=<port> DB_USER=<user> DB_NAME=<database> go test -tags=integration -race -count=1 -run '^TestCredentialTransactions$' ./examples/ticked/internal/feat/auth`; examples/generator, API documentation and Slice 3 gate |
+| T3.1 | completed | `feat(auth): integrate versioned credential storage` | `500c9228c6bb` | Signup/sign-in integration, replaced storage/configuration contracts and current-state checks |
+| T3.2 | completed | `test(auth): validate credential integration` | `abcca95738da` | `DB_HOST=<test-host> DB_PORT=<port> DB_USER=<user> DB_NAME=<database> go test -tags=integration -race -count=1 -run '^TestCredentialTransactions$' ./examples/ticked/internal/feat/auth`; examples/generator, API documentation and Slice 3 gate |
 
 ## Dependencies
 
@@ -51,8 +51,7 @@ records commands and behavior boundaries.
 Slice 2 validation passed. Its [report](../report/slices/credential-security/slice-2-versioned-verifier.md)
 records measured defaults, exact commands and remaining service integration.
 PR #93 merged on 2026-10-03. Integration was verified on `dev` at
-`0d0ca4c50972af01dc50a7c844a2bc4a70ca6187`; Slice 2 is delivered. Slice 3 also requires the storage/current-
-state and configuration contracts. Test infrastructure failures are recorded
+`0d0ca4c50972af01dc50a7c844a2bc4a70ca6187`; Slice 2 is delivered. Slice 3 also requires the storage/current-state and configuration contracts. Test infrastructure failures are recorded
 without treating missing persistence evidence as a passing check.
 
 ## Completion Gates
