@@ -11,7 +11,7 @@ Date: 2026-10-02
 Status: Approved
 Approved: 2026-10-02
 Revised: 2026-10-03
-Implementation status: Pending
+Implementation status: Partial
 Inspected baseline: `dev`, `67023146f984b984509d32f176ea8522ddf9a301`
 Model: [Authentication security model](authentication-security-model.md)
 
@@ -59,6 +59,13 @@ phishing-resistant MFA for every access. Required proof is checked per operation
 role or policy changes cannot silently retain weaker privileged access. The
 application selects defaults and classifies sensitive operations. Supporting
 either policy does not establish an ASVS level or NIST AAL for the toolkit.
+
+## Implementation Evidence
+
+The [credential-security tracker](../tracker/credential-security.md#requirement-evidence-and-handoff)
+records delivered AUTH-01/AUTH-02 primitives, integrated signup/sign-in/storage
+validation and remaining consumer obligations. AUTH-03 through AUTH-07 remain
+pending; the complete authentication-security foundation is not yet delivered.
 
 ## Inspected Gaps
 

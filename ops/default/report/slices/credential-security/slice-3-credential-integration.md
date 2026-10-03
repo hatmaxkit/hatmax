@@ -7,12 +7,14 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 3: Credential Integration
 
-Status: reviewing
+Status: delivered
 Delivery set: credential-security
 Plan: [Credential security plan](../../../plan/credential-security.md)
 Tracker: [Credential security tracker](../../../tracker/credential-security.md)
 Branch: `feat/credential-auth-integration`
 PR: `#94`
+Merged: 2026-10-03
+Integration: `d3e27373930d4e188c5f27413f6f1822b469986c`
 
 ## Purpose
 
@@ -108,8 +110,18 @@ export TMPDIR="$PWD/.tmp/build" GOTMPDIR="$PWD/.tmp/build" GOFLAGS=-p=2
 - `make docs-check` — passed, including example compilation.
 - `git diff --check` — passed.
 
-The full `make check` gate runs once against the exact integrated `dev` candidate
-after this slice merges. These focused checks do not substitute for that gate.
+Integrated delivery-set validation on 2026-10-03:
+
+- `make check` — passed for `d3e27373930d4e188c5f27413f6f1822b469986c` on `dev`.
+  Source licensing, formatting, vet, default full tests, coverage and strict lint
+  passed. Total coverage was 84.6% (80% required); lint reported zero issues.
+  PostgreSQL 18.6 was explicitly configured through the variables above, with
+  the same build settings. Tracked runtime files stayed unchanged.
+
+The full gate runs the repository's default test suite; tagged integration/live
+acceptance targets are separate. Real credential transaction/race evidence is
+recorded above. The [tracker](../../../tracker/credential-security.md#requirement-evidence-and-handoff)
+maps AUTH-01/AUTH-02 delivery to remaining obligations.
 
 ## Risks and Follow-ups
 
@@ -120,5 +132,4 @@ after this slice merges. These focused checks do not substitute for that gate.
 - This credential foundation does not deliver AUTH-03 through AUTH-07 or a
   complete authentication assurance level. Sessions/challenges, MFA/WebAuthn,
   recovery and broader attempt controls require later bounded work.
-- Merge and integrated delivery-set validation remain pending. No release,
-  main alignment, tag or deployment is included.
+- No release, main alignment, tag or deployment is included.

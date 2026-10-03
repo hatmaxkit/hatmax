@@ -8,7 +8,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Credential Security Delivery Plan
 
 Date: 2026-10-03
-Status: Approved
+Status: Completed
 Delivery set: credential-security
 Slice strategy: behavior-first
 Reason: policy validation, encoded verifier behavior and auth integration each
@@ -19,8 +19,8 @@ Model: [Authentication security model](../spec/authentication-security-model.md)
 Tracker: [Credential security tracker](../tracker/credential-security.md)
 Base branch: `dev`
 Planning base: `6ec140af2825`
-Active slice: Slice 3
-Execution gate: Review
+Active slice: None
+Execution gate: Closed
 Go baseline: 1.27.1
 
 ## Outcome and Boundary
@@ -199,3 +199,11 @@ candidate hash and outcome; do not infer release, `main` alignment or tagging.
 Map delivered evidence to AUTH-01/AUTH-02 and remaining limitations. Later auth
 sets can reuse the credential contracts. Application integration selects a core
 dependency deliberately and validates without local workspace overrides.
+
+## Closure
+
+All three slices merged into `dev` on 2026-10-03. The exact integrated candidate
+`d3e27373930d4e188c5f27413f6f1822b469986c` passed `make check` with 84.6% total coverage and
+zero strict-lint issues. The tracker records the requirement evidence and remaining
+consumer obligations. Closure metadata changes no runtime behavior and does not
+authorize main alignment, tagging, publication or another authentication set.
