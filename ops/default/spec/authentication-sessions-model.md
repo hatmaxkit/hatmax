@@ -8,9 +8,10 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authentication and Sessions Model
 
 Date: 2026-10-03
-Status: Proposed
+Status: Approved
+Approved: 2026-10-03
 Behavior: [Authentication and sessions](authentication-sessions.md)
-Parent model: [Authentication security model](../authentication-security-model.md)
+Parent model: [Authentication security model](authentication-security-model.md)
 
 ## Required Proof and Verified Facts
 

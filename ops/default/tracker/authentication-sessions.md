@@ -8,23 +8,24 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authentication and Sessions Tracker
 
 Date: 2026-10-03
-Status: Proposed
+Status: Active
+Approved: 2026-10-03
 Delivery set: authentication-sessions
 Plan: [Delivery plan](../plan/authentication-sessions.md)
-Concern: [Authentication and sessions](../spec/drafts/authentication-sessions.md)
-Model: [Authentication and sessions model](../spec/drafts/authentication-sessions-model.md)
+Concern: [Authentication and sessions](../spec/authentication-sessions.md)
+Model: [Authentication and sessions model](../spec/authentication-sessions-model.md)
 Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
-Active slice: None
-Active tasks: None
-Execution gate: Closed
+Active slice: Slice 1
+Active tasks: T1.1
+Execution gate: Open
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Secure session lifecycle | pending | `feat/auth-session-lifecycle` | `feat(slice-1): enforce secure session lifecycle` | pending | `ops/default/report/slices/authentication-sessions/slice-1-session-lifecycle.md` |
+| Slice 1 | Secure session lifecycle | active | `feat/auth-session-lifecycle` | `feat(slice-1): enforce secure session lifecycle` | pending | `ops/default/report/slices/authentication-sessions/slice-1-session-lifecycle.md` |
 | Slice 2 | Required proof and outcomes | pending | `feat/auth-required-proof` | `feat(slice-2): enforce authentication proof requirements` | pending | `ops/default/report/slices/authentication-sessions/slice-2-required-proof.md` |
 | Slice 3 | Reauthentication and control | pending | `feat/auth-session-control` | `feat(slice-3): add atomic session reauthentication and control` | pending | `ops/default/report/slices/authentication-sessions/slice-3-session-control.md` |
 
@@ -43,12 +44,10 @@ Execution gate: Closed
 
 The credential-security prerequisite is delivered and verified in its
 [completed tracker](credential-security.md). Parent AUTH-03/AUTH-04 behavior is
-approved. This proposed concern/model and three-slice plan still require review
-before activation; no runtime implementation or feature branch is authorized by
-this tracker alone.
+approved. The concern/model/three-slice plan and tracker were approved on
+2026-10-03; Slice 1/T1.1 is active.
 
-At approval, promote the concern/model together, fix direct links, record the
-approved status and activate Slice 1/T1.1. Before the first implementation change,
+The concern/model are promoted together and direct links updated. Before the first implementation change,
 settle exact Go/SQL bindings against the logical model. Before T1.2, record the
 exact repository integration and token-fuzz test commands. Do not substitute
 missing database evidence or future-method test fixtures for a passing result.
@@ -60,7 +59,7 @@ No public proof-assertion callback or client assurance flag substitutes for it.
 
 ## Completion Gates
 
-- [ ] Concern/model/plan/tracker reviewed and approved; Slice 1 activated.
+- [x] Concern/model/plan/tracker reviewed and approved; Slice 1 activated.
 - [ ] Slice 1 merged and delivered report/current-state evidence recorded.
 - [ ] Slice 2 merged and delivered report/proof-outcome evidence recorded.
 - [ ] Slice 3 merged and delivered report/session-control evidence recorded.

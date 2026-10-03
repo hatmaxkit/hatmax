@@ -8,36 +8,35 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authentication and Sessions Delivery Plan
 
 Date: 2026-10-03
-Status: Proposed
+Status: Approved
+Approved: 2026-10-03
 Delivery set: authentication-sessions
 Slice strategy: behavior-first
 Reason: secure validation, required-proof outcomes and session control each form
 an independently testable behavior. Update affected adapters/callers in each
 slice so every merged increment compiles and carries its own persistence evidence.
 Parent specification: [Authentication security](../spec/authentication-security.md)
-Concern: [Authentication and sessions](../spec/drafts/authentication-sessions.md)
-Model: [Authentication and sessions model](../spec/drafts/authentication-sessions-model.md)
+Concern: [Authentication and sessions](../spec/authentication-sessions.md)
+Model: [Authentication and sessions model](../spec/authentication-sessions-model.md)
 Tracker: [Delivery tracker](../tracker/authentication-sessions.md)
 Base branch: `dev`
 Planning base: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
-Active slice: None
-Execution gate: Closed
+Active slice: Slice 1
+Execution gate: Open
 Go baseline: 1.27.1
 
 ## Outcome and Authority
 
 Deliver AUTH-04's stateful session foundation and AUTH-03's required-proof/result
-boundary, using the proposed concern/model. This is a planning proposal under
-the approved parent scope; implementation waits for approval of this concern,
-model, plan and tracker. Stronger requirements fail closed while their real
+boundary, using the approved concern/model. The concern, model, plan and tracker
+were approved on 2026-10-03 under the approved parent scope. Stronger requirements fail closed while their real
 AUTH-05 verifier is unavailable. Do not claim complete MFA or full AUTH-03 from
 metadata or test fixtures. Recovery remains AUTH-06; wider attempt controls remain
 AUTH-07, except finite operation/error limits required here.
 
-At approval, promote the concern/model together from drafts, update their links
-and activate Slice 1 in plan/tracker. Exact interfaces and persisted fields are
+The concern/model are promoted together and Slice 1 is active. Exact interfaces and persisted fields are
 settled against the model before each affected runtime change. Material scope
-changes require review before adding work. No implementation branch exists yet.
+changes require review before adding work. Implementation branches follow the recorded map.
 
 ## Delivered Prerequisites and Inventory
 

@@ -8,15 +8,16 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authentication and Sessions
 
 Date: 2026-10-03
-Status: Proposed
+Status: Approved
+Approved: 2026-10-03
 Concern: authentication-sessions
-Parent: [Authentication security foundation](../authentication-security.md)
+Parent: [Authentication security foundation](authentication-security.md)
 Model: [Authentication and sessions model](authentication-sessions-model.md)
-Plan: [Delivery plan](../../plan/authentication-sessions.md)
-Tracker: [Delivery tracker](../../tracker/authentication-sessions.md)
+Plan: [Delivery plan](../plan/authentication-sessions.md)
+Tracker: [Delivery tracker](../tracker/authentication-sessions.md)
 Inspected baseline: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
 Implementation status: Pending
-Execution gate: Closed
+Execution gate: Open
 
 ## Purpose and Ownership
 
@@ -50,7 +51,7 @@ contracts; core has no application-package or product-document dependency.
   Its reference currently describes raw Base64; update that description with the
   affected implementation documentation rather than creating a second encoding.
 
-## Proposed Behavior
+## Behavior
 
 ### Required proof and outcomes
 
@@ -141,13 +142,13 @@ Cleanup is explicit, cancellable and batch-bounded; no owned background loop is
 introduced. Future executable pending admission needs a separately bounded
 per-subject collection, designed with its actual authenticator endpoint.
 
-## Proposed Defaults and Bounds
+## Defaults and Bounds
 
-These values are toolkit proposals for review, not mandated assurance profiles.
+These approved toolkit defaults are not mandated assurance profiles.
 All settings validate at construction; malformed values fail without fallback.
 Applications choose tighter policy where required.
 
-| Setting | Proposed default | Supported bounds or relation |
+| Setting | Default | Supported bounds or relation |
 | --- | --- | --- |
 | Absolute session lifetime | 24 hours | 1 minute through 30 days |
 | Inactivity lifetime | 30 minutes | At least 1 minute; at most absolute lifetime |
@@ -214,7 +215,7 @@ supplies session contracts they must integrate, not substitute flows.
 
 ## Review Decisions
 
-Approval accepts the proposed defaults/capacity behavior, conservative activity
+Approval on 2026-10-03 accepts the defaults/capacity behavior, conservative activity
 coalescing, policy-version invalidation, three-slice boundary and the explicit
 partial AUTH-03 delivery. Exact Go method/field signatures and SQL bindings are
 settled before the corresponding slice changes callers; their required semantic

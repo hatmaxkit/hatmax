@@ -255,8 +255,7 @@ Divide work into bounded credential, session, authenticator and recovery deliver
 units with consumer integration evidence. The first delivery set is
 [credential security](../plan/credential-security.md), with its
 [tracker](../tracker/credential-security.md). That set is complete. The next
-proposed concern is [authentication and sessions](drafts/authentication-sessions.md),
-with its [model](drafts/authentication-sessions-model.md),
+approved concern is [authentication and sessions](authentication-sessions.md),
+with its [model](authentication-sessions-model.md),
 [plan](../plan/authentication-sessions.md) and
-[tracker](../tracker/authentication-sessions.md). Its execution gate remains
-closed until approval. No correction is complete until its evidence passes.
+[tracker](../tracker/authentication-sessions.md). Its execution gate is open for Slice 1. No correction is complete until its evidence passes.
