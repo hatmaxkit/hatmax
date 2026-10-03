@@ -16,7 +16,7 @@ Model: [Authentication security model](../spec/authentication-security-model.md)
 Base branch: `dev`
 Planning base: `6ec140af2825`
 Active slice: Slice 1
-Active tasks: T1.1, T1.2
+Active tasks: T1.0, T1.1, T1.2
 Execution gate: Ready
 
 ## Slice Status
@@ -31,6 +31,7 @@ Execution gate: Ready
 
 | Task | Status | Expected commit | Commit | Validation |
 | --- | --- | --- | --- | --- |
+| T1.0 | active | `build(go): align modules and CI with Go 1.27` | pending | Go 1.27.1 for modules, generated scaffolds, CI and linter; focused generator and documentation checks |
 | T1.1 | pending | `feat(auth): add bounded password policy` | pending | Policy and checker contracts; focused auth/config checks from plan |
 | T1.2 | pending | `test(auth): verify password policy boundaries` | pending | Unicode/limits/checker failure and cancellation; Slice 1 gate |
 | T2.1 | pending | `feat(model): add versioned password verifier` | pending | Encoded format, parameter bounds, measured KDF cost |

@@ -44,7 +44,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Manually assembled application startup lists now use `app.StartupStep` values
   with an optional stop function per component. Existing calls using the outputs
   of `app.Setup` keep the same source form.
-- Hatmax and newly scaffolded applications now require Go 1.26 or newer.
 - Dependencies now use their latest compatible module versions, including
   updates that address known security advisories.
 - Hatmax's libraries, generator, examples, and templates are now licensed under

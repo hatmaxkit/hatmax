@@ -273,7 +273,7 @@ func (engine *liveApplicationEngine) RunApprovedTurn(
 	if err == nil {
 		err = os.WriteFile(
 			filepath.Join(recomputed.Plan.Target.Path, "go.mod"),
-			[]byte("module example.com/adrian/ledger\n\ngo 1.26.0\n\nrequire hatmax.adrianpk.com v0.5.0\n"),
+			[]byte("module example.com/adrian/ledger\n\ngo 1.27.1\n\nrequire hatmax.adrianpk.com v0.5.0\n"),
 			0o600,
 		)
 	}

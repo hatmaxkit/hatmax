@@ -233,7 +233,7 @@ func TestCoordinatorRejectsConflictingApplicationTargetBeforeApproval(t *testing
 		t.Fatal(err)
 	}
 
-	err = os.WriteFile(filepath.Join(target, "go.mod"), []byte("module example.com/other\n\ngo 1.26.0\n"), 0o644)
+	err = os.WriteFile(filepath.Join(target, "go.mod"), []byte("module example.com/other\n\ngo 1.27.1\n"), 0o644)
 	if err != nil {
 		t.Fatal(err)
 	}

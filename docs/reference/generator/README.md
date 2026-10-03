@@ -138,7 +138,7 @@ Diataxis quadrant and preserve text outside Hatmax-managed sections.
 
 ### Scaffold Dependency Baseline
 
-New applications require Go 1.26 and the Book-selected published Hatmax
+New applications require Go 1.27.1 and the Book-selected published Hatmax
 v0.5.0. The scaffold explicitly selects chi v5.3.2, pgx v5.11.0, and
 x/text v0.42.0 and seeds their archive and module checksums. Module validation
 runs `go mod tidy` to resolve the complete dependency graph and checksums.

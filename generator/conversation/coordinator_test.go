@@ -640,7 +640,7 @@ func completedApplicationResult(planned interaction.Result) interaction.Result {
 func writeModule(t *testing.T, root string) {
 	t.Helper()
 
-	err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/test\n\ngo 1.26.0\n"), 0o600)
+	err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/test\n\ngo 1.27.1\n"), 0o600)
 	if err != nil {
 		t.Fatalf("write go.mod: %v", err)
 	}

@@ -21,6 +21,7 @@ Base branch: `dev`
 Planning base: `6ec140af2825`
 Active slice: Slice 1
 Execution gate: Ready
+Go baseline: 1.27.1
 
 ## Outcome and Boundary
 
@@ -44,7 +45,7 @@ application verification level.
   through the model helper.
 - `auth.Queries` has no conditional password-record update. Existing adapters,
   examples and tests must be inventoried before integration changes.
-- `golang.org/x/crypto` and `golang.org/x/text` are existing dependencies. 
+- `golang.org/x/crypto` and `golang.org/x/text` are existing dependencies.
   Password checking uses a caller-supplied source with documented provenance.
 
 ## Design Obligations
@@ -98,6 +99,7 @@ one PR targeting `dev`. Activate the next slice after integration is verified.
 
 | Task | Work | Expected commit |
 | --- | --- | --- |
+| T1.0 | Align the module, generated module/workspace fixtures, CI and documentation with Go 1.27.1. Validate the affected generator packages and rebuild the existing linter with the same toolchain. | `build(go): align modules and CI with Go 1.27` |
 | T1.1 | Define and implement password policy validation in auth: valid UTF-8, code-point length, finite input limits, no truncation/composition rules, and explicit password-only versus always-MFA requirements. Define the caller-supplied disallowed-password checker, cancellation and failure contract. | `feat(auth): add bounded password policy` |
 | T1.2 | Demonstrate ASCII/Unicode boundaries, common/compromised rejection, checker failure/cancellation and malformed/oversized inputs. Document the API and clarify that the existing signup service is switched only in Slice 3. | `test(auth): verify password policy boundaries` |
 
@@ -105,6 +107,8 @@ one PR targeting `dev`. Activate the next slice after integration is verified.
 
 - `go test ./auth ./config`
 - `go test -race ./auth ./config`
+- `go test ./generator/execute ./generator/project ./generator/conversation ./generator/interaction ./generator/backend/codex`
+- `make docs-check`
 - `make vet`
 - `make lint-strict`
 - `git diff --check`

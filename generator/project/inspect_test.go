@@ -23,8 +23,8 @@ func TestInspectSupportedProject(t *testing.T) {
 		t.Fatalf("Inspect() error = %v", err)
 	}
 
-	if inventory.Module.Path != "example.com/property" || inventory.Module.GoVersion != "1.26.0" {
-		t.Errorf("Module = %#v, want example.com/property with Go 1.26.0", inventory.Module)
+	if inventory.Module.Path != "example.com/property" || inventory.Module.GoVersion != "1.27.1" {
+		t.Errorf("Module = %#v, want example.com/property with Go 1.27.1", inventory.Module)
 	}
 
 	if inventory.Module.Hatmax.Source != HatmaxSourceModule || inventory.Module.Hatmax.Version != "v0.4.0" {
@@ -152,13 +152,13 @@ func TestInspectLocalReplacement(t *testing.T) {
 	hatmaxRoot := filepath.Join(filepath.Dir(root), "hatmax")
 	writeProjectFile(t, root, "go.mod", `module example.com/replaced
 
-go 1.26.0
+go 1.27.1
 
 require hatmax.adrianpk.com v0.4.0
 
 replace hatmax.adrianpk.com => ../hatmax
 `)
-	writeProjectFile(t, hatmaxRoot, "go.mod", "module hatmax.adrianpk.com\n\ngo 1.26.0\n")
+	writeProjectFile(t, hatmaxRoot, "go.mod", "module hatmax.adrianpk.com\n\ngo 1.27.1\n")
 
 	inventory, err := Inspect(context.Background(), root)
 	if err != nil {

@@ -97,7 +97,7 @@ func TestRenderApplicationFoundationUsesCanonicalIdentityAndBoundaries(t *testin
 	}
 
 	contents := mutationContents(manifest, mutations)
-	assertContains(t, contents["go.mod"], "module example.com/alex/real-estate", "go 1.26.0", "hatmax.adrianpk.com v0.5.0")
+	assertContains(t, contents["go.mod"], "module example.com/alex/real-estate", "go 1.27.1", "hatmax.adrianpk.com v0.5.0")
 	assertContains(t, contents["main.go"], "func main()", "application.Run(context.Background(), os.Args)")
 
 	if strings.Contains(contents["main.go"], "func build") || strings.Count(contents["main.go"], "func ") != 1 {
