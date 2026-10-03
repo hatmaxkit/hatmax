@@ -12,7 +12,7 @@ Delivery set: authentication-sessions
 Plan: [Delivery plan](../../../plan/authentication-sessions.md)
 Tracker: [Delivery tracker](../../../tracker/authentication-sessions.md)
 Branch: `feat/auth-required-proof`
-PR: pending
+PR: `#96`
 
 ## Purpose
 

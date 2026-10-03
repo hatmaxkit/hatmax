@@ -26,7 +26,7 @@ Execution gate: Review
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Secure session lifecycle | delivered | `feat/auth-session-lifecycle` | `feat(slice-1): enforce secure session lifecycle` | `#95` | `ops/default/report/slices/authentication-sessions/slice-1-session-lifecycle.md` |
-| Slice 2 | Required proof and outcomes | reviewing | `feat/auth-required-proof` | `feat(slice-2): enforce authentication proof requirements` | pending | `ops/default/report/slices/authentication-sessions/slice-2-required-proof.md` |
+| Slice 2 | Required proof and outcomes | reviewing | `feat/auth-required-proof` | `feat(slice-2): enforce authentication proof requirements` | `#96` | `ops/default/report/slices/authentication-sessions/slice-2-required-proof.md` |
 | Slice 3 | Reauthentication and control | pending | `feat/auth-session-control` | `feat(slice-3): add atomic session reauthentication and control` | pending | `ops/default/report/slices/authentication-sessions/slice-3-session-control.md` |
 
 ## Tasks
@@ -121,3 +121,6 @@ licensing, vet and documentation checks passed. The post-lock tests reject both
 stale issuance proof and stale protected-operation proof without a row/activity
 change. Pending/denied transport fixtures create no cookie or continuation.
 The full delivery-set gate remains after Slice 3 merge.
+
+Slice 2 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/96. Report and tracker
+are reviewing; Slice 3 remains pending the verified merge.
