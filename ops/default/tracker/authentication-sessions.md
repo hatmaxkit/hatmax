@@ -18,8 +18,8 @@ Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
 Active slice: Slice 3
-Active tasks: T3.2
-Execution gate: Open
+Active tasks: None
+Execution gate: Review
 
 ## Slice Status
 
@@ -27,7 +27,7 @@ Execution gate: Open
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Secure session lifecycle | delivered | `feat/auth-session-lifecycle` | `feat(slice-1): enforce secure session lifecycle` | `#95` | `ops/default/report/slices/authentication-sessions/slice-1-session-lifecycle.md` |
 | Slice 2 | Required proof and outcomes | delivered | `feat/auth-required-proof` | `feat(slice-2): enforce authentication proof requirements` | `#96` | `ops/default/report/slices/authentication-sessions/slice-2-required-proof.md` |
-| Slice 3 | Reauthentication and control | active | `feat/auth-session-control` | `feat(slice-3): add atomic session reauthentication and control` | pending | `ops/default/report/slices/authentication-sessions/slice-3-session-control.md` |
+| Slice 3 | Reauthentication and control | reviewing | `feat/auth-session-control` | `feat(slice-3): add atomic session reauthentication and control` | pending | `ops/default/report/slices/authentication-sessions/slice-3-session-control.md` |
 
 ## Tasks
 
@@ -38,14 +38,14 @@ Execution gate: Open
 | T2.1 | completed | `feat(auth): enforce required proof and authentication outcomes` | `05046a930635cd39cce8bd5249af14f6906bf3b8` | Trusted policy revision, verified password facts, safe metadata and distinct non-authorizing outcomes |
 | T2.2 | completed | `test(auth): verify proof outcome isolation` | `9be7080cbe6be8d23d11ba6571573d0347ca9bcb` | Password success, strong-policy denial, freshness/equality and pending/full isolation; AS-03/AS-04 |
 | T3.1 | completed | `feat(auth): add atomic session reauthentication and control` | `5933e5440f973defd813c41757137c79150b9f0b` | Rotation/revocation/management/admission/cleanup with finite required storage contracts |
-| T3.2 | implemented | `test(auth): verify session control integration` | pending | Real concurrent rotation/revocation/state/capacity/rollback and consumer integration; AS-05 through AS-09 |
+| T3.2 | completed | `test(auth): verify session control integration` | `69d95585859d4a8faf235fa6d55cb176838c9766` | Real concurrent rotation/revocation/state/capacity/rollback and consumer integration; AS-05 through AS-09 |
 
 ## Dependencies and Execution Gate
 
 The credential-security prerequisite is delivered and verified in its
 [completed tracker](credential-security.md). Parent AUTH-03/AUTH-04 behavior is
 approved. The concern/model/three-slice plan and tracker were approved on
-2026-10-03; Slices 1 and 2 are delivered and Slice 3/T3.2 is active.
+2026-10-03; Slices 1 and 2 are delivered and Slice 3 is reviewing.
 
 The concern/model are promoted together and direct links updated. Before the first implementation change,
 settle exact Go/SQL bindings against the logical model. Before T1.2, record the
