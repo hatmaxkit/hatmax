@@ -254,4 +254,9 @@ all consumers as using the same application assurance policy.
 Divide work into bounded credential, session, authenticator and recovery delivery
 units with consumer integration evidence. The first delivery set is
 [credential security](../plan/credential-security.md), with its
-[tracker](../tracker/credential-security.md). No correction is complete until its evidence passes.
+[tracker](../tracker/credential-security.md). That set is complete. The next
+proposed concern is [authentication and sessions](drafts/authentication-sessions.md),
+with its [model](drafts/authentication-sessions-model.md),
+[plan](../plan/authentication-sessions.md) and
+[tracker](../tracker/authentication-sessions.md). Its execution gate remains
+closed until approval. No correction is complete until its evidence passes.

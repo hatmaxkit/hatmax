@@ -1,0 +1,158 @@
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: Apache-2.0
+
+This file is part of Hatmax. See LICENSE for license terms.
+-->
+
+# Authentication and Sessions Delivery Plan
+
+Date: 2026-10-03
+Status: Proposed
+Delivery set: authentication-sessions
+Slice strategy: behavior-first
+Reason: secure validation, required-proof outcomes and session control each form
+an independently testable behavior. Update affected adapters/callers in each
+slice so every merged increment compiles and carries its own persistence evidence.
+Parent specification: [Authentication security](../spec/authentication-security.md)
+Concern: [Authentication and sessions](../spec/drafts/authentication-sessions.md)
+Model: [Authentication and sessions model](../spec/drafts/authentication-sessions-model.md)
+Tracker: [Delivery tracker](../tracker/authentication-sessions.md)
+Base branch: `dev`
+Planning base: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
+Active slice: None
+Execution gate: Closed
+Go baseline: 1.27.1
+
+## Outcome and Authority
+
+Deliver AUTH-04's stateful session foundation and AUTH-03's required-proof/result
+boundary, using the proposed concern/model. This is a planning proposal under
+the approved parent scope; implementation waits for approval of this concern,
+model, plan and tracker. Stronger requirements fail closed while their real
+AUTH-05 verifier is unavailable. Do not claim complete MFA or full AUTH-03 from
+metadata or test fixtures. Recovery remains AUTH-06; wider attempt controls remain
+AUTH-07, except finite operation/error limits required here.
+
+At approval, promote the concern/model together from drafts, update their links
+and activate Slice 1 in plan/tracker. Exact interfaces and persisted fields are
+settled against the model before each affected runtime change. Material scope
+changes require review before adding work. No implementation branch exists yet.
+
+## Delivered Prerequisites and Inventory
+
+- The three credential-security slices merged in PRs #92/#93/#94. Exact integrated
+  `d3e27373930d4e188c5f27413f6f1822b469986c` passed `make check`; closure is the
+  planning baseline. The [completed tracker](../tracker/credential-security.md)
+  supplies evidence rather than another credential rewrite.
+- `AuthVersion`, owned snapshots, conditional session insertion and atomic
+  password replacement already exist. Extend that required storage boundary.
+- `auth.Service`, models/context/middleware, configuration and their tests are
+  affected; retain the existing auth/model/crypto/config ownership.
+- Ticked service/handlers/queries, SQL source/initial migration/generated models,
+  example configuration and tests require synchronized updates per changed API.
+- Review `middleware` auth consumers, examples and generator output before each
+  signature change; update only callers actually affected by the auth contract.
+- Existing random-token generation supports 32-byte secrets. No new token framework
+  or authenticator dependency is selected by this set.
+
+## Ordered Slices
+
+| Slice | Short name | Exact branch | Expected PR title | Expected report |
+| --- | --- | --- | --- | --- |
+| Slice 1 | Secure session lifecycle | `feat/auth-session-lifecycle` | `feat(slice-1): enforce secure session lifecycle` | `ops/default/report/slices/authentication-sessions/slice-1-session-lifecycle.md` |
+| Slice 2 | Required proof and outcomes | `feat/auth-required-proof` | `feat(slice-2): enforce authentication proof requirements` | `ops/default/report/slices/authentication-sessions/slice-2-required-proof.md` |
+| Slice 3 | Reauthentication and control | `feat/auth-session-control` | `feat(slice-3): add atomic session reauthentication and control` | `ops/default/report/slices/authentication-sessions/slice-3-session-control.md` |
+
+Each slice starts from current `dev` in a dedicated canonical worktree, produces
+one report and opens one PR to `dev`. Wait for verified merge before continuing.
+Update API/configuration references, affected examples and usable Unreleased
+behavior in the same slice; the final slice is not a documentation catch-up gate.
+
+## Slice 1: Secure Session Lifecycle
+
+Outcome: password-authenticated sessions use independent secrets, digest-only
+storage and current-state/exact-expiry validation with bounded activity updates.
+
+| Task | Work | Expected commit |
+| --- | --- | --- |
+| T1.1 | Settle stored/issued/validated session types, canonical secret namespaces, validated lifetime/cadence and atomic validate/touch storage contracts. Implement generation/digest parsing and password session issue/validation; update adapters, schemas, callers and context together. | `feat(auth): enforce secure session lifecycle` |
+| T1.2 | Demonstrate entropy/source failures, canonical parser bounds, digest-only persistence, equality/inactivity/coalescing, post-lock time and account-version invalidation. Add real Postgres race/rollback tests, parser fuzzing and API/configuration guidance. | `test(auth): verify session lifecycle boundaries` |
+
+Acceptance: AS-01, AS-02, AS-06 and affected AS-09 obligations. Existing
+password-only access continues under its documented policy; this preparatory
+slice cannot be advertised as MFA delivery or promoted as the complete set.
+
+## Slice 2: Required Proof and Outcomes
+
+Prerequisite: Slice 1 merged and current-state/session representation verified.
+Outcome: trusted access requirements select completed versus non-authorizing
+pending/denied results; middleware cannot infer stronger proof from enrollment.
+
+| Task | Work | Expected commit |
+| --- | --- | --- |
+| T2.1 | Settle and implement trusted requirement/revision, verified password facts and typed authentication outcomes. Require operation policy at service/middleware boundaries; expose safe validated session metadata and freshness evaluation. Define pending representation/lookup separation without exposing unsupported proof completion. | `feat(auth): enforce required proof and authentication outcomes` |
+| T2.2 | Exercise policy revisions, exact freshness, enrollment flags, missing/unsupported methods and pending/full separation; demonstrate password-only completion and strict denial end to end. Update affected example flows/docs to make unavailable continuation explicit. | `test(auth): verify proof outcome isolation` |
+
+Acceptance: AS-03, AS-04 and affected AS-01/AS-09. Production verification remains
+password-only. Where no real supported continuation exists, return no pending
+secret or stored record. Future pending invariants are documented for
+AUTH-05, without placeholder storage methods/tables or an executable MFA workflow. AUTH-03 remains
+partial until real completion and factor consumption are delivered.
+
+## Slice 3: Reauthentication and Control
+
+Prerequisite: Slice 2 merged with trusted policy/proof semantics.
+Outcome: supported fresh authentication rotates atomically; authorized session
+management, admission and cleanup remain finite under concurrent account changes.
+
+| Task | Work | Expected commit |
+| --- | --- | --- |
+| T3.1 | Implement password reauthentication for supported policy with generation-based atomic rotation, current/other/all subject-session revocation, recent-proof management, safe bounded listing, per-subject retained-row admission and explicit cleanup. Update the required adapter/caller contracts together. | `feat(auth): add atomic session reauthentication and control` |
+| T3.2 | Demonstrate competing rotations, revocation/disable/password-change races, post-lock expiry, partial-write rollback, subject isolation and concurrent capacity limits with real Postgres. Verify context/cookie/example behavior, docs/generator consumers and user-visible session control; map evidence to remaining AUTH obligations. | `test(auth): verify session control integration` |
+
+Acceptance: AS-05 through AS-09 plus regression of AS-01 through AS-04.
+A stronger current policy cannot be satisfied by password reauthentication.
+Management handlers consume validated metadata and trusted application authority;
+core does not define application administrator roles.
+
+## Per-Slice Validation
+
+Run only checks required by changed behavior and record exact results in each
+slice report:
+
+- `go test ./auth ./config ./crypto ./model ./middleware`
+- `go test -race ./auth ./config ./crypto ./model ./middleware`
+- `go test ./examples/ticked/internal/feat/auth ./examples/ticked/internal/web`
+- `go test ./generator/...` when active API/config/scaffold consumers change.
+- `go test -run '^$' ./examples/...`
+- Real PostgreSQL session integration under `-tags=integration -race -count=1`;
+  settle the exact new test selector before implementing T1.2 and record it in
+  the tracker. Supply DB connection settings externally; absence must fail.
+- Slice 1 token-parser fuzzing: settle the exact selector before T1.2, run a
+  bounded 20-second campaign without database or KDF work and record executions.
+- `make source-license-check`
+- `make vet`
+- `make lint-strict`
+- `make docs-check`
+- `git diff --check`
+
+Time tests establish equality, inactivity cadence, future/invalid proof times
+and current time after lock waits. Persistence tests establish serialization and
+rollback rather than copying production predicates into a fake. Pending/strong
+proof fixtures never count as real authenticator acceptance evidence.
+
+## Delivery-Set Gate and Completion
+
+After all three slices merge, run `make check` once against the exact integrated
+`dev` candidate with an isolated real test database. HatMax has no scheduled
+nightly. Record candidate and results, and use the scoped validation-correction
+branch/PR route if repository fixes are required. Do not run `make ci` for this
+set; badge publication is separate.
+
+Close only when slice reports, task/PR evidence, AS-01 through AS-09 and the full
+local gate pass. Record AUTH-04 coverage and AUTH-03's remaining real-authenticator
+completion explicitly. Browser/session management presentation, production
+policy and complete assurance assessment remain consuming-application evidence.
+Publication of a selected core dependency is separate from local set closure;
+this plan does not authorize main alignment, release, tagging or deployment.
