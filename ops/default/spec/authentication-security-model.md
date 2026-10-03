@@ -23,16 +23,20 @@ with application columns/indexes and provider payloads.
 
 ## Credential Record
 
-Proposed logical fields: subject ID, encoded hash, scheme/version, bounded work
-parameters and credential-change time. The encoding can carry version/parameters
-and random salt without requiring redundant application columns. Define exact
-encoding and limits before implementation. Stored data cannot request arbitrary
-memory, iteration counts or algorithms.
+Credential fields are subject ID, complete PHC Argon2id record, positive auth-state
+version and credential-change time. The record carries algorithm version, bounded
+parameters, salt and output; input processing is NFC. It does not require redundant
+scheme/parameter columns. Unknown algorithms/versions and out-of-budget records
+fail before derivation. No bcrypt reader or credential migration is supported.
 
-Credential changes validate current state and serialize their durable writes.
-Concurrent changes cannot overwrite a newer credential through a stale request.
-Define input processing for the selected format and use it consistently at
-creation/change/verification. There is no bcrypt reader or credential migration.
+`User.AuthVersion` is a monotonic authentication-state version; storage returns
+owned snapshots. Credential and activation mutations advance it, including
+activation cycles. `CredentialState` binds subject ID and the expected version.
+Session insertion locks/rechecks active state and expected version after password
+verification. Conditional record replacement locks/rechecks the same state,
+replaces the complete record, advances the version and revokes sessions in one
+transaction. Stale requests cannot overwrite newer state or authenticate through
+an invalidated snapshot. Hashing performs no database operations.
 
 ## Authenticator Record
 

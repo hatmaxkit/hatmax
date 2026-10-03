@@ -15,20 +15,21 @@ Session-based authentication service with optional 2FA support.
 and a caller-owned `PasswordChecker`. `Prepare` returns the accepted
 NFC-normalized password for hashing. See the
 [authentication reference](../docs/reference/authentication/README.md#password-policy)
-for limits, errors and cancellation behavior. The existing service is integrated
-with this policy in the credential-integration slice.
+for limits, errors and cancellation behavior. The service requires a checker,
+applies policy at signup, and uses the versioned model verifier.
 
 ## Usage
 
 ```go
 // Create service with your Queries implementation
-svc := auth.NewService(queries, cfg, log)
+svc, err := auth.NewService(queries, cfg, checker, log)
+if err != nil { return err }
 
 // Signup
-user, err := svc.Signup(ctx, "user@example.com", "password123")
+user, err := svc.Signup(ctx, "user@example.com", "a distinct password phrase")
 
 // Signin (returns session with token)
-session, err := svc.Signin(ctx, "user@example.com", "password123")
+session, err := svc.Signin(ctx, "user@example.com", "a distinct password phrase")
 
 // Validate session (e.g., in middleware)
 user, err := svc.ValidateSession(ctx, sessionToken)
@@ -61,6 +62,7 @@ type User struct {
     ID             string
     Email          string
     PasswordHash   string
+    AuthVersion    int64
     Roles          []string
     Active         bool
     TOTPSecret     string     // TOTP secret key
@@ -92,14 +94,24 @@ type Queries interface {
     CreateUser(ctx context.Context, id, email, passwordHash string, createdAt, updatedAt time.Time) (*User, error)
     GetUserByEmail(ctx context.Context, email string) (*User, error)
     GetUserByID(ctx context.Context, id string) (*User, error)
-    CreateSession(ctx context.Context, id, userID, token string, expiresAt, createdAt time.Time) (*Session, error)
+    CreateSession(ctx context.Context, state CredentialState, session Session) (*Session, error)
+    ReplacePassword(ctx context.Context, state CredentialState, passwordHash string, changedAt time.Time) (*User, error)
     GetSessionByToken(ctx context.Context, token string) (*Session, error)
     DeleteSession(ctx context.Context, sessionID string) error
     DeleteExpiredSessions(ctx context.Context) error
 }
 ```
 
-Implement with sqlc or manually.
+Storage returns owned snapshots with a positive `AuthVersion`. Every credential,
+activation and security-state mutation advances that version. `CreateUser`
+enforces email uniqueness and returns `ErrEmailTaken` for duplicates.
+`CreateSession` atomically checks active state and expected version before insertion.
+`ReplacePassword` atomically checks state, increments the version, replaces the
+complete credential and revokes sessions. Stale, inactive or missing state returns
+`ErrCredentialChanged`. See the [storage reference](../docs/reference/authentication/README.md#queries).
+
+The caller owns authorization and candidate preparation for `ReplacePassword`;
+this storage contract does not supply a password-reset or recovery workflow.
 
 ## TOTP Primitives
 

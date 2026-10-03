@@ -170,3 +170,19 @@ Routes follow CQRS-light pattern: verb-noun style, GET for queries, POST for com
 - `GET /admin/list-events` - Audit events
 
 > Use `GET /debug/routes` to list all registered endpoints.
+
+## Credential checking
+
+Signup checks NFC-normalized passwords and stores PHC Argon2id records. The
+service requires at least 15 code points, permits long Unicode passwords and
+validates finite checking, hashing and concurrency settings at startup.
+
+The example supplies `NewPasswordChecker`, a finite curated list of common
+phrases and Ticked-specific values. It retains no submitted candidates, performs
+no network work and supports concurrent exact-match checks. This demonstration
+list is not a compromised-password corpus and does not establish production
+breach coverage. Production consumers must choose and document their own source.
+
+The Postgres adapter enforces email uniqueness and uses versioned user-row
+transactions for credential replacement and session insertion. See the
+[authentication storage reference](../../docs/reference/authentication/README.md#queries).

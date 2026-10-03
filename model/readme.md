@@ -25,8 +25,9 @@ strPtr := model.FromNullUUID(nullID)   // uuid.NullUUID -> string ptr
 now := model.Now()                     // time.Time truncated to seconds
 
 // Passwords
-hash, err := model.HashPassword(password)
-ok := model.ComparePassword(hash, password)
+verifier, err := model.NewPasswordVerifier(model.PasswordVerifierConfig{})
+hash, err := verifier.Hash(ctx, password)
+err = verifier.Verify(ctx, hash, password)
 
 // Roles
 role := model.RoleAdmin
@@ -44,5 +45,5 @@ resource budget. Both operations use bounded UTF-8/NFC input processing.
 
 See the [password verifier reference](../docs/reference/authentication/README.md#versioned-password-verifier)
 for encoding, configuration, errors and cancellation guarantees. Candidate
-policy and database operations belong outside this model primitive. The existing
-bcrypt helpers remain in use by the auth service until its integration changes.
+policy and database operations belong outside this model primitive. The auth service applies candidate policy before hashing and checks persistent
+current state before creating a session.

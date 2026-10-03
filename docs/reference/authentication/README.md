@@ -11,9 +11,11 @@ This file is part of Hatmax. See LICENSE for license terms.
 implementation. The implementation note is
 [auth/readme.md](../../../auth/readme.md).
 
-Signup uses `model.HashPasswordWithCost(password, cfg.Auth.BCryptCost)`;
-sign-in uses `model.ComparePassword`. Session identifiers and tokens use
-`model.NewID`.
+`NewService(queries, cfg, checker, logger)` returns a service or a construction
+error. It requires a caller-owned checker, validates credential settings and
+owns one shared policy/verifier. Signup checks complete normalized candidates;
+sign-in verifies PHC Argon2id records and rechecks current persistent state.
+Session identifiers and tokens still use `model.NewID`.
 
 ## Password policy
 
@@ -47,9 +49,9 @@ or changing credentials; ordinary sign-in verifies the stored credential.
 
 Length and normalization follow
 [NIST SP 800-63B-4 password guidance](https://pages.nist.gov/800-63-4/sp800-63b.html#passwordver).
-The policy is available independently; `Service.Signup` currently uses its
-existing configuration and bcrypt path. Service integration belongs to the
-credential-integration slice.
+The policy is available independently and is enforced by `Service.Signup`.
+The current service permits password-only access and always requires at least 15
+code points. Its constructor does not expose an always-MFA minimum override.
 
 | Error | Condition |
 | --- | --- |
@@ -143,12 +145,12 @@ outside that clearing guarantee.
 | `context.Canceled` / `context.DeadlineExceeded` | Context failure; result discarded |
 
 Hash failures return an empty record. Errors contain no password or encoded
-record material. Auth service integration and removal of the existing bcrypt
-helpers belong to the credential-integration slice.
+record material. The auth service owns a shared verifier, and the former model
+bcrypt helpers and `auth.bcrypt_cost` setting have been removed.
 
 ## User and session
 
-`User` fields are `ID`, `Email`, `PasswordHash`, `Roles`, `Active`,
+`User` fields are `ID`, `Email`, `PasswordHash`, `AuthVersion`, `Roles`, `Active`,
 `TOTPSecret`, `TOTPEnabled`, `TOTPVerifiedAt`, `CreatedAt`, and `UpdatedAt`.
 
 `HasRole` reports an exact role match. `HasAnyRole` reports whether any
@@ -167,37 +169,67 @@ is true while the current time is before `CreatedAt` plus that many days.
 | `CreateUser` | id, email, password hash, created at, updated at |
 | `GetUserByEmail` | email |
 | `GetUserByID` | id |
-| `CreateSession` | id, user id, token, expires at, created at |
+| `CreateSession` | expected `CredentialState`, complete `Session` |
+| `ReplacePassword` | expected `CredentialState`, encoded password, change time |
 | `GetSessionByToken` | token |
 | `DeleteSession` | session id |
 | `DeleteExpiredSessions` | none |
 
-A missing row is `sql.ErrNoRows`. The service maps that error to its own
-sentinels.
+Reads return caller-owned snapshots. A missing read row is `sql.ErrNoRows`.
+New users have positive `AuthVersion`; every credential or activation change
+increments it, including disable/re-enable cycles. The example also increments
+it for role changes. `CredentialState` contains `UserID` and expected `Version`.
+
+`CreateUser` enforces persistent email uniqueness and reports `ErrEmailTaken`
+for a concurrent duplicate. Signup does not depend on a prior lookup.
+`CreateSession` atomically locks/checks active state and expected version before
+inserting a session bound to that subject. `ReplacePassword` locks/checks the
+same state, replaces the complete encoded record, increments its version and
+revokes existing sessions in one transaction. Stale, inactive or missing state
+returns `ErrCredentialChanged`; operating failures roll back the entire write.
+The replacement caller owns policy preparation and required authorization.
+
+Implement these required methods directly. An unlocked read followed by insertion,
+a compare/write without a transaction, or an optional upgrade interface does not
+satisfy the contract. The example adapter uses Postgres user-row locks with all
+security writes taking the same lock order. Recovery and password-change API
+workflows are separate from this storage primitive.
 
 ## Service
 
-`NewService(queries, cfg, log)` stores those values.
+`NewService` snapshots validated credential settings and constructs its policy
+and shared verifier. Missing dependencies/checker or invalid settings fail at
+construction. Later configuration mutation cannot weaken credential settings.
 
 | Error | When |
 | --- | --- |
 | `ErrInvalidEmail` | `Signup` receives an empty email. |
-| `ErrPasswordTooShort` | The password is shorter than `cfg.Auth.PasswordMinLen`. |
-| `ErrEmailTaken` | `GetUserByEmail` returns a user. |
+| `ErrPasswordTooShort` | The candidate has fewer normalized code points than the configured minimum. |
+| `ErrEmailTaken` | Persistent creation finds a duplicate email. |
 | `ErrUserNotFound` | Sign-in, session validation, or `GetUserByID` finds no row. |
-| `ErrInvalidPassword` | `model.ComparePassword` rejects the password. |
+| `ErrInvalidPassword` | A supported stored credential does not match. |
+| `ErrCredentialChanged` | Persistent state is stale, inactive or missing during session creation. |
 | `ErrSessionNotFound` | Sign-out finds no session. |
 | `ErrSessionExpired` | `ExpiresAt` is before `model.Now`. |
 
 An inactive user on sign-in or session validation returns the error text
 `user is not active`. That value is not one of the sentinels above.
 
-`Signup` returns the created user. Password hashing uses `auth.bcrypt_cost`,
-which defaults to 12 and accepts 4 through 31. An invalid cost returns a wrapped
-`bcrypt.InvalidCostError`, without falling back to another cost or creating a
-user. Hashing failures, including bcrypt's 72-byte password limit, also prevent
-user creation. Increasing the configured cost affects future signups only;
-existing hashes remain valid and are not rehashed automatically.
+`Signup` returns the created user after candidate checking, salted Argon2id
+hashing and a uniqueness-enforcing write. Policy and verifier errors remain
+classified; no partial user or credential is created on preparation failure.
+
+`Signin` reads an owned user snapshot and verifies its stored record without
+rerunning new-password policy. A mismatch becomes `ErrInvalidPassword`;
+invalid/unsupported records, invalid input, busy admission and context failures
+retain their verifier classification. Session insertion checks the captured
+auth version and active state atomically, so verification against stale
+credentials cannot issue a session.
+
+Both operations use the earlier caller deadline or `auth.password_timeout`
+(default five seconds), including the persistent write. Checking also has its
+own two-second default bound. Argon2 work remains synchronous and cannot be
+interrupted; a late result is discarded and the slot remains held until completion.
 
 `Signin` parses `cfg.Auth.SessionTTL`. An
 invalid duration uses 24 hours. The session token is a new model ID.
@@ -206,8 +238,8 @@ user when the session exists, has not expired, and the user is active.
 `GetUserByID` returns that user, including an inactive user.
 `CleanupExpiredSessions` calls `DeleteExpiredSessions`.
 
-Other query failures are wrapped with `cannot check email`, `cannot hash
-password`, `cannot create user`, `cannot get user`, `cannot create session`,
+Other query failures are wrapped with `cannot hash
+password`, `cannot verify password`, `cannot create user`, `cannot get user`, `cannot create session`,
 `cannot get session`, `cannot delete session`, or `cannot cleanup expired
 sessions`.
 

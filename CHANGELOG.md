@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Authentication now checks complete NFC-normalized passwords before signup and
+  stores salted Argon2id credentials. Password-only access requires at least 15
+  Unicode code points and supports long Unicode passwords. Supply a bounded
+  password checker and implement atomic credential-state checks in custom stores;
+  bcrypt credentials, helpers and `auth.bcrypt_cost` are no longer supported.
+
 - `app.Serve` now takes a caller-owned `*http.Server`; use that same instance
   for `app.Shutdown`. Missing header and idle timeouts default to 5 and 60
   seconds, while positive custom limits and streaming response policy remain
@@ -63,10 +69,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Concurrent signup requests now report a duplicate-email outcome consistently.
+  Sign-in cannot create a session from credentials or account state changed
+  during verification; stale credential writes cannot overwrite newer state.
+
 - Applications created with initial HTMX features now load their templates
   instead of failing at startup because required template helpers were missing.
-- Signup now honors `auth.bcrypt_cost`, including Hatmax's default of 12,
-  instead of always using cost 10. Existing password hashes remain valid.
 - PostgreSQL connection values now preserve spaces, quotes, backslashes, and
   empty passwords. Schema creation and selection use the configured name
   literally, including case and punctuation, instead of treating it as SQL.

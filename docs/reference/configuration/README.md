@@ -49,7 +49,7 @@ remainder, and turning each `_` into `.`. `HATMAX_DATABASE_HOST` with prefix
 | `log` | `level` |
 | `server` | `port`, `host` |
 | `database` | `host`, `port`, `user`, `password`, `database`, `schema`, `sslmode` |
-| `auth` | `session_ttl`, `password_min_len`, `bcrypt_cost`, `email_encryption_key`, `email_lookup_key` |
+| `auth` | `session_ttl`, credential policy/work fields below, `email_encryption_key`, `email_lookup_key` |
 | `contact` | `pii_encryption_key`, `email_lookup_key` |
 | `property` | `notes_protection_key` |
 | `pubsub` | `enabled`, `poll_interval`, `batch_size` |
@@ -71,8 +71,18 @@ remainder, and turning each `_` into `.`. `HATMAX_DATABASE_HOST` with prefix
 | `database.schema` | empty |
 | `database.sslmode` | `disable` |
 | `auth.session_ttl` | `24h` |
-| `auth.password_min_len` | `8` |
-| `auth.bcrypt_cost` | `12` |
+| `auth.password_min_len` | `15` |
+| `auth.password_max_len` | `1024` |
+| `auth.password_max_bytes` | `4096` |
+| `auth.password_check_timeout` | `2s` |
+| `auth.password_timeout` | `5s` |
+| `auth.argon_memory_kib` | `65536` |
+| `auth.argon_iterations` | `3` |
+| `auth.argon_parallelism` | `4` |
+| `auth.argon_max_memory_kib` | `65536` |
+| `auth.argon_max_iterations` | `3` |
+| `auth.argon_max_parallelism` | `4` |
+| `auth.password_max_concurrent` | `2` |
 | `pubsub.enabled` | `false` |
 | `pubsub.poll_interval` | `100ms` |
 | `pubsub.batch_size` | `100` |
@@ -92,9 +102,20 @@ remainder, and turning each `_` into `.`. `HATMAX_DATABASE_HOST` with prefix
 `contact` and `property` keys default to empty. Auth encryption and lookup
 keys also default to empty.
 
-`auth.bcrypt_cost` governs hashing during [signup](../authentication/README.md).
-It does not change existing hashes or the standalone `model.HashPassword`
-helper's default cost. Higher values increase hashing work.
+Credential settings apply to [signup/sign-in](../authentication/README.md).
+`AuthConfig.PasswordSettings()` returns a validated snapshot. Minimum is 15
+through the character maximum; maximum is 64 through 1024 code points. Byte
+capacity covers four bytes per maximum code point and cannot exceed 4096.
+Checker and credential timeouts must be positive and at most 30 seconds.
+Empty timeout strings and zero optional maxima resolve to documented defaults.
+
+Argon2 creation cost and verification ceilings follow the
+[verifier resource contract](../authentication/README.md#versioned-password-verifier).
+Zero cost/ceiling/concurrency fields use verifier defaults; nonzero values must
+fit supported per-operation and aggregate bounds. Numeric values are range-
+checked before conversion to narrower KDF parameter types. The verifier is
+shared per service; full admission returns a busy error without a waiting queue.
+`auth.bcrypt_cost` and the former bcrypt helpers are removed.
 
 ### Validation
 
@@ -106,8 +127,7 @@ helper's default cost. Higher values increase hashing work.
 | `database.host` is empty | `database.host is required` |
 | `database.user` is empty | `database.user is required` |
 | `database.database` is empty | `database.database is required` |
-| `auth.password_min_len` is less than 1 | `auth.password_min_len must be at least 1` |
-| `auth.bcrypt_cost` is outside 4 through 31 | `auth.bcrypt_cost must be between 4 and 31` |
+| Credential policy, timeout or Argon2 work settings violate the bounds above | A credential configuration error; startup is rejected |
 | `scheduler.batch_size` is less than 1 | `scheduler.batch_size must be at least 1` |
 | `scheduler.workers` is less than 1 | `scheduler.workers must be at least 1` |
 | `scheduler.retry_attempts` is less than 1 | `scheduler.retry_attempts must be at least 1` |
