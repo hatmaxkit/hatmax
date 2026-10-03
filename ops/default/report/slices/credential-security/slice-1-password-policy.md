@@ -12,7 +12,7 @@ Delivery set: credential-security
 Plan: [Credential security plan](../../../plan/credential-security.md)
 Tracker: [Credential security tracker](../../../tracker/credential-security.md)
 Branch: `feat/credential-password-policy`
-PR: pending
+PR: `#92`
 
 ## Purpose
 
@@ -77,6 +77,7 @@ export TMPDIR="$PWD/.tmp/build" GOTMPDIR="$PWD/.tmp/build" GOFLAGS=-p=2
 - `go test -race ./auth ./config` — passed.
 - `go test ./generator/execute ./generator/project ./generator/conversation ./generator/interaction ./generator/backend/codex` — passed.
 - `make docs-check` — passed.
+- `make source-license-check` — passed.
 - `make vet` — passed.
 - `make lint-strict` — passed, zero issues.
 - `git diff --check` — passed.
