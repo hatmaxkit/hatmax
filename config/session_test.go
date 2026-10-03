@@ -33,6 +33,15 @@ func TestSessionSettings(t *testing.T) {
 		{name: "cadence ratio", config: AuthConfig{SessionInactivityTTL: "1m", SessionActivityInterval: "16s"}},
 		{name: "storage precision", config: AuthConfig{SessionTTL: "24h1ns"}},
 		{name: "timeout cap", config: AuthConfig{SessionTimeout: "31s"}},
+		{name: "recent minimum", config: AuthConfig{SessionRecentProofAge: "1s", SessionMaxPerSubject: 1, SessionPageSize: 1}, valid: true},
+		{name: "recent maximum", config: AuthConfig{SessionRecentProofAge: "24h", SessionMaxPerSubject: 100, SessionPageSize: 100}, valid: true},
+		{name: "recent short", config: AuthConfig{SessionRecentProofAge: "999ms"}},
+		{name: "recent precision", config: AuthConfig{SessionRecentProofAge: "1s1ns"}},
+		{name: "recent exceeds ttl", config: AuthConfig{SessionRecentProofAge: "25h"}},
+		{name: "capacity negative", config: AuthConfig{SessionMaxPerSubject: -1}},
+		{name: "capacity exceeds", config: AuthConfig{SessionMaxPerSubject: 101}},
+		{name: "page negative", config: AuthConfig{SessionPageSize: -1}},
+		{name: "page exceeds", config: AuthConfig{SessionPageSize: 101}},
 		{name: "negative batch", config: AuthConfig{SessionCleanupBatch: -1}},
 		{name: "batch cap", config: AuthConfig{SessionCleanupBatch: 1001}},
 	}
@@ -47,7 +56,7 @@ func TestSessionSettings(t *testing.T) {
 				t.Fatal("invalid settings escaped")
 			}
 
-			if test.name == "defaults" && (settings.TTL != 24*time.Hour || settings.InactivityTTL != 30*time.Minute || settings.ActivityInterval != time.Minute || settings.Timeout != 5*time.Second || settings.CleanupBatch != 1000) {
+			if test.name == "defaults" && (settings.TTL != 24*time.Hour || settings.InactivityTTL != 30*time.Minute || settings.ActivityInterval != time.Minute || settings.Timeout != 5*time.Second || settings.CleanupBatch != 1000 || settings.RecentProofAge != 5*time.Minute || settings.MaxPerSubject != 10 || settings.PageSize != 50) {
 				t.Fatal("unexpected defaults")
 			}
 		})

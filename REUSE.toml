@@ -33,6 +33,7 @@ path = [
   "examples/ticked/internal/web/testdata/assets/templates/admin/events.html",
   "examples/ticked/internal/web/testdata/assets/templates/admin/user.html",
   "examples/ticked/internal/web/testdata/assets/templates/admin/users.html",
+  "examples/ticked/internal/web/testdata/assets/templates/auth/sessions.html",
   "examples/ticked/internal/web/testdata/assets/templates/auth/signin.html",
   "examples/ticked/internal/web/testdata/assets/templates/auth/signup.html",
   "examples/ticked/internal/web/testdata/assets/templates/todos/item.html",

@@ -9,6 +9,7 @@ package web
 import (
 	"context"
 	"embed"
+	"errors"
 	"io/fs"
 	"net/http"
 	"strings"
@@ -271,7 +272,12 @@ func (h *Handler) handleSignup(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) handleSignout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(auth.SessionCookieName)
 	if err == nil {
-		h.authSvc.Signout(r.Context(), cookie.Value)
+		err = h.authSvc.Signout(r.Context(), cookie.Value)
+		if err != nil && !errors.Is(err, auth.ErrSessionNotFound) {
+			http.Error(w, "Cannot sign out", http.StatusServiceUnavailable)
+
+			return
+		}
 	}
 
 	auth.ClearSessionCookie(w)

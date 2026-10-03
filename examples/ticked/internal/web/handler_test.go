@@ -709,13 +709,18 @@ func (f *fakeAuthQ) UpdateUserActive(ctx context.Context, id string, active bool
 }
 
 type fakeAuthSvc struct {
-	result      *auth.AuthenticationResult
-	user        *auth.User
-	session     *auth.IssuedSession
-	signupErr   error
-	signinErr   error
-	signoutErr  error
-	validateErr error
+	reauthToken    string
+	reauthPassword string
+	selection      auth.SessionSelection
+	page           *auth.SessionPage
+	revokeCount    int64
+	result         *auth.AuthenticationResult
+	user           *auth.User
+	session        *auth.IssuedSession
+	signupErr      error
+	signinErr      error
+	signoutErr     error
+	validateErr    error
 }
 
 func (f *fakeAuthSvc) Signup(ctx context.Context, email, password string) (*auth.User, error) {
@@ -781,12 +786,21 @@ func TestUnmetProofTransport(t *testing.T) {
 }
 
 func (f *fakeAuthSvc) Reauthenticate(ctx context.Context, token, password string) (*auth.AuthenticationResult, error) {
+	f.reauthToken = token
+
+	f.reauthPassword = password
+	if f.result != nil {
+		return f.result, f.signinErr
+	}
+
 	return &auth.AuthenticationResult{Outcome: auth.AuthenticationCompleted, Issued: f.session}, f.signinErr
 }
 
 func (f *fakeAuthSvc) ListSessions(ctx context.Context, token, cursor string) (*auth.SessionPage, error) {
-	return &auth.SessionPage{}, f.validateErr
+	return f.page, f.validateErr
 }
 func (f *fakeAuthSvc) RevokeSessions(ctx context.Context, token string, selection auth.SessionSelection) (int64, error) {
-	return 0, f.signoutErr
+	f.selection = selection
+
+	return f.revokeCount, f.signoutErr
 }

@@ -10,9 +10,10 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"hatmax.adrianpk.com/model"
 	"math"
 	"time"
+
+	"hatmax.adrianpk.com/model"
 )
 
 var (

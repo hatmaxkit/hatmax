@@ -37,8 +37,8 @@ Execution gate: Open
 | T1.2 | completed | `test(auth): verify session lifecycle boundaries` | `61b65a17cc5a693d85a328b0d78e48862c83ceff` | Canonical parser fuzz, exact expiry/time/coalescing and real Postgres stale-state/rollback; AS-01/AS-02/AS-06/AS-09 |
 | T2.1 | completed | `feat(auth): enforce required proof and authentication outcomes` | `05046a930635cd39cce8bd5249af14f6906bf3b8` | Trusted policy revision, verified password facts, safe metadata and distinct non-authorizing outcomes |
 | T2.2 | completed | `test(auth): verify proof outcome isolation` | `9be7080cbe6be8d23d11ba6571573d0347ca9bcb` | Password success, strong-policy denial, freshness/equality and pending/full isolation; AS-03/AS-04 |
-| T3.1 | implemented | `feat(auth): add atomic session reauthentication and control` | pending | Rotation/revocation/management/admission/cleanup with finite required storage contracts |
-| T3.2 | pending | `test(auth): verify session control integration` | pending | Real concurrent rotation/revocation/state/capacity/rollback and consumer integration; AS-05 through AS-09 |
+| T3.1 | completed | `feat(auth): add atomic session reauthentication and control` | `5933e5440f973defd813c41757137c79150b9f0b` | Rotation/revocation/management/admission/cleanup with finite required storage contracts |
+| T3.2 | implemented | `test(auth): verify session control integration` | pending | Real concurrent rotation/revocation/state/capacity/rollback and consumer integration; AS-05 through AS-09 |
 
 ## Dependencies and Execution Gate
 
@@ -130,7 +130,7 @@ are delivered. Merge on 2026-10-03 was verified at
 
 Before T3.2, the exact real PostgreSQL selector is:
 
-- `go test -tags=integration -race -count=1 -run '^Test(ControlTransactions|ProofTransactions|SessionTransactions|CredentialTransactions)$' ./examples/ticked/internal/feat/auth`
+- `go test -tags=integration -race -count=1 -timeout=60s -run '^Test(ControlTransactions|ProofTransactions|SessionTransactions|CredentialTransactions)$' ./examples/ticked/internal/feat/auth`
 
 Control evidence must establish actual password rotation, competing generations,
 revocation/account mutation serialization, post-lock expiry, forced partial-write
@@ -140,3 +140,13 @@ Focused checks do not substitute for the integrated `make check` after Slice 3 m
 T3.1 focused package tests, tagged integration compilation, licensing, vet, strict
 lint and documentation checks passed. T3.2 owns the recorded real transaction
 selector and remaining behavioral evidence.
+
+T3.2 passed focused tests/race, the recorded real PostgreSQL transaction selector,
+tagged/default strict lint, licensing, vet and documentation/example compilation.
+Control tests establish one winner for competing actual password rotations,
+post-lock old-session/replacement-proof expiry, validation waiting on committed
+rotation, revocation/password/disable serialization, forced rotation/deletion/
+reclamation rollback, owned bounded pages, recent-proof checks after locks and
+concurrent retained-row admission. HTTP tests establish completed-only replacement
+cookies and truthful revocation/sign-out failure. No real MFA completion is claimed.
+The full `make check` remains scheduled after verified Slice 3 merge.

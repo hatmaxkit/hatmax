@@ -413,7 +413,8 @@ rows, including stale/expired state. It reclaims a batch of at most 100 expired
 subject rows first. Revocation removes rows; no history/tombstone collection is
 created. Explicit cleanup deletes at most its configured batch and honors context.
 `Signout` retains current-bearer withdrawal without requiring recent proof; it
-cannot select another session or subject. Management operations require recent
+cannot select another session or subject. Failed storage withdrawal does not
+report success or clear the browser cookie. Management operations require recent
 proof independently.
 
 Ticked exposes `/sessions`, `/reauthenticate` and `/sessions/revoke`. Its form
