@@ -19,8 +19,8 @@ Model: [Authentication security model](../spec/authentication-security-model.md)
 Tracker: [Credential security tracker](../tracker/credential-security.md)
 Base branch: `dev`
 Planning base: `6ec140af2825`
-Active slice: Slice 1
-Execution gate: Review
+Active slice: Slice 2
+Execution gate: Open
 Go baseline: 1.27.1
 
 ## Outcome and Boundary

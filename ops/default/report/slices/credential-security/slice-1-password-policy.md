@@ -7,12 +7,14 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 1: Password Policy
 
-Status: reviewing
+Status: delivered
 Delivery set: credential-security
 Plan: [Credential security plan](../../../plan/credential-security.md)
 Tracker: [Credential security tracker](../../../tracker/credential-security.md)
 Branch: `feat/credential-password-policy`
 PR: `#92`
+Merged: 2026-10-03
+Integration: `374609d914a24a5ab82be911ed2320188c2f827e`
 
 ## Purpose
 

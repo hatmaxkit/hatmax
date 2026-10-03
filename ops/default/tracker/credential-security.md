@@ -15,16 +15,16 @@ Specification: [Authentication security](../spec/authentication-security.md)
 Model: [Authentication security model](../spec/authentication-security-model.md)
 Base branch: `dev`
 Planning base: `6ec140af2825`
-Active slice: Slice 1
-Active tasks: None
-Execution gate: Review
+Active slice: Slice 2
+Active tasks: T2.1
+Execution gate: Open
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Password policy | reviewing | `feat/credential-password-policy` | `feat(slice-1): define bounded password policy` | `#92` | `ops/default/report/slices/credential-security/slice-1-password-policy.md` |
-| Slice 2 | Versioned verifier | planned | `feat/credential-versioned-verifier` | `feat(slice-2): add versioned password verification` | pending | `ops/default/report/slices/credential-security/slice-2-versioned-verifier.md` |
+| Slice 1 | Password policy | delivered | `feat/credential-password-policy` | `feat(slice-1): define bounded password policy` | `#92` | `ops/default/report/slices/credential-security/slice-1-password-policy.md` |
+| Slice 2 | Versioned verifier | active | `feat/credential-versioned-verifier` | `feat(slice-2): add versioned password verification` | pending | `ops/default/report/slices/credential-security/slice-2-versioned-verifier.md` |
 | Slice 3 | Credential integration | planned | `feat/credential-auth-integration` | `feat(slice-3): integrate secure credential storage` | pending | `ops/default/report/slices/credential-security/slice-3-credential-integration.md` |
 
 ## Tasks
@@ -41,6 +41,9 @@ Execution gate: Review
 
 ## Dependencies
 
+PR #92 merged on 2026-10-03. Integration was verified on `dev` at
+`374609d914a24a5ab82be911ed2320188c2f827e`; Slice 1 is delivered.
+
 Slice 1 validation passed with Go 1.27.1 and golangci-lint 2.12.2 built with
 the same toolchain. The [Slice 1 report](../report/slices/credential-security/slice-1-password-policy.md)
 records commands and behavior boundaries.
@@ -51,7 +54,7 @@ without treating missing persistence evidence as a passing check.
 
 ## Completion Gates
 
-- [ ] Slice 1 merges and its delivered report/commit evidence is recorded.
+- [x] Slice 1 merges and its delivered report/commit evidence is recorded.
 - [ ] Slice 2 merges and its delivered report/commit evidence is recorded.
 - [ ] Storage/current-state and configuration contracts are settled before Slice 3.
 - [ ] Slice 3 merges and its delivered report/commit evidence is recorded.
