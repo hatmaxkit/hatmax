@@ -34,21 +34,21 @@ SET active = $2, updated_at = $3, auth_version = auth_version + 1
 WHERE id = $1;
 
 -- name: CreateSession :one
-INSERT INTO sessions (id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-RETURNING id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us;
+INSERT INTO sessions (id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+RETURNING id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us;
 
 -- name: GetSessionByDigest :one
-SELECT id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+SELECT id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
 FROM sessions WHERE token_digest = $1;
 
 -- name: GetSessionForUpdate :one
-SELECT id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+SELECT id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
 FROM sessions WHERE token_digest = $1 FOR UPDATE;
 
 -- name: UpdateSessionActivity :one
 UPDATE sessions SET last_activity_at = $2 WHERE id = $1
-RETURNING id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us;
+RETURNING id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us;
 
 -- name: SessionClock :one
 SELECT clock_timestamp()::timestamptz;

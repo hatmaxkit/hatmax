@@ -36,7 +36,7 @@ func sessionFixture(t *testing.T) (*sql.DB, *Queries, *core.Service, *core.Issue
 		t.Fatal(err)
 	}
 
-	issued, err := svc.Signin(t.Context(), "session@example.com", "a distinct safe password")
+	issued, err := testSignin(svc, t.Context(), "session@example.com", "a distinct safe password")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,14 +118,14 @@ func TestSessionTransactions(t *testing.T) {
 			t.Fatal("plaintext bearer column exists")
 		}
 
-		validated, err := svc.ValidateSession(t.Context(), issued.Token, core.NoActivity)
+		validated, err := svc.ValidateSession(t.Context(), issued.Token, PasswordRequirement(), core.NoActivity)
 		if err != nil || validated.Session.ID != issued.ID || validated.User.ID != issued.UserID {
 			t.Fatalf("validate: %v", err)
 		}
 
 		sessionSQL(t, db, "UPDATE users SET roles=ARRAY['reader'] WHERE id=$1", issued.UserID)
 
-		first, err := svc.ValidateSession(t.Context(), issued.Token, core.NoActivity)
+		first, err := svc.ValidateSession(t.Context(), issued.Token, PasswordRequirement(), core.NoActivity)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -133,7 +133,7 @@ func TestSessionTransactions(t *testing.T) {
 		first.User.Roles[0] = "administrator"
 		first.Session.ID = "mutated"
 
-		second, err := svc.ValidateSession(t.Context(), issued.Token, core.NoActivity)
+		second, err := svc.ValidateSession(t.Context(), issued.Token, PasswordRequirement(), core.NoActivity)
 		if err != nil || second.User.Roles[0] != "reader" || second.Session.ID != issued.ID {
 			t.Fatal("returned metadata aliases persistent state")
 		}
@@ -143,17 +143,17 @@ func TestSessionTransactions(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		second, err = svc.ValidateSession(t.Context(), issued.Token, core.NoActivity)
+		second, err = svc.ValidateSession(t.Context(), issued.Token, PasswordRequirement(), core.NoActivity)
 		if second != nil || !errors.Is(err, core.ErrSessionNotFound) {
 			t.Fatal("revoked bearer accepted")
 		}
 	})
 	t.Run("coalesced and concurrent activity", func(t *testing.T) {
 		db, _, svc, issued := sessionFixture(t)
-		sessionSQL(t, db, "UPDATE sessions SET authenticated_at=clock_timestamp()-interval '2 minutes', created_at=clock_timestamp()-interval '3 minutes',last_activity_at=clock_timestamp()-interval '90 seconds' WHERE id=$1", issued.ID)
+		sessionSQL(t, db, "UPDATE sessions SET authenticated_at=clock_timestamp()-interval '2 minutes',proof_verified_at=clock_timestamp()-interval '150 seconds', created_at=clock_timestamp()-interval '3 minutes',last_activity_at=clock_timestamp()-interval '90 seconds' WHERE id=$1", issued.ID)
 		before := storedSession(t, db, issued)
 
-		_, err := svc.ValidateSession(t.Context(), issued.Token, core.NoActivity)
+		_, err := svc.ValidateSession(t.Context(), issued.Token, PasswordRequirement(), core.NoActivity)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -172,7 +172,7 @@ func TestSessionTransactions(t *testing.T) {
 		var workers sync.WaitGroup
 		for range 8 {
 			workers.Go(func() {
-				_, validateErr := svc.ValidateSession(t.Context(), issued.Token, core.RelevantActivity)
+				_, validateErr := svc.ValidateSession(t.Context(), issued.Token, PasswordRequirement(), core.RelevantActivity)
 				failures <- validateErr
 			})
 		}
@@ -215,7 +215,7 @@ func TestSessionTransactions(t *testing.T) {
 		result := make(chan error, 1)
 
 		go func() {
-			_, validateErr := svc.ValidateSession(ctx, issued.Token, core.RelevantActivity)
+			_, validateErr := svc.ValidateSession(ctx, issued.Token, PasswordRequirement(), core.RelevantActivity)
 			result <- validateErr
 		}()
 
@@ -245,7 +245,7 @@ func TestSessionTransactions(t *testing.T) {
 	})
 	t.Run("expiry during session lock wait", func(t *testing.T) {
 		db, _, svc, issued := sessionFixture(t)
-		sessionSQL(t, db, "UPDATE sessions SET created_at=clock_timestamp()-interval '6 minutes',authenticated_at=clock_timestamp()-interval '5 minutes',last_activity_at=clock_timestamp()-interval '239 seconds',inactivity_us=240000000 WHERE id=$1", issued.ID)
+		sessionSQL(t, db, "UPDATE sessions SET created_at=clock_timestamp()-interval '6 minutes',authenticated_at=clock_timestamp()-interval '5 minutes',proof_verified_at=clock_timestamp()-interval '330 seconds',last_activity_at=clock_timestamp()-interval '239 seconds',inactivity_us=240000000 WHERE id=$1", issued.ID)
 		before := storedSession(t, db, issued)
 
 		metadata, err := toAuthSession(before)
@@ -277,7 +277,7 @@ func TestSessionTransactions(t *testing.T) {
 		result := make(chan error, 1)
 
 		go func() {
-			_, validateErr := svc.ValidateSession(ctx, issued.Token, core.RelevantActivity)
+			_, validateErr := svc.ValidateSession(ctx, issued.Token, PasswordRequirement(), core.RelevantActivity)
 			result <- validateErr
 		}()
 
@@ -319,12 +319,12 @@ func TestSessionTransactions(t *testing.T) {
 	})
 	t.Run("activity commit rollback", func(t *testing.T) {
 		db, _, svc, issued := sessionFixture(t)
-		sessionSQL(t, db, "UPDATE sessions SET created_at=clock_timestamp()-interval '3 minutes',authenticated_at=clock_timestamp()-interval '2 minutes',last_activity_at=clock_timestamp()-interval '90 seconds' WHERE id=$1", issued.ID)
+		sessionSQL(t, db, "UPDATE sessions SET created_at=clock_timestamp()-interval '3 minutes',authenticated_at=clock_timestamp()-interval '2 minutes',proof_verified_at=clock_timestamp()-interval '150 seconds',last_activity_at=clock_timestamp()-interval '90 seconds' WHERE id=$1", issued.ID)
 		before := storedSession(t, db, issued)
 		sessionSQL(t, db, `CREATE FUNCTION reject_activity() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'forced activity commit failure'; END $$;
    CREATE CONSTRAINT TRIGGER reject_activity AFTER UPDATE ON sessions DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION reject_activity();`)
 
-		validated, err := svc.ValidateSession(t.Context(), issued.Token, core.RelevantActivity)
+		validated, err := svc.ValidateSession(t.Context(), issued.Token, PasswordRequirement(), core.RelevantActivity)
 		if err == nil || validated != nil {
 			t.Fatal("failed commit returned authorized state")
 		}
@@ -342,7 +342,7 @@ func TestSessionTransactions(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		validated, err := svc.ValidateSession(t.Context(), issued.Token, core.NoActivity)
+		validated, err := svc.ValidateSession(t.Context(), issued.Token, PasswordRequirement(), core.NoActivity)
 		if validated != nil || !errors.Is(err, core.ErrCredentialChanged) {
 			t.Fatalf("role change retained session: %v", err)
 		}
@@ -369,7 +369,7 @@ func TestSessionTransactions(t *testing.T) {
 				expiry = now.Add(-time.Hour)
 			}
 
-			_, err = dal.New(db).CreateSession(t.Context(), dal.CreateSessionParams{ID: fmt.Sprintf("expired-%d", i), UserID: issued.UserID, TokenDigest: digest[:], AuthVersion: issued.AuthVersion, Generation: 1, AuthenticatedAt: proof, CreatedAt: proof, LastActivityAt: proof, ExpiresAt: expiry, InactivityUs: time.Minute.Microseconds()})
+			_, err = dal.New(db).CreateSession(t.Context(), dal.CreateSessionParams{ID: fmt.Sprintf("expired-%d", i), UserID: issued.UserID, TokenDigest: digest[:], AuthVersion: issued.AuthVersion, PolicyRevision: PasswordRequirement().Revision, Generation: 1, ProofMethod: int16(core.PasswordProof), ProofVerifiedAt: proof, AuthenticatedAt: proof, CreatedAt: proof, LastActivityAt: proof, ExpiresAt: expiry, InactivityUs: time.Minute.Microseconds()})
 			if err != nil {
 				t.Fatal(err)
 			}

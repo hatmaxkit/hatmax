@@ -83,6 +83,11 @@ func newSessionToken() (string, SessionDigest, error) {
 // Check validates stored shape and exact expiry using trusted time evaluated
 // after storage lock waits. Activity cannot renew absolute expiry or proof time.
 func (s Session) Check(now time.Time) error {
+	proofErr := s.Proof.Check(s)
+	if proofErr != nil || !validPolicyRevision(s.PolicyRevision) {
+		return ErrSessionRecord
+	}
+
 	lifetime := s.ExpiresAt.Sub(s.AuthenticatedAt)
 	if s.ID == "" || s.UserID == "" || s.AuthVersion < 1 || s.Generation < 1 || s.AuthenticatedAt.IsZero() || s.CreatedAt.IsZero() || s.LastActivityAt.IsZero() || s.CreatedAt.After(s.AuthenticatedAt) || s.AuthenticatedAt.After(s.LastActivityAt) || s.LastActivityAt.After(now) || lifetime < time.Minute || lifetime > 30*24*time.Hour || s.InactivityTTL < time.Minute || s.InactivityTTL > lifetime || s.InactivityTTL%time.Microsecond != 0 {
 		return ErrSessionRecord

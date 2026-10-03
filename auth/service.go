@@ -44,9 +44,9 @@ type Queries interface {
 	CreateUser(ctx context.Context, id, email, passwordHash string, createdAt, updatedAt time.Time) (*User, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	GetUserByID(ctx context.Context, id string) (*User, error)
-	CreateSession(ctx context.Context, state CredentialState, session SessionRecord) (*Session, error)
+	CreateSession(ctx context.Context, state CredentialState, session SessionRecord, requirement AccessRequirement) (*Session, error)
 	ReplacePassword(ctx context.Context, state CredentialState, passwordHash string, changedAt time.Time) (*User, error)
-	ValidateSession(ctx context.Context, digest SessionDigest, activity SessionActivity, interval time.Duration) (*ValidatedSession, error)
+	ValidateSession(ctx context.Context, digest SessionDigest, requirement AccessRequirement, activity SessionActivity, interval time.Duration) (*ValidatedSession, error)
 	DeleteSession(ctx context.Context, digest SessionDigest) error
 	DeleteExpiredSessions(ctx context.Context, limit int) (int64, error)
 }
@@ -127,7 +127,12 @@ func (s *Service) Signup(ctx context.Context, email, password string) (*User, er
 }
 
 // Signin validates credentials and creates a session.
-func (s *Service) Signin(ctx context.Context, email, password string) (*IssuedSession, error) {
+func (s *Service) Signin(ctx context.Context, email, password string, requirement AccessRequirement) (*AuthenticationResult, error) {
+	err := requirement.Check(s.sessions.TTL)
+	if err != nil {
+		return nil, err
+	}
+
 	workCtx, cancel := context.WithTimeout(ctx, s.passwordTimeout)
 	defer cancel()
 
@@ -157,18 +162,22 @@ func (s *Service) Signin(ctx context.Context, email, password string) (*IssuedSe
 		return nil, fmt.Errorf("cannot verify password: %w", err)
 	}
 
+	if requirement.Proof != RequirePassword {
+		return unmetRequirement(user, requirement.Proof), nil
+	}
+
 	token, digest, err := s.sessionToken()
 	if err != nil {
 		return nil, fmt.Errorf("cannot generate session secret: %w", err)
 	}
 
 	now := time.Now().UTC().Truncate(time.Microsecond)
-	record := SessionRecord{Session: Session{ID: model.NewID(), UserID: state.UserID, AuthVersion: state.Version, Generation: 1, AuthenticatedAt: now, CreatedAt: now, LastActivityAt: now, ExpiresAt: now.Add(s.sessions.TTL), InactivityTTL: s.sessions.InactivityTTL}, Digest: digest}
+	record := SessionRecord{Session: Session{ID: model.NewID(), UserID: state.UserID, AuthVersion: state.Version, PolicyRevision: requirement.Revision, Generation: 1, Proof: VerifiedProof{Method: PasswordProof, VerifiedAt: now}, AuthenticatedAt: now, CreatedAt: now, LastActivityAt: now, ExpiresAt: now.Add(s.sessions.TTL), InactivityTTL: s.sessions.InactivityTTL}, Digest: digest}
 
 	sessionCtx, sessionCancel := context.WithTimeout(workCtx, s.sessions.Timeout)
 	defer sessionCancel()
 
-	session, err := s.queries.CreateSession(sessionCtx, state, record)
+	session, err := s.queries.CreateSession(sessionCtx, state, record, requirement)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create session: %w", err)
 	}
@@ -180,7 +189,7 @@ func (s *Service) Signin(ctx context.Context, email, password string) (*IssuedSe
 
 	s.log.Infof("User signed in: %s", user.ID)
 
-	return &IssuedSession{Session: *session, Token: token}, nil
+	return &AuthenticationResult{Outcome: AuthenticationCompleted, Reason: AuthenticationSatisfied, Issued: &IssuedSession{Session: *session, Token: token}}, nil
 }
 
 // Signout destroys a session.
@@ -203,7 +212,12 @@ func (s *Service) Signout(ctx context.Context, token string) error {
 
 // ValidateSession checks current stored state and optionally records trusted
 // relevant subscriber activity. NoActivity is required for background polling.
-func (s *Service) ValidateSession(ctx context.Context, token string, activity SessionActivity) (*ValidatedSession, error) {
+func (s *Service) ValidateSession(ctx context.Context, token string, requirement AccessRequirement, activity SessionActivity) (*ValidatedSession, error) {
+	err := requirement.Check(s.sessions.TTL)
+	if err != nil {
+		return nil, err
+	}
+
 	if activity != NoActivity && activity != RelevantActivity {
 		return nil, ErrSessionActivity
 	}
@@ -216,7 +230,7 @@ func (s *Service) ValidateSession(ctx context.Context, token string, activity Se
 	workCtx, cancel := context.WithTimeout(ctx, s.sessions.Timeout)
 	defer cancel()
 
-	session, err := s.queries.ValidateSession(workCtx, digest, activity, s.sessions.ActivityInterval)
+	session, err := s.queries.ValidateSession(workCtx, digest, requirement, activity, s.sessions.ActivityInterval)
 	if err != nil {
 		return nil, fmt.Errorf("cannot validate session: %w", err)
 	}

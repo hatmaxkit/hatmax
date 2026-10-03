@@ -53,7 +53,7 @@ func TestSessionToken(t *testing.T) {
 // Fixed timestamps establish strict equality and corrupt-record rejection.
 func TestSessionExpiry(t *testing.T) {
 	now := time.Date(2026, 10, 3, 12, 0, 0, 0, time.UTC)
-	base := Session{ID: "session", UserID: "user", AuthVersion: 1, Generation: 1, AuthenticatedAt: now, CreatedAt: now, LastActivityAt: now, ExpiresAt: now.Add(time.Hour), InactivityTTL: 10 * time.Minute}
+	base := Session{ID: "session", UserID: "user", AuthVersion: 1, PolicyRevision: "password-v1", Generation: 1, Proof: VerifiedProof{Method: PasswordProof, VerifiedAt: now}, AuthenticatedAt: now, CreatedAt: now, LastActivityAt: now, ExpiresAt: now.Add(time.Hour), InactivityTTL: 10 * time.Minute}
 
 	tests := []struct {
 		name   string

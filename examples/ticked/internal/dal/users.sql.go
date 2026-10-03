@@ -29,9 +29,9 @@ func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
 }
 
 const createSession = `-- name: CreateSession :one
-INSERT INTO sessions (id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-RETURNING id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+INSERT INTO sessions (id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+RETURNING id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
 `
 
 type CreateSessionParams struct {
@@ -39,7 +39,10 @@ type CreateSessionParams struct {
 	UserID          string    `json:"user_id"`
 	TokenDigest     []byte    `json:"token_digest"`
 	AuthVersion     int64     `json:"auth_version"`
+	PolicyRevision  string    `json:"policy_revision"`
 	Generation      int64     `json:"generation"`
+	ProofMethod     int16     `json:"proof_method"`
+	ProofVerifiedAt time.Time `json:"proof_verified_at"`
 	AuthenticatedAt time.Time `json:"authenticated_at"`
 	CreatedAt       time.Time `json:"created_at"`
 	LastActivityAt  time.Time `json:"last_activity_at"`
@@ -53,7 +56,10 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 		arg.UserID,
 		arg.TokenDigest,
 		arg.AuthVersion,
+		arg.PolicyRevision,
 		arg.Generation,
+		arg.ProofMethod,
+		arg.ProofVerifiedAt,
 		arg.AuthenticatedAt,
 		arg.CreatedAt,
 		arg.LastActivityAt,
@@ -66,7 +72,10 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 		&i.UserID,
 		&i.TokenDigest,
 		&i.AuthVersion,
+		&i.PolicyRevision,
 		&i.Generation,
+		&i.ProofMethod,
+		&i.ProofVerifiedAt,
 		&i.AuthenticatedAt,
 		&i.CreatedAt,
 		&i.LastActivityAt,
@@ -161,7 +170,7 @@ func (q *Queries) DeleteUserSessions(ctx context.Context, userID string) error {
 }
 
 const getSessionByDigest = `-- name: GetSessionByDigest :one
-SELECT id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+SELECT id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
 FROM sessions WHERE token_digest = $1
 `
 
@@ -173,7 +182,10 @@ func (q *Queries) GetSessionByDigest(ctx context.Context, tokenDigest []byte) (S
 		&i.UserID,
 		&i.TokenDigest,
 		&i.AuthVersion,
+		&i.PolicyRevision,
 		&i.Generation,
+		&i.ProofMethod,
+		&i.ProofVerifiedAt,
 		&i.AuthenticatedAt,
 		&i.CreatedAt,
 		&i.LastActivityAt,
@@ -184,7 +196,7 @@ func (q *Queries) GetSessionByDigest(ctx context.Context, tokenDigest []byte) (S
 }
 
 const getSessionForUpdate = `-- name: GetSessionForUpdate :one
-SELECT id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+SELECT id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
 FROM sessions WHERE token_digest = $1 FOR UPDATE
 `
 
@@ -196,7 +208,10 @@ func (q *Queries) GetSessionForUpdate(ctx context.Context, tokenDigest []byte) (
 		&i.UserID,
 		&i.TokenDigest,
 		&i.AuthVersion,
+		&i.PolicyRevision,
 		&i.Generation,
+		&i.ProofMethod,
+		&i.ProofVerifiedAt,
 		&i.AuthenticatedAt,
 		&i.CreatedAt,
 		&i.LastActivityAt,
@@ -350,7 +365,7 @@ func (q *Queries) SessionClock(ctx context.Context) (time.Time, error) {
 
 const updateSessionActivity = `-- name: UpdateSessionActivity :one
 UPDATE sessions SET last_activity_at = $2 WHERE id = $1
-RETURNING id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+RETURNING id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
 `
 
 type UpdateSessionActivityParams struct {
@@ -366,7 +381,10 @@ func (q *Queries) UpdateSessionActivity(ctx context.Context, arg UpdateSessionAc
 		&i.UserID,
 		&i.TokenDigest,
 		&i.AuthVersion,
+		&i.PolicyRevision,
 		&i.Generation,
+		&i.ProofMethod,
+		&i.ProofVerifiedAt,
 		&i.AuthenticatedAt,
 		&i.CreatedAt,
 		&i.LastActivityAt,

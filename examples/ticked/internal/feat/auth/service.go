@@ -16,9 +16,9 @@ import (
 // baseAuthService defines the operations needed from hatmax auth.Service.
 type baseAuthService interface {
 	Signup(ctx context.Context, email, password string) (*auth.User, error)
-	Signin(ctx context.Context, email, password string) (*auth.IssuedSession, error)
+	Signin(ctx context.Context, email, password string, requirement auth.AccessRequirement) (*auth.AuthenticationResult, error)
 	Signout(ctx context.Context, sessionToken string) error
-	ValidateSession(ctx context.Context, token string, activity auth.SessionActivity) (*auth.ValidatedSession, error)
+	ValidateSession(ctx context.Context, token string, requirement auth.AccessRequirement, activity auth.SessionActivity) (*auth.ValidatedSession, error)
 }
 
 // userCounter defines the count users operation for first-user detection.
@@ -71,8 +71,8 @@ func (s *Service) Signup(ctx context.Context, email, password string) (*auth.Use
 }
 
 // Signin delegates to the underlying auth service.
-func (s *Service) Signin(ctx context.Context, email, password string) (*auth.IssuedSession, error) {
-	return s.auth.Signin(ctx, email, password)
+func (s *Service) Signin(ctx context.Context, email, password string) (*auth.AuthenticationResult, error) {
+	return s.auth.Signin(ctx, email, password, PasswordRequirement())
 }
 
 // Signout delegates to the underlying auth service.
@@ -81,6 +81,11 @@ func (s *Service) Signout(ctx context.Context, sessionToken string) error {
 }
 
 // ValidateSession delegates to the underlying auth service.
-func (s *Service) ValidateSession(ctx context.Context, token string, activity auth.SessionActivity) (*auth.ValidatedSession, error) {
-	return s.auth.ValidateSession(ctx, token, activity)
+func (s *Service) ValidateSession(ctx context.Context, token string, requirement auth.AccessRequirement, activity auth.SessionActivity) (*auth.ValidatedSession, error) {
+	return s.auth.ValidateSession(ctx, token, requirement, activity)
+}
+
+// PasswordRequirement is Ticked's trusted operation policy, never form data.
+func PasswordRequirement() auth.AccessRequirement {
+	return auth.AccessRequirement{Proof: auth.RequirePassword, Revision: "ticked-password-v1"}
 }

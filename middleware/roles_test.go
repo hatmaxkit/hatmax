@@ -150,7 +150,7 @@ type roleValidator struct {
 	calls    int
 }
 
-func (v *roleValidator) ValidateSession(ctx context.Context, token string, activity auth.SessionActivity) (*auth.ValidatedSession, error) {
+func (v *roleValidator) ValidateSession(ctx context.Context, token string, requirement auth.AccessRequirement, activity auth.SessionActivity) (*auth.ValidatedSession, error) {
 	v.calls++
 	v.activity = activity
 
@@ -176,7 +176,7 @@ func TestRoleSession(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			validator := &roleValidator{result: &auth.ValidatedSession{User: &auth.User{ID: "user", Roles: []string{test.role}}, Session: auth.Session{ID: "session", UserID: "user"}}}
-			handler := RequireRoles(validator, auth.NoActivity, "admin")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handler := RequireRoles(validator, auth.AccessRequirement{Proof: auth.RequirePassword, Revision: "password-v1"}, auth.NoActivity, "admin")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				metadata, ok := auth.GetSession(r.Context())
 
 				userID, idFound := auth.GetUserID(r.Context())

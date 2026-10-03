@@ -181,3 +181,32 @@ Configuration retains validated `session_ttl` (24h), adds `session_inactivity_tt
 Go checks with PostgreSQL precision. The adapter evaluates `clock_timestamp()`
 after locks; it never trusts a timestamp sampled before the wait. Relevant
 activity conditionally updates the stored timestamp only when the cadence elapses.
+
+## Slice 2 Contract
+
+`AccessRequirement` is an owned value: `Proof` (password, MFA or phishing-resistant
+MFA), `Revision` (1 through 128 printable ASCII bytes) and `MaxAge` (zero disables
+freshness; otherwise 1s through absolute lifetime, whole microseconds). It is a
+trusted server argument for sign-in, validation and middleware; no request field
+can select it. Invalid requirements fail before verification/storage.
+
+`VerifiedProof` has a closed supported `Method` and `VerifiedAt`; only password
+is currently supported. Safe `Session` adds policy revision and proof metadata;
+SQL adds matching revision, method and verification time with constraints.
+The core password verifier produces the facts. Adapters validate stored facts,
+current revision, freshness and requirement after locks and before activity.
+
+`AuthenticationResult` distinguishes completed, pending enrollment, pending proof
+and denied with finite reasons. Completed results alone contain `IssuedSession`.
+Unmet MFA uses enrollment flags only to describe the next required step, never as
+proof; phishing-resistant MFA is denied as unavailable. All unmet results carry
+no issued/continuation secret or stored row. Invalid credentials remain classified
+errors with no result; storage/verifier errors are operating failures. There is
+no public completion API, asserted-proof callback, pending secret or table.
+
+`Signin` receives a requirement and returns this result. `CreateSession` receives
+the same trusted requirement. `ValidateSession` receives requirement before
+activity throughout service/storage/middleware. Ticked owns one explicit
+password-only revision and checks completed outcome before setting a cookie.
+Pending/unavailable outcomes render a bounded explanatory failure, with no
+continuation endpoint or implied MFA completion.

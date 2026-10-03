@@ -24,7 +24,7 @@ func TestRequireAuth(t *testing.T) {
 
 	// Create a test user and session
 	_, _ = svc.Signup(context.Background(), "test@example.com", "correct-password-123")
-	session, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
+	session, _ := testSignin(svc, context.Background(), "test@example.com", "correct-password-123")
 
 	// Handler verifies current identity and the safe session context.
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +50,7 @@ func TestRequireAuth(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	middleware := RequireAuth(svc, RelevantActivity)
+	middleware := RequireAuth(svc, testRequirement(), RelevantActivity)
 	wrappedHandler := middleware(handler)
 
 	tests := []struct {
@@ -117,7 +117,7 @@ func TestOptionalAuth(t *testing.T) {
 
 	// Create a test user and session
 	_, _ = svc.Signup(context.Background(), "test@example.com", "correct-password-123")
-	session, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
+	session, _ := testSignin(svc, context.Background(), "test@example.com", "correct-password-123")
 
 	// Handler that checks if user is in context
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -129,7 +129,7 @@ func TestOptionalAuth(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	middleware := OptionalAuth(svc, NoActivity)
+	middleware := OptionalAuth(svc, testRequirement(), NoActivity)
 	_ = middleware(handler)
 
 	tests := []struct {

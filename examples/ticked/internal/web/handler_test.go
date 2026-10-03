@@ -721,14 +721,14 @@ func (f *fakeAuthSvc) Signup(ctx context.Context, email, password string) (*auth
 	return f.user, f.signupErr
 }
 
-func (f *fakeAuthSvc) Signin(ctx context.Context, email, password string) (*auth.IssuedSession, error) {
-	return f.session, f.signinErr
+func (f *fakeAuthSvc) Signin(ctx context.Context, email, password string) (*auth.AuthenticationResult, error) {
+	return &auth.AuthenticationResult{Outcome: auth.AuthenticationCompleted, Issued: f.session}, f.signinErr
 }
 
 func (f *fakeAuthSvc) Signout(ctx context.Context, sessionToken string) error {
 	return f.signoutErr
 }
 
-func (f *fakeAuthSvc) ValidateSession(ctx context.Context, token string, activity auth.SessionActivity) (*auth.ValidatedSession, error) {
+func (f *fakeAuthSvc) ValidateSession(ctx context.Context, token string, requirement auth.AccessRequirement, activity auth.SessionActivity) (*auth.ValidatedSession, error) {
 	return &auth.ValidatedSession{User: f.user}, f.validateErr
 }

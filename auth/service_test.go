@@ -76,7 +76,7 @@ func (m *mockQueries) GetUserByID(ctx context.Context, id string) (*User, error)
 	return &snapshot, nil
 }
 
-func (m *mockQueries) CreateSession(ctx context.Context, state CredentialState, session SessionRecord) (*Session, error) {
+func (m *mockQueries) CreateSession(ctx context.Context, state CredentialState, session SessionRecord, requirement AccessRequirement) (*Session, error) {
 	user := m.users[state.UserID]
 	if user == nil || !user.Active || user.AuthVersion != state.Version {
 		return nil, ErrCredentialChanged
@@ -111,7 +111,7 @@ func (m *mockQueries) ReplacePassword(ctx context.Context, state CredentialState
 	return &copy, nil
 }
 
-func (m *mockQueries) ValidateSession(ctx context.Context, digest SessionDigest, activity SessionActivity, interval time.Duration) (*ValidatedSession, error) {
+func (m *mockQueries) ValidateSession(ctx context.Context, digest SessionDigest, requirement AccessRequirement, activity SessionActivity, interval time.Duration) (*ValidatedSession, error) {
 	err := ctx.Err()
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (m *mockQueries) ValidateSession(ctx context.Context, digest SessionDigest,
 
 	now := time.Now()
 
-	err = session.Check(now)
+	err = requirement.Evaluate(session.Session, now)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func expiredFixture(t *testing.T, queries *mockQueries, user *User) string {
 
 	now := time.Now().Add(-2 * time.Hour)
 	queries.sessions[digest] = &SessionRecord{Digest: digest, Session: Session{
-		ID: "expired-id", UserID: user.ID, AuthVersion: user.AuthVersion, Generation: 1,
+		ID: "expired-id", UserID: user.ID, AuthVersion: user.AuthVersion, PolicyRevision: "password-v1", Generation: 1, Proof: VerifiedProof{Method: PasswordProof, VerifiedAt: now},
 		AuthenticatedAt: now, CreatedAt: now, LastActivityAt: now, ExpiresAt: now.Add(time.Hour), InactivityTTL: time.Minute,
 	}}
 
@@ -309,7 +309,7 @@ func TestSignin(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			session, err := svc.Signin(context.Background(), tt.email, tt.password)
+			session, err := testSignin(svc, context.Background(), tt.email, tt.password)
 
 			if tt.wantErr != nil {
 				if err == nil {
@@ -359,7 +359,7 @@ func TestSigninInactiveUser(t *testing.T) {
 	user.Active = false
 	queries.users[user.ID] = user
 
-	_, err := svc.Signin(context.Background(), "inactive@example.com", "correct-password-123")
+	_, err := testSignin(svc, context.Background(), "inactive@example.com", "correct-password-123")
 	if err == nil {
 		t.Error("Signin() with inactive user should return error")
 	}
@@ -373,7 +373,7 @@ func TestSignout(t *testing.T) {
 
 	// Create a test user and session
 	_, _ = svc.Signup(context.Background(), "test@example.com", "correct-password-123")
-	session, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
+	session, _ := testSignin(svc, context.Background(), "test@example.com", "correct-password-123")
 
 	tests := []struct {
 		name         string
@@ -415,7 +415,7 @@ func TestSignout(t *testing.T) {
 			}
 
 			// Verify session was deleted
-			_, err = svc.ValidateSession(context.Background(), session.Token, NoActivity)
+			_, err = svc.ValidateSession(context.Background(), session.Token, testRequirement(), NoActivity)
 			if !errors.Is(err, ErrSessionNotFound) {
 				t.Error("Signout() session was not deleted")
 			}
@@ -431,7 +431,7 @@ func TestValidateSession(t *testing.T) {
 
 	// Create a test user and session
 	user, _ := svc.Signup(context.Background(), "test@example.com", "correct-password-123")
-	session, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
+	session, _ := testSignin(svc, context.Background(), "test@example.com", "correct-password-123")
 
 	expiredToken := expiredFixture(t, queries, user)
 
@@ -463,7 +463,7 @@ func TestValidateSession(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := svc.ValidateSession(context.Background(), tt.token, NoActivity)
+			got, err := svc.ValidateSession(context.Background(), tt.token, testRequirement(), NoActivity)
 
 			if tt.err != nil {
 				if err == nil {
@@ -500,13 +500,13 @@ func TestValidateSessionInactiveUser(t *testing.T) {
 
 	// Create a test user and session
 	user, _ := svc.Signup(context.Background(), "test@example.com", "correct-password-123")
-	session, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
+	session, _ := testSignin(svc, context.Background(), "test@example.com", "correct-password-123")
 
 	// Mark user as inactive
 	user.Active = false
 	queries.users[user.ID] = user
 
-	_, err := svc.ValidateSession(context.Background(), session.Token, NoActivity)
+	_, err := svc.ValidateSession(context.Background(), session.Token, testRequirement(), NoActivity)
 	if err == nil {
 		t.Error("ValidateSession() with inactive user should return error")
 	}
@@ -582,7 +582,7 @@ func TestCleanupExpiredSessions(t *testing.T) {
 	user, _ := svc.Signup(context.Background(), "test@example.com", "correct-password-123")
 
 	// Create a valid session
-	validSession, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
+	validSession, _ := testSignin(svc, context.Background(), "test@example.com", "correct-password-123")
 
 	expiredToken := expiredFixture(t, queries, user)
 
@@ -593,13 +593,13 @@ func TestCleanupExpiredSessions(t *testing.T) {
 	}
 
 	// Verify expired session was deleted
-	_, err = svc.ValidateSession(context.Background(), expiredToken, NoActivity)
+	_, err = svc.ValidateSession(context.Background(), expiredToken, testRequirement(), NoActivity)
 	if !errors.Is(err, ErrSessionNotFound) {
 		t.Error("CleanupExpiredSessions() expired session was not deleted")
 	}
 
 	// Verify valid session still exists
-	_, err = svc.ValidateSession(context.Background(), validSession.Token, NoActivity)
+	_, err = svc.ValidateSession(context.Background(), validSession.Token, testRequirement(), NoActivity)
 	if err != nil {
 		t.Error("CleanupExpiredSessions() valid session was deleted")
 	}

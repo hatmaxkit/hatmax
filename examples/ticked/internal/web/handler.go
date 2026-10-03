@@ -17,6 +17,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"hatmax.adrianpk.com/auth"
 	"hatmax.adrianpk.com/examples/ticked/internal/feat/audit"
+	featureauth "hatmax.adrianpk.com/examples/ticked/internal/feat/auth"
 	"hatmax.adrianpk.com/examples/ticked/internal/feat/list"
 	"hatmax.adrianpk.com/htmx"
 	"hatmax.adrianpk.com/log"
@@ -27,9 +28,9 @@ import (
 // authService defines the auth operations needed by the handler.
 type authService interface {
 	Signup(ctx context.Context, email, password string) (*auth.User, error)
-	Signin(ctx context.Context, email, password string) (*auth.IssuedSession, error)
+	Signin(ctx context.Context, email, password string) (*auth.AuthenticationResult, error)
 	Signout(ctx context.Context, sessionToken string) error
-	ValidateSession(ctx context.Context, token string, activity auth.SessionActivity) (*auth.ValidatedSession, error)
+	ValidateSession(ctx context.Context, token string, requirement auth.AccessRequirement, activity auth.SessionActivity) (*auth.ValidatedSession, error)
 }
 
 // authQueries defines the auth query operations needed by the handler.
@@ -128,7 +129,7 @@ func (h *Handler) requireAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		validated, err := h.authSvc.ValidateSession(r.Context(), cookie.Value, auth.RelevantActivity)
+		validated, err := h.authSvc.ValidateSession(r.Context(), cookie.Value, featureauth.PasswordRequirement(), auth.RelevantActivity)
 		if err != nil {
 			auth.ClearSessionCookie(w)
 			http.Redirect(w, r, "/signin", http.StatusSeeOther)
@@ -145,7 +146,7 @@ func (h *Handler) requireAuth(next http.Handler) http.Handler {
 
 // requireRoles returns a middleware that validates authentication and roles.
 func (h *Handler) requireRoles(roles ...string) func(http.Handler) http.Handler {
-	return middleware.RequireRoles(h.authSvc, auth.RelevantActivity, roles...)
+	return middleware.RequireRoles(h.authSvc, featureauth.PasswordRequirement(), auth.RelevantActivity, roles...)
 }
 
 // --- Auth handlers ---
@@ -178,10 +179,17 @@ func (h *Handler) handleSignin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.authSvc.Signin(r.Context(), email, password)
+	result, err := h.authSvc.Signin(r.Context(), email, password)
 	if err != nil {
 		h.log.Errorf("signin failed for %s: %v", email, err)
 		h.renderSigninError(w, "Invalid email or password")
+
+		return
+	}
+
+	session, completed := result.CompletedSession()
+	if !completed {
+		h.renderSigninError(w, "Additional authentication is required and unavailable")
 
 		return
 	}
@@ -232,9 +240,16 @@ func (h *Handler) handleSignup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.authSvc.Signin(r.Context(), email, password)
+	result, err := h.authSvc.Signin(r.Context(), email, password)
 	if err != nil {
 		http.Redirect(w, r, "/signin", http.StatusSeeOther)
+
+		return
+	}
+
+	session, completed := result.CompletedSession()
+	if !completed {
+		h.renderSignupError(w, "Additional authentication is required and unavailable")
 
 		return
 	}

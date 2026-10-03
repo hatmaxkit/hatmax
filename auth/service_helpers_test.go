@@ -7,6 +7,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"hatmax.adrianpk.com/config"
@@ -27,4 +28,22 @@ func newServiceForTest(t *testing.T, q Queries, cfg *config.Config, logger log.L
 	}
 
 	return svc
+}
+
+func testRequirement() AccessRequirement {
+	return AccessRequirement{Proof: RequirePassword, Revision: "password-v1"}
+}
+
+func testSignin(svc *Service, ctx context.Context, email, password string) (*IssuedSession, error) {
+	result, err := svc.Signin(ctx, email, password, testRequirement())
+	if err != nil {
+		return nil, err
+	}
+
+	issued, ok := result.CompletedSession()
+	if !ok {
+		return nil, fmt.Errorf("unexpected test authentication outcome")
+	}
+
+	return issued, nil
 }

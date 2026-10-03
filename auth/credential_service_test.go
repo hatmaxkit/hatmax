@@ -103,7 +103,7 @@ func TestCredentialServicePolicy(t *testing.T) {
 				t.Fatal("checker saw an unnormalized candidate")
 			}
 
-			session, err := svc.Signin(context.Background(), user.Email, tc.password)
+			session, err := testSignin(svc, context.Background(), user.Email, tc.password)
 			if err != nil || session == nil || calls != 1 {
 				t.Fatalf("sign-in reran policy or failed: %v; calls %d", err, calls)
 			}
@@ -147,7 +147,7 @@ func TestCredentialServiceFailures(t *testing.T) {
 				cancel()
 			}
 
-			session, err := svc.Signin(ctx, user.Email, tc.password)
+			session, err := testSignin(svc, ctx, user.Email, tc.password)
 			if session != nil || !errors.Is(err, tc.want) || len(q.sessions) != 0 {
 				t.Fatalf("failed proof issued a session: %v; want %v", err, tc.want)
 			}

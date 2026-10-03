@@ -19,7 +19,10 @@ type Session struct {
 	UserID          string    `json:"user_id"`
 	TokenDigest     []byte    `json:"token_digest"`
 	AuthVersion     int64     `json:"auth_version"`
+	PolicyRevision  string    `json:"policy_revision"`
 	Generation      int64     `json:"generation"`
+	ProofMethod     int16     `json:"proof_method"`
+	ProofVerifiedAt time.Time `json:"proof_verified_at"`
 	AuthenticatedAt time.Time `json:"authenticated_at"`
 	CreatedAt       time.Time `json:"created_at"`
 	LastActivityAt  time.Time `json:"last_activity_at"`

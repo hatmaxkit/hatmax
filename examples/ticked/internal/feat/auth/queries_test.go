@@ -423,6 +423,7 @@ func TestToAuthSession(t *testing.T) {
 		UserID:       "user1",
 		TokenDigest:  make([]byte, 32),
 		InactivityUs: time.Minute.Microseconds(),
+		ProofMethod:  int16(auth.PasswordProof),
 		ExpiresAt:    expires,
 		CreatedAt:    now,
 	}

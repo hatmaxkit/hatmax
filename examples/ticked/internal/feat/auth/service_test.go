@@ -29,15 +29,15 @@ func (f *fakeBaseAuth) Signup(ctx context.Context, email, password string) (*aut
 	return f.user, f.signupErr
 }
 
-func (f *fakeBaseAuth) Signin(ctx context.Context, email, password string) (*auth.IssuedSession, error) {
-	return f.session, f.signinErr
+func (f *fakeBaseAuth) Signin(ctx context.Context, email, password string, requirement auth.AccessRequirement) (*auth.AuthenticationResult, error) {
+	return &auth.AuthenticationResult{Outcome: auth.AuthenticationCompleted, Issued: f.session}, f.signinErr
 }
 
 func (f *fakeBaseAuth) Signout(ctx context.Context, sessionToken string) error {
 	return f.signoutErr
 }
 
-func (f *fakeBaseAuth) ValidateSession(ctx context.Context, token string, activity auth.SessionActivity) (*auth.ValidatedSession, error) {
+func (f *fakeBaseAuth) ValidateSession(ctx context.Context, token string, requirement auth.AccessRequirement, activity auth.SessionActivity) (*auth.ValidatedSession, error) {
 	return &auth.ValidatedSession{User: f.user}, f.validateErr
 }
 
@@ -206,8 +206,8 @@ func TestService_Signin(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if session.Token != "token123" {
-		t.Errorf("expected token token123, got %s", session.Token)
+	if session.Issued.Token != "token123" {
+		t.Errorf("expected token token123, got %s", session.Issued.Token)
 	}
 }
 
@@ -279,7 +279,7 @@ func TestService_ValidateSession(t *testing.T) {
 		log:     logger,
 	}
 
-	user, err := svc.ValidateSession(context.Background(), "token123", auth.NoActivity)
+	user, err := svc.ValidateSession(context.Background(), "token123", PasswordRequirement(), auth.NoActivity)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -302,7 +302,7 @@ func TestService_ValidateSession_Error(t *testing.T) {
 		log:     logger,
 	}
 
-	_, err := svc.ValidateSession(context.Background(), "bad-token", auth.NoActivity)
+	_, err := svc.ValidateSession(context.Background(), "bad-token", PasswordRequirement(), auth.NoActivity)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}

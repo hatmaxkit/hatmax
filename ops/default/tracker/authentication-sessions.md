@@ -35,7 +35,7 @@ Execution gate: Open
 | --- | --- | --- | --- | --- |
 | T1.1 | completed | `feat(auth): enforce secure session lifecycle` | `7b8d950beed02aaf2dcdd25c8da785173b93c13d` | Stored/issued types, bounded secrets/lifetimes, coherent current-state validation and updated active consumers |
 | T1.2 | completed | `test(auth): verify session lifecycle boundaries` | `61b65a17cc5a693d85a328b0d78e48862c83ceff` | Canonical parser fuzz, exact expiry/time/coalescing and real Postgres stale-state/rollback; AS-01/AS-02/AS-06/AS-09 |
-| T2.1 | pending | `feat(auth): enforce required proof and authentication outcomes` | pending | Trusted policy revision, verified password facts, safe metadata and distinct non-authorizing outcomes |
+| T2.1 | implemented | `feat(auth): enforce required proof and authentication outcomes` | pending | Trusted policy revision, verified password facts, safe metadata and distinct non-authorizing outcomes |
 | T2.2 | pending | `test(auth): verify proof outcome isolation` | pending | Password success, strong-policy denial, freshness/equality and pending/full isolation; AS-03/AS-04 |
 | T3.1 | pending | `feat(auth): add atomic session reauthentication and control` | pending | Rotation/revocation/management/admission/cleanup with finite required storage contracts |
 | T3.2 | pending | `test(auth): verify session control integration` | pending | Real concurrent rotation/revocation/state/capacity/rollback and consumer integration; AS-05 through AS-09 |
@@ -102,3 +102,15 @@ Slice 1 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/95. Merge on
 2026-10-03 was verified at `b8012ff89551b5027a9686d42ed3ddf5ba89495b` on canonical dev.
 Slice 2 is activated under the same approved set; full validation remains after
 all three merges.
+
+## Slice 2 Validation Bindings
+
+Before T2.2, the exact real PostgreSQL selector is:
+
+- `go test -tags=integration -race -count=1 -run '^Test(ProofTransactions|SessionTransactions|CredentialTransactions)$' ./examples/ticked/internal/feat/auth`
+
+This establishes actual password completion, stronger-policy no-issuance,
+revision/proof checks before activity and freshness evaluated after lock waits.
+Deterministic unit tests cover exact age equality, unsupported/corrupt methods,
+future times and malformed requirements; transport tests reject every
+non-completed result before setting cookies.

@@ -16,7 +16,7 @@ const (
 
 // RequireAuth is a middleware that requires authentication.
 // If the user is not authenticated, it redirects to the signin page.
-func RequireAuth(svc *Service, activity SessionActivity) func(http.Handler) http.Handler {
+func RequireAuth(svc *Service, requirement AccessRequirement, activity SessionActivity) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			cookie, err := r.Cookie(SessionCookieName)
@@ -26,7 +26,7 @@ func RequireAuth(svc *Service, activity SessionActivity) func(http.Handler) http
 				return
 			}
 
-			validated, err := svc.ValidateSession(r.Context(), cookie.Value, activity)
+			validated, err := svc.ValidateSession(r.Context(), cookie.Value, requirement, activity)
 			if err != nil {
 				http.Redirect(w, r, "/signin", http.StatusSeeOther)
 
@@ -43,7 +43,7 @@ func RequireAuth(svc *Service, activity SessionActivity) func(http.Handler) http
 
 // OptionalAuth is a middleware that adds the user to the context if authenticated.
 // If the user is not authenticated, it continues without adding the user.
-func OptionalAuth(svc *Service, activity SessionActivity) func(http.Handler) http.Handler {
+func OptionalAuth(svc *Service, requirement AccessRequirement, activity SessionActivity) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			cookie, err := r.Cookie(SessionCookieName)
@@ -53,7 +53,7 @@ func OptionalAuth(svc *Service, activity SessionActivity) func(http.Handler) htt
 				return
 			}
 
-			validated, err := svc.ValidateSession(r.Context(), cookie.Value, activity)
+			validated, err := svc.ValidateSession(r.Context(), cookie.Value, requirement, activity)
 			if err != nil {
 				next.ServeHTTP(w, r)
 

@@ -65,7 +65,9 @@ type Session struct {
 	ID              string
 	UserID          string
 	AuthVersion     int64
+	PolicyRevision  string
 	Generation      int64
+	Proof           VerifiedProof
 	AuthenticatedAt time.Time
 	CreatedAt       time.Time
 	LastActivityAt  time.Time

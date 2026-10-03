@@ -36,13 +36,13 @@ type changingQueries struct {
 	change func(context.Context, core.CredentialState) error
 }
 
-func (q changingQueries) CreateSession(ctx context.Context, state core.CredentialState, session core.SessionRecord) (*core.Session, error) {
+func (q changingQueries) CreateSession(ctx context.Context, state core.CredentialState, session core.SessionRecord, requirement core.AccessRequirement) (*core.Session, error) {
 	err := q.change(ctx, state)
 	if err != nil {
 		return nil, err
 	}
 
-	return q.Queries.CreateSession(ctx, state, session)
+	return q.Queries.CreateSession(ctx, state, session, requirement)
 }
 
 func credentialDatabase(t *testing.T) (*sql.DB, *Queries, *config.Config) {
@@ -178,7 +178,7 @@ func TestCredentialTransactions(t *testing.T) {
 			t.Fatalf("uniqueness: users %d, success %d, conflicts %d, error %v", count, successes, conflicts, err)
 		}
 
-		session, err := svc.Signin(t.Context(), "unicode@example.com", password)
+		session, err := testSignin(svc, t.Context(), "unicode@example.com", password)
 		if err != nil || session == nil {
 			t.Fatalf("Unicode sign-in failed: %v", err)
 		}
@@ -196,7 +196,7 @@ func TestCredentialTransactions(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		_, err = svc.Signin(t.Context(), user.Email, "original safe password")
+		_, err = testSignin(svc, t.Context(), user.Email, "original safe password")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -305,7 +305,7 @@ func TestCredentialTransactions(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		session, err := staleSvc.Signin(t.Context(), user.Email, "original safe password")
+		session, err := testSignin(staleSvc, t.Context(), user.Email, "original safe password")
 		if session != nil || !errors.Is(err, core.ErrCredentialChanged) {
 			t.Fatalf("stale proof issued a session: %v", err)
 		}
@@ -348,7 +348,7 @@ func TestCredentialTransactions(t *testing.T) {
 		result := make(chan error, 1)
 
 		go func() {
-			_, sessionErr := q.CreateSession(ctx, state, core.SessionRecord{Session: core.Session{ID: model.NewID(), UserID: user.ID, AuthVersion: state.Version, Generation: 1, AuthenticatedAt: time.Now().Add(-time.Second), CreatedAt: time.Now().Add(-2 * time.Second), LastActivityAt: time.Now().Add(-time.Second), ExpiresAt: time.Now().Add(time.Hour), InactivityTTL: time.Minute}})
+			_, sessionErr := q.CreateSession(ctx, state, core.SessionRecord{Session: core.Session{ID: model.NewID(), UserID: user.ID, AuthVersion: state.Version, PolicyRevision: PasswordRequirement().Revision, Generation: 1, Proof: core.VerifiedProof{Method: core.PasswordProof, VerifiedAt: time.Now().Add(-1500 * time.Millisecond)}, AuthenticatedAt: time.Now().Add(-time.Second), CreatedAt: time.Now().Add(-2 * time.Second), LastActivityAt: time.Now().Add(-time.Second), ExpiresAt: time.Now().Add(time.Hour), InactivityTTL: time.Minute}}, PasswordRequirement())
 			result <- sessionErr
 		}()
 
@@ -406,7 +406,7 @@ func TestCredentialTransactions(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		_, err = svc.Signin(t.Context(), user.Email, "original safe password")
+		_, err = testSignin(svc, t.Context(), user.Email, "original safe password")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -450,4 +450,16 @@ func TestCredentialTransactions(t *testing.T) {
 			t.Fatalf("partial durable replacement: version %d, sessions %d, error %v", current.AuthVersion, sessions, err)
 		}
 	})
+}
+
+func testSignin(svc *core.Service, ctx context.Context, email, password string) (*core.IssuedSession, error) {
+	result, err := svc.Signin(ctx, email, password, PasswordRequirement())
+	if err != nil {
+		return nil, err
+	}
+	issued, ok := result.CompletedSession()
+	if !ok {
+		return nil, fmt.Errorf("unexpected test authentication outcome")
+	}
+	return issued, nil
 }

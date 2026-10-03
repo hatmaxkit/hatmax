@@ -139,7 +139,7 @@ func (q *Queries) beginCredentialTx(ctx context.Context) (*sql.Tx, error) {
 
 // CreateSession atomically checks current credential/account state and inserts
 // the session. Activation/password changes serialize through the user row lock.
-func (q *Queries) CreateSession(ctx context.Context, state auth.CredentialState, session auth.SessionRecord) (*auth.Session, error) {
+func (q *Queries) CreateSession(ctx context.Context, state auth.CredentialState, session auth.SessionRecord, requirement auth.AccessRequirement) (*auth.Session, error) {
 	if session.UserID != state.UserID || session.AuthVersion != state.Version || session.Generation != 1 {
 		return nil, auth.ErrCredentialChanged
 	}
@@ -162,13 +162,13 @@ func (q *Queries) CreateSession(ctx context.Context, state auth.CredentialState,
 		return nil, err
 	}
 
-	err = session.Check(now)
+	err = requirement.Evaluate(session.Session, now)
 	if err != nil {
 		return nil, err
 	}
 
 	stored, err := queries.CreateSession(ctx, dal.CreateSessionParams{
-		ID: session.ID, UserID: state.UserID, TokenDigest: session.Digest[:], AuthVersion: session.AuthVersion, Generation: session.Generation,
+		ID: session.ID, UserID: state.UserID, TokenDigest: session.Digest[:], AuthVersion: session.AuthVersion, PolicyRevision: session.PolicyRevision, Generation: session.Generation, ProofMethod: int16(session.Proof.Method), ProofVerifiedAt: session.Proof.VerifiedAt,
 		AuthenticatedAt: session.AuthenticatedAt, CreatedAt: session.CreatedAt, LastActivityAt: session.LastActivityAt,
 		ExpiresAt: session.ExpiresAt, InactivityUs: session.InactivityTTL.Microseconds(),
 	})
@@ -191,7 +191,7 @@ func (q *Queries) CreateSession(ctx context.Context, state auth.CredentialState,
 
 // ValidateSession serializes account mutation and session activity. The clock
 // is sampled after both row locks so a lock wait cannot revive expired state.
-func (q *Queries) ValidateSession(ctx context.Context, digest auth.SessionDigest, activity auth.SessionActivity, interval time.Duration) (*auth.ValidatedSession, error) {
+func (q *Queries) ValidateSession(ctx context.Context, digest auth.SessionDigest, requirement auth.AccessRequirement, activity auth.SessionActivity, interval time.Duration) (*auth.ValidatedSession, error) {
 	if activity != auth.NoActivity && activity != auth.RelevantActivity {
 		return nil, auth.ErrSessionActivity
 	}
@@ -245,7 +245,7 @@ func (q *Queries) ValidateSession(ctx context.Context, digest auth.SessionDigest
 		return nil, err
 	}
 
-	err = metadata.Check(now)
+	err = requirement.Evaluate(*metadata, now)
 	if err != nil {
 		return nil, err
 	}
@@ -378,12 +378,12 @@ func toAuthUser(u dal.User) *auth.User {
 }
 
 func toAuthSession(s dal.Session) (*auth.Session, error) {
-	if len(s.TokenDigest) != 32 || s.InactivityUs < time.Minute.Microseconds() || s.InactivityUs > (30*24*time.Hour).Microseconds() {
+	if s.ProofMethod != int16(auth.PasswordProof) || len(s.TokenDigest) != 32 || s.InactivityUs < time.Minute.Microseconds() || s.InactivityUs > (30*24*time.Hour).Microseconds() {
 		return nil, auth.ErrSessionRecord
 	}
 
 	return &auth.Session{
-		ID: s.ID, UserID: s.UserID, AuthVersion: s.AuthVersion, Generation: s.Generation,
+		ID: s.ID, UserID: s.UserID, AuthVersion: s.AuthVersion, PolicyRevision: s.PolicyRevision, Generation: s.Generation, Proof: auth.VerifiedProof{Method: auth.ProofMethod(s.ProofMethod), VerifiedAt: s.ProofVerifiedAt},
 		AuthenticatedAt: s.AuthenticatedAt, CreatedAt: s.CreatedAt, LastActivityAt: s.LastActivityAt,
 		ExpiresAt: s.ExpiresAt, InactivityTTL: time.Duration(s.InactivityUs) * time.Microsecond,
 	}, nil
