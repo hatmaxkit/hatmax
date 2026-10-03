@@ -126,7 +126,8 @@ func (s *Service) Signup(ctx context.Context, email, password string) (*User, er
 	return user, nil
 }
 
-// Signin validates credentials and creates a session.
+// Signin verifies a password and applies trusted policy before issuance.
+// Unmet requirements return non-authorizing outcomes with no secret or row.
 func (s *Service) Signin(ctx context.Context, email, password string, requirement AccessRequirement) (*AuthenticationResult, error) {
 	err := requirement.Check(s.sessions.TTL)
 	if err != nil {

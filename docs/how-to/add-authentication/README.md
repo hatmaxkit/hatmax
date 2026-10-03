@@ -19,9 +19,9 @@ type Queries interface {
 	CreateUser(context.Context, string, string, string, time.Time, time.Time) (*User, error)
 	GetUserByEmail(context.Context, string) (*User, error)
 	GetUserByID(context.Context, string) (*User, error)
-	CreateSession(context.Context, CredentialState, SessionRecord) (*Session, error)
+	CreateSession(context.Context, CredentialState, SessionRecord, AccessRequirement) (*Session, error)
 	ReplacePassword(context.Context, CredentialState, string, time.Time) (*User, error)
-	ValidateSession(context.Context, SessionDigest, SessionActivity, time.Duration) (*ValidatedSession, error)
+	ValidateSession(context.Context, SessionDigest, AccessRequirement, SessionActivity, time.Duration) (*ValidatedSession, error)
 	DeleteSession(context.Context, SessionDigest) error
 	DeleteExpiredSessions(context.Context, int) (int64, error)
 }
@@ -46,10 +46,17 @@ Use `Signup`, `Signin`, `Signout`, and `ValidateSession` from handlers. Set the
 session cookie after sign-in:
 
 ```go
-session, err := account.Signin(r.Context(), email, password)
+required := auth.AccessRequirement{Proof: auth.RequirePassword, Revision: "password-v1"}
+result, err := account.Signin(r.Context(), email, password, required)
 if err != nil {
 	http.Error(w, "invalid credentials", http.StatusUnauthorized)
 	return
+}
+
+session, completed := result.CompletedSession()
+if !completed {
+    http.Error(w, "additional authentication unavailable", http.StatusUnauthorized)
+    return
 }
 
 auth.SetSessionCookie(w, session.Token, int(time.Until(session.ExpiresAt).Seconds()))
@@ -59,7 +66,7 @@ auth.SetSessionCookie(w, session.Token, int(time.Until(session.ExpiresAt).Second
 
 ```go
 r.Group(func(r chi.Router) {
-	r.Use(auth.RequireAuth(account, auth.RelevantActivity))
+	r.Use(auth.RequireAuth(account, required, auth.RelevantActivity))
 	r.Get("/account", accountPage)
 })
 ```

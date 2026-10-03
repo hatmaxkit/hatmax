@@ -39,7 +39,11 @@ failed when that distinction would leak account information.
 
 ## Carry the Session in a Secure Cookie
 
-After sign-in, set the returned token with `auth.SetSessionCookie`. Hatmax uses
+Sign-in requires current server policy and returns an authentication outcome.
+Only `result.CompletedSession()` permits setting its token with
+`auth.SetSessionCookie`. Pending enrollment/proof and unavailable-method denial
+contain no session or continuation and must not set a cookie. Password proof
+cannot satisfy MFA or phishing resistance, including for an enrolled user. Hatmax uses
 the `session` name and applies `HttpOnly`, `Secure`, `SameSite=Lax`, path `/`,
 and the supplied maximum age. Sign-out deletes the durable session and clears
 the browser cookie.
@@ -57,8 +61,9 @@ identity redirects to
 Install authentication on the narrowest route group that needs it:
 
 ```go
+required := auth.AccessRequirement{Proof: auth.RequirePassword, Revision: "password-v1"}
 router.Group(func(router chi.Router) {
-	router.Use(auth.RequireAuth(authService, auth.RelevantActivity))
+	router.Use(auth.RequireAuth(authService, required, auth.RelevantActivity))
 	router.Get("/invoices", invoiceHandler.page)
 })
 ```
@@ -67,7 +72,10 @@ Handlers retrieve the established identity with `auth.GetUser` or
 `auth.GetUserID`; `auth.GetSession` exposes safe lifecycle metadata. They do not
 parse session tokens again. Select `auth.NoActivity` for background polling;
 trusted relevant activity refreshes inactivity only at the persistence cadence.
-It never extends absolute expiry or the authentication time.
+It never extends absolute expiry or the authentication time. Operation policy
+can require recent proof with `MaxAge`; exact age equality rejects it. Session
+policy revisions must match current trusted policy, and activity cannot refresh
+password verification time.
 
 ## Separate Authentication from Authorization
 

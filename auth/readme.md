@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # auth
 
-Session-based authentication service with optional 2FA support.
+Password-authenticated sessions with explicit access policy and bounded lifecycle.
 
 ## Password policy
 
@@ -28,11 +28,15 @@ if err != nil { return err }
 // Signup
 user, err := svc.Signup(ctx, "user@example.com", "a distinct password phrase")
 
-// Signin (returns session with token)
-session, err := svc.Signin(ctx, "user@example.com", "a distinct password phrase")
+// Trusted operation policy, selected by server code.
+required := auth.AccessRequirement{Proof: auth.RequirePassword, Revision: "password-v1"}
+result, err := svc.Signin(ctx, "user@example.com", "a distinct password phrase", required)
+if err != nil { return err }
+session, completed := result.CompletedSession()
+if !completed { return auth.ErrSessionProof }
 
 // Validate session (e.g., in middleware)
-validated, err := svc.ValidateSession(ctx, sessionToken, auth.RelevantActivity)
+validated, err := svc.ValidateSession(ctx, sessionToken, required, auth.RelevantActivity)
 
 // Signout
 svc.Signout(ctx, sessionToken)
@@ -40,7 +44,8 @@ svc.Signout(ctx, sessionToken)
 
 ## Sessions
 
-`Signin` returns `IssuedSession`: safe lifecycle metadata plus a canonical padded
+`Signin` returns an `AuthenticationResult`. Only its completed outcome carries
+`IssuedSession`: safe lifecycle metadata plus a canonical padded
 URL Base64 token made from 32 random bytes. Send that token only in the issuance
 response/cookie. `SessionRecord` stores its purpose-separated SHA-256 digest;
 `Session` and `ValidatedSession` contain no bearer or digest. Validation returns
@@ -59,16 +64,38 @@ not establish relevant activity.
 timeout at construction; malformed settings fail instead of falling back.
 See the [session reference](../docs/reference/authentication/README.md#session-lifecycle).
 
+## Required proof
+
+`AccessRequirement` carries trusted `Proof`, `Revision` and optional `MaxAge`.
+Every sign-in/validation and auth middleware call requires it. Revisions are
+nonempty printable ASCII of at most 128 bytes; applications own their lifecycle
+and keep secrets/personal data out of them. `MaxAge` zero disables freshness;
+otherwise it is 1 second through absolute lifetime in whole microseconds.
+Exact freshness equality rejects access. Activity cannot renew proof time.
+
+The core verifier currently produces only `VerifiedProof{Method: PasswordProof}`
+and its actual verification time. Session metadata carries those facts plus
+`PolicyRevision`. A policy mismatch or unmet stronger/recent proof fails before
+touching activity. Strong profiles never become password-only access.
+
+Unmet MFA returns pending enrollment or proof according to the account's setup
+state, with `AuthenticationMethodUnavailable`. Phishing-resistant MFA returns
+denied/unavailable. Each has no session, secret, pending row or executable
+continuation. Setup flags choose explanatory state only; they prove no factor.
+Use `CompletedSession()` before setting a cookie. Metadata/result DTOs are not
+proof receipts accepted by a completion API. See the
+[proof reference](../docs/reference/authentication/README.md#required-proof-and-outcomes).
+
 ## Middleware
 
 ```go
 // Require authentication
-r.Use(auth.RequireAuth(svc, auth.RelevantActivity))
+r.Use(auth.RequireAuth(svc, required, auth.RelevantActivity))
 
 // Optional authentication (adds user to context if present)
-r.Use(auth.OptionalAuth(svc, auth.NoActivity))
+r.Use(auth.OptionalAuth(svc, required, auth.NoActivity))
 
-// Require 2FA setup (use after RequireAuth)
+// Redirect for TOTP setup (does not verify factor proof)
 r.Use(auth.RequireTOTP(auth.TOTPEnforcement{
     Enabled:   func() bool { return settingsSvc.GetBool(ctx, "security.require_2fa") },
     GraceDays: func() int { return settingsSvc.GetInt(ctx, "security.2fa_grace_period_days") },
@@ -116,9 +143,9 @@ type Queries interface {
     CreateUser(ctx context.Context, id, email, passwordHash string, createdAt, updatedAt time.Time) (*User, error)
     GetUserByEmail(ctx context.Context, email string) (*User, error)
     GetUserByID(ctx context.Context, id string) (*User, error)
-    CreateSession(ctx context.Context, state CredentialState, session SessionRecord) (*Session, error)
+    CreateSession(ctx context.Context, state CredentialState, session SessionRecord, requirement AccessRequirement) (*Session, error)
     ReplacePassword(ctx context.Context, state CredentialState, passwordHash string, changedAt time.Time) (*User, error)
-    ValidateSession(ctx context.Context, digest SessionDigest, activity SessionActivity, interval time.Duration) (*ValidatedSession, error)
+    ValidateSession(ctx context.Context, digest SessionDigest, requirement AccessRequirement, activity SessionActivity, interval time.Duration) (*ValidatedSession, error)
     DeleteSession(ctx context.Context, digest SessionDigest) error
     DeleteExpiredSessions(ctx context.Context, limit int) (int64, error)
 }
@@ -127,7 +154,8 @@ type Queries interface {
 Storage returns owned snapshots with a positive `AuthVersion`. Every credential,
 activation and security-state mutation advances that version. `CreateUser`
 enforces email uniqueness and returns `ErrEmailTaken` for duplicates.
-`CreateSession` atomically checks active state and expected version before insertion.
+`CreateSession` checks active state, version, policy and proof at locked current
+time before insertion.
 `ReplacePassword` atomically checks state, increments the version, replaces the
 complete credential and revokes sessions. Stale, inactive or missing state returns
 `ErrCredentialChanged`. See the [storage reference](../docs/reference/authentication/README.md#queries).

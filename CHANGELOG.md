@@ -35,7 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reject stale account state, and store only token digests. Custom auth stores
   must implement atomic validation and activity updates; middleware must select
   relevant activity explicitly so background polling does not extend sessions.
-  Invalid session configuration now fails construction.
+  Invalid session configuration now fails construction. Sign-in and validation
+  require explicit server proof policy and revision. Only password proof is
+  currently supported; unmet MFA requirements return non-authorizing outcomes,
+  and policy changes or stale proof reject access before activity is renewed.
 
 - Authentication now checks complete NFC-normalized passwords before signup and
   stores salted Argon2id credentials. Password-only access requires at least 15

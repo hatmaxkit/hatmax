@@ -446,3 +446,21 @@ func TestToAuthSession(t *testing.T) {
 func TestQueries_ImplementsAuthQueries(t *testing.T) {
 	var _ auth.Queries = (*Queries)(nil)
 }
+
+// An out-of-range SMALLINT must not narrow into the supported password method.
+func TestStoredProofMethod(t *testing.T) {
+	tests := []struct {
+		name   string
+		method int16
+	}{
+		{"missing", 0}, {"unsupported", 2}, {"negative", -255}, {"narrowing wrap", 257},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			metadata, err := toAuthSession(dal.Session{TokenDigest: make([]byte, 32), InactivityUs: time.Minute.Microseconds(), ProofMethod: test.method})
+			if metadata != nil || !errors.Is(err, auth.ErrSessionRecord) {
+				t.Fatal("unsupported storage method accepted")
+			}
+		})
+	}
+}

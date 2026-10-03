@@ -82,12 +82,12 @@ func (p VerifiedProof) Check(session Session) error {
 // Evaluate matches stored facts to current policy at the locked trusted time.
 // It cannot manufacture stronger method properties or change proof time.
 func (r AccessRequirement) Evaluate(session Session, now time.Time) error {
-	err := r.Check(session.ExpiresAt.Sub(session.AuthenticatedAt))
+	err := session.Check(now)
 	if err != nil {
 		return err
 	}
 
-	err = session.Check(now)
+	err = r.Check(session.ExpiresAt.Sub(session.AuthenticatedAt))
 	if err != nil {
 		return err
 	}

@@ -158,7 +158,7 @@ supplied role matches. `NeedsTOTPSetup` is true when `TOTPSecret` is empty.
 `InTOTPGracePeriod(days)` is false when `days` is not positive. Otherwise it
 is true while the current time is before `CreatedAt` plus that many days.
 
-`Session` contains `ID`, `UserID`, `AuthVersion`, `Generation`, `AuthenticatedAt`,
+`Session` contains `ID`, `UserID`, `AuthVersion`, `PolicyRevision`, `Generation`, `Proof`, `AuthenticatedAt`,
 `CreatedAt`, `LastActivityAt`, `ExpiresAt`, and `InactivityTTL`. It contains no
 bearer or lookup digest. `SessionRecord` adds a fixed 32-byte `SessionDigest` for
 storage. `IssuedSession` adds the transient raw `Token` for immediate issuance.
@@ -187,7 +187,7 @@ contract. Missing sessions return `ErrSessionNotFound`, stale account state
 `ErrCredentialChanged`, corrupt records `ErrSessionRecord`, and expired state
 `ErrSessionExpired`. Revoked/expired sessions cannot be renewed.
 
-`ValidateSession(ctx, token, activity)` requires trusted `NoActivity` or
+`ValidateSession(ctx, token, requirement, activity)` requires trusted `NoActivity` or
 `RelevantActivity`. Polling/background routes use `NoActivity`. Relevant activity
 updates only when the configured persistence interval has elapsed, in the same
 transaction as validation. Coalescing can conservatively expire up to one
@@ -220,7 +220,62 @@ uses `SKIP LOCKED` to avoid waiting on busy rows.
 
 This service path verifies passwords only. Enrollment fields and the TOTP setup
 middleware do not establish verified MFA or phishing-resistant proof. Stronger
-proof policies and reauthentication/control belong to their separate contracts.
+proof policies are enforced explicitly as described below. Reauthentication and
+session control have their own contracts.
+
+## Required proof and outcomes
+
+`AccessRequirement` is trusted server policy with `Proof`, `Revision` and
+`MaxAge`. Required profiles are `RequirePassword`, `RequireMFA` and
+`RequirePhishingResistantMFA`. Revision must be 1 through 128 printable ASCII
+bytes and must contain no secret/personal data. It identifies the current
+application policy; a mismatch with stored `PolicyRevision` rejects the session.
+There is no default or client-selectable policy revision.
+
+`MaxAge` zero omits a recent-proof requirement. Otherwise it must be 1 second
+through absolute lifetime in whole microseconds. A proof age equal to or greater
+than that bound is expired. Required policy is copied into the operation;
+application code owns current policy selection. Middleware captures its supplied
+value: replace that wiring when policy changes, or call service validation with
+current application policy per request. A validated context is not authority for
+later domain writes without their required current-state checks.
+
+`VerifiedProof` has a closed `Method` and `VerifiedAt`. The only supported method
+is `PasswordProof`; its production creation follows the core password verifier.
+Its time is nonzero, no earlier than creation and no later than completed
+authentication/current time. Unknown methods or malformed/future facts fail
+closed. Roles, enrollment and `TOTPVerifiedAt` do not supply method facts.
+Current revision, method properties and age are evaluated at the adapter's locked
+time before activity writes. No public proof-assertion or completion API accepts
+these metadata DTOs to produce MFA.
+
+`Signin(ctx, email, password, requirement)` returns `AuthenticationResult`:
+
+| Outcome | Current behavior |
+| --- | --- |
+| `AuthenticationCompleted` | Verified password under password policy; `Issued` contains safe metadata and the transient secret |
+| `AuthenticationPendingEnrollment` | Unmet MFA without setup; method unavailable, no issued value or continuation |
+| `AuthenticationPendingProof` | Unmet MFA with setup; method unavailable, no issued value or continuation |
+| `AuthenticationDenied` | Phishing-resistant MFA verifier unavailable; no issued value or continuation |
+
+Completed results use `AuthenticationSatisfied`; unmet results use
+`AuthenticationMethodUnavailable`. The pending distinction describes the next
+required step, not an enrollment/verification endpoint. No pending secret, SQL
+table or consume method is supplied. AUTH-05 must deliver actual verification
+and atomic factor/challenge consumption before any executable continuation.
+`CompletedSession()` returns a session only for a completed, satisfied result
+with a nonnil issued value. Transports must use that check, rather than infer
+access from a nonnil pointer or setup flag.
+
+Invalid credentials retain their classified errors with no result. Invalid
+requirements return `ErrAccessRequirement` before credential/storage work;
+operating/verifier failures return an error with no successful result. During
+validation, `ErrSessionPolicy` means revision mismatch, `ErrSessionProof` means
+unmet properties, and `ErrSessionProofExpired` means freshness expired. These are
+separate from account-state, lifecycle and malformed-record failures.
+
+The supported password path can be tested end to end; rejection/property tests
+for other profiles do not demonstrate actual MFA or phishing resistance.
 
 ## Queries
 
@@ -231,9 +286,9 @@ proof policies and reauthentication/control belong to their separate contracts.
 | `CreateUser` | id, email, password hash, created at, updated at |
 | `GetUserByEmail` | email |
 | `GetUserByID` | id |
-| `CreateSession` | expected `CredentialState`, complete `SessionRecord` |
+| `CreateSession` | expected `CredentialState`, complete `SessionRecord`, trusted requirement |
 | `ReplacePassword` | expected `CredentialState`, encoded password, change time |
-| `ValidateSession` | digest, trusted activity, persistence interval |
+| `ValidateSession` | digest, trusted requirement/activity, persistence interval |
 | `DeleteSession` | digest |
 | `DeleteExpiredSessions` | bounded batch limit; returns count |
 
@@ -293,7 +348,8 @@ Both operations use the earlier caller deadline or `auth.password_timeout`
 own two-second default bound. Argon2 work remains synchronous and cannot be
 interrupted; a late result is discarded and the slot remains held until completion.
 
-`Signin` returns an `IssuedSession` only after the current-state insert commits.
+`Signin` returns a completed result with `IssuedSession` only after the
+current-state/policy/proof insert commits. Unmet results create no session.
 `Signout` parses and deletes only the presented digest. `GetUserByID` can return
 an inactive user. `CleanupExpiredSessions` performs one bounded batch. Operating
 errors retain their wrapped cause; do not expose diagnostic storage errors to
@@ -310,11 +366,11 @@ metadata after validation.
 
 `SessionCookieName` is `session`.
 
-`RequireAuth(svc, activity)` redirects to `/signin` with status `303` when the cookie is
+`RequireAuth(svc, requirement, activity)` redirects to `/signin` with status `303` when the cookie is
 missing or `ValidateSession` returns an error. Success stores the user and
 calls the next handler. It does not clear the cookie.
 
-`OptionalAuth(svc, activity)` calls the next handler without a user when the cookie is
+`OptionalAuth(svc, requirement, activity)` calls the next handler without a user when the cookie is
 missing or validation fails.
 
 `SetSessionCookie` sets `session` on path `/`, with the supplied `MaxAge`,

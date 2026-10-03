@@ -457,9 +457,11 @@ func testSignin(svc *core.Service, ctx context.Context, email, password string) 
 	if err != nil {
 		return nil, err
 	}
+
 	issued, ok := result.CompletedSession()
 	if !ok {
 		return nil, fmt.Errorf("unexpected test authentication outcome")
 	}
+
 	return issued, nil
 }

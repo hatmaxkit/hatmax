@@ -112,12 +112,13 @@ calls the next handler.
 
 `RequireAnyRole` uses the same status codes and calls `HasAnyRole`.
 
-`RequireRoles(validator, activity, roles...)` reads the cookie named
+`RequireRoles(validator, requirement, activity, roles...)` reads the cookie named
 `auth.SessionCookieName`. A missing cookie, or a `ValidateSession` error,
 clears the session cookie on the validation failure and redirects to
 `/signin` with `303`. A user with none of the roles responds `403`. Success
 stores the user, user ID and safe session metadata, then calls the next handler.
-Activity is a trusted server choice; background polling uses `auth.NoActivity`.
+The requirement is current trusted server policy. Roles and setup flags cannot
+substitute for its proof properties. Activity is a trusted server choice; background polling uses `auth.NoActivity`.
 
 ## Rate limit
 

@@ -185,7 +185,10 @@ breach coverage. Production consumers must choose and document their own source.
 
 The Postgres adapter enforces email uniqueness and uses versioned user-row
 transactions for credential replacement, session insertion and validation.
-Sessions store only purpose-separated token digests. Validation checks current
+Ticked owns one explicit password-only policy revision. Only completed outcomes
+set a cookie; stronger unavailable requirements grant no session/continuation.
+Sessions store purpose-separated token digests, the policy revision and actual
+password verification metadata. Validation checks current
 account version and expiry after account/session locks, and coalesces relevant
 activity without extending absolute expiry. Route consumers select activity
 explicitly; background polling must use `NoActivity`. Configuration validates
