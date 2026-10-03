@@ -47,7 +47,7 @@ Argon2id uses time 1, memory 64 KiB, 4 threads, and a 32-byte key.
 salt is not 32 bytes. `VerifyPassword` returns false for a salt of any other
 length, and otherwise compares the hashes in constant time.
 
-`GenerateSecureToken` uses at least 32 random bytes and returns them as raw
+`GenerateSecureToken` uses at least 32 random bytes and returns them as padded
 URL Base64. A requested length below 32 is raised to 32.
 
 ## PASETO

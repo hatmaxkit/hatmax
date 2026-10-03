@@ -18,15 +18,15 @@ Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
 Active slice: Slice 2
-Active tasks: T2.2
-Execution gate: Open
+Active tasks: None
+Execution gate: Review
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Secure session lifecycle | delivered | `feat/auth-session-lifecycle` | `feat(slice-1): enforce secure session lifecycle` | `#95` | `ops/default/report/slices/authentication-sessions/slice-1-session-lifecycle.md` |
-| Slice 2 | Required proof and outcomes | active | `feat/auth-required-proof` | `feat(slice-2): enforce authentication proof requirements` | pending | `ops/default/report/slices/authentication-sessions/slice-2-required-proof.md` |
+| Slice 2 | Required proof and outcomes | reviewing | `feat/auth-required-proof` | `feat(slice-2): enforce authentication proof requirements` | pending | `ops/default/report/slices/authentication-sessions/slice-2-required-proof.md` |
 | Slice 3 | Reauthentication and control | pending | `feat/auth-session-control` | `feat(slice-3): add atomic session reauthentication and control` | pending | `ops/default/report/slices/authentication-sessions/slice-3-session-control.md` |
 
 ## Tasks
@@ -36,7 +36,7 @@ Execution gate: Open
 | T1.1 | completed | `feat(auth): enforce secure session lifecycle` | `7b8d950beed02aaf2dcdd25c8da785173b93c13d` | Stored/issued types, bounded secrets/lifetimes, coherent current-state validation and updated active consumers |
 | T1.2 | completed | `test(auth): verify session lifecycle boundaries` | `61b65a17cc5a693d85a328b0d78e48862c83ceff` | Canonical parser fuzz, exact expiry/time/coalescing and real Postgres stale-state/rollback; AS-01/AS-02/AS-06/AS-09 |
 | T2.1 | completed | `feat(auth): enforce required proof and authentication outcomes` | `05046a930635cd39cce8bd5249af14f6906bf3b8` | Trusted policy revision, verified password facts, safe metadata and distinct non-authorizing outcomes |
-| T2.2 | implemented | `test(auth): verify proof outcome isolation` | pending | Password success, strong-policy denial, freshness/equality and pending/full isolation; AS-03/AS-04 |
+| T2.2 | completed | `test(auth): verify proof outcome isolation` | `9be7080cbe6be8d23d11ba6571573d0347ca9bcb` | Password success, strong-policy denial, freshness/equality and pending/full isolation; AS-03/AS-04 |
 | T3.1 | pending | `feat(auth): add atomic session reauthentication and control` | pending | Rotation/revocation/management/admission/cleanup with finite required storage contracts |
 | T3.2 | pending | `test(auth): verify session control integration` | pending | Real concurrent rotation/revocation/state/capacity/rollback and consumer integration; AS-05 through AS-09 |
 
@@ -45,7 +45,7 @@ Execution gate: Open
 The credential-security prerequisite is delivered and verified in its
 [completed tracker](credential-security.md). Parent AUTH-03/AUTH-04 behavior is
 approved. The concern/model/three-slice plan and tracker were approved on
-2026-10-03; Slice 1 is delivered and Slice 2/T2.1 is active.
+2026-10-03; Slice 1 is delivered and Slice 2 is reviewing.
 
 The concern/model are promoted together and direct links updated. Before the first implementation change,
 settle exact Go/SQL bindings against the logical model. Before T1.2, record the
