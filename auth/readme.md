@@ -9,6 +9,15 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 Session-based authentication service with optional 2FA support.
 
+## Password policy
+
+`NewPasswordPolicy` provides Unicode-aware credential policy with bounded input
+and a caller-owned `PasswordChecker`. `Prepare` returns the accepted
+NFC-normalized password for hashing. See the
+[authentication reference](../docs/reference/authentication/README.md#password-policy)
+for limits, errors and cancellation behavior. The existing service is integrated
+with this policy in the credential-integration slice.
+
 ## Usage
 
 ```go

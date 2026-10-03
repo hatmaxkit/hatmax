@@ -15,6 +15,59 @@ Signup uses `model.HashPasswordWithCost(password, cfg.Auth.BCryptCost)`;
 sign-in uses `model.ComparePassword`. Session identifiers and tokens use
 `model.NewID`.
 
+## Password policy
+
+`NewPasswordPolicy(cfg, checker)` constructs an immutable credential policy.
+`PasswordChecker.Disallowed(ctx, password)` checks the complete normalized
+candidate against caller-owned common, compromised or application-specific
+values. A checker is required, must honor cancellation and support concurrent
+calls, and must not retain candidates. The caller documents its source coverage
+and provenance; supplying a checker alone does not establish breach coverage.
+
+`PasswordPolicyConfig` has these fields:
+
+| Field | Default | Constraint |
+| --- | --- | --- |
+| `MinLength` | 15; 8 with `MFARequired` | At least the profile minimum and at most `MaxLength` |
+| `MaxLength` | 1024 code points | Between 64 and 1024 |
+| `MaxBytes` | 4096 UTF-8 bytes | At least four times `MaxLength`; at most 4096 |
+| `CheckTimeout` | 2 seconds | Positive; at most 30 seconds |
+| `MFARequired` | false | Trusted server policy; only true when password access always requires MFA |
+
+Zero numeric values select defaults. Other invalid settings or a missing
+checker return `ErrPasswordPolicy`. The MFA flag records the application's
+requirement; authentication must separately enforce the required factors.
+
+`Prepare(ctx, password)` returns the accepted NFC-normalized candidate for
+hashing. It bounds raw bytes before normalization, rejects invalid UTF-8, then
+checks normalized code-point and byte lengths. It preserves case and whitespace,
+and neither truncates nor imposes character-composition rules. Use NFC processing
+when verifying the same credential format. Apply candidate policy when creating
+or changing credentials; ordinary sign-in verifies the stored credential.
+
+Length and normalization follow
+[NIST SP 800-63B-4 password guidance](https://pages.nist.gov/800-63-4/sp800-63b.html#passwordver).
+The policy is available independently; `Service.Signup` currently uses its
+existing configuration and bcrypt path. Service integration belongs to the
+credential-integration slice.
+
+| Error | Condition |
+| --- | --- |
+| `ErrPasswordPolicy` | Invalid configuration or an uninitialized policy |
+| `ErrPasswordEncoding` | Invalid UTF-8 |
+| `ErrPasswordTooShort` | Too few normalized code points |
+| `ErrPasswordTooLong` | Character or byte limit exceeded |
+| `ErrPasswordDisallowed` | Checker rejects the complete candidate |
+| `ErrPasswordCheckFailed` | Checker fails; inspect the wrapped cause with `errors.Is` or `errors.As` |
+| `context.Canceled` / `context.DeadlineExceeded` | Request canceled or checker deadline reached |
+
+All preparation failures return an empty candidate. Checker error text is
+redacted; the wrapped cause remains diagnostic material and must not be exposed
+to users or logged without review. The checker receives the earlier of the
+configured deadline and the caller's deadline. Cancellation is cooperative:
+no detached goroutine is created to abandon an uncooperative checker. A checker
+that returns success after cancellation/deadline cannot approve the password.
+
 ## User and session
 
 `User` fields are `ID`, `Email`, `PasswordHash`, `Roles`, `Active`,
