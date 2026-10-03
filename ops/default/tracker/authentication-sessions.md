@@ -18,14 +18,14 @@ Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
 Active slice: Slice 1
-Active tasks: T1.2
-Execution gate: Open
+Active tasks: None
+Execution gate: Review
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Secure session lifecycle | active | `feat/auth-session-lifecycle` | `feat(slice-1): enforce secure session lifecycle` | pending | `ops/default/report/slices/authentication-sessions/slice-1-session-lifecycle.md` |
+| Slice 1 | Secure session lifecycle | reviewing | `feat/auth-session-lifecycle` | `feat(slice-1): enforce secure session lifecycle` | pending | `ops/default/report/slices/authentication-sessions/slice-1-session-lifecycle.md` |
 | Slice 2 | Required proof and outcomes | pending | `feat/auth-required-proof` | `feat(slice-2): enforce authentication proof requirements` | pending | `ops/default/report/slices/authentication-sessions/slice-2-required-proof.md` |
 | Slice 3 | Reauthentication and control | pending | `feat/auth-session-control` | `feat(slice-3): add atomic session reauthentication and control` | pending | `ops/default/report/slices/authentication-sessions/slice-3-session-control.md` |
 
@@ -33,8 +33,8 @@ Execution gate: Open
 
 | Task | Status | Expected commit | Commit | Validation evidence required |
 | --- | --- | --- | --- | --- |
-| T1.1 | completed | `feat(auth): enforce secure session lifecycle` | `7b8d950beed04974ba9968ddab73394b1b50c063` | Stored/issued types, bounded secrets/lifetimes, coherent current-state validation and updated active consumers |
-| T1.2 | implemented | `test(auth): verify session lifecycle boundaries` | pending | Canonical parser fuzz, exact expiry/time/coalescing and real Postgres stale-state/rollback; AS-01/AS-02/AS-06/AS-09 |
+| T1.1 | completed | `feat(auth): enforce secure session lifecycle` | `7b8d950beed02aaf2dcdd25c8da785173b93c13d` | Stored/issued types, bounded secrets/lifetimes, coherent current-state validation and updated active consumers |
+| T1.2 | completed | `test(auth): verify session lifecycle boundaries` | `61b65a17cc5a693d85a328b0d78e48862c83ceff` | Canonical parser fuzz, exact expiry/time/coalescing and real Postgres stale-state/rollback; AS-01/AS-02/AS-06/AS-09 |
 | T2.1 | pending | `feat(auth): enforce required proof and authentication outcomes` | pending | Trusted policy revision, verified password facts, safe metadata and distinct non-authorizing outcomes |
 | T2.2 | pending | `test(auth): verify proof outcome isolation` | pending | Password success, strong-policy denial, freshness/equality and pending/full isolation; AS-03/AS-04 |
 | T3.1 | pending | `feat(auth): add atomic session reauthentication and control` | pending | Rotation/revocation/management/admission/cleanup with finite required storage contracts |
