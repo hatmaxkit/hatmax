@@ -12,7 +12,7 @@ Delivery set: authentication-sessions
 Plan: [Delivery plan](../../../plan/authentication-sessions.md)
 Tracker: [Delivery tracker](../../../tracker/authentication-sessions.md)
 Branch: `feat/auth-session-lifecycle`
-PR: pending
+PR: `#95`
 
 ## Purpose
 

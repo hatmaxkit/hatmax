@@ -25,7 +25,7 @@ Execution gate: Review
 
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Secure session lifecycle | reviewing | `feat/auth-session-lifecycle` | `feat(slice-1): enforce secure session lifecycle` | pending | `ops/default/report/slices/authentication-sessions/slice-1-session-lifecycle.md` |
+| Slice 1 | Secure session lifecycle | reviewing | `feat/auth-session-lifecycle` | `feat(slice-1): enforce secure session lifecycle` | `#95` | `ops/default/report/slices/authentication-sessions/slice-1-session-lifecycle.md` |
 | Slice 2 | Required proof and outcomes | pending | `feat/auth-required-proof` | `feat(slice-2): enforce authentication proof requirements` | pending | `ops/default/report/slices/authentication-sessions/slice-2-required-proof.md` |
 | Slice 3 | Reauthentication and control | pending | `feat/auth-session-control` | `feat(slice-3): add atomic session reauthentication and control` | pending | `ops/default/report/slices/authentication-sessions/slice-3-session-control.md` |
 
@@ -97,3 +97,7 @@ Ticked tests, example compilation, licensing, vet, strict lint and documentation
 checks passed. Tagged integration lint also passed with zero issues. No generator
 runtime caller uses the changed session API; no generator files were changed.
 The delivery-set `make check` gate remains after all three slices merge.
+
+Slice 1 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/95. The forge confirms
+`dev` as base, the recorded branch as head and a mergeable open PR. Wait for
+verified merge before Slice 2 activation.
