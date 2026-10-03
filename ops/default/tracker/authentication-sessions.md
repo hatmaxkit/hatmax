@@ -17,17 +17,17 @@ Model: [Authentication and sessions model](../spec/authentication-sessions-model
 Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
-Active slice: Slice 2
-Active tasks: None
-Execution gate: Review
+Active slice: Slice 3
+Active tasks: T3.1
+Execution gate: Open
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Secure session lifecycle | delivered | `feat/auth-session-lifecycle` | `feat(slice-1): enforce secure session lifecycle` | `#95` | `ops/default/report/slices/authentication-sessions/slice-1-session-lifecycle.md` |
-| Slice 2 | Required proof and outcomes | reviewing | `feat/auth-required-proof` | `feat(slice-2): enforce authentication proof requirements` | `#96` | `ops/default/report/slices/authentication-sessions/slice-2-required-proof.md` |
-| Slice 3 | Reauthentication and control | pending | `feat/auth-session-control` | `feat(slice-3): add atomic session reauthentication and control` | pending | `ops/default/report/slices/authentication-sessions/slice-3-session-control.md` |
+| Slice 2 | Required proof and outcomes | delivered | `feat/auth-required-proof` | `feat(slice-2): enforce authentication proof requirements` | `#96` | `ops/default/report/slices/authentication-sessions/slice-2-required-proof.md` |
+| Slice 3 | Reauthentication and control | active | `feat/auth-session-control` | `feat(slice-3): add atomic session reauthentication and control` | pending | `ops/default/report/slices/authentication-sessions/slice-3-session-control.md` |
 
 ## Tasks
 
@@ -45,7 +45,7 @@ Execution gate: Review
 The credential-security prerequisite is delivered and verified in its
 [completed tracker](credential-security.md). Parent AUTH-03/AUTH-04 behavior is
 approved. The concern/model/three-slice plan and tracker were approved on
-2026-10-03; Slice 1 is delivered and Slice 2 is reviewing.
+2026-10-03; Slices 1 and 2 are delivered and Slice 3/T3.1 is active.
 
 The concern/model are promoted together and direct links updated. Before the first implementation change,
 settle exact Go/SQL bindings against the logical model. Before T1.2, record the
@@ -61,7 +61,7 @@ No public proof-assertion callback or client assurance flag substitutes for it.
 
 - [x] Concern/model/plan/tracker reviewed and approved; Slice 1 activated.
 - [x] Slice 1 merged and delivered report/current-state evidence recorded.
-- [ ] Slice 2 merged and delivered report/proof-outcome evidence recorded.
+- [x] Slice 2 merged and delivered report/proof-outcome evidence recorded.
 - [ ] Slice 3 merged and delivered report/session-control evidence recorded.
 - [ ] AS-01 through AS-09 covered by appropriate deterministic/race/persistence evidence.
 - [ ] Exact integrated `dev` candidate passes `make check`.
@@ -123,4 +123,5 @@ change. Pending/denied transport fixtures create no cookie or continuation.
 The full delivery-set gate remains after Slice 3 merge.
 
 Slice 2 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/96. Report and tracker
-are reviewing; Slice 3 remains pending the verified merge.
+are delivered. Merge on 2026-10-03 was verified at
+`77b9188b4601e3e2faf2fd2a2ec42ee16c9a1664` on canonical dev; Slice 3 is activated.

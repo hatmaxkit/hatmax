@@ -7,12 +7,14 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 2: Required Proof and Outcomes
 
-Status: reviewing
+Status: delivered
 Delivery set: authentication-sessions
 Plan: [Delivery plan](../../../plan/authentication-sessions.md)
 Tracker: [Delivery tracker](../../../tracker/authentication-sessions.md)
 Branch: `feat/auth-required-proof`
 PR: `#96`
+Merged: 2026-10-03
+Integration: `77b9188b4601e3e2faf2fd2a2ec42ee16c9a1664`
 
 ## Purpose
 

@@ -21,8 +21,8 @@ Model: [Authentication and sessions model](../spec/authentication-sessions-model
 Tracker: [Delivery tracker](../tracker/authentication-sessions.md)
 Base branch: `dev`
 Planning base: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
-Active slice: Slice 2
-Execution gate: Review
+Active slice: Slice 3
+Execution gate: Open
 Go baseline: 1.27.1
 
 ## Outcome and Authority
@@ -34,7 +34,7 @@ AUTH-05 verifier is unavailable. Do not claim complete MFA or full AUTH-03 from
 metadata or test fixtures. Recovery remains AUTH-06; wider attempt controls remain
 AUTH-07, except finite operation/error limits required here.
 
-The concern/model are promoted together; Slice 1 is delivered and Slice 2 is reviewing. Exact interfaces and persisted fields are
+The concern/model are promoted together; Slices 1 and 2 are delivered and Slice 3 is active. Exact interfaces and persisted fields are
 settled against the model before each affected runtime change. Material scope
 changes require review before adding work. Implementation branches follow the recorded map.
 
