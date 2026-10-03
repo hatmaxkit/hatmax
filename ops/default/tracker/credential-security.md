@@ -24,7 +24,7 @@ Execution gate: Review
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Password policy | delivered | `feat/credential-password-policy` | `feat(slice-1): define bounded password policy` | `#92` | `ops/default/report/slices/credential-security/slice-1-password-policy.md` |
-| Slice 2 | Versioned verifier | reviewing | `feat/credential-versioned-verifier` | `feat(slice-2): add versioned password verification` | pending | `ops/default/report/slices/credential-security/slice-2-versioned-verifier.md` |
+| Slice 2 | Versioned verifier | reviewing | `feat/credential-versioned-verifier` | `feat(slice-2): add versioned password verification` | `#93` | `ops/default/report/slices/credential-security/slice-2-versioned-verifier.md` |
 | Slice 3 | Credential integration | planned | `feat/credential-auth-integration` | `feat(slice-3): integrate secure credential storage` | pending | `ops/default/report/slices/credential-security/slice-3-credential-integration.md` |
 
 ## Tasks

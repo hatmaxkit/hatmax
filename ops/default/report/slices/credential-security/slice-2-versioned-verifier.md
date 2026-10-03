@@ -12,7 +12,7 @@ Delivery set: credential-security
 Plan: [Credential security plan](../../../plan/credential-security.md)
 Tracker: [Credential security tracker](../../../tracker/credential-security.md)
 Branch: `feat/credential-versioned-verifier`
-PR: pending
+PR: `#93`
 
 ## Purpose
 
