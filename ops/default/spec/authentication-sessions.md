@@ -16,8 +16,9 @@ Model: [Authentication and sessions model](authentication-sessions-model.md)
 Plan: [Delivery plan](../plan/authentication-sessions.md)
 Tracker: [Delivery tracker](../tracker/authentication-sessions.md)
 Inspected baseline: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
-Implementation status: Partial
-Execution gate: Open
+Implementation status: Implemented
+Completed: 2026-10-04
+Execution gate: Closed
 
 ## Purpose and Ownership
 
@@ -34,6 +35,12 @@ Applications supply trusted operation policy, persistence adapters, authorizatio
 HTTP presentation and security-event destinations. Core does not own roles or
 application-domain policy. Dependencies point from applications toward these
 contracts; core has no application-package or product-document dependency.
+
+The bounded concern is implemented in PR #95/#96/#97. Its
+[completed tracker](../tracker/authentication-sessions.md#requirement-evidence-and-handoff)
+records AS-01 through AS-09 and the exact integrated full gate. AUTH-03 remains
+partial in the parent specification until actual stronger-authenticator
+completion and atomic factor consumption are delivered.
 
 ## Verified Baseline
 

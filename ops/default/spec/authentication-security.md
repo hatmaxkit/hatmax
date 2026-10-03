@@ -10,7 +10,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 Date: 2026-10-02
 Status: Approved
 Approved: 2026-10-02
-Revised: 2026-10-03
+Revised: 2026-10-04
 Implementation status: Partial
 Inspected baseline: `dev`, `67023146f984b984509d32f176ea8522ddf9a301`
 Model: [Authentication security model](authentication-security-model.md)
@@ -64,8 +64,14 @@ either policy does not establish an ASVS level or NIST AAL for the toolkit.
 
 The [credential-security tracker](../tracker/credential-security.md#requirement-evidence-and-handoff)
 records delivered AUTH-01/AUTH-02 primitives, integrated signup/sign-in/storage
-validation and remaining consumer obligations. AUTH-03 through AUTH-07 remain
-pending; the complete authentication-security foundation is not yet delivered.
+validation and remaining consumer obligations. The
+[authentication-sessions tracker](../tracker/authentication-sessions.md#requirement-evidence-and-handoff)
+records AUTH-04's supported stateful session foundation and partial AUTH-03:
+trusted proof requirements, actual password facts and non-authorizing outcomes.
+Browser presentation, production policy and administrative authorization remain
+consumer obligations. Actual stronger-authenticator completion and atomic factor
+consumption remain AUTH-05 work; AUTH-06/AUTH-07 retain their broader lifecycle
+and attempt-control scope. The complete foundation is not yet delivered.
 
 ## Inspected Gaps
 
@@ -254,8 +260,10 @@ all consumers as using the same application assurance policy.
 Divide work into bounded credential, session, authenticator and recovery delivery
 units with consumer integration evidence. The first delivery set is
 [credential security](../plan/credential-security.md), with its
-[tracker](../tracker/credential-security.md). That set is complete. The next
-approved concern is [authentication and sessions](authentication-sessions.md),
+[tracker](../tracker/credential-security.md). That set is complete. The
+[authentication and sessions](authentication-sessions.md) concern is also implemented,
 with its [model](authentication-sessions-model.md),
 [plan](../plan/authentication-sessions.md) and
-[tracker](../tracker/authentication-sessions.md). Its execution gate is open for Slice 1. No correction is complete until its evidence passes.
+[tracker](../tracker/authentication-sessions.md). All three session slices and
+the exact integrated full gate are complete. Further authenticator, lifecycle
+and attempt-control work requires its own approved concern and delivery plan.

@@ -8,8 +8,9 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authentication and Sessions Delivery Plan
 
 Date: 2026-10-03
-Status: Approved
+Status: Completed
 Approved: 2026-10-03
+Completed: 2026-10-04
 Delivery set: authentication-sessions
 Slice strategy: behavior-first
 Reason: secure validation, required-proof outcomes and session control each form
@@ -21,8 +22,8 @@ Model: [Authentication and sessions model](../spec/authentication-sessions-model
 Tracker: [Delivery tracker](../tracker/authentication-sessions.md)
 Base branch: `dev`
 Planning base: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
-Active slice: Slice 3
-Execution gate: Review
+Active slice: None
+Execution gate: Closed
 Go baseline: 1.27.1
 
 ## Outcome and Authority
@@ -34,7 +35,7 @@ AUTH-05 verifier is unavailable. Do not claim complete MFA or full AUTH-03 from
 metadata or test fixtures. Recovery remains AUTH-06; wider attempt controls remain
 AUTH-07, except finite operation/error limits required here.
 
-The concern/model are promoted together; Slices 1 and 2 are delivered and Slice 3 is reviewing. Exact interfaces and persisted fields are
+The concern/model were promoted together; all three slices are delivered. Exact interfaces and persisted fields are
 settled against the model before each affected runtime change. Material scope
 changes require review before adding work. Implementation branches follow the recorded map.
 
@@ -155,6 +156,13 @@ completion explicitly. Browser/session management presentation, production
 policy and complete assurance assessment remain consuming-application evidence.
 Publication of a selected core dependency is separate from local set closure;
 this plan does not authorize main alignment, release, tagging or deployment.
+
+Completed on 2026-10-04 after verified PR #95/#96/#97 merges. Exact integrated
+`dev` candidate `93a992e2b258aabfafe3465be4846f64ec164333` passed `make check`
+once with real PostgreSQL 18.6, 84.8% coverage (80% required), zero lint issues
+and no tracked formatting changes. The completed tracker records AS-01 through
+AS-09, AUTH-04 foundation coverage and partial AUTH-03. No validation-correction
+branch was required. Further authenticator work requires its own approved scope.
 
 ## Slice 1 Contract
 

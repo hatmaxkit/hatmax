@@ -8,8 +8,9 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authentication and Sessions Tracker
 
 Date: 2026-10-03
-Status: Active
+Status: Completed
 Approved: 2026-10-03
+Completed: 2026-10-04
 Delivery set: authentication-sessions
 Plan: [Delivery plan](../plan/authentication-sessions.md)
 Concern: [Authentication and sessions](../spec/authentication-sessions.md)
@@ -17,9 +18,9 @@ Model: [Authentication and sessions model](../spec/authentication-sessions-model
 Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
-Active slice: Slice 3
+Active slice: None
 Active tasks: None
-Execution gate: Review
+Execution gate: Closed
 
 ## Slice Status
 
@@ -27,7 +28,7 @@ Execution gate: Review
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Secure session lifecycle | delivered | `feat/auth-session-lifecycle` | `feat(slice-1): enforce secure session lifecycle` | `#95` | `ops/default/report/slices/authentication-sessions/slice-1-session-lifecycle.md` |
 | Slice 2 | Required proof and outcomes | delivered | `feat/auth-required-proof` | `feat(slice-2): enforce authentication proof requirements` | `#96` | `ops/default/report/slices/authentication-sessions/slice-2-required-proof.md` |
-| Slice 3 | Reauthentication and control | reviewing | `feat/auth-session-control` | `feat(slice-3): add atomic session reauthentication and control` | `#97` | `ops/default/report/slices/authentication-sessions/slice-3-session-control.md` |
+| Slice 3 | Reauthentication and control | delivered | `feat/auth-session-control` | `feat(slice-3): add atomic session reauthentication and control` | `#97` | `ops/default/report/slices/authentication-sessions/slice-3-session-control.md` |
 
 ## Tasks
 
@@ -45,7 +46,8 @@ Execution gate: Review
 The credential-security prerequisite is delivered and verified in its
 [completed tracker](credential-security.md). Parent AUTH-03/AUTH-04 behavior is
 approved. The concern/model/three-slice plan and tracker were approved on
-2026-10-03; Slices 1 and 2 are delivered and Slice 3 is reviewing.
+2026-10-03; all three slices are delivered and the integrated full gate passed
+on 2026-10-04. There is no active slice or task.
 
 The concern/model are promoted together and direct links updated. Before the first implementation change,
 settle exact Go/SQL bindings against the logical model. Before T1.2, record the
@@ -62,10 +64,10 @@ No public proof-assertion callback or client assurance flag substitutes for it.
 - [x] Concern/model/plan/tracker reviewed and approved; Slice 1 activated.
 - [x] Slice 1 merged and delivered report/current-state evidence recorded.
 - [x] Slice 2 merged and delivered report/proof-outcome evidence recorded.
-- [ ] Slice 3 merged and delivered report/session-control evidence recorded.
-- [ ] AS-01 through AS-09 covered by appropriate deterministic/race/persistence evidence.
-- [ ] Exact integrated `dev` candidate passes `make check`.
-- [ ] AUTH-04 coverage, partial AUTH-03 and remaining authenticator/consumer obligations recorded.
+- [x] Slice 3 merged and delivered report/session-control evidence recorded.
+- [x] AS-01 through AS-09 covered by appropriate deterministic/race/persistence evidence.
+- [x] Exact integrated `dev` candidate passes `make check`.
+- [x] AUTH-04 coverage, partial AUTH-03 and remaining authenticator/consumer obligations recorded.
 
 ## Planning Validation
 
@@ -76,7 +78,7 @@ No public proof-assertion callback or client assurance flag substitutes for it.
   commits and closed execution gates — consistent.
 - New concern/model/plan/tracker contain no outer-product references.
 
-No runtime implementation tests or full delivery-set gate are claimed for this
+No runtime implementation tests or full delivery-set gate were claimed for this
 planning proposal. The completed credential-security gate is not rerun.
 
 ## Slice 1 Validation Bindings
@@ -96,7 +98,8 @@ T1.2 passed the selected integration/race command against PostgreSQL 18.6 and
 Ticked tests, example compilation, licensing, vet, strict lint and documentation
 checks passed. Tagged integration lint also passed with zero issues. No generator
 runtime caller uses the changed session API; no generator files were changed.
-The delivery-set `make check` gate remains after all three slices merge.
+At Slice 1 completion, the delivery-set `make check` gate was deferred until all
+three slices merged; its final result is recorded below.
 
 Slice 1 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/95. Merge on
 2026-10-03 was verified at `b8012ff89551b5027a9686d42ed3ddf5ba89495b` on canonical dev.
@@ -120,7 +123,8 @@ proof/session/credential transaction tests, tagged/default strict lint, source
 licensing, vet and documentation checks passed. The post-lock tests reject both
 stale issuance proof and stale protected-operation proof without a row/activity
 change. Pending/denied transport fixtures create no cookie or continuation.
-The full delivery-set gate remains after Slice 3 merge.
+At Slice 2 completion, the full delivery-set gate was deferred until Slice 3
+merged; its final result is recorded below.
 
 Slice 2 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/96. Report and tracker
 are delivered. Merge on 2026-10-03 was verified at
@@ -149,7 +153,55 @@ rotation, revocation/password/disable serialization, forced rotation/deletion/
 reclamation rollback, owned bounded pages, recent-proof checks after locks and
 concurrent retained-row admission. HTTP tests establish completed-only replacement
 cookies and truthful revocation/sign-out failure. No real MFA completion is claimed.
-The full `make check` remains scheduled after verified Slice 3 merge.
+The full `make check` passed after verified Slice 3 merge, as recorded below.
 
 Slice 3 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/97. Report and tracker
-are reviewing; the exact integrated full gate follows verified merge.
+are delivered. Merge on 2026-10-04 at 00:15:23 Europe/Warsaw was verified at
+`93a992e2b258aabfafe3465be4846f64ec164333` on canonical dev.
+
+## Integrated Validation
+
+Candidate: `93a992e2b258aabfafe3465be4846f64ec164333`
+Gate: `make check` — passed once on 2026-10-04 with Go 1.27.1,
+golangci-lint 2.12.2 and an isolated real PostgreSQL 18.6 test database.
+Connection settings were supplied through the repository's `DB_HOST`, `DB_PORT`,
+`DB_USER`, `DB_PASSWORD` and `DB_NAME` variables. Build settings were
+`TMPDIR=$PWD/.tmp/build`, `GOTMPDIR=$PWD/.tmp/build` and `GOFLAGS=-p=2`.
+
+The gate ran source licensing (760 headers, 104 content-preserving annotations),
+formatting, vet, the complete default test suite, coverage and strict lint.
+Coverage was 84.8% (required: 80%); lint reported zero issues. Tracked files
+remained unchanged after formatting. The owned database was stopped afterward.
+No repository correction or validation-correction branch was required.
+
+This is local integrated evidence. Optional tagged/live acceptance targets and
+production evidence are separate. The real PostgreSQL transaction/race selectors
+above and the three delivered reports establish the session concurrency and
+rollback contracts; they are not included implicitly in the default full suite.
+
+## Acceptance Evidence
+
+| Criterion | Delivered evidence |
+| --- | --- |
+| AS-01 | Slice 1's independent 32-byte secrets, canonical parser, 643311 fuzz executions, digest-only persistence and safe context; Slice 2's no-secret/no-row pending outcomes |
+| AS-02 | Slice 1's exact absolute/inactivity equality, validated settings, coalesced relevant activity and immutable proof/absolute clocks; Slice 3's post-lock old-session expiry |
+| AS-03 | Slice 2's actual password completion and rejection of unmet stronger requirements/enrollment claims; completed-only HTTP cookies |
+| AS-04 | Slice 2's revision, closed method and exact freshness checks; Slice 3's post-lock replacement/management proof rejection |
+| AS-05 | Slice 3's actual password rotation/replay, one competing-generation winner, entropy failure and forced commit rollback |
+| AS-06 | Credential and session transaction tests for password replacement, disable/re-enable and revocation races; Slice 3's blocked stale touch cannot change the replacement |
+| AS-07 | Slice 3's concurrent retained-row cap, bounded expired-row reclamation and owned keyset pages; Slice 1's explicit cancellable bounded cleanup |
+| AS-08 | Slice 3's actor-derived subject, foreign-target rejection, finite scopes and recent-proof management after locks |
+| AS-09 | Required Ticked PostgreSQL operations and HTTP/template tests, safe middleware metadata, example compilation and complete default regression suite |
+
+## Requirement Evidence and Handoff
+
+| Requirement | Delivered evidence | Remaining consumer or later-work obligation |
+| --- | --- | --- |
+| AUTH-03 | Trusted per-operation requirements/revisions, actual password facts, safe completed-session metadata, isolated pending/denied outcomes and fail-closed stronger requirements | Partial: AUTH-05 must deliver actual stronger verification, current authenticator checks and atomic factor consumption/session completion before executable pending flows |
+| AUTH-04 | Independent CSPRNG bearers, digest storage, validated absolute/inactivity policy, atomic rotation, current-account/version checks, own-session revocation/control and bounded admission/activity/cleanup | Consumers implement required atomic storage contracts and trusted policy; browser presentation, administrative authorization, protected domain rechecks and complete assurance assessment remain application evidence |
+
+The authentication-sessions set is complete for its approved password/session
+boundary. AUTH-05, broader AUTH-06/AUTH-07 behavior and consuming-application
+account/workspace delivery remain separate. Select a published dependency before
+independent consumer validation. This closure authorizes no next concern,
+main alignment, release, tagging or deployment.

@@ -7,12 +7,14 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 3: Reauthentication and Control
 
-Status: reviewing
+Status: delivered
 Delivery set: authentication-sessions
 Plan: [Delivery plan](../../../plan/authentication-sessions.md)
 Tracker: [Delivery tracker](../../../tracker/authentication-sessions.md)
 Branch: `feat/auth-session-control`
 PR: `#97`
+Merged: 2026-10-04
+Integration: `93a992e2b258aabfafe3465be4846f64ec164333`
 
 ## Purpose
 
@@ -135,9 +137,16 @@ cleanup tests; AS-08 to subject isolation and post-lock recent-proof management;
 AS-09 to the required Ticked storage/transport and example compilation. Prior
 proof, lifecycle and credential transaction regressions retain AS-01 through AS-04.
 
-The full `make check` gate remains after verified Slice 3 merge, on the exact
-integrated `dev` candidate. No full-set result or final AUTH-04 closure is claimed
-before that gate.
+The integrated full `make check` gate passed once on 2026-10-04 for exact `dev`
+candidate `93a992e2b258aabfafe3465be4846f64ec164333`, after verified PR #97 merge.
+It ran source licensing, formatting, vet, the complete default test suite,
+coverage and strict lint with an isolated real PostgreSQL 18.6 test database.
+Coverage was 84.8% (required: 80%); lint reported zero issues. Formatting left
+tracked files unchanged. The owned database was stopped after the gate.
+Optional tagged/live acceptance targets remain separate; the focused transaction
+and race evidence above supplies the session persistence guarantees.
+The [completed tracker](../../../tracker/authentication-sessions.md#requirement-evidence-and-handoff)
+maps all acceptance criteria and the bounded AUTH-04 foundation coverage.
 
 ## Risks and Follow-ups
 
@@ -149,6 +158,7 @@ current-state recheck; a validated snapshot is not indefinite authority.
 
 AUTH-03 remains partial until AUTH-05 delivers actual stronger-authenticator
 verification and atomic factor consumption. Enrollment flags and password rotation
-cannot satisfy MFA or phishing resistance. Final delivery-set closure requires
-all three merges and the exact integrated full gate. Main alignment, release,
-tagging and deployment retain separate authority.
+cannot satisfy MFA or phishing resistance. All three slices are delivered and
+the exact integrated full gate passed. Browser presentation, production policy,
+administrative authorization and complete assurance evidence remain application
+obligations. Main alignment, release, tagging and deployment retain separate authority.
