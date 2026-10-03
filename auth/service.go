@@ -18,73 +18,98 @@ import (
 )
 
 var (
-	ErrUserNotFound     = errors.New("user not found")
-	ErrInvalidPassword  = errors.New("invalid password")
-	ErrEmailTaken       = errors.New("email already taken")
-	ErrSessionNotFound  = errors.New("session not found")
-	ErrSessionExpired   = errors.New("session expired")
-	ErrPasswordTooShort = errors.New("password too short")
-	ErrInvalidEmail     = errors.New("invalid email")
+	ErrUserNotFound      = errors.New("user not found")
+	ErrInvalidPassword   = errors.New("invalid password")
+	ErrEmailTaken        = errors.New("email already taken")
+	ErrSessionNotFound   = errors.New("session not found")
+	ErrSessionExpired    = errors.New("session expired")
+	ErrPasswordTooShort  = errors.New("password too short")
+	ErrInvalidEmail      = errors.New("invalid email")
+	ErrCredentialChanged = errors.New("credential state changed")
 )
 
-// Queries defines the interface for auth database operations.
-// Users should implement this interface using sqlc-generated code.
+// CredentialState identifies the immutable authentication snapshot verified by
+// a caller. Password, activation and other auth-state mutations increment Version.
+type CredentialState struct {
+	UserID  string
+	Version int64
+}
+
+// Queries owns persistent auth operations and returns caller-owned snapshots.
+// CreateUser enforces email uniqueness and classifies conflicts as ErrEmailTaken.
+// CreateSession atomically checks active state and expected version before insertion.
+// ReplacePassword atomically checks state, replaces the record, increments the
+// version and revokes sessions. Stale/inactive/missing state is ErrCredentialChanged.
 type Queries interface {
 	CreateUser(ctx context.Context, id, email, passwordHash string, createdAt, updatedAt time.Time) (*User, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	GetUserByID(ctx context.Context, id string) (*User, error)
-	CreateSession(ctx context.Context, id, userID, token string, expiresAt, createdAt time.Time) (*Session, error)
+	CreateSession(ctx context.Context, state CredentialState, session Session) (*Session, error)
+	ReplacePassword(ctx context.Context, state CredentialState, passwordHash string, changedAt time.Time) (*User, error)
 	GetSessionByToken(ctx context.Context, token string) (*Session, error)
 	DeleteSession(ctx context.Context, sessionID string) error
 	DeleteExpiredSessions(ctx context.Context) error
 }
 
-// Service provides authentication functionality.
+// Service owns a shared credential policy/verifier and caller-owned storage.
 type Service struct {
-	queries Queries
-	cfg     *config.Config
-	log     log.Logger
+	queries         Queries
+	cfg             *config.Config
+	log             log.Logger
+	policy          *PasswordPolicy
+	verifier        *model.PasswordVerifier
+	passwordTimeout time.Duration
 }
 
-// NewService creates a new auth service.
-func NewService(queries Queries, cfg *config.Config, log log.Logger) *Service {
-	return &Service{
-		queries: queries,
-		cfg:     cfg,
-		log:     log,
+// NewService validates credential configuration and requires a bounded checker.
+// The current service permits password-only access and always uses a minimum of
+// 15 code points. This constructor does not implement an always-MFA flow.
+func NewService(queries Queries, cfg *config.Config, checker PasswordChecker, logger log.Logger) (*Service, error) {
+	if queries == nil || cfg == nil || logger == nil {
+		return nil, errors.New("auth service dependencies are required")
 	}
+
+	settings, err := cfg.Auth.PasswordSettings()
+	if err != nil {
+		return nil, err
+	}
+
+	policy, err := NewPasswordPolicy(PasswordPolicyConfig{MinLength: settings.MinLength, MaxLength: settings.MaxLength, MaxBytes: settings.MaxBytes, CheckTimeout: settings.CheckTimeout}, checker)
+	if err != nil {
+		return nil, err
+	}
+
+	verifier, err := model.NewPasswordVerifier(settings.Verifier)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Service{queries: queries, cfg: cfg, log: logger, policy: policy, verifier: verifier, passwordTimeout: settings.Timeout}, nil
 }
 
-// Signup creates a new user account using cfg.Auth.BCryptCost for password hashing.
+// Signup applies candidate policy and creates a salted, encoded credential.
+// The storage write enforces uniqueness even for simultaneous signup requests.
 func (s *Service) Signup(ctx context.Context, email, password string) (*User, error) {
 	if email == "" {
 		return nil, ErrInvalidEmail
 	}
 
-	if len(password) < s.cfg.Auth.PasswordMinLen {
-		return nil, ErrPasswordTooShort
+	workCtx, cancel := context.WithTimeout(ctx, s.passwordTimeout)
+	defer cancel()
+
+	candidate, err := s.policy.Prepare(workCtx, password)
+	if err != nil {
+		return nil, err
 	}
 
-	// Check if email is already taken
-	_, err := s.queries.GetUserByEmail(ctx, email)
-	if err == nil {
-		return nil, ErrEmailTaken
-	}
-
-	if err != nil && err != sql.ErrNoRows {
-		return nil, fmt.Errorf("cannot check email: %w", err)
-	}
-
-	// Hash password
-	passwordHash, err := model.HashPasswordWithCost(password, s.cfg.Auth.BCryptCost)
+	passwordHash, err := s.verifier.Hash(workCtx, candidate)
 	if err != nil {
 		return nil, fmt.Errorf("cannot hash password: %w", err)
 	}
 
-	// Create user
 	now := model.Now()
 
-	user, err := s.queries.CreateUser(ctx, model.NewID(), email, passwordHash, now, now)
+	user, err := s.queries.CreateUser(workCtx, model.NewID(), email, passwordHash, now, now)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create user: %w", err)
 	}
@@ -96,7 +121,10 @@ func (s *Service) Signup(ctx context.Context, email, password string) (*User, er
 
 // Signin validates credentials and creates a session.
 func (s *Service) Signin(ctx context.Context, email, password string) (*Session, error) {
-	user, err := s.queries.GetUserByEmail(ctx, email)
+	workCtx, cancel := context.WithTimeout(ctx, s.passwordTimeout)
+	defer cancel()
+
+	user, err := s.queries.GetUserByEmail(workCtx, email)
 	if err == sql.ErrNoRows {
 		return nil, ErrUserNotFound
 	}
@@ -109,9 +137,17 @@ func (s *Service) Signin(ctx context.Context, email, password string) (*Session,
 		return nil, errors.New("user is not active")
 	}
 
-	// Verify password
-	if !model.ComparePassword(user.PasswordHash, password) {
+	// Capture the owned snapshot before expensive verification. The final storage
+	// operation checks its version under the same lock as session insertion.
+	state := CredentialState{UserID: user.ID, Version: user.AuthVersion}
+
+	err = s.verifier.Verify(workCtx, user.PasswordHash, password)
+	if errors.Is(err, model.ErrPasswordMismatch) {
 		return nil, ErrInvalidPassword
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("cannot verify password: %w", err)
 	}
 
 	// Parse session TTL
@@ -123,14 +159,9 @@ func (s *Service) Signin(ctx context.Context, email, password string) (*Session,
 	// Create session
 	now := model.Now()
 
-	session, err := s.queries.CreateSession(
-		ctx,
-		model.NewID(),
-		user.ID,
-		model.NewID(), // token
-		now.Add(ttl),
-		now,
-	)
+	session, err := s.queries.CreateSession(workCtx, state, Session{
+		ID: model.NewID(), UserID: state.UserID, Token: model.NewID(), ExpiresAt: now.Add(ttl), CreatedAt: now,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("cannot create session: %w", err)
 	}

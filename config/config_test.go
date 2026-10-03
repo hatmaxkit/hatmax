@@ -38,12 +38,8 @@ func TestNew(t *testing.T) {
 		t.Errorf("Auth.SessionTTL = %s, want 24h", cfg.Auth.SessionTTL)
 	}
 
-	if cfg.Auth.PasswordMinLen != 8 {
-		t.Errorf("Auth.PasswordMinLen = %d, want 8", cfg.Auth.PasswordMinLen)
-	}
-
-	if cfg.Auth.BCryptCost != 12 {
-		t.Errorf("Auth.BCryptCost = %d, want 12", cfg.Auth.BCryptCost)
+	if cfg.Auth.PasswordMinLen != 15 {
+		t.Errorf("Auth.PasswordMinLen = %d, want 15", cfg.Auth.PasswordMinLen)
 	}
 
 	if cfg.Scheduler.Interval != "1m" {
@@ -89,8 +85,7 @@ func TestValidate(t *testing.T) {
 					Database: "dev",
 				},
 				Auth: AuthConfig{
-					PasswordMinLen: 8,
-					BCryptCost:     12,
+					PasswordMinLen: 15,
 				},
 				Scheduler: SchedulerConfig{
 					BatchSize:     0,
@@ -111,8 +106,7 @@ func TestValidate(t *testing.T) {
 					Database: "dev",
 				},
 				Auth: AuthConfig{
-					PasswordMinLen: 8,
-					BCryptCost:     12,
+					PasswordMinLen: 15,
 				},
 				Scheduler: SchedulerConfig{
 					BatchSize:     1,
@@ -133,8 +127,7 @@ func TestValidate(t *testing.T) {
 					Database: "dev",
 				},
 				Auth: AuthConfig{
-					PasswordMinLen: 8,
-					BCryptCost:     12,
+					PasswordMinLen: 15,
 				},
 				Scheduler: SchedulerConfig{
 					BatchSize:     1,
@@ -155,8 +148,7 @@ func TestValidate(t *testing.T) {
 					Database: "dev",
 				},
 				Auth: AuthConfig{
-					PasswordMinLen: 8,
-					BCryptCost:     12,
+					PasswordMinLen: 15,
 				},
 			},
 			wantErr: true,
@@ -172,8 +164,7 @@ func TestValidate(t *testing.T) {
 					Database: "dev",
 				},
 				Auth: AuthConfig{
-					PasswordMinLen: 8,
-					BCryptCost:     12,
+					PasswordMinLen: 15,
 				},
 			},
 			wantErr: true,
@@ -189,8 +180,7 @@ func TestValidate(t *testing.T) {
 					Database: "dev",
 				},
 				Auth: AuthConfig{
-					PasswordMinLen: 8,
-					BCryptCost:     12,
+					PasswordMinLen: 15,
 				},
 			},
 			wantErr: true,
@@ -206,8 +196,7 @@ func TestValidate(t *testing.T) {
 					Database: "",
 				},
 				Auth: AuthConfig{
-					PasswordMinLen: 8,
-					BCryptCost:     12,
+					PasswordMinLen: 15,
 				},
 			},
 			wantErr: true,
@@ -224,45 +213,10 @@ func TestValidate(t *testing.T) {
 				},
 				Auth: AuthConfig{
 					PasswordMinLen: 0,
-					BCryptCost:     12,
 				},
 			},
 			wantErr: true,
-			errMsg:  "auth.password_min_len must be at least 1",
-		},
-		{
-			name: "bcrypt cost too low",
-			cfg: &Config{
-				Server: ServerConfig{Port: ":8080"},
-				Database: DatabaseConfig{
-					Host:     "localhost",
-					User:     "dev",
-					Database: "dev",
-				},
-				Auth: AuthConfig{
-					PasswordMinLen: 8,
-					BCryptCost:     3,
-				},
-			},
-			wantErr: true,
-			errMsg:  "auth.bcrypt_cost must be between 4 and 31",
-		},
-		{
-			name: "bcrypt cost too high",
-			cfg: &Config{
-				Server: ServerConfig{Port: ":8080"},
-				Database: DatabaseConfig{
-					Host:     "localhost",
-					User:     "dev",
-					Database: "dev",
-				},
-				Auth: AuthConfig{
-					PasswordMinLen: 8,
-					BCryptCost:     32,
-				},
-			},
-			wantErr: true,
-			errMsg:  "auth.bcrypt_cost must be between 4 and 31",
+			errMsg:  "auth.password_min_len must be between 15 and password_max_len",
 		},
 	}
 
@@ -358,8 +312,7 @@ database:
   sslmode: require
 auth:
   session_ttl: "12h"
-  password_min_len: 10
-  bcrypt_cost: 14
+  password_min_len: 20
   email_encryption_key: encryption-key
   email_lookup_key: lookup-key
 contact:
@@ -410,12 +363,8 @@ property:
 		t.Errorf("Auth.SessionTTL = %s, want 12h", cfg.Auth.SessionTTL)
 	}
 
-	if cfg.Auth.PasswordMinLen != 10 {
-		t.Errorf("Auth.PasswordMinLen = %d, want 10", cfg.Auth.PasswordMinLen)
-	}
-
-	if cfg.Auth.BCryptCost != 14 {
-		t.Errorf("Auth.BCryptCost = %d, want 14", cfg.Auth.BCryptCost)
+	if cfg.Auth.PasswordMinLen != 20 {
+		t.Errorf("Auth.PasswordMinLen = %d, want 20", cfg.Auth.PasswordMinLen)
 	}
 
 	if cfg.Auth.EmailEncryptionKey != "encryption-key" {

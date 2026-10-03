@@ -33,7 +33,7 @@ func (m *mockQueries) CreateUser(ctx context.Context, id, email, passwordHash st
 	// Check if email already exists
 	for _, u := range m.users {
 		if u.Email == email {
-			return nil, errors.New("email already exists")
+			return nil, ErrEmailTaken
 		}
 	}
 
@@ -41,19 +41,24 @@ func (m *mockQueries) CreateUser(ctx context.Context, id, email, passwordHash st
 		ID:           id,
 		Email:        email,
 		PasswordHash: passwordHash,
+		AuthVersion:  1,
 		Active:       true,
 		CreatedAt:    createdAt,
 		UpdatedAt:    updatedAt,
 	}
 	m.users[id] = user
 
-	return user, nil
+	snapshot := *user
+
+	return &snapshot, nil
 }
 
 func (m *mockQueries) GetUserByEmail(ctx context.Context, email string) (*User, error) {
 	for _, u := range m.users {
 		if u.Email == email {
-			return u, nil
+			snapshot := *u
+
+			return &snapshot, nil
 		}
 	}
 
@@ -66,20 +71,42 @@ func (m *mockQueries) GetUserByID(ctx context.Context, id string) (*User, error)
 		return nil, sql.ErrNoRows
 	}
 
-	return user, nil
+	snapshot := *user
+
+	return &snapshot, nil
 }
 
-func (m *mockQueries) CreateSession(ctx context.Context, id, userID, token string, expiresAt, createdAt time.Time) (*Session, error) {
-	session := &Session{
-		ID:        id,
-		UserID:    userID,
-		Token:     token,
-		ExpiresAt: expiresAt,
-		CreatedAt: createdAt,
+func (m *mockQueries) CreateSession(ctx context.Context, state CredentialState, session Session) (*Session, error) {
+	user := m.users[state.UserID]
+	if user == nil || !user.Active || user.AuthVersion != state.Version {
+		return nil, ErrCredentialChanged
 	}
-	m.sessions[token] = session
 
-	return session, nil
+	session.UserID = state.UserID
+	m.sessions[session.Token] = &session
+
+	return &session, nil
+}
+
+func (m *mockQueries) ReplacePassword(ctx context.Context, state CredentialState, hash string, changedAt time.Time) (*User, error) {
+	user := m.users[state.UserID]
+	if user == nil || !user.Active || user.AuthVersion != state.Version {
+		return nil, ErrCredentialChanged
+	}
+
+	user.PasswordHash = hash
+	user.AuthVersion++
+	user.UpdatedAt = changedAt
+
+	for token, session := range m.sessions {
+		if session.UserID == state.UserID {
+			delete(m.sessions, token)
+		}
+	}
+
+	copy := *user
+
+	return &copy, nil
 }
 
 func (m *mockQueries) GetSessionByToken(ctx context.Context, token string) (*Session, error) {
@@ -118,7 +145,7 @@ func TestSignup(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
 	logger := log.NewTestLogger("error")
-	svc := NewService(queries, cfg, logger)
+	svc := newServiceForTest(t, queries, cfg, logger)
 
 	tests := []struct {
 		name      string
@@ -130,13 +157,13 @@ func TestSignup(t *testing.T) {
 		{
 			name:     "valid signup",
 			email:    "test@example.com",
-			password: "password123",
+			password: "correct-password-123",
 			wantErr:  nil,
 		},
 		{
 			name:     "empty email",
 			email:    "",
-			password: "password123",
+			password: "correct-password-123",
 			wantErr:  ErrInvalidEmail,
 		},
 		{
@@ -148,7 +175,7 @@ func TestSignup(t *testing.T) {
 		{
 			name:     "email already taken",
 			email:    "existing@example.com",
-			password: "password123",
+			password: "correct-password-123",
 			wantErr:  ErrEmailTaken,
 			setupFunc: func() {
 				queries.CreateUser(context.Background(), "existing-id", "existing@example.com", "hash", time.Now(), time.Now())
@@ -205,10 +232,10 @@ func TestSignin(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
 	logger := log.NewTestLogger("error")
-	svc := NewService(queries, cfg, logger)
+	svc := newServiceForTest(t, queries, cfg, logger)
 
 	// Create a test user
-	user, _ := svc.Signup(context.Background(), "test@example.com", "password123")
+	user, _ := svc.Signup(context.Background(), "test@example.com", "correct-password-123")
 
 	tests := []struct {
 		name     string
@@ -219,13 +246,13 @@ func TestSignin(t *testing.T) {
 		{
 			name:     "valid signin",
 			email:    "test@example.com",
-			password: "password123",
+			password: "correct-password-123",
 			wantErr:  nil,
 		},
 		{
 			name:     "user not found",
 			email:    "notfound@example.com",
-			password: "password123",
+			password: "correct-password-123",
 			wantErr:  ErrUserNotFound,
 		},
 		{
@@ -281,14 +308,14 @@ func TestSigninInactiveUser(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
 	logger := log.NewTestLogger("error")
-	svc := NewService(queries, cfg, logger)
+	svc := newServiceForTest(t, queries, cfg, logger)
 
 	// Create a test user and mark as inactive
-	user, _ := svc.Signup(context.Background(), "inactive@example.com", "password123")
+	user, _ := svc.Signup(context.Background(), "inactive@example.com", "correct-password-123")
 	user.Active = false
 	queries.users[user.ID] = user
 
-	_, err := svc.Signin(context.Background(), "inactive@example.com", "password123")
+	_, err := svc.Signin(context.Background(), "inactive@example.com", "correct-password-123")
 	if err == nil {
 		t.Error("Signin() with inactive user should return error")
 	}
@@ -298,11 +325,11 @@ func TestSignout(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
 	logger := log.NewTestLogger("error")
-	svc := NewService(queries, cfg, logger)
+	svc := newServiceForTest(t, queries, cfg, logger)
 
 	// Create a test user and session
-	_, _ = svc.Signup(context.Background(), "test@example.com", "password123")
-	session, _ := svc.Signin(context.Background(), "test@example.com", "password123")
+	_, _ = svc.Signup(context.Background(), "test@example.com", "correct-password-123")
+	session, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
 
 	tests := []struct {
 		name         string
@@ -356,11 +383,11 @@ func TestValidateSession(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
 	logger := log.NewTestLogger("error")
-	svc := NewService(queries, cfg, logger)
+	svc := newServiceForTest(t, queries, cfg, logger)
 
 	// Create a test user and session
-	user, _ := svc.Signup(context.Background(), "test@example.com", "password123")
-	session, _ := svc.Signin(context.Background(), "test@example.com", "password123")
+	user, _ := svc.Signup(context.Background(), "test@example.com", "correct-password-123")
+	session, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
 
 	// Create an expired session
 	expiredSession := &Session{
@@ -433,11 +460,11 @@ func TestValidateSessionInactiveUser(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
 	logger := log.NewTestLogger("error")
-	svc := NewService(queries, cfg, logger)
+	svc := newServiceForTest(t, queries, cfg, logger)
 
 	// Create a test user and session
-	user, _ := svc.Signup(context.Background(), "test@example.com", "password123")
-	session, _ := svc.Signin(context.Background(), "test@example.com", "password123")
+	user, _ := svc.Signup(context.Background(), "test@example.com", "correct-password-123")
+	session, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
 
 	// Mark user as inactive
 	user.Active = false
@@ -453,10 +480,10 @@ func TestGetUserByID(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
 	logger := log.NewTestLogger("error")
-	svc := NewService(queries, cfg, logger)
+	svc := newServiceForTest(t, queries, cfg, logger)
 
 	// Create a test user
-	user, _ := svc.Signup(context.Background(), "test@example.com", "password123")
+	user, _ := svc.Signup(context.Background(), "test@example.com", "correct-password-123")
 
 	tests := []struct {
 		name    string
@@ -513,13 +540,13 @@ func TestCleanupExpiredSessions(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
 	logger := log.NewTestLogger("error")
-	svc := NewService(queries, cfg, logger)
+	svc := newServiceForTest(t, queries, cfg, logger)
 
 	// Create a test user
-	user, _ := svc.Signup(context.Background(), "test@example.com", "password123")
+	user, _ := svc.Signup(context.Background(), "test@example.com", "correct-password-123")
 
 	// Create a valid session
-	validSession, _ := svc.Signin(context.Background(), "test@example.com", "password123")
+	validSession, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
 
 	// Create an expired session
 	expiredSession := &Session{

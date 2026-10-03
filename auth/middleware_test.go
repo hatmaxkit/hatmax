@@ -20,11 +20,11 @@ func TestRequireAuth(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
 	logger := log.NewTestLogger("error")
-	svc := NewService(queries, cfg, logger)
+	svc := newServiceForTest(t, queries, cfg, logger)
 
 	// Create a test user and session
-	_, _ = svc.Signup(context.Background(), "test@example.com", "password123")
-	session, _ := svc.Signin(context.Background(), "test@example.com", "password123")
+	_, _ = svc.Signup(context.Background(), "test@example.com", "correct-password-123")
+	session, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
 
 	// Handler that checks if user is in context
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -106,11 +106,11 @@ func TestOptionalAuth(t *testing.T) {
 	queries := newMockQueries()
 	cfg := config.New()
 	logger := log.NewTestLogger("error")
-	svc := NewService(queries, cfg, logger)
+	svc := newServiceForTest(t, queries, cfg, logger)
 
 	// Create a test user and session
-	_, _ = svc.Signup(context.Background(), "test@example.com", "password123")
-	session, _ := svc.Signin(context.Background(), "test@example.com", "password123")
+	_, _ = svc.Signup(context.Background(), "test@example.com", "correct-password-123")
+	session, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
 
 	// Handler that checks if user is in context
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -12,6 +12,7 @@ type User struct {
 	ID             string
 	Email          string
 	PasswordHash   string
+	AuthVersion    int64
 	Roles          []string
 	Active         bool
 	TOTPSecret     string

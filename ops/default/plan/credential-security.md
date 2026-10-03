@@ -138,6 +138,34 @@ Prerequisite: Slice 1 merged and verified on `dev`.
 - `make lint-strict`
 - `git diff --check`
 
+## Slice 3 Contract
+
+`auth.User.AuthVersion` is a positive, monotonic authentication-state version.
+Storage returns caller-owned snapshots. Every password/account-activation change
+increments this version, including disable/re-enable transitions. The example
+adapter also increments it for role changes.
+
+`CredentialState` carries subject ID and expected version. Required storage
+operations include `CreateSession` with this state and `ReplacePassword` with
+this state, a complete encoded credential and change time. Session creation
+locks/rechecks active state and version before insertion. Password replacement
+locks/rechecks active state and version, increments it, replaces the complete
+record and revokes sessions in one transaction. Missing/inactive/stale state is
+`ErrCredentialChanged`; duplicate signup email is `ErrEmailTaken`. Primary-key
+collisions and other database failures remain operating errors. All adapters
+implement these operations directly; no optional upgrade interface is introduced.
+
+`NewService` requires a caller-owned password checker and returns construction
+errors for invalid policy/work settings. It owns one shared verifier, snapshots
+validated credential settings and uses the earlier caller/configured deadline.
+The current service permits password-only access, so its minimum is at least 15
+normalized code points. Configuration adds finite candidate/checker/work and
+Argon2 creation/verification/concurrency bounds; `auth.bcrypt_cost` is removed.
+
+The example supplies a documented, bounded demonstration checker for common and
+application-specific values. It does not claim comprehensive compromised-password
+coverage. Production consumers own their checking source and coverage.
+
 ## Slice 3: Credential Integration
 
 Prerequisites: Slice 2 merged; storage/current-state and configuration contracts

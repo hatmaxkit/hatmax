@@ -72,7 +72,13 @@ func main() {
 	authQueries := authfeat.NewQueries(database)
 
 	auditSvc := auditfeat.NewService(broker, auditStore, logger)
-	baseAuthSvc := auth.NewService(authQueries, cfg, logger)
+
+	baseAuthSvc, err := auth.NewService(authQueries, cfg, authfeat.NewPasswordChecker(), logger)
+	if err != nil {
+		logger.Errorf("Cannot initialize authentication: %v", err)
+		os.Exit(1)
+	}
+
 	authSvc := authfeat.NewService(baseAuthSvc, authQueries, logger)
 	listSvc := listfeat.NewService(listStore, broker, logger)
 

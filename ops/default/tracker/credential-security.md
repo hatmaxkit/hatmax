@@ -37,7 +37,7 @@ Execution gate: Open
 | T2.1 | completed | `feat(model): add versioned password verifier` | `6b507e82d78c` | PHC Argon2id, strict bounds, classified outcomes, measured defaults and shared concurrency budget |
 | T2.2 | completed | `test(model): verify credential format boundaries` | `194b42196363` | Reference interoperability, Unicode, cancellation, concurrency, 20-second fuzz, benchmarks, race and static checks passed |
 | T3.1 | pending | `feat(auth): integrate versioned credential storage` | pending | Signup/sign-in integration, replaced storage/configuration contracts and current-state checks |
-| T3.2 | pending | `test(auth): validate credential integration` | pending | Real Postgres concurrency, examples/generator, API documentation and Slice 3 gate |
+| T3.2 | pending | `test(auth): validate credential integration` | pending | `DB_HOST=<test-host> DB_PORT=<port> DB_USER=<user> DB_NAME=<database> go test -tags=integration -race -count=1 -run '^TestCredentialTransactions$' ./examples/ticked/internal/feat/auth`; examples/generator, API documentation and Slice 3 gate |
 
 ## Dependencies
 
@@ -59,7 +59,7 @@ without treating missing persistence evidence as a passing check.
 
 - [x] Slice 1 merges and its delivered report/commit evidence is recorded.
 - [x] Slice 2 merges and its delivered report/commit evidence is recorded.
-- [ ] Storage/current-state and configuration contracts are settled before Slice 3.
+- [x] Storage/current-state and configuration contracts are settled before Slice 3.
 - [ ] Slice 3 merges and its delivered report/commit evidence is recorded.
 - [ ] Exact integrated `dev` candidate passes `make check`.
 - [ ] AUTH-01/AUTH-02 evidence and downstream handoff are recorded.

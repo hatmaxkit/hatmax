@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    auth_version BIGINT NOT NULL DEFAULT 1 CHECK (auth_version > 0),
     roles TEXT[] DEFAULT '{}',
     active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL,

@@ -56,11 +56,21 @@ type DatabaseConfig struct {
 
 // AuthConfig holds authentication and session configuration.
 type AuthConfig struct {
-	SessionTTL         string `koanf:"session_ttl"`
-	PasswordMinLen     int    `koanf:"password_min_len"`
-	BCryptCost         int    `koanf:"bcrypt_cost"`
-	EmailEncryptionKey string `koanf:"email_encryption_key"`
-	EmailLookupKey     string `koanf:"email_lookup_key"`
+	SessionTTL            string `koanf:"session_ttl"`
+	PasswordMinLen        int    `koanf:"password_min_len"`
+	PasswordMaxLen        int    `koanf:"password_max_len"`
+	PasswordMaxBytes      int    `koanf:"password_max_bytes"`
+	PasswordCheckTimeout  string `koanf:"password_check_timeout"`
+	PasswordTimeout       string `koanf:"password_timeout"`
+	ArgonMemoryKiB        uint64 `koanf:"argon_memory_kib"`
+	ArgonIterations       uint64 `koanf:"argon_iterations"`
+	ArgonParallelism      uint64 `koanf:"argon_parallelism"`
+	ArgonMaxMemoryKiB     uint64 `koanf:"argon_max_memory_kib"`
+	ArgonMaxIterations    uint64 `koanf:"argon_max_iterations"`
+	ArgonMaxParallelism   uint64 `koanf:"argon_max_parallelism"`
+	PasswordMaxConcurrent int    `koanf:"password_max_concurrent"`
+	EmailEncryptionKey    string `koanf:"email_encryption_key"`
+	EmailLookupKey        string `koanf:"email_lookup_key"`
 }
 
 // ContactConfig holds contact data-protection configuration.
@@ -194,8 +204,12 @@ func New() *Config {
 		},
 		Auth: AuthConfig{
 			SessionTTL:     "24h",
-			PasswordMinLen: 8,
-			BCryptCost:     12,
+			PasswordMinLen: 15,
+			PasswordMaxLen: 1024, PasswordMaxBytes: 4096,
+			PasswordCheckTimeout: "2s", PasswordTimeout: "5s",
+			ArgonMemoryKiB: 65536, ArgonIterations: 3, ArgonParallelism: 4,
+			ArgonMaxMemoryKiB: 65536, ArgonMaxIterations: 3, ArgonMaxParallelism: 4,
+			PasswordMaxConcurrent: 2,
 		},
 		PubSub: PubSubConfig{
 			Enabled:      false,
@@ -259,8 +273,18 @@ func Load(path, envPrefix string, args []string) (*Config, error) {
 	fs.String("database.schema", "", "Database schema")
 	fs.String("database.sslmode", "disable", "Database SSL mode")
 	fs.String("auth.session_ttl", "24h", "Session TTL")
-	fs.Int("auth.password_min_len", 8, "Minimum password length")
-	fs.Int("auth.bcrypt_cost", 12, "BCrypt cost factor")
+	fs.Int("auth.password_min_len", 15, "Minimum normalized password code points")
+	fs.Int("auth.password_max_len", 1024, "Maximum normalized password code points")
+	fs.Int("auth.password_max_bytes", 4096, "Maximum raw and normalized password bytes")
+	fs.String("auth.password_check_timeout", "2s", "Password checker timeout")
+	fs.String("auth.password_timeout", "5s", "Total credential operation timeout")
+	fs.Uint64("auth.argon_memory_kib", 65536, "Argon2id creation memory in KiB")
+	fs.Uint64("auth.argon_iterations", 3, "Argon2id creation iterations")
+	fs.Uint64("auth.argon_parallelism", 4, "Argon2id creation lanes")
+	fs.Uint64("auth.argon_max_memory_kib", 65536, "Maximum verification memory in KiB")
+	fs.Uint64("auth.argon_max_iterations", 3, "Maximum verification iterations")
+	fs.Uint64("auth.argon_max_parallelism", 4, "Maximum verification lanes")
+	fs.Int("auth.password_max_concurrent", 2, "Maximum active credential KDF operations")
 	fs.String("auth.email_encryption_key", "", "Email encryption key")
 	fs.String("auth.email_lookup_key", "", "Email lookup key")
 	fs.String("contact.pii_encryption_key", "", "Contact PII encryption key")
@@ -348,12 +372,9 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("database.database is required")
 	}
 
-	if c.Auth.PasswordMinLen < 1 {
-		return fmt.Errorf("auth.password_min_len must be at least 1")
-	}
-
-	if c.Auth.BCryptCost < 4 || c.Auth.BCryptCost > 31 {
-		return fmt.Errorf("auth.bcrypt_cost must be between 4 and 31")
+	_, err := c.Auth.PasswordSettings()
+	if err != nil {
+		return err
 	}
 
 	if c.Scheduler.BatchSize < 1 {

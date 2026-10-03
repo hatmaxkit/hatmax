@@ -21,5 +21,15 @@ database:
 
 auth:
   session_ttl: "24h"
-  password_min_len: 8
-  bcrypt_cost: 12
+  password_min_len: 15
+  password_max_len: 1024
+  password_max_bytes: 4096
+  password_check_timeout: 2s
+  password_timeout: 5s
+  argon_memory_kib: 65536
+  argon_iterations: 3
+  argon_parallelism: 4
+  argon_max_memory_kib: 65536
+  argon_max_iterations: 3
+  argon_max_parallelism: 4
+  password_max_concurrent: 2

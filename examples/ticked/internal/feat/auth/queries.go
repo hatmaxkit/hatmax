@@ -8,7 +8,9 @@ package auth
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"github.com/jackc/pgx/v5/pgconn"
 	"time"
 
 	"hatmax.adrianpk.com/auth"
@@ -80,6 +82,11 @@ func (q *Queries) CreateUser(ctx context.Context, id, email, passwordHash string
 		UpdatedAt:    updatedAt,
 	})
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "users_email_key" {
+			return nil, auth.ErrEmailTaken
+		}
+
 		return nil, err
 	}
 
@@ -106,20 +113,94 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (*auth.User, error
 	return toAuthUser(user), nil
 }
 
-// CreateSession creates a new session and returns it.
-func (q *Queries) CreateSession(ctx context.Context, id, userID, token string, expiresAt, createdAt time.Time) (*auth.Session, error) {
-	session, err := q.q.CreateSession(ctx, dal.CreateSessionParams{
-		ID:        id,
-		UserID:    userID,
-		Token:     token,
-		ExpiresAt: expiresAt,
-		CreatedAt: createdAt,
-	})
+// lockCredential rechecks the subject's auth state under the mutation row lock.
+func lockCredential(ctx context.Context, tx *sql.Tx, state auth.CredentialState) (dal.User, error) {
+	user, err := dal.New(tx).GetUserForAuth(ctx, state.UserID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return dal.User{}, auth.ErrCredentialChanged
+	}
+
+	if err != nil {
+		return dal.User{}, err
+	}
+
+	if !user.Active || state.Version < 1 || user.AuthVersion != state.Version {
+		return dal.User{}, auth.ErrCredentialChanged
+	}
+
+	return user, nil
+}
+
+func (q *Queries) beginCredentialTx(ctx context.Context) (*sql.Tx, error) {
+	if q.dbProvider == nil || q.dbProvider.GetDB() == nil {
+		return nil, errors.New("database connection not available")
+	}
+
+	return q.dbProvider.GetDB().BeginTx(ctx, nil)
+}
+
+// CreateSession atomically checks current credential/account state and inserts
+// the session. Activation/password changes serialize through the user row lock.
+func (q *Queries) CreateSession(ctx context.Context, state auth.CredentialState, session auth.Session) (*auth.Session, error) {
+	if session.UserID != state.UserID {
+		return nil, auth.ErrCredentialChanged
+	}
+
+	tx, err := q.beginCredentialTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	_, err = lockCredential(ctx, tx, state)
 	if err != nil {
 		return nil, err
 	}
 
-	return toAuthSession(session), nil
+	stored, err := dal.New(tx).CreateSession(ctx, dal.CreateSessionParams{ID: session.ID, UserID: state.UserID, Token: session.Token, ExpiresAt: session.ExpiresAt, CreatedAt: session.CreatedAt})
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return toAuthSession(stored), nil
+}
+
+// ReplacePassword checks expected current state, replaces the whole record and
+// revokes sessions in one transaction. The caller supplies a policy-approved,
+// encoded record and owns authorization for the credential-change operation.
+func (q *Queries) ReplacePassword(ctx context.Context, state auth.CredentialState, passwordHash string, changedAt time.Time) (*auth.User, error) {
+	tx, err := q.beginCredentialTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	_, err = lockCredential(ctx, tx, state)
+	if err != nil {
+		return nil, err
+	}
+
+	updated, err := dal.New(tx).ReplacePassword(ctx, dal.ReplacePasswordParams{ID: state.UserID, PasswordHash: passwordHash, UpdatedAt: changedAt})
+	if err != nil {
+		return nil, err
+	}
+
+	err = dal.New(tx).DeleteUserSessions(ctx, state.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return toAuthUser(updated), nil
 }
 
 // GetSessionByToken retrieves a session by token.
@@ -185,6 +266,7 @@ func toAuthUser(u dal.User) *auth.User {
 		ID:           u.ID,
 		Email:        u.Email,
 		PasswordHash: u.PasswordHash,
+		AuthVersion:  u.AuthVersion,
 		Roles:        u.Roles,
 		Active:       u.Active,
 		CreatedAt:    u.CreatedAt,

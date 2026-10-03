@@ -209,46 +209,6 @@ func TestQueries_GetUserByID_Error(t *testing.T) {
 	}
 }
 
-func TestQueries_CreateSession(t *testing.T) {
-	now := time.Now()
-	expires := now.Add(24 * time.Hour)
-	fq := &fakeQuerier{
-		createSession: dal.Session{
-			ID:        "sess1",
-			UserID:    "user1",
-			Token:     "token123",
-			ExpiresAt: expires,
-			CreatedAt: now,
-		},
-	}
-
-	q := &Queries{}
-	q.SetQuerier(fq)
-
-	session, err := q.CreateSession(context.Background(), "sess1", "user1", "token123", expires, now)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-
-	if session.Token != "token123" {
-		t.Errorf("expected token token123, got %s", session.Token)
-	}
-}
-
-func TestQueries_CreateSession_Error(t *testing.T) {
-	fq := &fakeQuerier{
-		createSessionErr: errors.New("db error"),
-	}
-
-	q := &Queries{}
-	q.SetQuerier(fq)
-
-	_, err := q.CreateSession(context.Background(), "sess1", "user1", "token", time.Now(), time.Now())
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-}
-
 func TestQueries_GetSessionByToken(t *testing.T) {
 	now := time.Now()
 	fq := &fakeQuerier{
