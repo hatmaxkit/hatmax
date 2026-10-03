@@ -21,8 +21,8 @@ Model: [Authentication and sessions model](../spec/authentication-sessions-model
 Tracker: [Delivery tracker](../tracker/authentication-sessions.md)
 Base branch: `dev`
 Planning base: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
-Active slice: Slice 1
-Execution gate: Review
+Active slice: Slice 2
+Execution gate: Open
 Go baseline: 1.27.1
 
 ## Outcome and Authority

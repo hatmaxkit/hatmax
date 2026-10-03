@@ -16,7 +16,7 @@ Model: [Authentication and sessions model](authentication-sessions-model.md)
 Plan: [Delivery plan](../plan/authentication-sessions.md)
 Tracker: [Delivery tracker](../tracker/authentication-sessions.md)
 Inspected baseline: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
-Implementation status: Pending
+Implementation status: Partial
 Execution gate: Open
 
 ## Purpose and Ownership

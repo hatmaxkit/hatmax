@@ -7,12 +7,14 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 1: Secure Session Lifecycle
 
-Status: reviewing
+Status: delivered
 Delivery set: authentication-sessions
 Plan: [Delivery plan](../../../plan/authentication-sessions.md)
 Tracker: [Delivery tracker](../../../tracker/authentication-sessions.md)
 Branch: `feat/auth-session-lifecycle`
 PR: `#95`
+Merged: 2026-10-03
+Integration: `b8012ff89551b5027a9686d42ed3ddf5ba89495b`
 
 ## Purpose
 
