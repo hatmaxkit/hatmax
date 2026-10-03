@@ -49,7 +49,7 @@ remainder, and turning each `_` into `.`. `HATMAX_DATABASE_HOST` with prefix
 | `log` | `level` |
 | `server` | `port`, `host` |
 | `database` | `host`, `port`, `user`, `password`, `database`, `schema`, `sslmode` |
-| `auth` | `session_ttl`, credential policy/work fields below, `email_encryption_key`, `email_lookup_key` |
+| `auth` | session lifecycle and credential policy/work fields below, `email_encryption_key`, `email_lookup_key` |
 | `contact` | `pii_encryption_key`, `email_lookup_key` |
 | `property` | `notes_protection_key` |
 | `pubsub` | `enabled`, `poll_interval`, `batch_size` |
@@ -71,6 +71,10 @@ remainder, and turning each `_` into `.`. `HATMAX_DATABASE_HOST` with prefix
 | `database.schema` | empty |
 | `database.sslmode` | `disable` |
 | `auth.session_ttl` | `24h` |
+| `auth.session_inactivity_ttl` | `30m` |
+| `auth.session_activity_interval` | `1m` |
+| `auth.session_timeout` | `5s` |
+| `auth.session_cleanup_batch` | `1000` |
 | `auth.password_min_len` | `15` |
 | `auth.password_max_len` | `1024` |
 | `auth.password_max_bytes` | `4096` |
@@ -216,3 +220,5 @@ These standalone parsing helpers retain their empty-to-zero behavior; they
 do not implement the service's absence/default policy.
 
 Settings do not reload `config.Config`.
+
+Session lifetime/cadence/batch constraints are in the [authentication reference](../authentication/README.md#session-lifecycle). Invalid configured session settings fail construction.

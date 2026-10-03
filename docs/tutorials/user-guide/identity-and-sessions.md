@@ -28,8 +28,10 @@ own migrations, SQLC queries, and adapter wiring.
 The service normalizes the workflow around stable failures. Signup validates
 email and password requirements, rejects an existing address, hashes the
 password, and creates the user. Sign-in verifies the stored hash and creates a
-session with the configured lifetime. Session validation rejects missing,
-expired, or inactive users before returning an authenticated identity.
+session with configured absolute and inactivity lifetimes. Session validation
+checks current account version and expiry under locks before returning owned
+user and safe session metadata. Password, activation and role changes invalidate
+old sessions.
 
 Handlers translate those results into safe form feedback. They do not expose
 whether an address exists, a password hash failed, or a database operation
@@ -47,21 +49,25 @@ A command-line localhost check can send it explicitly, but weakening the
 production cookie contract to simplify local testing creates a different
 security model.
 
-`auth.RequireAuth` reads the cookie, validates the session, and stores the user
-and user ID in the request context. Missing or invalid identity redirects to
+`auth.RequireAuth` reads the cookie, validates the session, and stores the user,
+user ID and safe session metadata in the request context. Missing or invalid
+identity redirects to
 `/signin`. `auth.OptionalAuth` continues anonymously when validation fails.
 
 Install authentication on the narrowest route group that needs it:
 
 ```go
 router.Group(func(router chi.Router) {
-	router.Use(auth.RequireAuth(authService))
+	router.Use(auth.RequireAuth(authService, auth.RelevantActivity))
 	router.Get("/invoices", invoiceHandler.page)
 })
 ```
 
 Handlers retrieve the established identity with `auth.GetUser` or
-`auth.GetUserID`. They do not parse session tokens again.
+`auth.GetUserID`; `auth.GetSession` exposes safe lifecycle metadata. They do not
+parse session tokens again. Select `auth.NoActivity` for background polling;
+trusted relevant activity refreshes inactivity only at the persistence cadence.
+It never extends absolute expiry or the authentication time.
 
 ## Separate Authentication from Authorization
 
@@ -81,7 +87,8 @@ grace policy, recovery flow, and protected operations.
 ## Choose the Correct Cryptographic Primitive
 
 The `auth` service uses Hatmax model password hashing and opaque stored session
-tokens. The separate `crypto` package supports other application needs:
+token digests. Raw 32-byte random bearer secrets appear only on issuance and in
+the secure cookie. The separate `crypto` package supports other application needs:
 
 - AES-256-GCM for authenticated encryption of strings;
 - HMAC lookup hashes for searchable protected values;

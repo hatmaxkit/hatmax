@@ -173,6 +173,11 @@ func (s *Service) Signin(ctx context.Context, email, password string) (*IssuedSe
 		return nil, fmt.Errorf("cannot create session: %w", err)
 	}
 
+	err = sessionCtx.Err()
+	if err != nil {
+		return nil, err
+	}
+
 	s.log.Infof("User signed in: %s", user.ID)
 
 	return &IssuedSession{Session: *session, Token: token}, nil
@@ -214,6 +219,11 @@ func (s *Service) ValidateSession(ctx context.Context, token string, activity Se
 	session, err := s.queries.ValidateSession(workCtx, digest, activity, s.sessions.ActivityInterval)
 	if err != nil {
 		return nil, fmt.Errorf("cannot validate session: %w", err)
+	}
+
+	err = workCtx.Err()
+	if err != nil {
+		return nil, err
 	}
 
 	return session, nil

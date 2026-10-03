@@ -68,6 +68,7 @@ func RequireRoles(svc SessionValidator, activity auth.SessionActivity, roles ...
 			}
 
 			ctx := auth.WithUser(r.Context(), validated.User)
+			ctx = auth.WithUserID(ctx, validated.User.ID)
 			ctx = auth.WithSession(ctx, &validated.Session)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

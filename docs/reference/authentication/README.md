@@ -15,7 +15,7 @@ implementation. The implementation note is
 error. It requires a caller-owned checker, validates credential settings and
 owns one shared policy/verifier. Signup checks complete normalized candidates;
 sign-in verifies PHC Argon2id records and rechecks current persistent state.
-Session identifiers and tokens still use `model.NewID`.
+Session record IDs use `model.NewID`; bearer secrets use 32 random bytes.
 
 ## Password policy
 
@@ -158,7 +158,69 @@ supplied role matches. `NeedsTOTPSetup` is true when `TOTPSecret` is empty.
 `InTOTPGracePeriod(days)` is false when `days` is not positive. Otherwise it
 is true while the current time is before `CreatedAt` plus that many days.
 
-`Session` fields are `ID`, `UserID`, `Token`, `ExpiresAt`, and `CreatedAt`.
+`Session` contains `ID`, `UserID`, `AuthVersion`, `Generation`, `AuthenticatedAt`,
+`CreatedAt`, `LastActivityAt`, `ExpiresAt`, and `InactivityTTL`. It contains no
+bearer or lookup digest. `SessionRecord` adds a fixed 32-byte `SessionDigest` for
+storage. `IssuedSession` adds the transient raw `Token` for immediate issuance.
+`ValidatedSession` returns an owned current `User` and safe `Session` snapshot.
+
+## Session lifecycle
+
+Secrets contain 32 random bytes from the cryptographic source. Their sole
+accepted encoding is exactly 44 characters of canonical padded URL Base64.
+`ParseSessionToken` checks size before decoding, rejects alternate alphabets,
+padding bits, line breaks and unpadded input, then derives SHA-256 over
+`hatmax/session/v1` followed by a zero byte and the decoded secret. Source failures
+return no secret/digest and cannot persist a session. Raw tokens must not be
+stored or logged. A session ID is never a bearer.
+
+`Session.Check(now)` checks shape, positive version/generation and ordered times.
+Absolute expiry is measured from completed authentication; inactivity from stored
+relevant activity. Equality at either deadline is expired. Activity never changes
+absolute expiry, creation or authentication time. Future activity/proof times and
+invalid duration snapshots fail closed.
+
+The required validation storage operation acquires the subject lock followed by
+the session lock, checks active/current `AuthVersion`, then evaluates current
+trusted time. A timestamp captured before waiting on a lock does not satisfy the
+contract. Missing sessions return `ErrSessionNotFound`, stale account state
+`ErrCredentialChanged`, corrupt records `ErrSessionRecord`, and expired state
+`ErrSessionExpired`. Revoked/expired sessions cannot be renewed.
+
+`ValidateSession(ctx, token, activity)` requires trusted `NoActivity` or
+`RelevantActivity`. Polling/background routes use `NoActivity`. Relevant activity
+updates only when the configured persistence interval has elapsed, in the same
+transaction as validation. Coalescing can conservatively expire up to one
+interval early; it cannot extend expiry. No activity decision comes from client
+flags. Concurrent touches serialize and return owned snapshots only after commit.
+A failed write/commit returns no authorized result and leaves activity unchanged.
+
+The Ticked schema contains only `token_digest`, with an exact 32-byte constraint,
+positive auth version/generation and bounded time/duration constraints. Its
+adapter uses `clock_timestamp()` after row locks. Custom adapters must implement
+the same required atomic contracts; a getter plus independent touch is insufficient.
+The initial schema replaces the old shape; no legacy-token reader or historical
+schema upgrade is supplied.
+
+| Configuration | Default | Bound |
+| --- | --- | --- |
+| `auth.session_ttl` | 24h | 1 minute through 30 days |
+| `auth.session_inactivity_ttl` | 30m | 1 minute through absolute lifetime |
+| `auth.session_activity_interval` | 1m | 1 second through 5 minutes; at most one quarter of inactivity |
+| `auth.session_timeout` | 5s | Positive; at most 30 seconds; earlier caller deadline wins |
+| `auth.session_cleanup_batch` | 1000 | 1 through 1000; zero selects default |
+
+Absent duration strings select defaults; malformed, zero/negative and
+inconsistent configured durations fail construction. Stored durations use whole
+microseconds to match PostgreSQL precision. Configuration is snapshotted, so
+later mutation cannot weaken a live service. Storage must honor context and bound
+work; late validation/issuance success is discarded. Cleanup deletes one bounded
+batch of absolute or inactivity-expired rows and returns its count. The example
+uses `SKIP LOCKED` to avoid waiting on busy rows.
+
+This service path verifies passwords only. Enrollment fields and the TOTP setup
+middleware do not establish verified MFA or phishing-resistant proof. Stronger
+proof policies and reauthentication/control belong to their separate contracts.
 
 ## Queries
 
@@ -169,11 +231,11 @@ is true while the current time is before `CreatedAt` plus that many days.
 | `CreateUser` | id, email, password hash, created at, updated at |
 | `GetUserByEmail` | email |
 | `GetUserByID` | id |
-| `CreateSession` | expected `CredentialState`, complete `Session` |
+| `CreateSession` | expected `CredentialState`, complete `SessionRecord` |
 | `ReplacePassword` | expected `CredentialState`, encoded password, change time |
-| `GetSessionByToken` | token |
-| `DeleteSession` | session id |
-| `DeleteExpiredSessions` | none |
+| `ValidateSession` | digest, trusted activity, persistence interval |
+| `DeleteSession` | digest |
+| `DeleteExpiredSessions` | bounded batch limit; returns count |
 
 Reads return caller-owned snapshots. A missing read row is `sql.ErrNoRows`.
 New users have positive `AuthVersion`; every credential or activation change
@@ -206,13 +268,13 @@ construction. Later configuration mutation cannot weaken credential settings.
 | `ErrInvalidEmail` | `Signup` receives an empty email. |
 | `ErrPasswordTooShort` | The candidate has fewer normalized code points than the configured minimum. |
 | `ErrEmailTaken` | Persistent creation finds a duplicate email. |
-| `ErrUserNotFound` | Sign-in, session validation, or `GetUserByID` finds no row. |
+| `ErrUserNotFound` | Sign-in or `GetUserByID` finds no row. |
 | `ErrInvalidPassword` | A supported stored credential does not match. |
-| `ErrCredentialChanged` | Persistent state is stale, inactive or missing during session creation. |
-| `ErrSessionNotFound` | Sign-out finds no session. |
-| `ErrSessionExpired` | `ExpiresAt` is before `model.Now`. |
+| `ErrCredentialChanged` | Persistent state is stale, inactive or missing during creation/validation. |
+| `ErrSessionNotFound` | Validation or sign-out finds no session. |
+| `ErrSessionExpired` | Absolute or inactivity deadline has been reached. |
 
-An inactive user on sign-in or session validation returns the error text
+An inactive user on sign-in returns the error text
 `user is not active`. That value is not one of the sentinels above.
 
 `Signup` returns the created user after candidate checking, salted Argon2id
@@ -231,34 +293,28 @@ Both operations use the earlier caller deadline or `auth.password_timeout`
 own two-second default bound. Argon2 work remains synchronous and cannot be
 interrupted; a late result is discarded and the slot remains held until completion.
 
-`Signin` parses `cfg.Auth.SessionTTL`. An
-invalid duration uses 24 hours. The session token is a new model ID.
-`Signout` deletes the session found by token. `ValidateSession` returns the
-user when the session exists, has not expired, and the user is active.
-`GetUserByID` returns that user, including an inactive user.
-`CleanupExpiredSessions` calls `DeleteExpiredSessions`.
-
-Other query failures are wrapped with `cannot hash
-password`, `cannot verify password`, `cannot create user`, `cannot get user`, `cannot create session`,
-`cannot get session`, `cannot delete session`, or `cannot cleanup expired
-sessions`.
+`Signin` returns an `IssuedSession` only after the current-state insert commits.
+`Signout` parses and deletes only the presented digest. `GetUserByID` can return
+an inactive user. `CleanupExpiredSessions` performs one bounded batch. Operating
+errors retain their wrapped cause; do not expose diagnostic storage errors to
+users.
 
 ## Context
 
 A nil context makes `GetUserID`, `GetUser`, and `GetSession` return the zero
 value and false. `WithUserID`, `WithUser`, and `WithSession` store those
-values. `RequireAuth` and `OptionalAuth` store the user and the user ID. They
-do not store the session.
+values. `RequireAuth` and `OptionalAuth` store the user, user ID and safe session
+metadata after validation.
 
 ## Middleware
 
 `SessionCookieName` is `session`.
 
-`RequireAuth` redirects to `/signin` with status `303` when the cookie is
+`RequireAuth(svc, activity)` redirects to `/signin` with status `303` when the cookie is
 missing or `ValidateSession` returns an error. Success stores the user and
 calls the next handler. It does not clear the cookie.
 
-`OptionalAuth` calls the next handler without a user when the cookie is
+`OptionalAuth(svc, activity)` calls the next handler without a user when the cookie is
 missing or validation fails.
 
 `SetSessionCookie` sets `session` on path `/`, with the supplied `MaxAge`,

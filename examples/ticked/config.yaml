@@ -21,6 +21,10 @@ database:
 
 auth:
   session_ttl: "24h"
+  session_inactivity_ttl: "30m"
+  session_activity_interval: "1m"
+  session_timeout: "5s"
+  session_cleanup_batch: 1000
   password_min_len: 15
   password_max_len: 1024
   password_max_bytes: 4096

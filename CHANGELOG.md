@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Sessions now expire after 24 hours or 30 minutes of inactivity by default,
+  reject stale account state, and store only token digests. Custom auth stores
+  must implement atomic validation and activity updates; middleware must select
+  relevant activity explicitly so background polling does not extend sessions.
+  Invalid session configuration now fails construction.
+
 - Authentication now checks complete NFC-normalized passwords before signup and
   stores salted Argon2id credentials. Password-only access requires at least 15
   Unicode code points and supports long Unicode passwords. Supply a bounded

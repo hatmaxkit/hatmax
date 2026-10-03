@@ -26,7 +26,7 @@ func TestRequireAuth(t *testing.T) {
 	_, _ = svc.Signup(context.Background(), "test@example.com", "correct-password-123")
 	session, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
 
-	// Handler that checks if user is in context
+	// Handler verifies current identity and the safe session context.
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, ok := GetUser(r.Context())
 		if !ok {
@@ -38,6 +38,13 @@ func TestRequireAuth(t *testing.T) {
 
 		if user.Email != "test@example.com" {
 			t.Errorf("RequireAuth() user.Email = %v, want test@example.com", user.Email)
+		}
+
+		metadata, found := GetSession(r.Context())
+
+		userID, idFound := GetUserID(r.Context())
+		if !found || !idFound || metadata.ID != session.ID || userID != user.ID {
+			t.Error("safe session identity missing from context")
 		}
 
 		w.WriteHeader(http.StatusOK)

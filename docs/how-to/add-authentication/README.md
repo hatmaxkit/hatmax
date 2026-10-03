@@ -19,20 +19,27 @@ type Queries interface {
 	CreateUser(context.Context, string, string, string, time.Time, time.Time) (*User, error)
 	GetUserByEmail(context.Context, string) (*User, error)
 	GetUserByID(context.Context, string) (*User, error)
-	CreateSession(context.Context, string, string, string, time.Time, time.Time) (*Session, error)
-	GetSessionByToken(context.Context, string) (*Session, error)
-	DeleteSession(context.Context, string) error
-	DeleteExpiredSessions(context.Context) error
+	CreateSession(context.Context, CredentialState, SessionRecord) (*Session, error)
+	ReplacePassword(context.Context, CredentialState, string, time.Time) (*User, error)
+	ValidateSession(context.Context, SessionDigest, SessionActivity, time.Duration) (*ValidatedSession, error)
+	DeleteSession(context.Context, SessionDigest) error
+	DeleteExpiredSessions(context.Context, int) (int64, error)
 }
 ```
 
-Return `sql.ErrNoRows` for missing users and sessions. Preserve `CreatedAt` on
-loaded users because TOTP grace-period checks use it.
+Return owned user/session snapshots and store only the session digest. Validate
+active/current account version and exact absolute/inactivity expiry under locks,
+using current time evaluated after the wait. Apply relevant activity in that same
+transaction; polling must leave activity unchanged. Return `sql.ErrNoRows` for
+missing user reads, `ErrSessionNotFound` for missing session lookups and
+`ErrCredentialChanged` for stale account state. Preserve user `CreatedAt` for
+TOTP grace-period checks.
 
 ## Create the service
 
 ```go
-account := auth.NewService(queries, cfg, logger)
+account, err := auth.NewService(queries, cfg, checker, logger)
+if err != nil { return err }
 ```
 
 Use `Signup`, `Signin`, `Signout`, and `ValidateSession` from handlers. Set the
@@ -52,7 +59,7 @@ auth.SetSessionCookie(w, session.Token, int(time.Until(session.ExpiresAt).Second
 
 ```go
 r.Group(func(r chi.Router) {
-	r.Use(auth.RequireAuth(account))
+	r.Use(auth.RequireAuth(account, auth.RelevantActivity))
 	r.Get("/account", accountPage)
 })
 ```
@@ -63,6 +70,8 @@ r.Group(func(r chi.Router) {
 
 Request `/account` without a session cookie. The response is `303` with
 `Location: /signin`. Sign in over HTTPS and repeat the request with the cookie;
-the protected handler receives the user in its context.
+the protected handler receives the user, user ID and safe session metadata in
+its context. Background routes use `auth.NoActivity`. Validate session settings
+at startup; invalid lifetimes/cadence fail construction.
 
 See [Authentication Reference](../../reference/authentication/README.md).

@@ -18,7 +18,7 @@ Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
 Active slice: Slice 1
-Active tasks: T1.1
+Active tasks: T1.2
 Execution gate: Open
 
 ## Slice Status
@@ -33,8 +33,8 @@ Execution gate: Open
 
 | Task | Status | Expected commit | Commit | Validation evidence required |
 | --- | --- | --- | --- | --- |
-| T1.1 | implemented | `feat(auth): enforce secure session lifecycle` | pending | Stored/issued types, bounded secrets/lifetimes, coherent current-state validation and updated active consumers |
-| T1.2 | pending | `test(auth): verify session lifecycle boundaries` | pending | Canonical parser fuzz, exact expiry/time/coalescing and real Postgres stale-state/rollback; AS-01/AS-02/AS-06/AS-09 |
+| T1.1 | completed | `feat(auth): enforce secure session lifecycle` | `7b8d950beed04974ba9968ddab73394b1b50c063` | Stored/issued types, bounded secrets/lifetimes, coherent current-state validation and updated active consumers |
+| T1.2 | implemented | `test(auth): verify session lifecycle boundaries` | pending | Canonical parser fuzz, exact expiry/time/coalescing and real Postgres stale-state/rollback; AS-01/AS-02/AS-06/AS-09 |
 | T2.1 | pending | `feat(auth): enforce required proof and authentication outcomes` | pending | Trusted policy revision, verified password facts, safe metadata and distinct non-authorizing outcomes |
 | T2.2 | pending | `test(auth): verify proof outcome isolation` | pending | Password success, strong-policy denial, freshness/equality and pending/full isolation; AS-03/AS-04 |
 | T3.1 | pending | `feat(auth): add atomic session reauthentication and control` | pending | Rotation/revocation/management/admission/cleanup with finite required storage contracts |
@@ -90,3 +90,10 @@ Before T1.2, the selected commands are:
 Integration requires an externally supplied real PostgreSQL connection. Tests
 cover stored digests, current-state invalidation, post-lock time, activity rollback
 and bounded cleanup. Fuzzing exercises only the bounded canonical bearer parser.
+
+T1.2 passed the selected integration/race command against PostgreSQL 18.6 and
+643311 token-parser fuzz executions in 20 seconds. Focused package/race tests,
+Ticked tests, example compilation, licensing, vet, strict lint and documentation
+checks passed. Tagged integration lint also passed with zero issues. No generator
+runtime caller uses the changed session API; no generator files were changed.
+The delivery-set `make check` gate remains after all three slices merge.

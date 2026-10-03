@@ -184,5 +184,10 @@ list is not a compromised-password corpus and does not establish production
 breach coverage. Production consumers must choose and document their own source.
 
 The Postgres adapter enforces email uniqueness and uses versioned user-row
-transactions for credential replacement and session insertion. See the
+transactions for credential replacement, session insertion and validation.
+Sessions store only purpose-separated token digests. Validation checks current
+account version and expiry after account/session locks, and coalesces relevant
+activity without extending absolute expiry. Route consumers select activity
+explicitly; background polling must use `NoActivity`. Configuration validates
+24-hour absolute and 30-minute inactivity defaults at startup. See the
 [authentication storage reference](../../docs/reference/authentication/README.md#queries).
