@@ -25,7 +25,7 @@ Execution gate: Review
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Password policy | delivered | `feat/credential-password-policy` | `feat(slice-1): define bounded password policy` | `#92` | `ops/default/report/slices/credential-security/slice-1-password-policy.md` |
 | Slice 2 | Versioned verifier | delivered | `feat/credential-versioned-verifier` | `feat(slice-2): add versioned password verification` | `#93` | `ops/default/report/slices/credential-security/slice-2-versioned-verifier.md` |
-| Slice 3 | Credential integration | reviewing | `feat/credential-auth-integration` | `feat(slice-3): integrate secure credential storage` | pending | `ops/default/report/slices/credential-security/slice-3-credential-integration.md` |
+| Slice 3 | Credential integration | reviewing | `feat/credential-auth-integration` | `feat(slice-3): integrate secure credential storage` | `#94` | `ops/default/report/slices/credential-security/slice-3-credential-integration.md` |
 
 ## Tasks
 
@@ -53,6 +53,11 @@ records measured defaults, exact commands and remaining service integration.
 PR #93 merged on 2026-10-03. Integration was verified on `dev` at
 `0d0ca4c50972af01dc50a7c844a2bc4a70ca6187`; Slice 2 is delivered. Slice 3 also requires the storage/current-state and configuration contracts. Test infrastructure failures are recorded
 without treating missing persistence evidence as a passing check.
+
+Slice 3 focused validation passed; PR #94 is open for review. Its
+[report](../report/slices/credential-security/slice-3-credential-integration.md)
+records required storage semantics and real PostgreSQL concurrency evidence.
+The integrated set gate remains pending until merge.
 
 ## Completion Gates
 
