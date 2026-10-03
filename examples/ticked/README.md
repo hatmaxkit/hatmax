@@ -194,3 +194,13 @@ activity without extending absolute expiry. Route consumers select activity
 explicitly; background polling must use `NoActivity`. Configuration validates
 24-hour absolute and 30-minute inactivity defaults at startup. See the
 [authentication storage reference](../../docs/reference/authentication/README.md#queries).
+
+### Session Control
+
+Open **Sessions** from the list page. Reauthenticate with the current password
+when recent proof is required. Successful reauthentication replaces the cookie
+and invalidates the previous bearer; failure preserves the existing cookie.
+The screen lists safe metadata and revokes selected, other or all own sessions.
+Policy comes from server wiring, and account roles grant no cross-subject session
+management through these routes. New session admission is capped at 10 retained
+rows per subject; expired rows are reclaimed without evicting live sessions.

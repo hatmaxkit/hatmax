@@ -76,7 +76,7 @@ func (m *mockQueries) GetUserByID(ctx context.Context, id string) (*User, error)
 	return &snapshot, nil
 }
 
-func (m *mockQueries) CreateSession(ctx context.Context, state CredentialState, session SessionRecord, requirement AccessRequirement) (*Session, error) {
+func (m *mockQueries) CreateSession(ctx context.Context, state CredentialState, session SessionRecord, requirement AccessRequirement, limit int) (*Session, error) {
 	user := m.users[state.UserID]
 	if user == nil || !user.Active || user.AuthVersion != state.Version {
 		return nil, ErrCredentialChanged

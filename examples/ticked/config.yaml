@@ -20,6 +20,9 @@ database:
   schema: public
 
 auth:
+  session_recent_proof_age: "5m"
+  session_max_per_subject: 10
+  session_page_size: 50
   session_ttl: "24h"
   session_inactivity_ttl: "30m"
   session_activity_interval: "1m"

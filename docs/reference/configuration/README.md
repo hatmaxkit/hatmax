@@ -74,6 +74,9 @@ remainder, and turning each `_` into `.`. `HATMAX_DATABASE_HOST` with prefix
 | `auth.session_inactivity_ttl` | `30m` |
 | `auth.session_activity_interval` | `1m` |
 | `auth.session_timeout` | `5s` |
+| `auth.session_recent_proof_age` | `5m` |
+| `auth.session_max_per_subject` | `10` |
+| `auth.session_page_size` | `50` |
 | `auth.session_cleanup_batch` | `1000` |
 | `auth.password_min_len` | `15` |
 | `auth.password_max_len` | `1024` |
@@ -222,3 +225,8 @@ do not implement the service's absence/default policy.
 Settings do not reload `config.Config`.
 
 Session lifetime/cadence/batch constraints are in the [authentication reference](../authentication/README.md#session-lifecycle). Invalid configured session settings fail construction.
+
+Session management requires recent proof (1s through absolute lifetime). Retained
+session capacity and page size are 1 through 100; zero selects 10 and 50
+respectively. Invalid values fail `auth.NewService` construction. See the
+[authentication contract](../authentication/README.md#reauthentication-and-control).

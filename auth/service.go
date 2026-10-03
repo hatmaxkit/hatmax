@@ -44,7 +44,10 @@ type Queries interface {
 	CreateUser(ctx context.Context, id, email, passwordHash string, createdAt, updatedAt time.Time) (*User, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	GetUserByID(ctx context.Context, id string) (*User, error)
-	CreateSession(ctx context.Context, state CredentialState, session SessionRecord, requirement AccessRequirement) (*Session, error)
+	CreateSession(ctx context.Context, state CredentialState, session SessionRecord, requirement AccessRequirement, limit int) (*Session, error)
+	RotateSession(ctx context.Context, state CredentialState, current SessionDigest, generation int64, replacement SessionRecord, requirement AccessRequirement) (*Session, error)
+	ListSessions(ctx context.Context, actor SessionDigest, requirement AccessRequirement, limit int, cursor string) (*SessionPage, error)
+	RevokeSessions(ctx context.Context, actor SessionDigest, requirement AccessRequirement, selection SessionSelection) (int64, error)
 	ReplacePassword(ctx context.Context, state CredentialState, passwordHash string, changedAt time.Time) (*User, error)
 	ValidateSession(ctx context.Context, digest SessionDigest, requirement AccessRequirement, activity SessionActivity, interval time.Duration) (*ValidatedSession, error)
 	DeleteSession(ctx context.Context, digest SessionDigest) error
@@ -167,18 +170,19 @@ func (s *Service) Signin(ctx context.Context, email, password string, requiremen
 		return unmetRequirement(user, requirement.Proof), nil
 	}
 
+	now := time.Now().UTC().Truncate(time.Microsecond)
+
 	token, digest, err := s.sessionToken()
 	if err != nil {
 		return nil, fmt.Errorf("cannot generate session secret: %w", err)
 	}
 
-	now := time.Now().UTC().Truncate(time.Microsecond)
 	record := SessionRecord{Session: Session{ID: model.NewID(), UserID: state.UserID, AuthVersion: state.Version, PolicyRevision: requirement.Revision, Generation: 1, Proof: VerifiedProof{Method: PasswordProof, VerifiedAt: now}, AuthenticatedAt: now, CreatedAt: now, LastActivityAt: now, ExpiresAt: now.Add(s.sessions.TTL), InactivityTTL: s.sessions.InactivityTTL}, Digest: digest}
 
 	sessionCtx, sessionCancel := context.WithTimeout(workCtx, s.sessions.Timeout)
 	defer sessionCancel()
 
-	session, err := s.queries.CreateSession(sessionCtx, state, record, requirement)
+	session, err := s.queries.CreateSession(sessionCtx, state, record, requirement, s.sessions.MaxPerSubject)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create session: %w", err)
 	}
@@ -208,7 +212,7 @@ func (s *Service) Signout(ctx context.Context, token string) error {
 		return fmt.Errorf("cannot delete session: %w", err)
 	}
 
-	return nil
+	return workCtx.Err()
 }
 
 // ValidateSession checks current stored state and optionally records trusted
@@ -266,6 +270,11 @@ func (s *Service) CleanupExpiredSessions(ctx context.Context) (int64, error) {
 	count, err := s.queries.DeleteExpiredSessions(workCtx, s.sessions.CleanupBatch)
 	if err != nil {
 		return 0, fmt.Errorf("cannot delete expired sessions: %w", err)
+	}
+
+	err = workCtx.Err()
+	if err != nil {
+		return 0, err
 	}
 
 	return count, nil

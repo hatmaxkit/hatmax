@@ -307,3 +307,14 @@ func TestService_ValidateSession_Error(t *testing.T) {
 		t.Fatal("expected error, got nil")
 	}
 }
+
+func (f *fakeBaseAuth) Reauthenticate(ctx context.Context, token, password string, requirement auth.AccessRequirement) (*auth.AuthenticationResult, error) {
+	return &auth.AuthenticationResult{Outcome: auth.AuthenticationCompleted, Issued: f.session}, f.signinErr
+}
+
+func (f *fakeBaseAuth) ListSessions(ctx context.Context, token string, requirement auth.AccessRequirement, cursor string) (*auth.SessionPage, error) {
+	return &auth.SessionPage{}, f.validateErr
+}
+func (f *fakeBaseAuth) RevokeSessions(ctx context.Context, token string, requirement auth.AccessRequirement, selection auth.SessionSelection) (int64, error) {
+	return 0, f.signoutErr
+}

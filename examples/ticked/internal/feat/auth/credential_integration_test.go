@@ -36,13 +36,13 @@ type changingQueries struct {
 	change func(context.Context, core.CredentialState) error
 }
 
-func (q changingQueries) CreateSession(ctx context.Context, state core.CredentialState, session core.SessionRecord, requirement core.AccessRequirement) (*core.Session, error) {
+func (q changingQueries) CreateSession(ctx context.Context, state core.CredentialState, session core.SessionRecord, requirement core.AccessRequirement, limit int) (*core.Session, error) {
 	err := q.change(ctx, state)
 	if err != nil {
 		return nil, err
 	}
 
-	return q.Queries.CreateSession(ctx, state, session, requirement)
+	return q.Queries.CreateSession(ctx, state, session, requirement, limit)
 }
 
 func credentialDatabase(t *testing.T) (*sql.DB, *Queries, *config.Config) {
@@ -348,7 +348,7 @@ func TestCredentialTransactions(t *testing.T) {
 		result := make(chan error, 1)
 
 		go func() {
-			_, sessionErr := q.CreateSession(ctx, state, core.SessionRecord{Session: core.Session{ID: model.NewID(), UserID: user.ID, AuthVersion: state.Version, PolicyRevision: PasswordRequirement().Revision, Generation: 1, Proof: core.VerifiedProof{Method: core.PasswordProof, VerifiedAt: time.Now().Add(-1500 * time.Millisecond)}, AuthenticatedAt: time.Now().Add(-time.Second), CreatedAt: time.Now().Add(-2 * time.Second), LastActivityAt: time.Now().Add(-time.Second), ExpiresAt: time.Now().Add(time.Hour), InactivityTTL: time.Minute}}, PasswordRequirement())
+			_, sessionErr := q.CreateSession(ctx, state, core.SessionRecord{Session: core.Session{ID: model.NewID(), UserID: user.ID, AuthVersion: state.Version, PolicyRevision: PasswordRequirement().Revision, Generation: 1, Proof: core.VerifiedProof{Method: core.PasswordProof, VerifiedAt: time.Now().Add(-1500 * time.Millisecond)}, AuthenticatedAt: time.Now().Add(-time.Second), CreatedAt: time.Now().Add(-2 * time.Second), LastActivityAt: time.Now().Add(-time.Second), ExpiresAt: time.Now().Add(time.Hour), InactivityTTL: time.Minute}}, PasswordRequirement(), 10)
 			result <- sessionErr
 		}()
 

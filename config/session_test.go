@@ -18,7 +18,7 @@ func TestSessionSettings(t *testing.T) {
 		valid  bool
 	}{
 		{name: "defaults", valid: true},
-		{name: "minimum", config: AuthConfig{SessionTTL: "1m", SessionInactivityTTL: "1m", SessionActivityInterval: "15s", SessionCleanupBatch: 1}, valid: true},
+		{name: "minimum", config: AuthConfig{SessionRecentProofAge: "1m", SessionTTL: "1m", SessionInactivityTTL: "1m", SessionActivityInterval: "15s", SessionCleanupBatch: 1}, valid: true},
 		{name: "maximum", config: AuthConfig{SessionTTL: "720h", SessionInactivityTTL: "720h", SessionActivityInterval: "5m", SessionTimeout: "30s", SessionCleanupBatch: 1000}, valid: true},
 		{name: "malformed", config: AuthConfig{SessionTTL: "forever"}},
 		{name: "zero duration", config: AuthConfig{SessionTTL: "0s"}},

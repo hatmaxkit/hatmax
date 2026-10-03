@@ -24,10 +24,10 @@ type observedProofQueries struct {
 	proof chan core.SessionRecord
 }
 
-func (q observedProofQueries) CreateSession(ctx context.Context, state core.CredentialState, record core.SessionRecord, required core.AccessRequirement) (*core.Session, error) {
+func (q observedProofQueries) CreateSession(ctx context.Context, state core.CredentialState, record core.SessionRecord, required core.AccessRequirement, limit int) (*core.Session, error) {
 	q.proof <- record
 
-	return q.Queries.CreateSession(ctx, state, record, required)
+	return q.Queries.CreateSession(ctx, state, record, required, limit)
 }
 
 func waitProofExpiry(t *testing.T, ctx context.Context, db *sql.DB, expiry time.Time) {

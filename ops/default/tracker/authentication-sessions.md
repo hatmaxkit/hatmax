@@ -18,7 +18,7 @@ Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `56b1cb05ea4243fbb87fe41ef3c7bb83b72e4fb5`
 Active slice: Slice 3
-Active tasks: T3.1
+Active tasks: T3.2
 Execution gate: Open
 
 ## Slice Status
@@ -37,7 +37,7 @@ Execution gate: Open
 | T1.2 | completed | `test(auth): verify session lifecycle boundaries` | `61b65a17cc5a693d85a328b0d78e48862c83ceff` | Canonical parser fuzz, exact expiry/time/coalescing and real Postgres stale-state/rollback; AS-01/AS-02/AS-06/AS-09 |
 | T2.1 | completed | `feat(auth): enforce required proof and authentication outcomes` | `05046a930635cd39cce8bd5249af14f6906bf3b8` | Trusted policy revision, verified password facts, safe metadata and distinct non-authorizing outcomes |
 | T2.2 | completed | `test(auth): verify proof outcome isolation` | `9be7080cbe6be8d23d11ba6571573d0347ca9bcb` | Password success, strong-policy denial, freshness/equality and pending/full isolation; AS-03/AS-04 |
-| T3.1 | pending | `feat(auth): add atomic session reauthentication and control` | pending | Rotation/revocation/management/admission/cleanup with finite required storage contracts |
+| T3.1 | implemented | `feat(auth): add atomic session reauthentication and control` | pending | Rotation/revocation/management/admission/cleanup with finite required storage contracts |
 | T3.2 | pending | `test(auth): verify session control integration` | pending | Real concurrent rotation/revocation/state/capacity/rollback and consumer integration; AS-05 through AS-09 |
 
 ## Dependencies and Execution Gate
@@ -45,7 +45,7 @@ Execution gate: Open
 The credential-security prerequisite is delivered and verified in its
 [completed tracker](credential-security.md). Parent AUTH-03/AUTH-04 behavior is
 approved. The concern/model/three-slice plan and tracker were approved on
-2026-10-03; Slices 1 and 2 are delivered and Slice 3/T3.1 is active.
+2026-10-03; Slices 1 and 2 are delivered and Slice 3/T3.2 is active.
 
 The concern/model are promoted together and direct links updated. Before the first implementation change,
 settle exact Go/SQL bindings against the logical model. Before T1.2, record the
@@ -125,3 +125,18 @@ The full delivery-set gate remains after Slice 3 merge.
 Slice 2 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/96. Report and tracker
 are delivered. Merge on 2026-10-03 was verified at
 `77b9188b4601e3e2faf2fd2a2ec42ee16c9a1664` on canonical dev; Slice 3 is activated.
+
+## Slice 3 Validation Bindings
+
+Before T3.2, the exact real PostgreSQL selector is:
+
+- `go test -tags=integration -race -count=1 -run '^Test(ControlTransactions|ProofTransactions|SessionTransactions|CredentialTransactions)$' ./examples/ticked/internal/feat/auth`
+
+Control evidence must establish actual password rotation, competing generations,
+revocation/account mutation serialization, post-lock expiry, forced partial-write
+rollback, bounded subject pages/recent proof and concurrent retained-row admission.
+Focused checks do not substitute for the integrated `make check` after Slice 3 merge.
+
+T3.1 focused package tests, tagged integration compilation, licensing, vet, strict
+lint and documentation checks passed. T3.2 owns the recorded real transaction
+selector and remaining behavioral evidence.

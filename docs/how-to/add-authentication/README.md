@@ -82,3 +82,13 @@ its context. Background routes use `auth.NoActivity`. Validate session settings
 at startup; invalid lifetimes/cadence fail construction.
 
 See [Authentication Reference](../../reference/authentication/README.md).
+
+## Add Session Control
+
+Use `Reauthenticate` with the current server requirement, then set the replacement
+cookie only after `CompletedSession` succeeds. Do not touch activity before proof
+verification. Use `ListSessions` with its opaque cursor and `RevokeSessions` with
+an explicit self-service selection; neither accepts a target subject. Management
+revalidates recent proof atomically. Clear the cookie after all/current revocation.
+Configure the retained-session cap, page size and recent-proof age within the
+[documented bounds](../../reference/authentication/README.md#reauthentication-and-control).

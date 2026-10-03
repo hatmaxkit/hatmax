@@ -29,6 +29,9 @@ import (
 type authService interface {
 	Signup(ctx context.Context, email, password string) (*auth.User, error)
 	Signin(ctx context.Context, email, password string) (*auth.AuthenticationResult, error)
+	Reauthenticate(ctx context.Context, token, password string) (*auth.AuthenticationResult, error)
+	ListSessions(ctx context.Context, token, cursor string) (*auth.SessionPage, error)
+	RevokeSessions(ctx context.Context, token string, selection auth.SessionSelection) (int64, error)
 	Signout(ctx context.Context, sessionToken string) error
 	ValidateSession(ctx context.Context, token string, requirement auth.AccessRequirement, activity auth.SessionActivity) (*auth.ValidatedSession, error)
 }
@@ -96,6 +99,10 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 	r.Post("/signin", h.handleSignin)
 	r.Get("/signup", h.handleSignupForm)
 	r.Post("/signup", h.handleSignup)
+	// Each management operation validates its actor inside the storage transaction.
+	r.Get("/sessions", h.handleSessions)
+	r.Post("/reauthenticate", h.handleReauthenticate)
+	r.Post("/sessions/revoke", h.handleRevokeSessions)
 
 	// User routes (authenticated)
 	r.Group(func(r chi.Router) {

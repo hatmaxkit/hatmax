@@ -139,7 +139,11 @@ func (q *Queries) beginCredentialTx(ctx context.Context) (*sql.Tx, error) {
 
 // CreateSession atomically checks current credential/account state and inserts
 // the session. Activation/password changes serialize through the user row lock.
-func (q *Queries) CreateSession(ctx context.Context, state auth.CredentialState, session auth.SessionRecord, requirement auth.AccessRequirement) (*auth.Session, error) {
+func (q *Queries) CreateSession(ctx context.Context, state auth.CredentialState, session auth.SessionRecord, requirement auth.AccessRequirement, limit int) (*auth.Session, error) {
+	if limit < 1 || limit > 100 {
+		return nil, auth.ErrSessionCapacity
+	}
+
 	if session.UserID != state.UserID || session.AuthVersion != state.Version || session.Generation != 1 {
 		return nil, auth.ErrCredentialChanged
 	}
@@ -156,6 +160,20 @@ func (q *Queries) CreateSession(ctx context.Context, state auth.CredentialState,
 	}
 
 	queries := dal.New(tx)
+
+	_, err = queries.ReclaimSubjectSessions(ctx, state.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	count, err := queries.CountSubjectSessions(ctx, state.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	if count >= int64(limit) {
+		return nil, auth.ErrSessionCapacity
+	}
 
 	now, err := queries.SessionClock(ctx)
 	if err != nil {

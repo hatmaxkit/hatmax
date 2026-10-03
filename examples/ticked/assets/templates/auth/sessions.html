@@ -1,0 +1,47 @@
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: Apache-2.0
+
+This file is part of Hatmax. See LICENSE for license terms.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/ticked.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <nav class="nav-container"><a href="/list-items" class="nav-brand">Ticked</a></nav>
+    <main class="main-container">
+        <h1>Sessions</h1>
+        {{if .Error}}<p role="alert">{{.Error}}</p>{{end}}
+        <form hx-post="/reauthenticate" hx-target="body">
+            <label>Password <input type="password" name="password" autocomplete="current-password" required></label>
+            <button type="submit">Reauthenticate</button>
+        </form>
+        {{with .Page}}
+        {{range .Sessions}}
+        <section>
+            <p>Session {{.ID}}{{if eq .ID $.Page.CurrentID}} (current){{end}}</p>
+            <p>Authenticated: {{.AuthenticatedAt}}. Expires: {{.ExpiresAt}}.</p>
+            <form hx-post="/sessions/revoke" hx-target="body">
+                <input type="hidden" name="scope" value="selected">
+                <input type="hidden" name="id" value="{{.ID}}">
+                <button type="submit">Revoke session</button>
+            </form>
+        </section>
+        {{end}}
+        {{if .NextCursor}}<a href="/sessions?cursor={{.NextCursor}}">Next page</a>{{end}}
+        <form hx-post="/sessions/revoke" hx-target="body">
+            <button type="submit" name="scope" value="others">Revoke other sessions</button>
+            <button type="submit" name="scope" value="all">Revoke all sessions</button>
+        </form>
+        {{end}}
+        <a href="/list-items">Back to list</a>
+    </main>
+</body>
+</html>

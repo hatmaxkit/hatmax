@@ -12,6 +12,9 @@ import (
 
 // SessionSettings is the validated immutable lifecycle configuration.
 type SessionSettings struct {
+	RecentProofAge   time.Duration
+	MaxPerSubject    int
+	PageSize         int
 	TTL              time.Duration
 	InactivityTTL    time.Duration
 	ActivityInterval time.Duration
@@ -30,6 +33,7 @@ func (c AuthConfig) SessionSettings() (SessionSettings, error) {
 		{"session_inactivity_ttl", c.SessionInactivityTTL, "30m", 30 * 24 * time.Hour},
 		{"session_activity_interval", c.SessionActivityInterval, "1m", 5 * time.Minute},
 		{"session_timeout", c.SessionTimeout, "5s", 30 * time.Second},
+		{"session_recent_proof_age", c.SessionRecentProofAge, "5m", 30 * 24 * time.Hour},
 	}
 
 	resolved := make([]time.Duration, len(values))
@@ -40,7 +44,7 @@ func (c AuthConfig) SessionSettings() (SessionSettings, error) {
 		}
 
 		duration, err := time.ParseDuration(raw)
-		if err != nil || duration <= 0 || duration > value.max || (i < 3 && duration%time.Microsecond != 0) {
+		if err != nil || duration <= 0 || duration > value.max || (i != 3 && duration%time.Microsecond != 0) {
 			return SessionSettings{}, fmt.Errorf("auth.%s is invalid or exceeds its supported duration", value.name)
 		}
 
@@ -60,5 +64,23 @@ func (c AuthConfig) SessionSettings() (SessionSettings, error) {
 		return SessionSettings{}, fmt.Errorf("auth.session_cleanup_batch must be between 1 and 1000")
 	}
 
-	return SessionSettings{TTL: resolved[0], InactivityTTL: resolved[1], ActivityInterval: resolved[2], Timeout: resolved[3], CleanupBatch: batch}, nil
+	if resolved[4] < time.Second || resolved[4] > resolved[0] {
+		return SessionSettings{}, fmt.Errorf("auth.session_recent_proof_age exceeds the session lifetime")
+	}
+
+	cap := c.SessionMaxPerSubject
+	if cap == 0 {
+		cap = 10
+	}
+
+	page := c.SessionPageSize
+	if page == 0 {
+		page = 50
+	}
+
+	if cap < 1 || cap > 100 || page < 1 || page > 100 {
+		return SessionSettings{}, fmt.Errorf("auth session capacity and page size must be between 1 and 100")
+	}
+
+	return SessionSettings{RecentProofAge: resolved[4], MaxPerSubject: cap, PageSize: page, TTL: resolved[0], InactivityTTL: resolved[1], ActivityInterval: resolved[2], Timeout: resolved[3], CleanupBatch: batch}, nil
 }

@@ -143,7 +143,10 @@ type Queries interface {
     CreateUser(ctx context.Context, id, email, passwordHash string, createdAt, updatedAt time.Time) (*User, error)
     GetUserByEmail(ctx context.Context, email string) (*User, error)
     GetUserByID(ctx context.Context, id string) (*User, error)
-    CreateSession(ctx context.Context, state CredentialState, session SessionRecord, requirement AccessRequirement) (*Session, error)
+    CreateSession(ctx context.Context, state CredentialState, session SessionRecord, requirement AccessRequirement, limit int) (*Session, error)
+    RotateSession(ctx context.Context, state CredentialState, current SessionDigest, generation int64, replacement SessionRecord, requirement AccessRequirement) (*Session, error)
+    ListSessions(ctx context.Context, actor SessionDigest, requirement AccessRequirement, limit int, cursor string) (*SessionPage, error)
+    RevokeSessions(ctx context.Context, actor SessionDigest, requirement AccessRequirement, selection SessionSelection) (int64, error)
     ReplacePassword(ctx context.Context, state CredentialState, passwordHash string, changedAt time.Time) (*User, error)
     ValidateSession(ctx context.Context, digest SessionDigest, requirement AccessRequirement, activity SessionActivity, interval time.Duration) (*ValidatedSession, error)
     DeleteSession(ctx context.Context, digest SessionDigest) error
@@ -155,7 +158,8 @@ Storage returns owned snapshots with a positive `AuthVersion`. Every credential,
 activation and security-state mutation advances that version. `CreateUser`
 enforces email uniqueness and returns `ErrEmailTaken` for duplicates.
 `CreateSession` checks active state, version, policy and proof at locked current
-time before insertion.
+time before insertion. It reclaims bounded expired subject rows and enforces the
+retained-row cap under the same subject lock.
 `ReplacePassword` atomically checks state, increments the version, replaces the
 complete credential and revokes sessions. Stale, inactive or missing state returns
 `ErrCredentialChanged`. See the [storage reference](../docs/reference/authentication/README.md#queries).
@@ -181,3 +185,26 @@ valid := crypto.ValidateTOTPCode(secret, code)
 plain, hashed, _ := crypto.GenerateBackupCodes(8)
 valid, index := crypto.VerifyBackupCode(code, hashed)
 ```
+
+## Reauthentication and Session Management
+
+`Reauthenticate(ctx, token, password, required)` verifies the password again for
+a live current session. Proof need not already be recent; revision, supported
+method, current account and both expiries must still hold. Rotation preserves ID
+and creation time, replaces the bearer and advances generation atomically.
+Set the replacement cookie only after `result.CompletedSession()` succeeds.
+Failed verification or transaction work returns no secret and preserves the old
+session. An expired session requires sign-in; password cannot satisfy MFA.
+
+`ListSessions(ctx, token, required, cursor)` returns a `SessionPage` of safe
+metadata with a current ID and opaque next cursor. `RevokeSessions(ctx, token,
+required, SessionSelection{Scope: SessionOthers})` revokes other sessions.
+Scopes are current, selected (with ID), others and all. Both operations derive
+the subject from the bearer and recheck recent proof under locks. They accept
+no target subject or administrative authority. Applications own cross-subject
+administrative authorization and its integration.
+
+Management defaults to a 5-minute proof age, tightened by any shorter operation
+requirement. Capacity is 10 retained sessions per subject; page size is 50.
+Configuration bounds and required adapter transactions are in the
+[authentication reference](../docs/reference/authentication/README.md).

@@ -208,6 +208,9 @@ schema upgrade is supplied.
 | `auth.session_inactivity_ttl` | 30m | 1 minute through absolute lifetime |
 | `auth.session_activity_interval` | 1m | 1 second through 5 minutes; at most one quarter of inactivity |
 | `auth.session_timeout` | 5s | Positive; at most 30 seconds; earlier caller deadline wins |
+| `auth.session_recent_proof_age` | 5m | 1 second through absolute lifetime; whole microseconds |
+| `auth.session_max_per_subject` | 10 | 1 through 100 retained rows; zero selects default |
+| `auth.session_page_size` | 50 | 1 through 100; zero selects default |
 | `auth.session_cleanup_batch` | 1000 | 1 through 1000; zero selects default |
 
 Absent duration strings select defaults; malformed, zero/negative and
@@ -286,7 +289,10 @@ for other profiles do not demonstrate actual MFA or phishing resistance.
 | `CreateUser` | id, email, password hash, created at, updated at |
 | `GetUserByEmail` | email |
 | `GetUserByID` | id |
-| `CreateSession` | expected `CredentialState`, complete `SessionRecord`, trusted requirement |
+| `CreateSession` | expected `CredentialState`, complete `SessionRecord`, trusted requirement, admission cap |
+| `RotateSession` | expected account state, current digest/generation, replacement record, requirement |
+| `ListSessions` | actor digest, recent requirement, page size, opaque cursor |
+| `RevokeSessions` | actor digest, recent requirement, finite selection |
 | `ReplacePassword` | expected `CredentialState`, encoded password, change time |
 | `ValidateSession` | digest, trusted requirement/activity, persistence interval |
 | `DeleteSession` | digest |
@@ -300,7 +306,9 @@ it for role changes. `CredentialState` contains `UserID` and expected `Version`.
 `CreateUser` enforces persistent email uniqueness and reports `ErrEmailTaken`
 for a concurrent duplicate. Signup does not depend on a prior lookup.
 `CreateSession` atomically locks/checks active state and expected version before
-inserting a session bound to that subject. `ReplacePassword` locks/checks the
+reclaiming at most 100 expired subject rows, counting all retained rows and
+inserting a session bound to that subject. Capacity rejects with
+`ErrSessionCapacity`; it never silently evicts another session. `ReplacePassword` locks/checks the
 same state, replaces the complete encoded record, increments its version and
 revokes existing sessions in one transaction. Stale, inactive or missing state
 returns `ErrCredentialChanged`; operating failures roll back the entire write.
@@ -328,6 +336,10 @@ construction. Later configuration mutation cannot weaken credential settings.
 | `ErrCredentialChanged` | Persistent state is stale, inactive or missing during creation/validation. |
 | `ErrSessionNotFound` | Validation or sign-out finds no session. |
 | `ErrSessionExpired` | Absolute or inactivity deadline has been reached. |
+| `ErrSessionCapacity` | Retained subject rows exhaust admission capacity. |
+| `ErrSessionGeneration` | Rotation generation is stale or exhausted. |
+| `ErrSessionSelection` | Scope/selected ID is invalid. |
+| `ErrSessionCursor` | Cursor is oversized, malformed or noncanonical. |
 
 An inactive user on sign-in returns the error text
 `user is not active`. That value is not one of the sentinels above.
@@ -354,6 +366,62 @@ current-state/policy/proof insert commits. Unmet results create no session.
 an inactive user. `CleanupExpiredSessions` performs one bounded batch. Operating
 errors retain their wrapped cause; do not expose diagnostic storage errors to
 users.
+
+## Reauthentication and Control
+
+`Reauthenticate(ctx, token, password, requirement)` validates the old live
+session with current policy/revision but without requiring already-recent proof,
+then performs actual password verification. It captures proof time before entropy
+work and submits a replacement to `RotateSession`. Stronger current requirements
+reject password-only state. No asserted proof or continuation API is accepted.
+
+Rotation locks the current subject then session and rechecks account version,
+old digest/generation, current policy and expiry with one trusted post-lock clock.
+It checks fresh replacement proof against that clock. ID and creation time stay
+fixed; generation advances by one; digest, proof/authentication/activity times,
+absolute expiry and inactivity snapshot change together. Failed proof, entropy,
+stale state or transaction work returns no new secret and leaves the old valid
+session unchanged. After commit the old bearer cannot validate, sign out the
+replacement or rotate again. Expired sessions require a new sign-in.
+
+`ListSessions(ctx, token, requirement, cursor)` and `RevokeSessions(ctx, token,
+requirement, selection)` derive subject ownership from a revalidated bearer.
+The recent-proof age is the tighter of the operation's nonzero `MaxAge` and
+`session_recent_proof_age`; zero operation age uses the configured value.
+Database checks run after locks and before the result or deletion. Roles, a target
+subject ID or a context snapshot cannot grant management authority. Applications
+own any separate cross-subject administrative authorization; these self-service
+APIs accept no target subject.
+
+`SessionSelection` supports `SessionCurrent`, `SessionSelected` (ID required),
+`SessionOthers` and `SessionAll`. IDs are 1 through 128 printable ASCII bytes and
+are permitted only for selected scope. Selected foreign/missing IDs report
+`ErrSessionNotFound`, with no cross-subject deletion. Multi-record revocation
+locks subject sessions in stable ID order before evaluating current actor proof.
+Deleting all/current includes the actor and invalidates that bearer.
+
+`SessionPage` contains only `[]Session`, `CurrentID` and `NextCursor`, never a
+digest or bearer. Stable ascending record-ID keyset queries stay scoped to the
+actor subject and fetch at most configured page size plus one. Cursors are
+canonical raw URL Base64 of a bounded ID, at most 128 bytes; they confer no
+permission. Pages reflect each transaction's current state, not a historical
+snapshot across concurrent inserts/deletes. Retained expired/stale rows may be
+listed for termination, while they can never authorize operations.
+
+Admission serializes through the subject lock and counts all retained session
+rows, including stale/expired state. It reclaims a batch of at most 100 expired
+subject rows first. Revocation removes rows; no history/tombstone collection is
+created. Explicit cleanup deletes at most its configured batch and honors context.
+`Signout` retains current-bearer withdrawal without requiring recent proof; it
+cannot select another session or subject. Management operations require recent
+proof independently.
+
+Ticked exposes `/sessions`, `/reauthenticate` and `/sessions/revoke`. Its form
+repeats password verification and updates the cookie only after committed
+rotation; failed work preserves the existing cookie. The screen shows safe
+metadata and self-service revocation, with reauthentication required for stale
+proof. These handlers choose policy on the server and do not count pre-validation
+as relevant activity before a failed reauthentication.
 
 ## Context
 

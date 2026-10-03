@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     CHECK (inactivity_us <= EXTRACT(EPOCH FROM (expires_at - authenticated_at)) * 1000000)
 );
 
-CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id, id);
 CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at, id);
 
 -- +migrate Down

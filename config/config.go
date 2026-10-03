@@ -56,6 +56,9 @@ type DatabaseConfig struct {
 
 // AuthConfig holds authentication and session configuration.
 type AuthConfig struct {
+	SessionRecentProofAge   string `koanf:"session_recent_proof_age"`
+	SessionMaxPerSubject    int    `koanf:"session_max_per_subject"`
+	SessionPageSize         int    `koanf:"session_page_size"`
 	SessionTTL              string `koanf:"session_ttl"`
 	SessionInactivityTTL    string `koanf:"session_inactivity_ttl"`
 	SessionActivityInterval string `koanf:"session_activity_interval"`
@@ -207,6 +210,7 @@ func New() *Config {
 			SSLMode:  "disable",
 		},
 		Auth: AuthConfig{
+			SessionRecentProofAge: "5m", SessionMaxPerSubject: 10, SessionPageSize: 50,
 			SessionTTL:              "24h",
 			SessionInactivityTTL:    "30m",
 			SessionActivityInterval: "1m",
@@ -280,6 +284,9 @@ func Load(path, envPrefix string, args []string) (*Config, error) {
 	fs.String("database.database", "dev", "Database name")
 	fs.String("database.schema", "", "Database schema")
 	fs.String("database.sslmode", "disable", "Database SSL mode")
+	fs.String("auth.session_recent_proof_age", "5m", "Maximum proof age for session management")
+	fs.Int("auth.session_max_per_subject", 10, "Maximum retained sessions per subject")
+	fs.Int("auth.session_page_size", 50, "Maximum sessions per management page")
 	fs.String("auth.session_ttl", "24h", "Absolute session lifetime")
 	fs.String("auth.session_inactivity_ttl", "30m", "Session inactivity lifetime")
 	fs.String("auth.session_activity_interval", "1m", "Relevant session activity persistence interval")

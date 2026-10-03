@@ -17,6 +17,9 @@ import (
 type baseAuthService interface {
 	Signup(ctx context.Context, email, password string) (*auth.User, error)
 	Signin(ctx context.Context, email, password string, requirement auth.AccessRequirement) (*auth.AuthenticationResult, error)
+	Reauthenticate(ctx context.Context, token, password string, requirement auth.AccessRequirement) (*auth.AuthenticationResult, error)
+	ListSessions(ctx context.Context, token string, requirement auth.AccessRequirement, cursor string) (*auth.SessionPage, error)
+	RevokeSessions(ctx context.Context, token string, requirement auth.AccessRequirement, selection auth.SessionSelection) (int64, error)
 	Signout(ctx context.Context, sessionToken string) error
 	ValidateSession(ctx context.Context, token string, requirement auth.AccessRequirement, activity auth.SessionActivity) (*auth.ValidatedSession, error)
 }
@@ -88,4 +91,19 @@ func (s *Service) ValidateSession(ctx context.Context, token string, requirement
 // PasswordRequirement is Ticked's trusted operation policy, never form data.
 func PasswordRequirement() auth.AccessRequirement {
 	return auth.AccessRequirement{Proof: auth.RequirePassword, Revision: "ticked-password-v1"}
+}
+
+// Reauthenticate repeats password verification under Ticked's current policy.
+func (s *Service) Reauthenticate(ctx context.Context, token, password string) (*auth.AuthenticationResult, error) {
+	return s.auth.Reauthenticate(ctx, token, password, PasswordRequirement())
+}
+
+// ListSessions requires recent proof and scopes management to the actor.
+func (s *Service) ListSessions(ctx context.Context, token, cursor string) (*auth.SessionPage, error) {
+	return s.auth.ListSessions(ctx, token, PasswordRequirement(), cursor)
+}
+
+// RevokeSessions delegates actor-scoped management with current recent proof.
+func (s *Service) RevokeSessions(ctx context.Context, token string, selection auth.SessionSelection) (int64, error) {
+	return s.auth.RevokeSessions(ctx, token, PasswordRequirement(), selection)
 }

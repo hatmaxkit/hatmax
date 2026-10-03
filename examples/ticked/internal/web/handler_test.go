@@ -779,3 +779,14 @@ func TestUnmetProofTransport(t *testing.T) {
 		}
 	}
 }
+
+func (f *fakeAuthSvc) Reauthenticate(ctx context.Context, token, password string) (*auth.AuthenticationResult, error) {
+	return &auth.AuthenticationResult{Outcome: auth.AuthenticationCompleted, Issued: f.session}, f.signinErr
+}
+
+func (f *fakeAuthSvc) ListSessions(ctx context.Context, token, cursor string) (*auth.SessionPage, error) {
+	return &auth.SessionPage{}, f.validateErr
+}
+func (f *fakeAuthSvc) RevokeSessions(ctx context.Context, token string, selection auth.SessionSelection) (int64, error) {
+	return 0, f.signoutErr
+}

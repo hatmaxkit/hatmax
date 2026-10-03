@@ -79,3 +79,36 @@ RETURNING id, email, password_hash, auth_version, roles, active, created_at, upd
 
 -- name: DeleteUserSessions :exec
 DELETE FROM sessions WHERE user_id = $1;
+
+-- name: RotateSession :one
+UPDATE sessions SET token_digest = sqlc.arg(new_digest), generation = generation + 1,
+    policy_revision = sqlc.arg(policy_revision), proof_method = sqlc.arg(proof_method), proof_verified_at = sqlc.arg(proof_verified_at),
+    authenticated_at = sqlc.arg(authenticated_at), last_activity_at = sqlc.arg(last_activity_at), expires_at = sqlc.arg(expires_at), inactivity_us = sqlc.arg(inactivity_us)
+WHERE token_digest = sqlc.arg(old_digest) AND generation = sqlc.arg(expected_generation)
+RETURNING id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us;
+
+-- name: ReclaimSubjectSessions :execrows
+WITH expired AS (
+ SELECT s.id FROM sessions s WHERE s.user_id = $1 AND
+ (s.expires_at <= clock_timestamp() OR s.last_activity_at + s.inactivity_us * INTERVAL '1 microsecond' <= clock_timestamp())
+ ORDER BY s.id LIMIT 100 FOR UPDATE
+)
+DELETE FROM sessions USING expired WHERE sessions.id = expired.id;
+
+-- name: CountSubjectSessions :one
+SELECT COUNT(*) FROM sessions WHERE user_id = $1;
+
+-- name: LockSubjectSessions :many
+SELECT id FROM sessions WHERE user_id = $1 ORDER BY id LIMIT 101 FOR UPDATE;
+
+-- name: ListSubjectSessions :many
+SELECT id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+FROM sessions WHERE user_id = sqlc.arg(subject) AND id > sqlc.arg(after_id)
+ORDER BY id LIMIT sqlc.arg(page_limit)::integer;
+
+-- name: RevokeSubjectSessions :execrows
+DELETE FROM sessions WHERE user_id = sqlc.arg(subject) AND
+ (sqlc.arg(scope)::integer = 4
+  OR (sqlc.arg(scope)::integer = 3 AND id <> sqlc.arg(actor_id))
+  OR (sqlc.arg(scope)::integer = 1 AND id = sqlc.arg(actor_id))
+  OR (sqlc.arg(scope)::integer = 2 AND id = sqlc.arg(selected_id)));

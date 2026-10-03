@@ -210,3 +210,37 @@ activity throughout service/storage/middleware. Ticked owns one explicit
 password-only revision and checks completed outcome before setting a cookie.
 Pending/unavailable outcomes render a bounded explanatory failure, with no
 continuation endpoint or implied MFA completion.
+
+## Slice 3 Contract
+
+`Reauthenticate(ctx, token, password, requirement)` validates a live current
+session without demanding already-recent proof, verifies the password again and
+passes a replacement record to required `RotateSession` storage. The adapter
+rechecks captured account version, current digest/generation, revision and expiry
+under subject/session locks, then replaces the digest and increments generation
+without changing record ID/creation time. Failed proof or storage work returns no
+issued secret. Stronger current requirements cannot complete from password.
+
+`CreateSession` additionally receives the configured retained-row admission cap.
+Under the subject lock it reclaims at most 100 expired subject rows, counts all
+retained rows and rejects capacity without eviction. New settings are
+`session_recent_proof_age` (5m, 1s through absolute lifetime, whole microseconds),
+`session_max_per_subject` (10, 1–100) and `session_page_size` (50, 1–100).
+
+`ListSessions(ctx, token, requirement, cursor)` and
+`RevokeSessions(ctx, token, requirement, selection)` derive the target subject from
+the live actor bearer. Storage revalidates current actor/recent proof under locks;
+recent age is the tighter of operation policy and configured management age.
+`SessionSelection` has finite current/selected/others/all scopes; selected IDs are
+bounded at 128 printable ASCII bytes. `SessionPage` contains only safe metadata,
+current record ID and an opaque canonical URL Base64 cursor at most 128 bytes.
+Keyset ordering is record ID, scoped to the actor subject; page reads fetch at most
+configured size plus one. Multi-record revocation locks IDs in stable order.
+Applications own any administrative authority over another subject; self-service
+APIs accept no target subject or claimed proof. Bearer-only sign-out remains the
+existing current-secret withdrawal operation, separate from recent-proof management.
+
+Ticked adds a password reauthentication form and subject-scoped session screen.
+Rotation updates the cookie only after completed issuance; failed work preserves
+it. Self-service management failures require reauthentication and never fall back
+to lower proof or an administrative role. Cleanup remains explicit and bounded.

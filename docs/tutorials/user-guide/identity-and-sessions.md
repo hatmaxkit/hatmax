@@ -77,6 +77,26 @@ can require recent proof with `MaxAge`; exact age equality rejects it. Session
 policy revisions must match current trusted policy, and activity cannot refresh
 password verification time.
 
+## Reauthenticate and Manage Sessions
+
+Call `Reauthenticate(ctx, token, password, required)` for a live session when
+proof is no longer recent. It verifies the password again and rotates the bearer
+atomically. Update the cookie only after completed issuance. Failed work keeps
+the old valid session; an expired session needs a new sign-in. Password
+reauthentication cannot meet a stronger current policy.
+
+`ListSessions` and `RevokeSessions` require recent proof and derive ownership
+from the actor bearer. Choose current, selected, others or all for revocation.
+Lists contain safe metadata with a bounded next cursor. All/current revocation
+invalidates the actor; clear its browser cookie. Session admission rejects at
+capacity instead of evicting another device. Expired rows are reclaimed under the
+same subject lock and through explicit bounded cleanup.
+
+Ticked's **Sessions** link opens its own session list and reauthentication form.
+Reauthenticate before managing sessions when the screen requires recent proof.
+These self-service operations accept no target subject or administrator claim;
+applications define any cross-subject administrative workflow separately.
+
 ## Separate Authentication from Authorization
 
 Authentication answers who is making the request. Route middleware can enforce
