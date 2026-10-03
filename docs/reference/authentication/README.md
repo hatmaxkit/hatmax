@@ -68,6 +68,84 @@ configured deadline and the caller's deadline. Cancellation is cooperative:
 no detached goroutine is created to abandon an uncooperative checker. A checker
 that returns success after cancellation/deadline cannot approve the password.
 
+## Versioned password verifier
+
+`model.NewPasswordVerifier(cfg)` constructs a shared, concurrency-safe verifier.
+`Hash(ctx, password)` returns an encoded record; `Verify(ctx, record, password)`
+returns an error or nil for a match. This primitive has no persistence operations
+and is available independently of the current auth service.
+
+The supported PHC representation is:
+
+```text
+$argon2id$v=19$m=<KiB>,t=<iterations>,p=<lanes>$<salt>$<output>
+```
+
+Version 19 is Argon2's algorithm version. This format's input contract is NFC;
+it does not add a custom prehash or an application-specific version field.
+Parameters appear exactly in `m,t,p` order with unsigned canonical decimal
+values. Salt and output use canonical standard Base64 without padding: 16 random
+salt bytes per creation and 32 output bytes. Records are at most 128 bytes.
+Unknown algorithms/versions, bcrypt, extra fields, alternate encodings and
+parameters outside the configured bounds return `model.ErrPasswordRecord`
+before admission or KDF execution. No legacy reader or rehash path is provided.
+
+`PasswordVerifierConfig` contains:
+
+| Field | Zero-value default | Constraint |
+| --- | --- | --- |
+| `MemoryKiB` | 65536 (64 MiB) | 19456 through 262144 KiB |
+| `Iterations` | 3 | 1 through 10; at least 2 below 64 MiB |
+| `Parallelism` | 4 | 1 through 8 Argon2 lanes |
+| `MaxMemoryKiB` | Creation memory | At least creation memory, at most 262144 KiB |
+| `MaxIterations` | Creation iterations | At least creation iterations, at most 10 |
+| `MaxParallelism` | Creation lanes | At least creation lanes, at most 8 |
+| `MaxConcurrent` | 2 | 1 through 16; maximum memory times concurrency at most 512 MiB |
+
+Creation parameters and verification ceilings are immutable after construction.
+The defaults use the second recommended Argon2id profile in
+[RFC 9106 section 4](https://www.rfc-editor.org/rfc/rfc9106.html#section-4).
+The lower supported floor follows
+[OWASP's Argon2id guidance](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id).
+Benchmark on the deployment hardware before selecting a different resource
+profile. These parameters do not establish a NIST/FIPS or application compliance
+level.
+
+Hash and verification both reject invalid UTF-8 and raw input above 4096 bytes
+before normalization, then NFC-normalize and enforce 1024 code points and 4096
+bytes. They preserve whitespace and case and do not truncate. Creation must
+first apply the candidate policy; the model does not enforce a minimum or run a
+blocklist. Verification uses the stored cost rather than current creation cost.
+
+Share one instance across all credential operations in the resource budget.
+Hash and verification share its admission slots; full admission returns
+`model.ErrPasswordVerifierBusy` immediately without a waiting queue. The default
+bounds active KDF memory to 128 MiB and active lanes to eight. Memory figures
+cover Argon2 work buffers, not total process memory or buffers retained by Go's
+garbage collector. Separate instances and processes have separate budgets.
+Applications own request limits, attempt controls and timeout configuration.
+
+Contexts are checked before and after derivation. The existing Argon2 primitive
+cannot be interrupted: an admitted call runs synchronously and retains its slot
+until the KDF returns. Cancellation or deadline expiry discards the result; no
+background goroutine continues abandoned work. Owned temporary input/output
+byte slices are cleared; Go strings and the primitive's internal buffers are
+outside that clearing guarantee.
+
+| Outcome | Meaning |
+| --- | --- |
+| nil | Supported record matches |
+| `model.ErrPasswordMismatch` | Supported, valid record does not match |
+| `model.ErrPasswordRecord` | Malformed, unsupported or out-of-budget record |
+| `model.ErrPasswordInput` | Invalid encoding or input size |
+| `model.ErrPasswordVerifierConfig` | Invalid settings or uninitialized verifier |
+| `model.ErrPasswordVerifierBusy` | All admission slots occupied |
+| `context.Canceled` / `context.DeadlineExceeded` | Context failure; result discarded |
+
+Hash failures return an empty record. Errors contain no password or encoded
+record material. Auth service integration and removal of the existing bcrypt
+helpers belong to the credential-integration slice.
+
 ## User and session
 
 `User` fields are `ID`, `Email`, `PasswordHash`, `Roles`, `Active`,

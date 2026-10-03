@@ -34,3 +34,15 @@ if role.HasPermission(model.PermWrite) { ... }
 ```
 
 See individual files: `id.go`, `time.go`, `password.go`, `roles.go`.
+
+## Versioned credentials
+
+`NewPasswordVerifier(PasswordVerifierConfig{})` provides independently salted
+PHC Argon2id records through `Hash(ctx, password)` and classified verification
+through `Verify(ctx, record, password)`. Share one instance to enforce its
+resource budget. Both operations use bounded UTF-8/NFC input processing.
+
+See the [password verifier reference](../docs/reference/authentication/README.md#versioned-password-verifier)
+for encoding, configuration, errors and cancellation guarantees. Candidate
+policy and database operations belong outside this model primitive. The existing
+bcrypt helpers remain in use by the auth service until its integration changes.
