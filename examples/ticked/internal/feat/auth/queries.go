@@ -20,11 +20,9 @@ import (
 // querier defines the interface for sqlc operations needed by auth.
 type querier interface {
 	CountUsers(ctx context.Context) (int64, error)
-	CreateSession(ctx context.Context, arg dal.CreateSessionParams) (dal.Session, error)
 	CreateUser(ctx context.Context, arg dal.CreateUserParams) (dal.User, error)
-	DeleteExpiredSessions(ctx context.Context) error
-	DeleteSession(ctx context.Context, id string) error
-	GetSessionByToken(ctx context.Context, token string) (dal.Session, error)
+	DeleteExpiredSessions(ctx context.Context, limit int32) (int64, error)
+	DeleteSession(ctx context.Context, digest []byte) (int64, error)
 	GetUserByEmail(ctx context.Context, email string) (dal.User, error)
 	GetUserByID(ctx context.Context, id string) (dal.User, error)
 	ListUsers(ctx context.Context) ([]dal.User, error)
@@ -141,8 +139,8 @@ func (q *Queries) beginCredentialTx(ctx context.Context) (*sql.Tx, error) {
 
 // CreateSession atomically checks current credential/account state and inserts
 // the session. Activation/password changes serialize through the user row lock.
-func (q *Queries) CreateSession(ctx context.Context, state auth.CredentialState, session auth.Session) (*auth.Session, error) {
-	if session.UserID != state.UserID {
+func (q *Queries) CreateSession(ctx context.Context, state auth.CredentialState, session auth.SessionRecord) (*auth.Session, error) {
+	if session.UserID != state.UserID || session.AuthVersion != state.Version || session.Generation != 1 {
 		return nil, auth.ErrCredentialChanged
 	}
 
@@ -157,7 +155,28 @@ func (q *Queries) CreateSession(ctx context.Context, state auth.CredentialState,
 		return nil, err
 	}
 
-	stored, err := dal.New(tx).CreateSession(ctx, dal.CreateSessionParams{ID: session.ID, UserID: state.UserID, Token: session.Token, ExpiresAt: session.ExpiresAt, CreatedAt: session.CreatedAt})
+	queries := dal.New(tx)
+
+	now, err := queries.SessionClock(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = session.Check(now)
+	if err != nil {
+		return nil, err
+	}
+
+	stored, err := queries.CreateSession(ctx, dal.CreateSessionParams{
+		ID: session.ID, UserID: state.UserID, TokenDigest: session.Digest[:], AuthVersion: session.AuthVersion, Generation: session.Generation,
+		AuthenticatedAt: session.AuthenticatedAt, CreatedAt: session.CreatedAt, LastActivityAt: session.LastActivityAt,
+		ExpiresAt: session.ExpiresAt, InactivityUs: session.InactivityTTL.Microseconds(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	metadata, err := toAuthSession(stored)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +186,88 @@ func (q *Queries) CreateSession(ctx context.Context, state auth.CredentialState,
 		return nil, err
 	}
 
-	return toAuthSession(stored), nil
+	return metadata, nil
+}
+
+// ValidateSession serializes account mutation and session activity. The clock
+// is sampled after both row locks so a lock wait cannot revive expired state.
+func (q *Queries) ValidateSession(ctx context.Context, digest auth.SessionDigest, activity auth.SessionActivity, interval time.Duration) (*auth.ValidatedSession, error) {
+	if activity != auth.NoActivity && activity != auth.RelevantActivity {
+		return nil, auth.ErrSessionActivity
+	}
+
+	tx, err := q.beginCredentialTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	queries := dal.New(tx)
+
+	initial, err := queries.GetSessionByDigest(ctx, digest[:])
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, auth.ErrSessionNotFound
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := lockCredential(ctx, tx, auth.CredentialState{UserID: initial.UserID, Version: initial.AuthVersion})
+	if err != nil {
+		return nil, err
+	}
+
+	stored, err := queries.GetSessionForUpdate(ctx, digest[:])
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, auth.ErrSessionNotFound
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if stored.UserID != user.ID || stored.AuthVersion != user.AuthVersion {
+		return nil, auth.ErrCredentialChanged
+	}
+
+	metadata, err := toAuthSession(stored)
+	if err != nil {
+		return nil, err
+	}
+
+	if interval < time.Second || interval > 5*time.Minute || interval > metadata.InactivityTTL/4 || interval%time.Microsecond != 0 {
+		return nil, auth.ErrSessionActivity
+	}
+
+	now, err := queries.SessionClock(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = metadata.Check(now)
+	if err != nil {
+		return nil, err
+	}
+
+	if activity == auth.RelevantActivity && now.Sub(metadata.LastActivityAt) >= interval {
+		stored, err = queries.UpdateSessionActivity(ctx, dal.UpdateSessionActivityParams{ID: metadata.ID, LastActivityAt: now})
+		if err != nil {
+			return nil, err
+		}
+
+		metadata, err = toAuthSession(stored)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return &auth.ValidatedSession{User: toAuthUser(user), Session: *metadata}, nil
 }
 
 // ReplacePassword checks expected current state, replaces the whole record and
@@ -203,24 +303,27 @@ func (q *Queries) ReplacePassword(ctx context.Context, state auth.CredentialStat
 	return toAuthUser(updated), nil
 }
 
-// GetSessionByToken retrieves a session by token.
-func (q *Queries) GetSessionByToken(ctx context.Context, token string) (*auth.Session, error) {
-	session, err := q.q.GetSessionByToken(ctx, token)
+// DeleteSession revokes only the presented digest.
+func (q *Queries) DeleteSession(ctx context.Context, digest auth.SessionDigest) error {
+	count, err := q.q.DeleteSession(ctx, digest[:])
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return toAuthSession(session), nil
+	if count == 0 {
+		return auth.ErrSessionNotFound
+	}
+
+	return nil
 }
 
-// DeleteSession deletes a session by ID.
-func (q *Queries) DeleteSession(ctx context.Context, sessionID string) error {
-	return q.q.DeleteSession(ctx, sessionID)
-}
+// DeleteExpiredSessions deletes one bounded batch without waiting on busy rows.
+func (q *Queries) DeleteExpiredSessions(ctx context.Context, limit int) (int64, error) {
+	if limit < 1 || limit > 1000 {
+		return 0, auth.ErrSessionRecord
+	}
 
-// DeleteExpiredSessions removes all expired sessions.
-func (q *Queries) DeleteExpiredSessions(ctx context.Context) error {
-	return q.q.DeleteExpiredSessions(ctx)
+	return q.q.DeleteExpiredSessions(ctx, int32(limit))
 }
 
 // ListUsers returns all users (for admin).
@@ -267,19 +370,21 @@ func toAuthUser(u dal.User) *auth.User {
 		Email:        u.Email,
 		PasswordHash: u.PasswordHash,
 		AuthVersion:  u.AuthVersion,
-		Roles:        u.Roles,
+		Roles:        append([]string(nil), u.Roles...),
 		Active:       u.Active,
 		CreatedAt:    u.CreatedAt,
 		UpdatedAt:    u.UpdatedAt,
 	}
 }
 
-func toAuthSession(s dal.Session) *auth.Session {
-	return &auth.Session{
-		ID:        s.ID,
-		UserID:    s.UserID,
-		Token:     s.Token,
-		ExpiresAt: s.ExpiresAt,
-		CreatedAt: s.CreatedAt,
+func toAuthSession(s dal.Session) (*auth.Session, error) {
+	if len(s.TokenDigest) != 32 || s.InactivityUs < time.Minute.Microseconds() || s.InactivityUs > (30*24*time.Hour).Microseconds() {
+		return nil, auth.ErrSessionRecord
 	}
+
+	return &auth.Session{
+		ID: s.ID, UserID: s.UserID, AuthVersion: s.AuthVersion, Generation: s.Generation,
+		AuthenticatedAt: s.AuthenticatedAt, CreatedAt: s.CreatedAt, LastActivityAt: s.LastActivityAt,
+		ExpiresAt: s.ExpiresAt, InactivityTTL: time.Duration(s.InactivityUs) * time.Microsecond,
+	}, nil
 }

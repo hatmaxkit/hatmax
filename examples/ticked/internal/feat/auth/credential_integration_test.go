@@ -36,7 +36,7 @@ type changingQueries struct {
 	change func(context.Context, core.CredentialState) error
 }
 
-func (q changingQueries) CreateSession(ctx context.Context, state core.CredentialState, session core.Session) (*core.Session, error) {
+func (q changingQueries) CreateSession(ctx context.Context, state core.CredentialState, session core.SessionRecord) (*core.Session, error) {
 	err := q.change(ctx, state)
 	if err != nil {
 		return nil, err
@@ -348,7 +348,7 @@ func TestCredentialTransactions(t *testing.T) {
 		result := make(chan error, 1)
 
 		go func() {
-			_, sessionErr := q.CreateSession(ctx, state, core.Session{ID: model.NewID(), UserID: user.ID, Token: model.NewID(), CreatedAt: time.Now(), ExpiresAt: time.Now().Add(time.Hour)})
+			_, sessionErr := q.CreateSession(ctx, state, core.SessionRecord{Session: core.Session{ID: model.NewID(), UserID: user.ID, AuthVersion: state.Version, Generation: 1, AuthenticatedAt: time.Now().Add(-time.Second), CreatedAt: time.Now().Add(-2 * time.Second), LastActivityAt: time.Now().Add(-time.Second), ExpiresAt: time.Now().Add(time.Hour), InactivityTTL: time.Minute}})
 			result <- sessionErr
 		}()
 

@@ -14,7 +14,7 @@ import (
 
 // SessionValidator validates session tokens and returns users.
 type SessionValidator interface {
-	ValidateSession(ctx context.Context, token string) (*auth.User, error)
+	ValidateSession(ctx context.Context, token string, activity auth.SessionActivity) (*auth.ValidatedSession, error)
 }
 
 // RequireRole returns a middleware that checks if the authenticated user has the specified role.
@@ -43,7 +43,7 @@ func RequireRole(role string) func(http.Handler) http.Handler {
 // RequireRoles returns a middleware that validates authentication and checks if the user has any of the specified roles.
 // Combines auth.RequireAuth + RequireAnyRole in a single middleware.
 // Redirects to /signin if not authenticated, returns 403 Forbidden if the user lacks all roles.
-func RequireRoles(svc SessionValidator, roles ...string) func(http.Handler) http.Handler {
+func RequireRoles(svc SessionValidator, activity auth.SessionActivity, roles ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			cookie, err := r.Cookie(auth.SessionCookieName)
@@ -53,7 +53,7 @@ func RequireRoles(svc SessionValidator, roles ...string) func(http.Handler) http
 				return
 			}
 
-			user, err := svc.ValidateSession(r.Context(), cookie.Value)
+			validated, err := svc.ValidateSession(r.Context(), cookie.Value, activity)
 			if err != nil {
 				auth.ClearSessionCookie(w)
 				http.Redirect(w, r, "/signin", http.StatusSeeOther)
@@ -61,13 +61,14 @@ func RequireRoles(svc SessionValidator, roles ...string) func(http.Handler) http
 				return
 			}
 
-			if !user.HasAnyRole(roles...) {
+			if !validated.User.HasAnyRole(roles...) {
 				http.Error(w, "Forbidden", http.StatusForbidden)
 
 				return
 			}
 
-			ctx := auth.WithUser(r.Context(), user)
+			ctx := auth.WithUser(r.Context(), validated.User)
+			ctx = auth.WithSession(ctx, &validated.Session)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

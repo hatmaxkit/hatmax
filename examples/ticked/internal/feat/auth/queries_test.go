@@ -58,16 +58,12 @@ func (f *fakeQuerier) CreateSession(ctx context.Context, arg dal.CreateSessionPa
 	return f.createSession, f.createSessionErr
 }
 
-func (f *fakeQuerier) GetSessionByToken(ctx context.Context, token string) (dal.Session, error) {
-	return f.getSessionByToken, f.getSessionErr
+func (f *fakeQuerier) DeleteSession(ctx context.Context, digest []byte) (int64, error) {
+	return 1, f.deleteSessionErr
 }
 
-func (f *fakeQuerier) DeleteSession(ctx context.Context, id string) error {
-	return f.deleteSessionErr
-}
-
-func (f *fakeQuerier) DeleteExpiredSessions(ctx context.Context) error {
-	return f.deleteExpiredErr
+func (f *fakeQuerier) DeleteExpiredSessions(ctx context.Context, limit int32) (int64, error) {
+	return 0, f.deleteExpiredErr
 }
 
 func (f *fakeQuerier) ListUsers(ctx context.Context) ([]dal.User, error) {
@@ -209,52 +205,13 @@ func TestQueries_GetUserByID_Error(t *testing.T) {
 	}
 }
 
-func TestQueries_GetSessionByToken(t *testing.T) {
-	now := time.Now()
-	fq := &fakeQuerier{
-		getSessionByToken: dal.Session{
-			ID:        "sess1",
-			UserID:    "user1",
-			Token:     "token123",
-			ExpiresAt: now.Add(24 * time.Hour),
-			CreatedAt: now,
-		},
-	}
-
-	q := &Queries{}
-	q.SetQuerier(fq)
-
-	session, err := q.GetSessionByToken(context.Background(), "token123")
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-
-	if session.Token != "token123" {
-		t.Errorf("expected token token123, got %s", session.Token)
-	}
-}
-
-func TestQueries_GetSessionByToken_Error(t *testing.T) {
-	fq := &fakeQuerier{
-		getSessionErr: sql.ErrNoRows,
-	}
-
-	q := &Queries{}
-	q.SetQuerier(fq)
-
-	_, err := q.GetSessionByToken(context.Background(), "invalid")
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-}
-
 func TestQueries_DeleteSession(t *testing.T) {
 	fq := &fakeQuerier{}
 
 	q := &Queries{}
 	q.SetQuerier(fq)
 
-	err := q.DeleteSession(context.Background(), "sess1")
+	err := q.DeleteSession(context.Background(), auth.SessionDigest{})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -268,7 +225,7 @@ func TestQueries_DeleteSession_Error(t *testing.T) {
 	q := &Queries{}
 	q.SetQuerier(fq)
 
-	err := q.DeleteSession(context.Background(), "sess1")
+	err := q.DeleteSession(context.Background(), auth.SessionDigest{})
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -280,7 +237,7 @@ func TestQueries_DeleteExpiredSessions(t *testing.T) {
 	q := &Queries{}
 	q.SetQuerier(fq)
 
-	err := q.DeleteExpiredSessions(context.Background())
+	_, err := q.DeleteExpiredSessions(context.Background(), 1000)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -294,7 +251,7 @@ func TestQueries_DeleteExpiredSessions_Error(t *testing.T) {
 	q := &Queries{}
 	q.SetQuerier(fq)
 
-	err := q.DeleteExpiredSessions(context.Background())
+	_, err := q.DeleteExpiredSessions(context.Background(), 1000)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -462,14 +419,18 @@ func TestToAuthSession(t *testing.T) {
 	now := time.Now()
 	expires := now.Add(24 * time.Hour)
 	dalSession := dal.Session{
-		ID:        "sess1",
-		UserID:    "user1",
-		Token:     "token123",
-		ExpiresAt: expires,
-		CreatedAt: now,
+		ID:           "sess1",
+		UserID:       "user1",
+		TokenDigest:  make([]byte, 32),
+		InactivityUs: time.Minute.Microseconds(),
+		ExpiresAt:    expires,
+		CreatedAt:    now,
 	}
 
-	authSession := toAuthSession(dalSession)
+	authSession, err := toAuthSession(dalSession)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if authSession.ID != dalSession.ID {
 		t.Errorf("expected ID %s, got %s", dalSession.ID, authSession.ID)
@@ -477,10 +438,6 @@ func TestToAuthSession(t *testing.T) {
 
 	if authSession.UserID != dalSession.UserID {
 		t.Errorf("expected UserID %s, got %s", dalSession.UserID, authSession.UserID)
-	}
-
-	if authSession.Token != dalSession.Token {
-		t.Errorf("expected Token %s, got %s", dalSession.Token, authSession.Token)
 	}
 }
 

@@ -11,6 +11,7 @@ package dal
 
 import (
 	"context"
+	"time"
 )
 
 type Querier interface {
@@ -21,13 +22,14 @@ type Querier interface {
 	//
 	// This file is part of Hatmax. See LICENSE for license terms.
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	DeleteExpiredSessions(ctx context.Context) error
-	DeleteSession(ctx context.Context, id string) error
+	DeleteExpiredSessions(ctx context.Context, dollar_1 int32) (int64, error)
+	DeleteSession(ctx context.Context, tokenDigest []byte) (int64, error)
 	DeleteTodoItem(ctx context.Context, id string) error
 	DeleteTodoItemsByListID(ctx context.Context, listID string) error
 	DeleteTodoList(ctx context.Context, id string) error
 	DeleteUserSessions(ctx context.Context, userID string) error
-	GetSessionByToken(ctx context.Context, token string) (Session, error)
+	GetSessionByDigest(ctx context.Context, tokenDigest []byte) (Session, error)
+	GetSessionForUpdate(ctx context.Context, tokenDigest []byte) (Session, error)
 	GetTodoItemByID(ctx context.Context, id string) (TodoItem, error)
 	GetTodoItemsByListID(ctx context.Context, listID string) ([]TodoItem, error)
 	GetTodoListByUserID(ctx context.Context, userID string) (TodoList, error)
@@ -37,6 +39,8 @@ type Querier interface {
 	InsertTodoItem(ctx context.Context, arg InsertTodoItemParams) error
 	ListUsers(ctx context.Context) ([]User, error)
 	ReplacePassword(ctx context.Context, arg ReplacePasswordParams) (User, error)
+	SessionClock(ctx context.Context) (time.Time, error)
+	UpdateSessionActivity(ctx context.Context, arg UpdateSessionActivityParams) (Session, error)
 	UpdateTodoItem(ctx context.Context, arg UpdateTodoItemParams) error
 	UpdateUserActive(ctx context.Context, arg UpdateUserActiveParams) error
 	UpdateUserRoles(ctx context.Context, arg UpdateUserRolesParams) error

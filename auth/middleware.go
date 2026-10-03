@@ -16,7 +16,7 @@ const (
 
 // RequireAuth is a middleware that requires authentication.
 // If the user is not authenticated, it redirects to the signin page.
-func RequireAuth(svc *Service) func(http.Handler) http.Handler {
+func RequireAuth(svc *Service, activity SessionActivity) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			cookie, err := r.Cookie(SessionCookieName)
@@ -26,15 +26,16 @@ func RequireAuth(svc *Service) func(http.Handler) http.Handler {
 				return
 			}
 
-			user, err := svc.ValidateSession(r.Context(), cookie.Value)
+			validated, err := svc.ValidateSession(r.Context(), cookie.Value, activity)
 			if err != nil {
 				http.Redirect(w, r, "/signin", http.StatusSeeOther)
 
 				return
 			}
 
-			ctx := WithUser(r.Context(), user)
-			ctx = WithUserID(ctx, user.ID)
+			ctx := WithUser(r.Context(), validated.User)
+			ctx = WithUserID(ctx, validated.User.ID)
+			ctx = WithSession(ctx, &validated.Session)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -42,7 +43,7 @@ func RequireAuth(svc *Service) func(http.Handler) http.Handler {
 
 // OptionalAuth is a middleware that adds the user to the context if authenticated.
 // If the user is not authenticated, it continues without adding the user.
-func OptionalAuth(svc *Service) func(http.Handler) http.Handler {
+func OptionalAuth(svc *Service, activity SessionActivity) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			cookie, err := r.Cookie(SessionCookieName)
@@ -52,15 +53,16 @@ func OptionalAuth(svc *Service) func(http.Handler) http.Handler {
 				return
 			}
 
-			user, err := svc.ValidateSession(r.Context(), cookie.Value)
+			validated, err := svc.ValidateSession(r.Context(), cookie.Value, activity)
 			if err != nil {
 				next.ServeHTTP(w, r)
 
 				return
 			}
 
-			ctx := WithUser(r.Context(), user)
-			ctx = WithUserID(ctx, user.ID)
+			ctx := WithUser(r.Context(), validated.User)
+			ctx = WithUserID(ctx, validated.User.ID)
+			ctx = WithSession(ctx, &validated.Session)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

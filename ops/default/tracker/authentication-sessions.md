@@ -33,7 +33,7 @@ Execution gate: Open
 
 | Task | Status | Expected commit | Commit | Validation evidence required |
 | --- | --- | --- | --- | --- |
-| T1.1 | pending | `feat(auth): enforce secure session lifecycle` | pending | Stored/issued types, bounded secrets/lifetimes, coherent current-state validation and updated active consumers |
+| T1.1 | implemented | `feat(auth): enforce secure session lifecycle` | pending | Stored/issued types, bounded secrets/lifetimes, coherent current-state validation and updated active consumers |
 | T1.2 | pending | `test(auth): verify session lifecycle boundaries` | pending | Canonical parser fuzz, exact expiry/time/coalescing and real Postgres stale-state/rollback; AS-01/AS-02/AS-06/AS-09 |
 | T2.1 | pending | `feat(auth): enforce required proof and authentication outcomes` | pending | Trusted policy revision, verified password facts, safe metadata and distinct non-authorizing outcomes |
 | T2.2 | pending | `test(auth): verify proof outcome isolation` | pending | Password success, strong-policy denial, freshness/equality and pending/full isolation; AS-03/AS-04 |
@@ -78,3 +78,15 @@ No public proof-assertion callback or client assurance flag substitutes for it.
 
 No runtime implementation tests or full delivery-set gate are claimed for this
 planning proposal. The completed credential-security gate is not rerun.
+
+## Slice 1 Validation Bindings
+
+T1.1 focused compilation/tests, source licensing, vet and strict lint passed.
+Before T1.2, the selected commands are:
+
+- `go test -tags=integration -race -count=1 -run '^Test(SessionTransactions|CredentialTransactions)$' ./examples/ticked/internal/feat/auth`
+- `go test ./auth -run '^$' -fuzz '^FuzzSessionToken$' -fuzztime=20s -parallel=2`
+
+Integration requires an externally supplied real PostgreSQL connection. Tests
+cover stored digests, current-state invalidation, post-lock time, activity rollback
+and bounded cleanup. Fuzzing exercises only the bounded canonical bearer parser.

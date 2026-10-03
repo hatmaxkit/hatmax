@@ -106,7 +106,6 @@ func TestGetSession(t *testing.T) {
 	session := &Session{
 		ID:        "session-123",
 		UserID:    "user-123",
-		Token:     "token-123",
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 		CreatedAt: time.Now(),
 	}
@@ -190,7 +189,6 @@ func TestWithSession(t *testing.T) {
 	session := &Session{
 		ID:        "session-123",
 		UserID:    "user-123",
-		Token:     "token-123",
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 		CreatedAt: time.Now(),
 	}

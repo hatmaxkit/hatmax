@@ -19,13 +19,13 @@ import (
 // mockQueries implements the Queries interface for testing.
 type mockQueries struct {
 	users    map[string]*User
-	sessions map[string]*Session
+	sessions map[SessionDigest]*SessionRecord
 }
 
 func newMockQueries() *mockQueries {
 	return &mockQueries{
 		users:    make(map[string]*User),
-		sessions: make(map[string]*Session),
+		sessions: make(map[SessionDigest]*SessionRecord),
 	}
 }
 
@@ -76,16 +76,18 @@ func (m *mockQueries) GetUserByID(ctx context.Context, id string) (*User, error)
 	return &snapshot, nil
 }
 
-func (m *mockQueries) CreateSession(ctx context.Context, state CredentialState, session Session) (*Session, error) {
+func (m *mockQueries) CreateSession(ctx context.Context, state CredentialState, session SessionRecord) (*Session, error) {
 	user := m.users[state.UserID]
 	if user == nil || !user.Active || user.AuthVersion != state.Version {
 		return nil, ErrCredentialChanged
 	}
 
 	session.UserID = state.UserID
-	m.sessions[session.Token] = &session
+	m.sessions[session.Digest] = &session
 
-	return &session, nil
+	snapshot := session.Session
+
+	return &snapshot, nil
 }
 
 func (m *mockQueries) ReplacePassword(ctx context.Context, state CredentialState, hash string, changedAt time.Time) (*User, error) {
@@ -109,36 +111,78 @@ func (m *mockQueries) ReplacePassword(ctx context.Context, state CredentialState
 	return &copy, nil
 }
 
-func (m *mockQueries) GetSessionByToken(ctx context.Context, token string) (*Session, error) {
-	session, ok := m.sessions[token]
-	if !ok {
-		return nil, sql.ErrNoRows
+func (m *mockQueries) ValidateSession(ctx context.Context, digest SessionDigest, activity SessionActivity, interval time.Duration) (*ValidatedSession, error) {
+	err := ctx.Err()
+	if err != nil {
+		return nil, err
 	}
 
-	return session, nil
-}
-
-func (m *mockQueries) DeleteSession(ctx context.Context, sessionID string) error {
-	for token, s := range m.sessions {
-		if s.ID == sessionID {
-			delete(m.sessions, token)
-
-			return nil
-		}
+	session := m.sessions[digest]
+	if session == nil {
+		return nil, ErrSessionNotFound
 	}
 
-	return sql.ErrNoRows
-}
+	user := m.users[session.UserID]
+	if user == nil || !user.Active || user.AuthVersion != session.AuthVersion {
+		return nil, ErrCredentialChanged
+	}
 
-func (m *mockQueries) DeleteExpiredSessions(ctx context.Context) error {
 	now := time.Now()
-	for token, s := range m.sessions {
-		if s.ExpiresAt.Before(now) {
-			delete(m.sessions, token)
-		}
+
+	err = session.Check(now)
+	if err != nil {
+		return nil, err
 	}
+
+	if activity == RelevantActivity && now.Sub(session.LastActivityAt) >= interval {
+		session.LastActivityAt = now
+	}
+
+	snapshot := *user
+	snapshot.Roles = append([]string(nil), user.Roles...)
+
+	return &ValidatedSession{User: &snapshot, Session: session.Session}, nil
+}
+
+func (m *mockQueries) DeleteSession(ctx context.Context, digest SessionDigest) error {
+	if m.sessions[digest] == nil {
+		return ErrSessionNotFound
+	}
+
+	delete(m.sessions, digest)
 
 	return nil
+}
+
+func (m *mockQueries) DeleteExpiredSessions(ctx context.Context, limit int) (int64, error) {
+	var count int64
+	for digest, session := range m.sessions {
+		if errors.Is(session.Check(time.Now()), ErrSessionExpired) && count < int64(limit) {
+			delete(m.sessions, digest)
+
+			count++
+		}
+	}
+
+	return count, nil
+}
+
+// expiredFixture gives service tests a structurally valid expired record.
+func expiredFixture(t *testing.T, queries *mockQueries, user *User) string {
+	t.Helper()
+
+	token, digest, err := newSessionToken()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	now := time.Now().Add(-2 * time.Hour)
+	queries.sessions[digest] = &SessionRecord{Digest: digest, Session: Session{
+		ID: "expired-id", UserID: user.ID, AuthVersion: user.AuthVersion, Generation: 1,
+		AuthenticatedAt: now, CreatedAt: now, LastActivityAt: now, ExpiresAt: now.Add(time.Hour), InactivityTTL: time.Minute,
+	}}
+
+	return token
 }
 
 func TestSignup(t *testing.T) {
@@ -344,7 +388,7 @@ func TestSignout(t *testing.T) {
 		{
 			name:         "session not found",
 			sessionToken: "invalid-token",
-			wantErr:      ErrSessionNotFound,
+			wantErr:      ErrSessionToken,
 		},
 	}
 
@@ -371,8 +415,8 @@ func TestSignout(t *testing.T) {
 			}
 
 			// Verify session was deleted
-			_, err = queries.GetSessionByToken(context.Background(), session.Token)
-			if err != sql.ErrNoRows {
+			_, err = svc.ValidateSession(context.Background(), session.Token, NoActivity)
+			if !errors.Is(err, ErrSessionNotFound) {
 				t.Error("Signout() session was not deleted")
 			}
 		})
@@ -389,15 +433,7 @@ func TestValidateSession(t *testing.T) {
 	user, _ := svc.Signup(context.Background(), "test@example.com", "correct-password-123")
 	session, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
 
-	// Create an expired session
-	expiredSession := &Session{
-		ID:        "expired-id",
-		UserID:    user.ID,
-		Token:     "expired-token",
-		ExpiresAt: time.Now().Add(-1 * time.Hour),
-		CreatedAt: time.Now().Add(-2 * time.Hour),
-	}
-	queries.sessions[expiredSession.Token] = expiredSession
+	expiredToken := expiredFixture(t, queries, user)
 
 	tests := []struct {
 		name  string
@@ -415,11 +451,11 @@ func TestValidateSession(t *testing.T) {
 			name:  "session not found",
 			token: "invalid-token",
 			want:  nil,
-			err:   ErrSessionNotFound,
+			err:   ErrSessionToken,
 		},
 		{
 			name:  "expired session",
-			token: expiredSession.Token,
+			token: expiredToken,
 			want:  nil,
 			err:   ErrSessionExpired,
 		},
@@ -427,7 +463,7 @@ func TestValidateSession(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := svc.ValidateSession(context.Background(), tt.token)
+			got, err := svc.ValidateSession(context.Background(), tt.token, NoActivity)
 
 			if tt.err != nil {
 				if err == nil {
@@ -449,7 +485,7 @@ func TestValidateSession(t *testing.T) {
 				return
 			}
 
-			if got.ID != tt.want.ID {
+			if got.User.ID != tt.want.ID {
 				t.Errorf("ValidateSession() = %v, want %v", got, tt.want)
 			}
 		})
@@ -470,7 +506,7 @@ func TestValidateSessionInactiveUser(t *testing.T) {
 	user.Active = false
 	queries.users[user.ID] = user
 
-	_, err := svc.ValidateSession(context.Background(), session.Token)
+	_, err := svc.ValidateSession(context.Background(), session.Token, NoActivity)
 	if err == nil {
 		t.Error("ValidateSession() with inactive user should return error")
 	}
@@ -548,30 +584,22 @@ func TestCleanupExpiredSessions(t *testing.T) {
 	// Create a valid session
 	validSession, _ := svc.Signin(context.Background(), "test@example.com", "correct-password-123")
 
-	// Create an expired session
-	expiredSession := &Session{
-		ID:        "expired-id",
-		UserID:    user.ID,
-		Token:     "expired-token",
-		ExpiresAt: time.Now().Add(-1 * time.Hour),
-		CreatedAt: time.Now().Add(-2 * time.Hour),
-	}
-	queries.sessions[expiredSession.Token] = expiredSession
+	expiredToken := expiredFixture(t, queries, user)
 
 	// Cleanup expired sessions
-	err := svc.CleanupExpiredSessions(context.Background())
+	_, err := svc.CleanupExpiredSessions(context.Background())
 	if err != nil {
 		t.Errorf("CleanupExpiredSessions() unexpected error = %v", err)
 	}
 
 	// Verify expired session was deleted
-	_, err = queries.GetSessionByToken(context.Background(), expiredSession.Token)
-	if err != sql.ErrNoRows {
+	_, err = svc.ValidateSession(context.Background(), expiredToken, NoActivity)
+	if !errors.Is(err, ErrSessionNotFound) {
 		t.Error("CleanupExpiredSessions() expired session was not deleted")
 	}
 
 	// Verify valid session still exists
-	_, err = queries.GetSessionByToken(context.Background(), validSession.Token)
+	_, err = svc.ValidateSession(context.Background(), validSession.Token, NoActivity)
 	if err != nil {
 		t.Error("CleanupExpiredSessions() valid session was deleted")
 	}

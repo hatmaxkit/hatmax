@@ -60,11 +60,15 @@ func (u *User) InTOTPGracePeriod(days int) bool {
 	return time.Now().Before(gracePeriodEnd)
 }
 
-// Session represents a user session.
+// Session is safe lifecycle metadata; it contains no bearer or lookup digest.
 type Session struct {
-	ID        string
-	UserID    string
-	Token     string
-	ExpiresAt time.Time
-	CreatedAt time.Time
+	ID              string
+	UserID          string
+	AuthVersion     int64
+	Generation      int64
+	AuthenticatedAt time.Time
+	CreatedAt       time.Time
+	LastActivityAt  time.Time
+	ExpiresAt       time.Time
+	InactivityTTL   time.Duration
 }

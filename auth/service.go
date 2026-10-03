@@ -44,11 +44,11 @@ type Queries interface {
 	CreateUser(ctx context.Context, id, email, passwordHash string, createdAt, updatedAt time.Time) (*User, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	GetUserByID(ctx context.Context, id string) (*User, error)
-	CreateSession(ctx context.Context, state CredentialState, session Session) (*Session, error)
+	CreateSession(ctx context.Context, state CredentialState, session SessionRecord) (*Session, error)
 	ReplacePassword(ctx context.Context, state CredentialState, passwordHash string, changedAt time.Time) (*User, error)
-	GetSessionByToken(ctx context.Context, token string) (*Session, error)
-	DeleteSession(ctx context.Context, sessionID string) error
-	DeleteExpiredSessions(ctx context.Context) error
+	ValidateSession(ctx context.Context, digest SessionDigest, activity SessionActivity, interval time.Duration) (*ValidatedSession, error)
+	DeleteSession(ctx context.Context, digest SessionDigest) error
+	DeleteExpiredSessions(ctx context.Context, limit int) (int64, error)
 }
 
 // Service owns a shared credential policy/verifier and caller-owned storage.
@@ -59,6 +59,8 @@ type Service struct {
 	policy          *PasswordPolicy
 	verifier        *model.PasswordVerifier
 	passwordTimeout time.Duration
+	sessions        config.SessionSettings
+	sessionToken    func() (string, SessionDigest, error)
 }
 
 // NewService validates credential configuration and requires a bounded checker.
@@ -67,6 +69,11 @@ type Service struct {
 func NewService(queries Queries, cfg *config.Config, checker PasswordChecker, logger log.Logger) (*Service, error) {
 	if queries == nil || cfg == nil || logger == nil {
 		return nil, errors.New("auth service dependencies are required")
+	}
+
+	sessionSettings, err := cfg.Auth.SessionSettings()
+	if err != nil {
+		return nil, err
 	}
 
 	settings, err := cfg.Auth.PasswordSettings()
@@ -84,7 +91,7 @@ func NewService(queries Queries, cfg *config.Config, checker PasswordChecker, lo
 		return nil, err
 	}
 
-	return &Service{queries: queries, cfg: cfg, log: logger, policy: policy, verifier: verifier, passwordTimeout: settings.Timeout}, nil
+	return &Service{queries: queries, cfg: cfg, log: logger, policy: policy, verifier: verifier, passwordTimeout: settings.Timeout, sessions: sessionSettings, sessionToken: newSessionToken}, nil
 }
 
 // Signup applies candidate policy and creates a salted, encoded credential.
@@ -120,7 +127,7 @@ func (s *Service) Signup(ctx context.Context, email, password string) (*User, er
 }
 
 // Signin validates credentials and creates a session.
-func (s *Service) Signin(ctx context.Context, email, password string) (*Session, error) {
+func (s *Service) Signin(ctx context.Context, email, password string) (*IssuedSession, error) {
 	workCtx, cancel := context.WithTimeout(ctx, s.passwordTimeout)
 	defer cancel()
 
@@ -150,77 +157,66 @@ func (s *Service) Signin(ctx context.Context, email, password string) (*Session,
 		return nil, fmt.Errorf("cannot verify password: %w", err)
 	}
 
-	// Parse session TTL
-	ttl, err := time.ParseDuration(s.cfg.Auth.SessionTTL)
+	token, digest, err := s.sessionToken()
 	if err != nil {
-		ttl = 24 * time.Hour // fallback to 24 hours
+		return nil, fmt.Errorf("cannot generate session secret: %w", err)
 	}
 
-	// Create session
-	now := model.Now()
+	now := time.Now().UTC().Truncate(time.Microsecond)
+	record := SessionRecord{Session: Session{ID: model.NewID(), UserID: state.UserID, AuthVersion: state.Version, Generation: 1, AuthenticatedAt: now, CreatedAt: now, LastActivityAt: now, ExpiresAt: now.Add(s.sessions.TTL), InactivityTTL: s.sessions.InactivityTTL}, Digest: digest}
 
-	session, err := s.queries.CreateSession(workCtx, state, Session{
-		ID: model.NewID(), UserID: state.UserID, Token: model.NewID(), ExpiresAt: now.Add(ttl), CreatedAt: now,
-	})
+	sessionCtx, sessionCancel := context.WithTimeout(workCtx, s.sessions.Timeout)
+	defer sessionCancel()
+
+	session, err := s.queries.CreateSession(sessionCtx, state, record)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create session: %w", err)
 	}
 
 	s.log.Infof("User signed in: %s", user.ID)
 
-	return session, nil
+	return &IssuedSession{Session: *session, Token: token}, nil
 }
 
 // Signout destroys a session.
-func (s *Service) Signout(ctx context.Context, sessionToken string) error {
-	session, err := s.queries.GetSessionByToken(ctx, sessionToken)
-	if err == sql.ErrNoRows {
-		return ErrSessionNotFound
-	}
-
+func (s *Service) Signout(ctx context.Context, token string) error {
+	digest, err := ParseSessionToken(token)
 	if err != nil {
-		return fmt.Errorf("cannot get session: %w", err)
+		return err
 	}
 
-	err = s.queries.DeleteSession(ctx, session.ID)
+	workCtx, cancel := context.WithTimeout(ctx, s.sessions.Timeout)
+	defer cancel()
+
+	err = s.queries.DeleteSession(workCtx, digest)
 	if err != nil {
 		return fmt.Errorf("cannot delete session: %w", err)
 	}
 
-	s.log.Infof("User signed out: %s", session.UserID)
-
 	return nil
 }
 
-// ValidateSession checks if a session token is valid and returns the user.
-func (s *Service) ValidateSession(ctx context.Context, token string) (*User, error) {
-	session, err := s.queries.GetSessionByToken(ctx, token)
-	if err == sql.ErrNoRows {
-		return nil, ErrSessionNotFound
+// ValidateSession checks current stored state and optionally records trusted
+// relevant subscriber activity. NoActivity is required for background polling.
+func (s *Service) ValidateSession(ctx context.Context, token string, activity SessionActivity) (*ValidatedSession, error) {
+	if activity != NoActivity && activity != RelevantActivity {
+		return nil, ErrSessionActivity
 	}
 
+	digest, err := ParseSessionToken(token)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get session: %w", err)
+		return nil, err
 	}
 
-	if session.ExpiresAt.Before(model.Now()) {
-		return nil, ErrSessionExpired
-	}
+	workCtx, cancel := context.WithTimeout(ctx, s.sessions.Timeout)
+	defer cancel()
 
-	user, err := s.queries.GetUserByID(ctx, session.UserID)
-	if err == sql.ErrNoRows {
-		return nil, ErrUserNotFound
-	}
-
+	session, err := s.queries.ValidateSession(workCtx, digest, activity, s.sessions.ActivityInterval)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get user: %w", err)
+		return nil, fmt.Errorf("cannot validate session: %w", err)
 	}
 
-	if !user.Active {
-		return nil, errors.New("user is not active")
-	}
-
-	return user, nil
+	return session, nil
 }
 
 // GetUserByID retrieves a user by ID.
@@ -238,11 +234,14 @@ func (s *Service) GetUserByID(ctx context.Context, userID string) (*User, error)
 }
 
 // CleanupExpiredSessions removes expired sessions from the database.
-func (s *Service) CleanupExpiredSessions(ctx context.Context) error {
-	err := s.queries.DeleteExpiredSessions(ctx)
+func (s *Service) CleanupExpiredSessions(ctx context.Context) (int64, error) {
+	workCtx, cancel := context.WithTimeout(ctx, s.sessions.Timeout)
+	defer cancel()
+
+	count, err := s.queries.DeleteExpiredSessions(workCtx, s.sessions.CleanupBatch)
 	if err != nil {
-		return fmt.Errorf("cannot cleanup expired sessions: %w", err)
+		return 0, fmt.Errorf("cannot delete expired sessions: %w", err)
 	}
 
-	return nil
+	return count, nil
 }

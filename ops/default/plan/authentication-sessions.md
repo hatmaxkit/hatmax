@@ -155,3 +155,29 @@ completion explicitly. Browser/session management presentation, production
 policy and complete assurance assessment remain consuming-application evidence.
 Publication of a selected core dependency is separate from local set closure;
 this plan does not authorize main alignment, release, tagging or deployment.
+
+## Slice 1 Contract
+
+`Session` is safe metadata: ID, subject, captured `AuthVersion`, generation,
+completed password authentication time, creation/activity times, absolute expiry
+and an inactivity duration. `SessionRecord` pairs it with a fixed-size
+`SessionDigest`; `IssuedSession` alone carries the transient raw token.
+`ValidatedSession` pairs an owned user snapshot with safe session metadata.
+Policy revision/required-proof properties are introduced with Slice 2 rather than
+unused placeholder claims in this password-only increment.
+
+`Signin` returns an issued value. `ValidateSession` receives trusted explicit
+`SessionActivity` (none or relevant) and returns the validated value. Middleware
+and active callers choose activity explicitly and attach safe session context.
+`Queries.CreateSession` receives only a record plus expected credential state;
+`ValidateSession` receives a digest and activity/cadence and checks current time
+under the account/session locks. `DeleteSession` receives a digest, preventing a
+stale raw token from revoking a later representation by record ID. Existing
+cleanup becomes batch-bounded while its full management contract stays in Slice 3.
+
+Configuration retains validated `session_ttl` (24h), adds `session_inactivity_ttl`
+(30m), `session_activity_interval` (1m), `session_timeout` (5s) and
+`session_cleanup_batch` (1000). Stored durations use whole microseconds to align
+Go checks with PostgreSQL precision. The adapter evaluates `clock_timestamp()`
+after locks; it never trusts a timestamp sampled before the wait. Relevant
+activity conditionally updates the stored timestamp only when the cadence elapses.

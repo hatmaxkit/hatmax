@@ -16,9 +16,9 @@ import (
 // baseAuthService defines the operations needed from hatmax auth.Service.
 type baseAuthService interface {
 	Signup(ctx context.Context, email, password string) (*auth.User, error)
-	Signin(ctx context.Context, email, password string) (*auth.Session, error)
+	Signin(ctx context.Context, email, password string) (*auth.IssuedSession, error)
 	Signout(ctx context.Context, sessionToken string) error
-	ValidateSession(ctx context.Context, token string) (*auth.User, error)
+	ValidateSession(ctx context.Context, token string, activity auth.SessionActivity) (*auth.ValidatedSession, error)
 }
 
 // userCounter defines the count users operation for first-user detection.
@@ -71,7 +71,7 @@ func (s *Service) Signup(ctx context.Context, email, password string) (*auth.Use
 }
 
 // Signin delegates to the underlying auth service.
-func (s *Service) Signin(ctx context.Context, email, password string) (*auth.Session, error) {
+func (s *Service) Signin(ctx context.Context, email, password string) (*auth.IssuedSession, error) {
 	return s.auth.Signin(ctx, email, password)
 }
 
@@ -81,6 +81,6 @@ func (s *Service) Signout(ctx context.Context, sessionToken string) error {
 }
 
 // ValidateSession delegates to the underlying auth service.
-func (s *Service) ValidateSession(ctx context.Context, token string) (*auth.User, error) {
-	return s.auth.ValidateSession(ctx, token)
+func (s *Service) ValidateSession(ctx context.Context, token string, activity auth.SessionActivity) (*auth.ValidatedSession, error) {
+	return s.auth.ValidateSession(ctx, token, activity)
 }

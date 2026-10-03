@@ -15,11 +15,16 @@ import (
 )
 
 type Session struct {
-	ID        string    `json:"id"`
-	UserID    string    `json:"user_id"`
-	Token     string    `json:"token"`
-	ExpiresAt time.Time `json:"expires_at"`
-	CreatedAt time.Time `json:"created_at"`
+	ID              string    `json:"id"`
+	UserID          string    `json:"user_id"`
+	TokenDigest     []byte    `json:"token_digest"`
+	AuthVersion     int64     `json:"auth_version"`
+	Generation      int64     `json:"generation"`
+	AuthenticatedAt time.Time `json:"authenticated_at"`
+	CreatedAt       time.Time `json:"created_at"`
+	LastActivityAt  time.Time `json:"last_activity_at"`
+	ExpiresAt       time.Time `json:"expires_at"`
+	InactivityUs    int64     `json:"inactivity_us"`
 }
 
 type TodoItem struct {

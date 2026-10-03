@@ -56,21 +56,25 @@ type DatabaseConfig struct {
 
 // AuthConfig holds authentication and session configuration.
 type AuthConfig struct {
-	SessionTTL            string `koanf:"session_ttl"`
-	PasswordMinLen        int    `koanf:"password_min_len"`
-	PasswordMaxLen        int    `koanf:"password_max_len"`
-	PasswordMaxBytes      int    `koanf:"password_max_bytes"`
-	PasswordCheckTimeout  string `koanf:"password_check_timeout"`
-	PasswordTimeout       string `koanf:"password_timeout"`
-	ArgonMemoryKiB        uint64 `koanf:"argon_memory_kib"`
-	ArgonIterations       uint64 `koanf:"argon_iterations"`
-	ArgonParallelism      uint64 `koanf:"argon_parallelism"`
-	ArgonMaxMemoryKiB     uint64 `koanf:"argon_max_memory_kib"`
-	ArgonMaxIterations    uint64 `koanf:"argon_max_iterations"`
-	ArgonMaxParallelism   uint64 `koanf:"argon_max_parallelism"`
-	PasswordMaxConcurrent int    `koanf:"password_max_concurrent"`
-	EmailEncryptionKey    string `koanf:"email_encryption_key"`
-	EmailLookupKey        string `koanf:"email_lookup_key"`
+	SessionTTL              string `koanf:"session_ttl"`
+	SessionInactivityTTL    string `koanf:"session_inactivity_ttl"`
+	SessionActivityInterval string `koanf:"session_activity_interval"`
+	SessionTimeout          string `koanf:"session_timeout"`
+	SessionCleanupBatch     int    `koanf:"session_cleanup_batch"`
+	PasswordMinLen          int    `koanf:"password_min_len"`
+	PasswordMaxLen          int    `koanf:"password_max_len"`
+	PasswordMaxBytes        int    `koanf:"password_max_bytes"`
+	PasswordCheckTimeout    string `koanf:"password_check_timeout"`
+	PasswordTimeout         string `koanf:"password_timeout"`
+	ArgonMemoryKiB          uint64 `koanf:"argon_memory_kib"`
+	ArgonIterations         uint64 `koanf:"argon_iterations"`
+	ArgonParallelism        uint64 `koanf:"argon_parallelism"`
+	ArgonMaxMemoryKiB       uint64 `koanf:"argon_max_memory_kib"`
+	ArgonMaxIterations      uint64 `koanf:"argon_max_iterations"`
+	ArgonMaxParallelism     uint64 `koanf:"argon_max_parallelism"`
+	PasswordMaxConcurrent   int    `koanf:"password_max_concurrent"`
+	EmailEncryptionKey      string `koanf:"email_encryption_key"`
+	EmailLookupKey          string `koanf:"email_lookup_key"`
 }
 
 // ContactConfig holds contact data-protection configuration.
@@ -203,9 +207,13 @@ func New() *Config {
 			SSLMode:  "disable",
 		},
 		Auth: AuthConfig{
-			SessionTTL:     "24h",
-			PasswordMinLen: 15,
-			PasswordMaxLen: 1024, PasswordMaxBytes: 4096,
+			SessionTTL:              "24h",
+			SessionInactivityTTL:    "30m",
+			SessionActivityInterval: "1m",
+			SessionTimeout:          "5s",
+			SessionCleanupBatch:     1000,
+			PasswordMinLen:          15,
+			PasswordMaxLen:          1024, PasswordMaxBytes: 4096,
 			PasswordCheckTimeout: "2s", PasswordTimeout: "5s",
 			ArgonMemoryKiB: 65536, ArgonIterations: 3, ArgonParallelism: 4,
 			ArgonMaxMemoryKiB: 65536, ArgonMaxIterations: 3, ArgonMaxParallelism: 4,
@@ -272,7 +280,11 @@ func Load(path, envPrefix string, args []string) (*Config, error) {
 	fs.String("database.database", "dev", "Database name")
 	fs.String("database.schema", "", "Database schema")
 	fs.String("database.sslmode", "disable", "Database SSL mode")
-	fs.String("auth.session_ttl", "24h", "Session TTL")
+	fs.String("auth.session_ttl", "24h", "Absolute session lifetime")
+	fs.String("auth.session_inactivity_ttl", "30m", "Session inactivity lifetime")
+	fs.String("auth.session_activity_interval", "1m", "Relevant session activity persistence interval")
+	fs.String("auth.session_timeout", "5s", "Session storage operation timeout")
+	fs.Int("auth.session_cleanup_batch", 1000, "Maximum expired sessions removed per cleanup")
 	fs.Int("auth.password_min_len", 15, "Minimum normalized password code points")
 	fs.Int("auth.password_max_len", 1024, "Maximum normalized password code points")
 	fs.Int("auth.password_max_bytes", 4096, "Maximum raw and normalized password bytes")
@@ -372,7 +384,12 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("database.database is required")
 	}
 
-	_, err := c.Auth.PasswordSettings()
+	_, err := c.Auth.SessionSettings()
+	if err != nil {
+		return err
+	}
+
+	_, err = c.Auth.PasswordSettings()
 	if err != nil {
 		return err
 	}

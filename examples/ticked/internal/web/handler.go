@@ -27,9 +27,9 @@ import (
 // authService defines the auth operations needed by the handler.
 type authService interface {
 	Signup(ctx context.Context, email, password string) (*auth.User, error)
-	Signin(ctx context.Context, email, password string) (*auth.Session, error)
+	Signin(ctx context.Context, email, password string) (*auth.IssuedSession, error)
 	Signout(ctx context.Context, sessionToken string) error
-	ValidateSession(ctx context.Context, token string) (*auth.User, error)
+	ValidateSession(ctx context.Context, token string, activity auth.SessionActivity) (*auth.ValidatedSession, error)
 }
 
 // authQueries defines the auth query operations needed by the handler.
@@ -128,7 +128,7 @@ func (h *Handler) requireAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		user, err := h.authSvc.ValidateSession(r.Context(), cookie.Value)
+		validated, err := h.authSvc.ValidateSession(r.Context(), cookie.Value, auth.RelevantActivity)
 		if err != nil {
 			auth.ClearSessionCookie(w)
 			http.Redirect(w, r, "/signin", http.StatusSeeOther)
@@ -136,14 +136,15 @@ func (h *Handler) requireAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := auth.WithUser(r.Context(), user)
+		ctx := auth.WithUser(r.Context(), validated.User)
+		ctx = auth.WithSession(ctx, &validated.Session)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 // requireRoles returns a middleware that validates authentication and roles.
 func (h *Handler) requireRoles(roles ...string) func(http.Handler) http.Handler {
-	return middleware.RequireRoles(h.authSvc, roles...)
+	return middleware.RequireRoles(h.authSvc, auth.RelevantActivity, roles...)
 }
 
 // --- Auth handlers ---

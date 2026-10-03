@@ -43,7 +43,7 @@ func TestRequireAuth(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	middleware := RequireAuth(svc)
+	middleware := RequireAuth(svc, RelevantActivity)
 	wrappedHandler := middleware(handler)
 
 	tests := []struct {
@@ -122,7 +122,7 @@ func TestOptionalAuth(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	middleware := OptionalAuth(svc)
+	middleware := OptionalAuth(svc, NoActivity)
 	_ = middleware(handler)
 
 	tests := []struct {

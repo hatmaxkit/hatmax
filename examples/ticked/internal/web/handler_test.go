@@ -710,7 +710,7 @@ func (f *fakeAuthQ) UpdateUserActive(ctx context.Context, id string, active bool
 
 type fakeAuthSvc struct {
 	user        *auth.User
-	session     *auth.Session
+	session     *auth.IssuedSession
 	signupErr   error
 	signinErr   error
 	signoutErr  error
@@ -721,7 +721,7 @@ func (f *fakeAuthSvc) Signup(ctx context.Context, email, password string) (*auth
 	return f.user, f.signupErr
 }
 
-func (f *fakeAuthSvc) Signin(ctx context.Context, email, password string) (*auth.Session, error) {
+func (f *fakeAuthSvc) Signin(ctx context.Context, email, password string) (*auth.IssuedSession, error) {
 	return f.session, f.signinErr
 }
 
@@ -729,6 +729,6 @@ func (f *fakeAuthSvc) Signout(ctx context.Context, sessionToken string) error {
 	return f.signoutErr
 }
 
-func (f *fakeAuthSvc) ValidateSession(ctx context.Context, token string) (*auth.User, error) {
-	return f.user, f.validateErr
+func (f *fakeAuthSvc) ValidateSession(ctx context.Context, token string, activity auth.SessionActivity) (*auth.ValidatedSession, error) {
+	return &auth.ValidatedSession{User: f.user}, f.validateErr
 }

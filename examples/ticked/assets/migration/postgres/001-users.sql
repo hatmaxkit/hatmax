@@ -17,14 +17,22 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    token TEXT UNIQUE NOT NULL,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token_digest BYTEA UNIQUE NOT NULL CHECK (octet_length(token_digest) = 32),
+    auth_version BIGINT NOT NULL CHECK (auth_version > 0),
+    generation BIGINT NOT NULL CHECK (generation > 0),
+    authenticated_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    last_activity_at TIMESTAMPTZ NOT NULL,
     expires_at TIMESTAMPTZ NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL
+    inactivity_us BIGINT NOT NULL CHECK (inactivity_us BETWEEN 60000000 AND 2592000000000),
+    CHECK (created_at <= authenticated_at AND authenticated_at <= last_activity_at AND last_activity_at < expires_at),
+    CHECK (expires_at - authenticated_at BETWEEN INTERVAL '1 minute' AND INTERVAL '30 days'),
+    CHECK (inactivity_us <= EXTRACT(EPOCH FROM (expires_at - authenticated_at)) * 1000000)
 );
 
-CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at, id);
 
 -- +migrate Down
 DROP TABLE IF EXISTS sessions;

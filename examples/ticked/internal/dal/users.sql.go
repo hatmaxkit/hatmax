@@ -29,34 +29,49 @@ func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
 }
 
 const createSession = `-- name: CreateSession :one
-INSERT INTO sessions (id, user_id, token, expires_at, created_at)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, user_id, token, expires_at, created_at
+INSERT INTO sessions (id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+RETURNING id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
 `
 
 type CreateSessionParams struct {
-	ID        string    `json:"id"`
-	UserID    string    `json:"user_id"`
-	Token     string    `json:"token"`
-	ExpiresAt time.Time `json:"expires_at"`
-	CreatedAt time.Time `json:"created_at"`
+	ID              string    `json:"id"`
+	UserID          string    `json:"user_id"`
+	TokenDigest     []byte    `json:"token_digest"`
+	AuthVersion     int64     `json:"auth_version"`
+	Generation      int64     `json:"generation"`
+	AuthenticatedAt time.Time `json:"authenticated_at"`
+	CreatedAt       time.Time `json:"created_at"`
+	LastActivityAt  time.Time `json:"last_activity_at"`
+	ExpiresAt       time.Time `json:"expires_at"`
+	InactivityUs    int64     `json:"inactivity_us"`
 }
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
 	row := q.db.QueryRowContext(ctx, createSession,
 		arg.ID,
 		arg.UserID,
-		arg.Token,
-		arg.ExpiresAt,
+		arg.TokenDigest,
+		arg.AuthVersion,
+		arg.Generation,
+		arg.AuthenticatedAt,
 		arg.CreatedAt,
+		arg.LastActivityAt,
+		arg.ExpiresAt,
+		arg.InactivityUs,
 	)
 	var i Session
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
-		&i.Token,
-		&i.ExpiresAt,
+		&i.TokenDigest,
+		&i.AuthVersion,
+		&i.Generation,
+		&i.AuthenticatedAt,
 		&i.CreatedAt,
+		&i.LastActivityAt,
+		&i.ExpiresAt,
+		&i.InactivityUs,
 	)
 	return i, err
 }
@@ -106,22 +121,34 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
-const deleteExpiredSessions = `-- name: DeleteExpiredSessions :exec
-DELETE FROM sessions WHERE expires_at < NOW()
+const deleteExpiredSessions = `-- name: DeleteExpiredSessions :execrows
+WITH expired AS (
+    SELECT id FROM sessions
+    WHERE expires_at <= clock_timestamp()
+       OR last_activity_at + inactivity_us * INTERVAL '1 microsecond' <= clock_timestamp()
+    ORDER BY expires_at, id LIMIT $1::integer FOR UPDATE SKIP LOCKED
+)
+DELETE FROM sessions USING expired WHERE sessions.id = expired.id
 `
 
-func (q *Queries) DeleteExpiredSessions(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, deleteExpiredSessions)
-	return err
+func (q *Queries) DeleteExpiredSessions(ctx context.Context, dollar_1 int32) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteExpiredSessions, dollar_1)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const deleteSession = `-- name: DeleteSession :exec
-DELETE FROM sessions WHERE id = $1
+const deleteSession = `-- name: DeleteSession :execrows
+DELETE FROM sessions WHERE token_digest = $1
 `
 
-func (q *Queries) DeleteSession(ctx context.Context, id string) error {
-	_, err := q.db.ExecContext(ctx, deleteSession, id)
-	return err
+func (q *Queries) DeleteSession(ctx context.Context, tokenDigest []byte) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteSession, tokenDigest)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const deleteUserSessions = `-- name: DeleteUserSessions :exec
@@ -133,21 +160,48 @@ func (q *Queries) DeleteUserSessions(ctx context.Context, userID string) error {
 	return err
 }
 
-const getSessionByToken = `-- name: GetSessionByToken :one
-SELECT id, user_id, token, expires_at, created_at
-FROM sessions
-WHERE token = $1
+const getSessionByDigest = `-- name: GetSessionByDigest :one
+SELECT id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+FROM sessions WHERE token_digest = $1
 `
 
-func (q *Queries) GetSessionByToken(ctx context.Context, token string) (Session, error) {
-	row := q.db.QueryRowContext(ctx, getSessionByToken, token)
+func (q *Queries) GetSessionByDigest(ctx context.Context, tokenDigest []byte) (Session, error) {
+	row := q.db.QueryRowContext(ctx, getSessionByDigest, tokenDigest)
 	var i Session
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
-		&i.Token,
-		&i.ExpiresAt,
+		&i.TokenDigest,
+		&i.AuthVersion,
+		&i.Generation,
+		&i.AuthenticatedAt,
 		&i.CreatedAt,
+		&i.LastActivityAt,
+		&i.ExpiresAt,
+		&i.InactivityUs,
+	)
+	return i, err
+}
+
+const getSessionForUpdate = `-- name: GetSessionForUpdate :one
+SELECT id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+FROM sessions WHERE token_digest = $1 FOR UPDATE
+`
+
+func (q *Queries) GetSessionForUpdate(ctx context.Context, tokenDigest []byte) (Session, error) {
+	row := q.db.QueryRowContext(ctx, getSessionForUpdate, tokenDigest)
+	var i Session
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.TokenDigest,
+		&i.AuthVersion,
+		&i.Generation,
+		&i.AuthenticatedAt,
+		&i.CreatedAt,
+		&i.LastActivityAt,
+		&i.ExpiresAt,
+		&i.InactivityUs,
 	)
 	return i, err
 }
@@ -279,6 +333,45 @@ func (q *Queries) ReplacePassword(ctx context.Context, arg ReplacePasswordParams
 		&i.Active,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const sessionClock = `-- name: SessionClock :one
+SELECT clock_timestamp()::timestamptz
+`
+
+func (q *Queries) SessionClock(ctx context.Context) (time.Time, error) {
+	row := q.db.QueryRowContext(ctx, sessionClock)
+	var column_1 time.Time
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const updateSessionActivity = `-- name: UpdateSessionActivity :one
+UPDATE sessions SET last_activity_at = $2 WHERE id = $1
+RETURNING id, user_id, token_digest, auth_version, generation, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+`
+
+type UpdateSessionActivityParams struct {
+	ID             string    `json:"id"`
+	LastActivityAt time.Time `json:"last_activity_at"`
+}
+
+func (q *Queries) UpdateSessionActivity(ctx context.Context, arg UpdateSessionActivityParams) (Session, error) {
+	row := q.db.QueryRowContext(ctx, updateSessionActivity, arg.ID, arg.LastActivityAt)
+	var i Session
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.TokenDigest,
+		&i.AuthVersion,
+		&i.Generation,
+		&i.AuthenticatedAt,
+		&i.CreatedAt,
+		&i.LastActivityAt,
+		&i.ExpiresAt,
+		&i.InactivityUs,
 	)
 	return i, err
 }
