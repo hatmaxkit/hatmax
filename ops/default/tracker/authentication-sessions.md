@@ -27,7 +27,7 @@ Execution gate: Review
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Secure session lifecycle | delivered | `feat/auth-session-lifecycle` | `feat(slice-1): enforce secure session lifecycle` | `#95` | `ops/default/report/slices/authentication-sessions/slice-1-session-lifecycle.md` |
 | Slice 2 | Required proof and outcomes | delivered | `feat/auth-required-proof` | `feat(slice-2): enforce authentication proof requirements` | `#96` | `ops/default/report/slices/authentication-sessions/slice-2-required-proof.md` |
-| Slice 3 | Reauthentication and control | reviewing | `feat/auth-session-control` | `feat(slice-3): add atomic session reauthentication and control` | pending | `ops/default/report/slices/authentication-sessions/slice-3-session-control.md` |
+| Slice 3 | Reauthentication and control | reviewing | `feat/auth-session-control` | `feat(slice-3): add atomic session reauthentication and control` | `#97` | `ops/default/report/slices/authentication-sessions/slice-3-session-control.md` |
 
 ## Tasks
 
@@ -150,3 +150,6 @@ reclamation rollback, owned bounded pages, recent-proof checks after locks and
 concurrent retained-row admission. HTTP tests establish completed-only replacement
 cookies and truthful revocation/sign-out failure. No real MFA completion is claimed.
 The full `make check` remains scheduled after verified Slice 3 merge.
+
+Slice 3 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/97. Report and tracker
+are reviewing; the exact integrated full gate follows verified merge.
