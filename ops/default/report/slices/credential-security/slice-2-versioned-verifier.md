@@ -7,12 +7,14 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 2: Versioned Verifier
 
-Status: reviewing
+Status: delivered
 Delivery set: credential-security
 Plan: [Credential security plan](../../../plan/credential-security.md)
 Tracker: [Credential security tracker](../../../tracker/credential-security.md)
 Branch: `feat/credential-versioned-verifier`
 PR: `#93`
+Merged: 2026-10-03
+Integration: `0d0ca4c50972af01dc50a7c844a2bc4a70ca6187`
 
 ## Purpose
 

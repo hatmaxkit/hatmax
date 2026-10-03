@@ -15,17 +15,17 @@ Specification: [Authentication security](../spec/authentication-security.md)
 Model: [Authentication security model](../spec/authentication-security-model.md)
 Base branch: `dev`
 Planning base: `6ec140af2825`
-Active slice: Slice 2
-Active tasks: None
-Execution gate: Review
+Active slice: Slice 3
+Active tasks: T3.1
+Execution gate: Open
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Password policy | delivered | `feat/credential-password-policy` | `feat(slice-1): define bounded password policy` | `#92` | `ops/default/report/slices/credential-security/slice-1-password-policy.md` |
-| Slice 2 | Versioned verifier | reviewing | `feat/credential-versioned-verifier` | `feat(slice-2): add versioned password verification` | `#93` | `ops/default/report/slices/credential-security/slice-2-versioned-verifier.md` |
-| Slice 3 | Credential integration | planned | `feat/credential-auth-integration` | `feat(slice-3): integrate secure credential storage` | pending | `ops/default/report/slices/credential-security/slice-3-credential-integration.md` |
+| Slice 2 | Versioned verifier | delivered | `feat/credential-versioned-verifier` | `feat(slice-2): add versioned password verification` | `#93` | `ops/default/report/slices/credential-security/slice-2-versioned-verifier.md` |
+| Slice 3 | Credential integration | active | `feat/credential-auth-integration` | `feat(slice-3): integrate secure credential storage` | pending | `ops/default/report/slices/credential-security/slice-3-credential-integration.md` |
 
 ## Tasks
 
@@ -50,14 +50,15 @@ records commands and behavior boundaries.
 
 Slice 2 validation passed. Its [report](../report/slices/credential-security/slice-2-versioned-verifier.md)
 records measured defaults, exact commands and remaining service integration.
-Slice 2 is in review and depends on delivered Slice 1. Slice 3 also requires the storage/current-
+PR #93 merged on 2026-10-03. Integration was verified on `dev` at
+`0d0ca4c50972af01dc50a7c844a2bc4a70ca6187`; Slice 2 is delivered. Slice 3 also requires the storage/current-
 state and configuration contracts. Test infrastructure failures are recorded
 without treating missing persistence evidence as a passing check.
 
 ## Completion Gates
 
 - [x] Slice 1 merges and its delivered report/commit evidence is recorded.
-- [ ] Slice 2 merges and its delivered report/commit evidence is recorded.
+- [x] Slice 2 merges and its delivered report/commit evidence is recorded.
 - [ ] Storage/current-state and configuration contracts are settled before Slice 3.
 - [ ] Slice 3 merges and its delivered report/commit evidence is recorded.
 - [ ] Exact integrated `dev` candidate passes `make check`.
