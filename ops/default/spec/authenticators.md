@@ -16,7 +16,7 @@ Model: [Authenticator model](authenticators-model.md)
 Plan: [Delivery proposal](../plan/authenticators.md)
 Tracker: [Delivery tracker](../tracker/authenticators.md)
 Inspected baseline: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
-Implementation status: Slices 1-4 delivered; Slice 5 active
+Implementation status: Slices 1-4 delivered; Slice 5 reviewing
 Execution gate: Open
 
 ## Purpose and Ownership
@@ -35,7 +35,7 @@ Account recovery and operator-assisted all-factor loss retain AUTH-06 ownership;
 the mechanisms here cannot silently reset established stronger factors.
 
 The concern/model and five-slice delivery plan were approved on 2026-10-04.
-Slices 1-4 are delivered after verified merges. Slice 5 is active under the recorded plan.
+Slices 1-4 are delivered after verified merges. Slice 5 is implemented and reviewing under the recorded plan. The exact integrated aggregate gate remains pending after its merge.
 
 ## Delivered Prerequisites and Inspected Gaps
 

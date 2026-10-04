@@ -13,7 +13,7 @@ Approved: 2026-10-04
 Behavior: [Authenticators](authenticators.md)
 Parent model: [Authentication security model](authentication-security-model.md)
 Session foundation: [Authentication and sessions model](authentication-sessions-model.md)
-Implementation status: Slices 1-4 delivered; Slice 5 active
+Implementation status: Slices 1-4 delivered; Slice 5 reviewing
 
 ## Representation and Ownership
 

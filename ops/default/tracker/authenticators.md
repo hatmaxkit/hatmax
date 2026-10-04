@@ -29,7 +29,7 @@ Execution gate: Open
 | Slice 2 | WebAuthn completion | delivered | `feat/webauthn-completion` | `feat(slice-2): complete WebAuthn authentication and step-up` | `#99` | `ops/default/report/slices/authenticators/slice-2-webauthn-completion.md` |
 | Slice 3 | TOTP and backup proof | delivered | `feat/authenticator-fallback` | `feat(slice-3): add replay-resistant TOTP and backup proof` | `#100` | `ops/default/report/slices/authenticators/slice-3-fallback-proof.md` |
 | Slice 4 | Authorized factor changes | delivered | `feat/authenticator-control` | `feat(slice-4): enforce authorized authenticator changes` | `#101` | `ops/default/report/slices/authenticators/slice-4-factor-control.md` |
-| Slice 5 | Browser acceptance | active | `test/authenticator-acceptance` | `test(slice-5): verify authenticator browser integration` | pending | `ops/default/report/slices/authenticators/slice-5-browser-acceptance.md` |
+| Slice 5 | Browser acceptance | reviewing | `test/authenticator-acceptance` | `test(slice-5): verify authenticator browser integration` | pending | `ops/default/report/slices/authenticators/slice-5-browser-acceptance.md` |
 
 ## Tasks
 
@@ -44,7 +44,7 @@ Execution gate: Open
 | T4.1 | complete | `feat(auth): enforce authorized factor changes` | `1f7b73b55d3511d5df9cba62a7a4472c5962842a` | Recent trusted authority, bounded own-factor operations, version/revocation and coherent actor rotation |
 | T4.2 | complete | `test(auth): verify authenticator change authority` | `b7a2d6ed1fde75ee861084f0e102109d05289308` | Subject isolation, post-lock freshness, last-factor/current-proof constraints, mutation races and rollback |
 | T5.1 | complete | `test(auth): exercise authenticator browser journeys` | `bdffc01cca3f2cf1b520614429caad2cdecec117` | Actual browser/virtual device against production handlers, real PostgreSQL and required stronger proof |
-| T5.2 | complete | `test(auth): close authenticator integration evidence` | pending | Cookie/parser/deadline regression, supported guidance and AU/AUTH evidence mapping |
+| T5.2 | complete | `test(auth): close authenticator integration evidence` | `6f4b5027870569a65bbbbaa4044f766d51d6a1d8` | Cookie/parser/deadline regression, supported guidance and AU/AUTH evidence mapping |
 
 ## Dependencies and Execution Gate
 
@@ -67,9 +67,9 @@ setup flags and fake method claims never count as authenticator acceptance.
 - [x] Slice 3 merged; delivered TOTP/backup verification, replay and policy evidence recorded.
 - [x] Slice 4 merged; delivered current-authority/factor-change evidence recorded.
 - [ ] Slice 5 merged; delivered real browser integration and supported documentation recorded.
-- [ ] AU-01 through AU-10 mapped to actual deterministic, verifier, race, persistence and browser evidence.
+- [x] AU-01 through AU-10 mapped to actual deterministic, verifier, race, persistence and browser evidence.
 - [ ] Exact immutable integrated `dev` candidate passes `make check`.
-- [ ] Supported AUTH-03/AUTH-05 coverage and remaining AUTH-06/AUTH-07/application assurance obligations recorded.
+- [x] Supported AUTH-03/AUTH-05 coverage and remaining AUTH-06/AUTH-07/application assurance obligations recorded.
 
 ## Planning Validation
 
@@ -211,3 +211,10 @@ separate concerns. Consumers still own RP/origin/access policy, database atomici
 key custody, HTTPS, hardware/attestation/AAL claims and domain authorization.
 AU-10's aggregate condition remains pending until the final slice merges and its
 exact immutable integrated `dev` candidate passes `make check`.
+
+
+Slice 5/T5.1/T5.2 is implemented and reviewing. The canonical Slice 5 report
+maps AU-01 through AU-10 with the aggregate condition explicitly pending.
+Next checkpoint: verify final maintainer merge, close Slice 5 on `dev`, then run
+`make check` once for that exact integrated candidate; follow the recorded
+correction route only if repository changes are required.
