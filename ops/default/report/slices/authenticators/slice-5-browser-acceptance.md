@@ -12,7 +12,7 @@ Delivery set: authenticators
 Plan: [Delivery plan](../../../plan/authenticators.md)
 Tracker: [Delivery tracker](../../../tracker/authenticators.md)
 Branch: `test/authenticator-acceptance`
-PR: pending
+PR: `#102`
 T5.1: `bdffc01cca3f2cf1b520614429caad2cdecec117`
 T5.2: `6f4b5027870569a65bbbbaa4044f766d51d6a1d8`
 
@@ -127,7 +127,7 @@ database settings were supplied explicitly; bounded `.tmp/build`, `TMPDIR`,
 `GOTMPDIR` and `GOFLAGS=-p=2` were used. Browser socket scratch is separate and
 short. These are local focused checks, not deployment or aggregate-gate results.
 
-- `make source-license-check` — passed, 811 headers and 109 annotations before report introduction.
+- `make source-license-check` — passed, 812 headers and 109 annotations including report introduction.
 - `make vet` — passed.
 - `make lint-strict` — passed, zero issues.
 - `make docs-check` — passed, including local links and example compilation.

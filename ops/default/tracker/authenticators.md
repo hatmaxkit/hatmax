@@ -29,7 +29,7 @@ Execution gate: Open
 | Slice 2 | WebAuthn completion | delivered | `feat/webauthn-completion` | `feat(slice-2): complete WebAuthn authentication and step-up` | `#99` | `ops/default/report/slices/authenticators/slice-2-webauthn-completion.md` |
 | Slice 3 | TOTP and backup proof | delivered | `feat/authenticator-fallback` | `feat(slice-3): add replay-resistant TOTP and backup proof` | `#100` | `ops/default/report/slices/authenticators/slice-3-fallback-proof.md` |
 | Slice 4 | Authorized factor changes | delivered | `feat/authenticator-control` | `feat(slice-4): enforce authorized authenticator changes` | `#101` | `ops/default/report/slices/authenticators/slice-4-factor-control.md` |
-| Slice 5 | Browser acceptance | reviewing | `test/authenticator-acceptance` | `test(slice-5): verify authenticator browser integration` | pending | `ops/default/report/slices/authenticators/slice-5-browser-acceptance.md` |
+| Slice 5 | Browser acceptance | reviewing | `test/authenticator-acceptance` | `test(slice-5): verify authenticator browser integration` | `#102` | `ops/default/report/slices/authenticators/slice-5-browser-acceptance.md` |
 
 ## Tasks
 
@@ -51,7 +51,7 @@ Execution gate: Open
 Credential security and authentication sessions are delivered on canonical `dev`.
 The concern/model, selected dependency/profile/defaults and five-slice plan were
 approved on 2026-10-04. The concern/model are promoted together; Slice 1/T1.1
-is delivered. Slices 1-4 are delivered after verified PR #101 merge. Slice 5/T5.1 is active. The required branch is `test/authenticator-acceptance`.
+is delivered. Slices 1-4 are delivered after verified PR #101 merge. Slice 5/T5.1/T5.2 is implemented and reviewing in PR #102. The required branch is `test/authenticator-acceptance`.
 
 Before T1.1 settle matching Go/SQL/wire fields and exact pinned verifier/key
 dependencies. Before T1.2 record actual finite integration/fuzz selectors;
@@ -156,7 +156,7 @@ Next: verify maintainer merge, close Slice 4 on `dev`, then execute already-appr
 
 
 Verified PR #101 merge: `e9563e94cb7b4ff032895fad15f96b083d1ac7e8`.
-Slice 5/T5.1 is active; execute both approved tasks through one reviewable PR.
+Slice 5/T5.1/T5.2 is implemented; PR #102 is reviewing.
 
 ## Slice 5 Browser Validation Binding
 
@@ -218,3 +218,9 @@ maps AU-01 through AU-10 with the aggregate condition explicitly pending.
 Next checkpoint: verify final maintainer merge, close Slice 5 on `dev`, then run
 `make check` once for that exact integrated candidate; follow the recorded
 correction route only if repository changes are required.
+
+
+Slice 5 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/102
+Report introduction: `7c84792f2a27e7500d626ac2d1951ca7eaea3aff`.
+Focused checks and AU mapping are complete; final merge and aggregate gate remain
+pending. Verification must resume from live canonical PR/head and `origin/dev`.
