@@ -66,12 +66,16 @@ The [credential-security tracker](../tracker/credential-security.md#requirement-
 records delivered AUTH-01/AUTH-02 primitives, integrated signup/sign-in/storage
 validation and remaining consumer obligations. The
 [authentication-sessions tracker](../tracker/authentication-sessions.md#requirement-evidence-and-handoff)
-records AUTH-04's supported stateful session foundation and partial AUTH-03:
-trusted proof requirements, actual password facts and non-authorizing outcomes.
-Browser presentation, production policy and administrative authorization remain
-consumer obligations. Actual stronger-authenticator completion and atomic factor
-consumption remain AUTH-05 work; AUTH-06/AUTH-07 retain their broader lifecycle
-and attempt-control scope. The complete foundation is not yet delivered.
+records AUTH-04's supported stateful session foundation and the password/session
+portion of AUTH-03: trusted proof requirements, actual password facts and
+non-authorizing outcomes. The
+[authenticator tracker](../tracker/authenticators.md#delivery-set-closure) and
+[completed authenticator concern](authenticators.md) record supported AUTH-03
+factor completion and AUTH-05 mechanisms, actual browser/transaction evidence
+and the exact integrated gate. Browser presentation, production policy,
+hardware/attestation assurance and administrative authorization remain consumer
+obligations. AUTH-06/AUTH-07 retain their broader recovery/lifecycle and
+attempt-control scope. The complete foundation is not yet delivered.
 
 ## Inspected Gaps
 

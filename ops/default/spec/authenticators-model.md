@@ -13,7 +13,9 @@ Approved: 2026-10-04
 Behavior: [Authenticators](authenticators.md)
 Parent model: [Authentication security model](authentication-security-model.md)
 Session foundation: [Authentication and sessions model](authentication-sessions-model.md)
-Implementation status: Slices 1-5 delivered; integrated validation active
+Implementation status: Implemented
+Completed: 2026-10-04
+Integrated candidate: `29d5720aa506140e521fe852a37630fa5057499b`
 
 ## Representation and Ownership
 

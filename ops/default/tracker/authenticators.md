@@ -8,8 +8,9 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authenticator Tracker
 
 Date: 2026-10-04
-Status: Active
+Status: Completed
 Approved: 2026-10-04
+Completed: 2026-10-04
 Delivery set: authenticators
 Plan: [Delivery plan](../plan/authenticators.md)
 Concern: [Authenticator proposal](../spec/authenticators.md)
@@ -17,9 +18,9 @@ Model: [Authenticator model](../spec/authenticators-model.md)
 Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
-Active slice: None; delivery-set validation
+Active slice: None
 Active tasks: None
-Execution gate: Open
+Execution gate: Closed
 
 ## Slice Status
 
@@ -51,7 +52,7 @@ Execution gate: Open
 Credential security and authentication sessions are delivered on canonical `dev`.
 The concern/model, selected dependency/profile/defaults and five-slice plan were
 approved on 2026-10-04. The concern/model are promoted together; Slice 1/T1.1
-is delivered. Slices 1-5 are delivered after verified PR #102 merge. All tasks are complete; the exact integrated aggregate gate is active.
+is delivered. Slices 1-5 are delivered after verified PR #102 merge. All tasks and delivered reports are complete; the exact integrated aggregate gate passed.
 
 Before T1.1 settle matching Go/SQL/wire fields and exact pinned verifier/key
 dependencies. Before T1.2 record actual finite integration/fuzz selectors;
@@ -68,7 +69,7 @@ setup flags and fake method claims never count as authenticator acceptance.
 - [x] Slice 4 merged; delivered current-authority/factor-change evidence recorded.
 - [x] Slice 5 merged; delivered real browser integration and supported documentation recorded.
 - [x] AU-01 through AU-10 mapped to actual deterministic, verifier, race, persistence and browser evidence.
-- [ ] Exact immutable integrated `dev` candidate passes `make check`.
+- [x] Exact immutable integrated `dev` candidate passes `make check`.
 - [x] Supported AUTH-03/AUTH-05 coverage and remaining AUTH-06/AUTH-07/application assurance obligations recorded.
 
 ## Planning Validation
@@ -156,7 +157,7 @@ Next: verify maintainer merge, close Slice 4 on `dev`, then execute already-appr
 
 
 Verified PR #101 merge: `e9563e94cb7b4ff032895fad15f96b083d1ac7e8`.
-Slice 5/T5.1/T5.2 is implemented; PR #102 is reviewing.
+Slice 5/T5.1/T5.2 is delivered; PR #102 is merged.
 
 ## Slice 5 Browser Validation Binding
 
@@ -209,28 +210,50 @@ real verifier/transaction evidence for the documented WebAuthn, TOTP and backup
 profiles. AUTH-06 recovery and AUTH-07 general abuse/event infrastructure remain
 separate concerns. Consumers still own RP/origin/access policy, database atomicity,
 key custody, HTTPS, hardware/attestation/AAL claims and domain authorization.
-AU-10's aggregate condition remains pending until the final slice merges and its
-exact immutable integrated `dev` candidate passes `make check`.
+AU-10's exact integrated aggregate condition passed; see the final closure
+evidence below.
 
 
-Slice 5/T5.1/T5.2 is implemented and reviewing. The canonical Slice 5 report
-maps AU-01 through AU-10 with the aggregate condition explicitly pending.
-Next checkpoint: verify final maintainer merge, close Slice 5 on `dev`, then run
-`make check` once for that exact integrated candidate; follow the recorded
-correction route only if repository changes are required.
+Slice 5/T5.1/T5.2 is delivered after verified PR #102 merge. The canonical
+Slice 5 report maps AU-01 through AU-10 with the successful exact integrated
+aggregate evidence. No correction branch was required.
 
 
 Slice 5 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/102
 Report introduction: `7c84792f2a27e7500d626ac2d1951ca7eaea3aff`.
-Focused checks and AU mapping are complete; final merge and aggregate gate remain
-pending. Verification must resume from live canonical PR/head and `origin/dev`.
+Focused checks, final merge, AU mapping and exact aggregate gate are complete.
+Future work must refresh canonical state and use its separately authorized scope.
 
 
 ## Integrated Validation Checkpoint
 
 Verified PR #102 merge: `8685ea4b703b1628eda032f960e481ba64b24e2b`.
-All five reports are delivered; the set remains active until its exact immutable
-integrated `dev` candidate passes `make check`. The gate uses Go 1.27.1 and an
-owned PostgreSQL 18.6 cluster with a separate owned database. Default checks
+All five reports are delivered; the exact immutable integrated candidate passed
+`make check`. The gate used Go 1.27.1 and an owned PostgreSQL 18.6 cluster with a
+separate owned database. Default checks
 remain distinct from the already passed explicitly tagged browser/integration
 checks. No main alignment, release, tag, mirror or deployment is authorized.
+
+
+## Delivery-Set Closure
+
+Slice 5 of 5 completed. Exact integrated `dev` candidate:
+`29d5720aa506140e521fe852a37630fa5057499b`.
+Verified PR #102 merge: `8685ea4b703b1628eda032f960e481ba64b24e2b`.
+
+- `make check` — passed once on 2026-10-04: source licensing (812 headers,
+  109 annotations), format, vet, complete default suite, 81.8% total coverage
+  against the required 80%, and strict lint (zero issues).
+- `git diff --exit-code -- '*.go'` — passed after the gate; formatting did not
+  change tracked runtime files or the candidate identity.
+- Tagged actual-browser and PostgreSQL race evidence remains separately recorded
+  in the delivered Slice 5 report; it is not inferred from default tests.
+- The isolated gate database was dropped and only the owned cluster stopped
+  after normal completion. No validation correction was required.
+- AU-01 through AU-10 and supported AUTH-03/AUTH-05 profiles are delivered.
+  AUTH-06/AUTH-07 and hardware/attestation/deployment/application assurance duties
+  remain separate. No main alignment, release, tag, mirror or deployment ran.
+
+Integrated gate Acta: `01M43YXBA25Z1J9CWPS2E3RYEK`.
+The following closure commit changes only documentary evidence; the gate above
+belongs to the exact candidate named above and is not claimed for another hash.

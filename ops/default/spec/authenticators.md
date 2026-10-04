@@ -16,8 +16,10 @@ Model: [Authenticator model](authenticators-model.md)
 Plan: [Delivery proposal](../plan/authenticators.md)
 Tracker: [Delivery tracker](../tracker/authenticators.md)
 Inspected baseline: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
-Implementation status: Slices 1-5 delivered; integrated validation active
-Execution gate: Open
+Implementation status: Implemented
+Completed: 2026-10-04
+Integrated candidate: `29d5720aa506140e521fe852a37630fa5057499b`
+Execution gate: Closed
 
 ## Purpose and Ownership
 
@@ -35,11 +37,16 @@ Account recovery and operator-assisted all-factor loss retain AUTH-06 ownership;
 the mechanisms here cannot silently reset established stronger factors.
 
 The concern/model and five-slice delivery plan were approved on 2026-10-04.
-Slices 1-5 are delivered after verified merges. All approved tasks are complete.
-The exact integrated aggregate gate is active; the delivery set remains open
-until it passes.
+Slices 1-5 are delivered after verified merges. All approved tasks and reports
+are complete. The exact integrated candidate above passed `make check` on
+2026-10-04 with 81.8% total coverage (80% required) and zero strict-lint issues.
+The delivery set is closed; its tracker and final report retain the evidence
+and remaining consumer assurance obligations.
 
 ## Delivered Prerequisites and Inspected Gaps
+
+This inventory records the inspected planning baseline. The completed delivery
+state and its evidence are recorded above and in the completed tracker.
 
 The [credential tracker](../tracker/credential-security.md) and
 [session tracker](../tracker/authentication-sessions.md) record completed

@@ -8,8 +8,9 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authenticator Delivery Plan
 
 Date: 2026-10-04
-Status: Approved
+Status: Completed
 Approved: 2026-10-04
+Completed: 2026-10-04
 Delivery set: authenticators
 Slice strategy: behavior-first
 Reason: registration, assertion completion, replay-resistant fallback, authorized
@@ -21,8 +22,8 @@ Model: [Authenticator model](../spec/authenticators-model.md)
 Tracker: [Delivery tracker](../tracker/authenticators.md)
 Base branch: `dev`
 Planning base: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
-Active slice: None; delivery-set validation
-Execution gate: Open
+Active slice: None
+Execution gate: Closed
 Go baseline: 1.27.1
 
 ## Outcome and Approval Boundary
@@ -185,3 +186,19 @@ AU-10, actual AUTH-03/AUTH-05 supported-profile evidence and the exact full gate
 Record hardware/attestation, deployment, application authorization and broader
 AUTH-06/AUTH-07 obligations explicitly. No main alignment, release, tag or
 deployment is authorized by this delivery plan.
+
+
+## Delivery-Set Closure
+
+All five slices merged into canonical `dev` in PR #98 through PR #102; every
+planned task and report is complete. The exact integrated candidate
+`29d5720aa506140e521fe852a37630fa5057499b` passed `make check` once on
+2026-10-04 with Go 1.27.1 and an isolated owned PostgreSQL 18.6 database.
+Total coverage was 81.8% (80% required); source licensing, format, vet, complete
+default suite and strict lint passed. Tracked formatting remained unchanged.
+Tagged browser and PostgreSQL race checks remain separate successful evidence
+in the final report. AU-01 through AU-10 and supported AUTH-03/AUTH-05 mechanisms
+are mapped in the tracker/report. AUTH-06/AUTH-07 and consumer assurance duties
+retain their owners. No correction branch was required. This closes the set;
+main alignment, release, tag, mirror publication and deployment remain outside
+this authorization.

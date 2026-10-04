@@ -127,7 +127,8 @@ current vulnerability-advisory scan; ongoing dependency monitoring stays require
 Go 1.27.1, PostgreSQL 18.6, Chromium 151.0.7922.173 and Node v26.8.1. Owned local
 database settings were supplied explicitly; bounded `.tmp/build`, `TMPDIR`,
 `GOTMPDIR` and `GOFLAGS=-p=2` were used. Browser socket scratch is separate and
-short. These are local focused checks, not deployment or aggregate-gate results.
+short. The commands below separate local focused checks from the integrated gate;
+none is deployment evidence.
 
 - `make source-license-check` — passed, 812 headers and 109 annotations including report introduction.
 - `make vet` — passed.
@@ -140,6 +141,22 @@ short. These are local focused checks, not deployment or aggregate-gate results.
 - `golangci-lint run --build-tags=browser,integration --default=none --enable=nlreturn --enable=noinlineerr --enable=wsl_v5 ./examples/ticked/internal/web/...` — passed with owned lint cache, zero issues.
 - `go mod verify` — passed, all modules verified.
 - `git diff --check` — passed.
+
+### Integrated Gate
+
+After verified PR #102 merge and delivered-slice metadata closure, `make check`
+passed once on exact integrated `dev` candidate
+`29d5720aa506140e521fe852a37630fa5057499b` on 2026-10-04. Go 1.27.1 and an
+isolated owned PostgreSQL 18.6 database were used. Source licensing (812 headers,
+109 annotations), format, vet, the complete default suite, total coverage 81.8%
+(80% required) and strict lint (zero issues) passed. Tracked formatting remained
+unchanged. The temporary gate database was dropped and the owned cluster stopped
+after normal completion. No correction branch or repeated aggregate run was
+required. Acta: `01M43YXBA25Z1J9CWPS2E3RYEK`.
+
+These results are separate from the actual browser and tagged PostgreSQL race
+checks above. Subsequent documentary closure does not change tested runtime code
+or claim another commit hash as the tested candidate.
 
 ### Acceptance Mapping
 
@@ -154,17 +171,17 @@ short. These are local focused checks, not deployment or aggregate-gate results.
 | AU-07 | `TestFactorChanges`, `TestFactorAuthority`, initial enrollment tests; real management-page add, current factor listing/removal, actor rotation and last-factor denial |
 | AU-08 | Constructor/parser/admission tests, PostgreSQL budget/retention/cleanup and post-lock/write/canceled-wait checks; browser JSON bounds. Finite parser fuzz evidence is recorded in delivered Slice 1–4 reports |
 | AU-09 | Mandatory `TestAuthenticatorBrowser`, production Ticked handlers/core services, actual navigator/device operations and real PostgreSQL; no skipped prerequisite or proof callback |
-| AU-10 | Current consumers/example compilation, reference/User Guide, selected dependency review and focused default/tagged checks passed. Exact integrated `make check` remains pending after Slice 5 merge |
+| AU-10 | Current consumers/example compilation, reference/User Guide, selected dependency review and focused default/tagged checks passed. Exact integrated `make check` passed on `29d5720aa506140e521fe852a37630fa5057499b`, 81.8% total coverage and zero strict-lint issues |
 
 The supported AUTH-03 factor-completion and AUTH-05 mechanism profiles now have
 actual browser, verifier, persistence and race evidence. The complete delivery
-set remains open until its exact immutable integrated `dev` candidate passes
-the approved aggregate gate after this final slice merges.
+set is closed after its exact immutable integrated `dev` candidate
+`29d5720aa506140e521fe852a37630fa5057499b` passed the approved aggregate gate.
 
 ## Risks and Follow-ups
 
-- PR #102 is merged; exact integrated `make check` is still pending.
-  No aggregate gate, main alignment, release, tag, mirror or deployment ran.
+- PR #102 is merged and its exact integrated gate passed. No main alignment,
+  release, tag, mirror publication or deployment ran.
 - Virtual devices establish integration rather than hardware identity,
   non-exportability, attestation trust or AAL/compliance certification. Consumers
   own trusted RP/origin/access policy, real database atomicity, key custody, HTTPS,

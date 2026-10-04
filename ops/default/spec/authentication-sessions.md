@@ -38,9 +38,10 @@ contracts; core has no application-package or product-document dependency.
 
 The bounded concern is implemented in PR #95/#96/#97. Its
 [completed tracker](../tracker/authentication-sessions.md#requirement-evidence-and-handoff)
-records AS-01 through AS-09 and the exact integrated full gate. AUTH-03 remains
-partial in the parent specification until actual stronger-authenticator
-completion and atomic factor consumption are delivered.
+records AS-01 through AS-09 and that set's exact integrated full gate. This set
+established the password/session portion of AUTH-03. The subsequent
+[authenticator concern](authenticators.md) delivers actual stronger-factor
+verification, atomic consumption/completion and its own integrated evidence.
 
 ## Verified Baseline
 
@@ -82,12 +83,12 @@ satisfy a requirement, return a classified unavailable-method outcome without an
 issuable completion path. Pending enrollment/proof may explain the required next
 step, but does not provide access or complete enrollment.
 
-AUTH-05 supplies production authenticator verification and atomic proof consumption
-in a later set. This set adds no public completion API accepting a method name,
-client Boolean, asserted timestamp or caller-fabricated proof receipt. Future
-completion must verify through core's reviewed mechanism and consume proof with
-session creation/rotation in one transaction. It must not reinterpret an earlier
-password result as MFA. AUTH-03 remains partial until those real flows exist.
+The subsequent [authenticator concern](authenticators.md) supplies AUTH-05's
+production verification and atomic proof consumption. This session foundation
+adds no public completion API accepting a method name, client Boolean, asserted
+timestamp or caller-fabricated proof receipt. Actual completion verifies through
+core's reviewed mechanism and consumes proof with session creation/rotation in
+one transaction. It cannot reinterpret an earlier password result as MFA.
 
 ### Secrets and validation
 
