@@ -7,12 +7,14 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 4: Authorized Factor Changes
 
-Status: reviewing
+Status: delivered
 Delivery set: authenticators
 Plan: [Delivery plan](../../../plan/authenticators.md)
 Tracker: [Delivery tracker](../../../tracker/authenticators.md)
 Branch: `feat/authenticator-control`
 PR: `#101`
+Verified merge: `e9563e94cb7b4ff032895fad15f96b083d1ac7e8`
+Delivered: 2026-10-04
 T4.1: `1f7b73b55d3511d5df9cba62a7a4472c5962842a`
 T4.2: `b7a2d6ed1fde75ee861084f0e102109d05289308`
 

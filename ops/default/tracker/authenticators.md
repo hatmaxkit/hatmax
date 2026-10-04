@@ -17,8 +17,8 @@ Model: [Authenticator model](../spec/authenticators-model.md)
 Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
-Active slice: Slice 4
-Active tasks: None
+Active slice: Slice 5
+Active tasks: T5.1
 Execution gate: Open
 
 ## Slice Status
@@ -28,8 +28,8 @@ Execution gate: Open
 | Slice 1 | Restricted enrollment | delivered | `feat/authenticator-enrollment` | `feat(slice-1): add restricted authenticator enrollment` | `#98` | `ops/default/report/slices/authenticators/slice-1-enrollment.md` |
 | Slice 2 | WebAuthn completion | delivered | `feat/webauthn-completion` | `feat(slice-2): complete WebAuthn authentication and step-up` | `#99` | `ops/default/report/slices/authenticators/slice-2-webauthn-completion.md` |
 | Slice 3 | TOTP and backup proof | delivered | `feat/authenticator-fallback` | `feat(slice-3): add replay-resistant TOTP and backup proof` | `#100` | `ops/default/report/slices/authenticators/slice-3-fallback-proof.md` |
-| Slice 4 | Authorized factor changes | reviewing | `feat/authenticator-control` | `feat(slice-4): enforce authorized authenticator changes` | `#101` | `ops/default/report/slices/authenticators/slice-4-factor-control.md` |
-| Slice 5 | Browser acceptance | pending | `test/authenticator-acceptance` | `test(slice-5): verify authenticator browser integration` | pending | `ops/default/report/slices/authenticators/slice-5-browser-acceptance.md` |
+| Slice 4 | Authorized factor changes | delivered | `feat/authenticator-control` | `feat(slice-4): enforce authorized authenticator changes` | `#101` | `ops/default/report/slices/authenticators/slice-4-factor-control.md` |
+| Slice 5 | Browser acceptance | active | `test/authenticator-acceptance` | `test(slice-5): verify authenticator browser integration` | pending | `ops/default/report/slices/authenticators/slice-5-browser-acceptance.md` |
 
 ## Tasks
 
@@ -43,7 +43,7 @@ Execution gate: Open
 | T3.2 | complete | `test(auth): verify fallback replay and policy` | `56af95e82bdc272815c1571db1228a6616e3cf13` | Trusted-time/step and code races, salts/KDF, no weak-policy substitution and durable budget exhaustion |
 | T4.1 | complete | `feat(auth): enforce authorized factor changes` | `1f7b73b55d3511d5df9cba62a7a4472c5962842a` | Recent trusted authority, bounded own-factor operations, version/revocation and coherent actor rotation |
 | T4.2 | complete | `test(auth): verify authenticator change authority` | `b7a2d6ed1fde75ee861084f0e102109d05289308` | Subject isolation, post-lock freshness, last-factor/current-proof constraints, mutation races and rollback |
-| T5.1 | pending | `test(auth): exercise authenticator browser journeys` | pending | Actual browser/virtual device against production handlers, real PostgreSQL and required stronger proof |
+| T5.1 | active | `test(auth): exercise authenticator browser journeys` | pending | Actual browser/virtual device against production handlers, real PostgreSQL and required stronger proof |
 | T5.2 | pending | `test(auth): close authenticator integration evidence` | pending | Cookie/parser/deadline regression, supported guidance and AU/AUTH evidence mapping |
 
 ## Dependencies and Execution Gate
@@ -51,7 +51,7 @@ Execution gate: Open
 Credential security and authentication sessions are delivered on canonical `dev`.
 The concern/model, selected dependency/profile/defaults and five-slice plan were
 approved on 2026-10-04. The concern/model are promoted together; Slice 1/T1.1
-is delivered. Slices 1-3 are delivered after verified PR #100 merge. Slice 4/T4.1/T4.2 is implemented and reviewing. The required branch is `feat/authenticator-control`.
+is delivered. Slices 1-4 are delivered after verified PR #101 merge. Slice 5/T5.1 is active. The required branch is `test/authenticator-acceptance`.
 
 Before T1.1 settle matching Go/SQL/wire fields and exact pinned verifier/key
 dependencies. Before T1.2 record actual finite integration/fuzz selectors;
@@ -65,7 +65,7 @@ setup flags and fake method claims never count as authenticator acceptance.
 - [x] Slice 1 merged; delivered enrollment report and real setup/budget evidence recorded.
 - [x] Slice 2 merged; delivered WebAuthn completion/step-up and atomic replay evidence recorded.
 - [x] Slice 3 merged; delivered TOTP/backup verification, replay and policy evidence recorded.
-- [ ] Slice 4 merged; delivered current-authority/factor-change evidence recorded.
+- [x] Slice 4 merged; delivered current-authority/factor-change evidence recorded.
 - [ ] Slice 5 merged; delivered real browser integration and supported documentation recorded.
 - [ ] AU-01 through AU-10 mapped to actual deterministic, verifier, race, persistence and browser evidence.
 - [ ] Exact immutable integrated `dev` candidate passes `make check`.
@@ -153,3 +153,30 @@ licensing and docs/example compilation passed. No aggregate gate ran.
 Slice 4 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/101
 Report introduction: `ddc2c4747dbd04ee76562dd081c039b19f428281`.
 Next: verify maintainer merge, close Slice 4 on `dev`, then execute already-approved Slice 5/T5.1/T5.2.
+
+
+Verified PR #101 merge: `e9563e94cb7b4ff032895fad15f96b083d1ac7e8`.
+Slice 5/T5.1 is active; execute both approved tasks through one reviewable PR.
+
+## Slice 5 Browser Validation Binding
+
+- Command: `go test -race -tags=browser ./examples/ticked/internal/web -run '^TestAuthenticatorBrowser$' -count=1 -timeout=180s`.
+- Mandatory database settings: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_NAME` and
+  explicitly supplied `DB_PASSWORD` (empty is permitted for the owned local
+  socket cluster). A randomly named owned schema receives production migrations
+  and is dropped on normal cleanup; no shared schema is modified.
+- Mandatory executables: `CHROMIUM_BIN=/usr/sbin/chromium` and
+  `NODE_BIN=/usr/sbin/node`. Verified Chromium 151.0.7922.173 (Arch Linux),
+  Node v26.8.1 and its built-in WebSocket implementation; no npm dependency.
+- CDP virtual device: CTAP2, internal transport, resident key, user verification,
+  automatic presence and verified user. ES256/UV/RK are the production profile.
+- The finite harness starts an owned headless browser with an isolated temporary
+  profile and connects only to its loopback debugging endpoint. Production Ticked
+  handlers/core services and real PostgreSQL perform every proof completion.
+- Localhost HTTP is explicitly enabled for development in the trusted RP/origin
+  configuration. Test-only OTP generation uses the existing OTP library and never
+  approves proof; production setup/finish verifies and consumes the actual code.
+- Missing executables, database settings, secure context or virtual device fail
+  acceptance. Signed fixtures and skipped checks cannot count as browser evidence.
+- Default strict lint and separately tagged browser/integration strict lint are
+  required before the task commit. The aggregate gate remains after Slice 5 merge.
