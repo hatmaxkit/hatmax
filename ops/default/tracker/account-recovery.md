@@ -18,7 +18,7 @@ Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `cd9647584a004d2dd0563fe915654ffd316abb8e`
 Active slice: Slice 2 — Protected password change
-Active tasks: T2.2
+Active tasks: None
 Execution gate: Open
 
 ## Slice Status
@@ -36,8 +36,8 @@ Execution gate: Open
 | --- | --- | --- | --- | --- |
 | T1.1 | completed | `feat(auth): add bounded mailbox verification` | `334046be21b4` | Actual core token flow and synchronized PostgreSQL/HTTP/mail/notice contracts |
 | T1.2 | completed | `test(auth): verify mailbox lifecycle and transactions` | `77395af0a3c1` | Purpose/state isolation, time/budget/cleanup bounds, real races/rollback and transport safety |
-| T2.1 | completed | `feat(auth): enforce recent-proof password changes` | pending | Actual actor-derived proof, shared policy/KDF and atomic revocation/notification |
-| T2.2 | active | `test(auth): verify password change authority` | pending | Current actor/factor/policy/time rejection, concurrency and full rollback |
+| T2.1 | completed | `feat(auth): enforce recent-proof password changes` | `c0abf13f36e5` | Actual actor-derived proof, shared policy/KDF and atomic revocation/notification |
+| T2.2 | completed | `test(auth): verify password change authority` | pending | Current actor/factor/policy/time rejection, concurrency and full rollback |
 | T3.1 | pending | `feat(auth): add one-use mailbox password reset` | pending | Previously verified target, one-use token, credential/revocation/notice and no MFA bypass |
 | T3.2 | pending | `test(auth): verify password reset isolation and MFA` | pending | Token and reset/change races, rollback, invalidation and real retained MFA/replay state |
 | T4.1 | pending | `test(auth): exercise account recovery browser journeys` | pending | Actual production browser/PostgreSQL lifecycle and current-proof re-entry |
@@ -115,3 +115,23 @@ gate is included in this unit.
 - `go test -tags=integration -race -run '^TestPasswordChangeTransportTransactions$' -count=1 -timeout=90s ./examples/ticked/internal/web`
 - Actual isolated PostgreSQL schemas, the shared password verifier and real
   authenticator proof are required. Mail is captured without external sending.
+
+## Slice 2 Focused Evidence
+
+- Actual core password checker/verifier and protected transport unit tests passed
+  with race detection, including shared KDF admission and complete Unicode input.
+- Real PostgreSQL 18.6 transaction regression passed in 78.652s using the recorded
+  selector. Password-change authority cases include no-factor permission, actual
+  UV WebAuthn, explicit TOTP/backup MFA, foreign/stale actor snapshots, post-lock
+  factor/generation/time checks and expiry after a slow final write.
+- Concurrent changes produce one winner. Eight admitted requests share one actual
+  KDF slot; rejected hashes retain their committed kind-3 attempts. Checker error,
+  cancellation, candidate rejection, notification capacity and fault injection
+  at every final mutation boundary preserve atomic rollback without refunds.
+- Mailbox verification and established factor/replay/backup state remain; consumed
+  backups stay consumed and normal required-MFA authentication works afterward.
+- Production PostgreSQL/form/captured-mail transport passed in 1.460s. GET and
+  forbidden requests cannot mutate. Failed notification delivery preserves the
+  completed change and intent; success clears the cookie without issuing access.
+- The full integrated gate and complete browser journeys remain after the
+  corresponding approved slices; no provider delivery result is claimed.

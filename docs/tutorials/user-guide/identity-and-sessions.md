@@ -284,3 +284,23 @@ MFA. Verification does not change your address, activate your account or replace
 lost authenticators. An expired or replaced link requires a new bounded request.
 See the [mailbox reference](../../reference/authentication/README.md#mailbox-verification)
 for timing, retry, storage and deployment boundaries.
+
+
+## Change a password
+
+Ticked enables `/account/password` with its active-mail and trusted recovery-origin
+configuration. Sign in recently before opening the form. Without an established
+MFA factor, Ticked permits recent password authentication. With established
+factors, use actual phishing-resistant authentication or step-up; password alone
+cannot authorize the change. An application that permits supported TOTP/backup
+MFA for this operation must choose that policy in trusted server code.
+
+Enter your complete new password and submit the form. Existing password rules
+still apply. Success signs out every session and cancels unfinished authentication,
+enrollment and mailbox links. Sign in again with the new password and any currently
+required MFA. Current mailbox verification and established authenticators stay
+intact; spent backup codes remain spent. Notification delivery failure cannot undo
+a successful change. See the
+[password change reference](../../reference/authentication/README.md#recent-proof-password-change)
+for policy, retry and resource limits. Losing a required factor needs a separate
+identity-recovery procedure; changing the password cannot replace it.

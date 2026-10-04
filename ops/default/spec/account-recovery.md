@@ -40,17 +40,19 @@ their own threat review; these password operations cannot authorize them.
 
 ## Delivered Prerequisites and Current Gaps
 
-The linked prerequisite concerns and their delivery sets are complete. Their
-checks establish that baseline, not delivery of the behavior proposed here.
+The linked prerequisite concerns and their delivery sets are complete. Mailbox
+verification is delivered; protected password change is implemented in Slice 2.
+The reset and final acceptance slices remain pending.
 
 - `auth.Service` owns the validated password policy and shared bounded verifier.
 - `auth.Queries.ReplacePassword` and the Ticked adapter check `CredentialState`,
   replace the complete record, advance `AuthVersion` and revoke sessions. They
-  expose no service-owned password-change or mailbox-reset authorization flow.
+  remain trusted storage primitives. `RecoveryService.ChangePassword` adds actual
+  actor-derived recent-proof authorization and complete continuation invalidation.
 - Session/factor operations serialize through the subject row and recheck actual
   proof, policy, generation, factor bindings and trusted time.
-- No current-mailbox verification state, purpose-bound mailbox token or atomic
-  token-consumption/password-replacement contract exists.
+- Current-mailbox verification, purpose-bound tokens and atomic confirmation are
+  delivered. One-use token-consumption/password-replacement remains Slice 3.
 
 Extend `auth` and the repository-owned Ticked adapter. Exact Go identifiers are
 finalized with the delivery plan; operation names below are logical contracts.

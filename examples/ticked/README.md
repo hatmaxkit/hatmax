@@ -245,5 +245,19 @@ The example performs one bounded notification dispatch after confirmation and
 exposes `MailboxDelivery.DispatchMailboxNotices` for application-owned retries.
 It starts no retry worker. See the
 [mailbox reference](../../docs/reference/authentication/README.md#mailbox-verification)
-for the explicit dispatch and deployment limits. Password reset and change
-routes remain unavailable in this increment.
+for the explicit dispatch and deployment limits. Password reset remains unavailable.
+
+## Change a password
+
+The same explicit recovery-origin and active-mail configuration enables
+`/account/password`. Submit its protected form from a current, recently authenticated
+session. Ticked permits password proof only without established factors; an account
+with factors needs phishing-resistant MFA under the fixed server policy. A stale
+session must complete the appropriate actual reauthentication or step-up first.
+
+Success replaces the password and signs out every session, including the current
+browser. It cancels unfinished security flows and mailbox links while preserving
+mailbox verification, authenticators and replay/backup state. No new authentication
+cookie is issued. A notification failure leaves the committed change intact;
+`DispatchMailboxNotices` supports bounded explicit retries. See the
+[password change reference](../../docs/reference/authentication/README.md#recent-proof-password-change).

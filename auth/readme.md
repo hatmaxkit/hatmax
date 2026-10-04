@@ -267,4 +267,23 @@ and commit verification, consumption, version advancement, all-session and
 continuation invalidation plus notification intent together. Existing MFA and
 replay records remain unchanged. See the
 [mailbox contract](../docs/reference/authentication/README.md#mailbox-verification).
-Password change and reset are not exposed by this service yet.
+
+## Recent-proof password change
+
+`RecoveryService.ChangePassword(ctx, bearer, candidate, policy)` derives the
+account only from a current session. `PasswordChangePolicy.Requirement` captures
+trusted revision/freshness and defaults to phishing-resistant MFA. Set
+`AllowPassword: true` explicitly to permit password proof only without established
+primary factors. Select `RequireMFA` explicitly for supported lower-assurance
+MFA; a request cannot choose this policy. Proof age is capped by the credential
+service's recent-proof limit.
+
+Authorization durably spends shared completion admission before the existing
+password checker/verifier runs outside database locks. The final adapter commit
+rechecks actor, version, proof, policy, factors and time, replaces the entire
+credential and invalidates all sessions/continuations/mailbox slots with a
+notification intent. `PasswordChanged` contains safe subject/time only; no
+replacement session is returned. Mailbox verification, factors and replay/backup
+records remain intact. See the
+[password change contract](../docs/reference/authentication/README.md#recent-proof-password-change).
+Password reset remains outside the currently exposed service methods.

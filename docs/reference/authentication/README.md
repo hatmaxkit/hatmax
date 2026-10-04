@@ -868,3 +868,74 @@ Attempts are committed before sending. Concurrent retries or a lost provider
 acknowledgment can duplicate mail within that finite attempt limit. Actual mail
 provider delivery, deployment-wide protection, password reset and all-factor-loss
 identity proofing are separate boundaries.
+
+
+## Recent-proof password change
+
+Use `RecoveryService.ChangePassword(ctx, actorBearer, candidate, policy)` with
+trusted application policy. No account ID, asserted proof fact, client time or
+caller-selected notification destination is accepted. The actual session identifies
+the subject. `PasswordChangePolicy` contains an `AccessRequirement` and explicit
+`AllowPassword`. Its factor requirement defaults to phishing-resistant MFA;
+`RequireMFA` explicitly permits supported password/TOTP or backup-code proof.
+`RequirePassword` is not a valid factor policy. Only a profile without established
+primary factors may use password proof when `AllowPassword` is true. Primary
+factors across all relying parties constrain this minimum; the adapter reads at
+most 21 rows and denies a profile larger than 20.
+
+The trusted revision must match the current session. Proof age defaults/clamps
+to the credential service's recent-proof limit. Sign in or use the appropriate
+actual step-up flow when proof is stale; password reauthentication cannot create
+MFA proof. Current factor bindings are verified at authorization and commit.
+
+```go
+policy := auth.PasswordChangePolicy{
+    Requirement: auth.AccessRequirement{Revision: "password-v1", MaxAge: 5 * time.Minute},
+    AllowPassword: true, // Permits password proof only without primary factors.
+}
+changed, err := recovery.ChangePassword(ctx, sessionBearer, newPassword, policy)
+```
+
+`RecoveryQueries.AuthorizePasswordChange` locks subject before actor/factors,
+rechecks active version/proof/policy/time and commits one kind-3 shared completion
+attempt. It returns an owned `PasswordChangeAuthorization`, not caller authority.
+The existing checker and shared bounded password verifier prepare/hash the complete
+candidate outside database locks. Password policy, checker, KDF admission and
+cancellation failures cannot refund the attempt. Oversized input or a malformed
+bearer is rejected before storage. The existing fifteen-minute completion window
+is shared with mailbox confirmation and, when supported, reset completion.
+
+`CommitPasswordChange` locks subject first and rechecks the actual actor digest,
+generation, expiry, proof time, policy and complete current factor bindings after
+lock waits. It samples trusted database time after writes too. One transaction
+replaces the full encoded password, advances `AuthVersion` once, deletes every
+session including the actor, deletes all restricted authentication/enrollment
+continuations, revokes outstanding mailbox slots and inserts a kind-2 notice.
+Notice capacity or write failure rolls all these effects back while admission
+remains spent. Concurrent completions cannot overwrite a newer credential state.
+An ambiguous commit error is an operating failure, not proof of rollback or an
+automatic retry instruction.
+
+`PasswordChanged` carries safe subject/time only. Activation, roles, current
+mailbox verification, confirmed WebAuthn/TOTP, accepted replay state and backup
+verifiers/consumption remain. The caller clears its cookie after successful
+completion and requires normal current-policy sign-in; no replacement bearer is
+issued. Password replacement cannot recover a lost required authenticator.
+
+Ticked provides GET/POST `/account/password` when the existing explicit trusted
+recovery origin and active-mail configuration are enabled. Trusted assembly
+permits password proof without factors and uses phishing-resistant proof with
+factors. The POST takes exactly one URL-encoded `password` field, no query fields,
+at most 16 KiB body and 4096 bytes of complete candidate text. Identity comes only
+from the session cookie. Same-origin protection, `no-store`, `no-referrer` and
+finite ingress admission apply: 12 requests per socket IP per minute, 32 active
+calls and 1024 current IP entries for this handler. Failure text omits candidate
+and provider diagnostics; success clears the cookie and issues no replacement.
+
+`MailboxDelivery.ChangePassword` commits first and then attempts the existing
+bounded notification dispatch. Kind-2 notices contain no password, verifier,
+bearer or recovery link. A provider failure leaves the mutation successful and
+retains notification intent for explicit `DispatchMailboxNotices` retry, under
+the same five-attempt, seven-day and finite-batch bounds as verification notices.
+No retry worker starts. Captured mail tests establish this application boundary;
+they do not establish external delivery or deployment-wide anti-automation.
