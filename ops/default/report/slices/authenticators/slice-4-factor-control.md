@@ -12,7 +12,7 @@ Delivery set: authenticators
 Plan: [Delivery plan](../../../plan/authenticators.md)
 Tracker: [Delivery tracker](../../../tracker/authenticators.md)
 Branch: `feat/authenticator-control`
-PR: pending
+PR: `#101`
 T4.1: `1f7b73b55d3511d5df9cba62a7a4472c5962842a`
 T4.2: `b7a2d6ed1fde75ee861084f0e102109d05289308`
 

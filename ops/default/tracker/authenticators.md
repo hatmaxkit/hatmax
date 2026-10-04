@@ -28,7 +28,7 @@ Execution gate: Open
 | Slice 1 | Restricted enrollment | delivered | `feat/authenticator-enrollment` | `feat(slice-1): add restricted authenticator enrollment` | `#98` | `ops/default/report/slices/authenticators/slice-1-enrollment.md` |
 | Slice 2 | WebAuthn completion | delivered | `feat/webauthn-completion` | `feat(slice-2): complete WebAuthn authentication and step-up` | `#99` | `ops/default/report/slices/authenticators/slice-2-webauthn-completion.md` |
 | Slice 3 | TOTP and backup proof | delivered | `feat/authenticator-fallback` | `feat(slice-3): add replay-resistant TOTP and backup proof` | `#100` | `ops/default/report/slices/authenticators/slice-3-fallback-proof.md` |
-| Slice 4 | Authorized factor changes | reviewing | `feat/authenticator-control` | `feat(slice-4): enforce authorized authenticator changes` | pending | `ops/default/report/slices/authenticators/slice-4-factor-control.md` |
+| Slice 4 | Authorized factor changes | reviewing | `feat/authenticator-control` | `feat(slice-4): enforce authorized authenticator changes` | `#101` | `ops/default/report/slices/authenticators/slice-4-factor-control.md` |
 | Slice 5 | Browser acceptance | pending | `test/authenticator-acceptance` | `test(slice-5): verify authenticator browser integration` | pending | `ops/default/report/slices/authenticators/slice-5-browser-acceptance.md` |
 
 ## Tasks
@@ -149,3 +149,7 @@ Selector fuzz completed 387509 executions in 20 seconds without failure. Final
 named PostgreSQL regression passed with race detection (71.093 seconds); focused
 package races, HTTP policy/body/origin/cookie tests, vet, strict default/tagged lint,
 licensing and docs/example compilation passed. No aggregate gate ran.
+
+Slice 4 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/101
+Report introduction: `ddc2c4747dbd04ee76562dd081c039b19f428281`.
+Next: verify maintainer merge, close Slice 4 on `dev`, then execute already-approved Slice 5/T5.1/T5.2.
