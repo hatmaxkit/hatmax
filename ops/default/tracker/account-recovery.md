@@ -18,14 +18,14 @@ Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `cd9647584a004d2dd0563fe915654ffd316abb8e`
 Active slice: Slice 1 — Mailbox verification
-Active tasks: T1.1, T1.2
+Active tasks: None
 Execution gate: Open
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Mailbox verification | active | `feat/account-mailbox-verification` | `feat(slice-1): add bounded mailbox verification` | pending | `ops/default/report/slices/account-recovery/slice-1-mailbox-verification.md` |
+| Slice 1 | Mailbox verification | reviewing | `feat/account-mailbox-verification` | `feat(slice-1): add bounded mailbox verification` | pending | `ops/default/report/slices/account-recovery/slice-1-mailbox-verification.md` |
 | Slice 2 | Protected password change | pending | `feat/account-password-change` | `feat(slice-2): enforce recent-proof password changes` | pending | `ops/default/report/slices/account-recovery/slice-2-password-change.md` |
 | Slice 3 | Mailbox password reset | pending | `feat/account-password-reset` | `feat(slice-3): add one-use mailbox password reset` | pending | `ops/default/report/slices/account-recovery/slice-3-password-reset.md` |
 | Slice 4 | Recovery acceptance | pending | `test/account-recovery-acceptance` | `test(slice-4): verify account recovery integration` | pending | `ops/default/report/slices/account-recovery/slice-4-recovery-acceptance.md` |
@@ -35,7 +35,7 @@ Execution gate: Open
 | Task | Status | Expected commit | Commit | Required evidence |
 | --- | --- | --- | --- | --- |
 | T1.1 | completed | `feat(auth): add bounded mailbox verification` | `334046be21b4` | Actual core token flow and synchronized PostgreSQL/HTTP/mail/notice contracts |
-| T1.2 | completed | `test(auth): verify mailbox lifecycle and transactions` | pending | Purpose/state isolation, time/budget/cleanup bounds, real races/rollback and transport safety |
+| T1.2 | completed | `test(auth): verify mailbox lifecycle and transactions` | `77395af0a3c1` | Purpose/state isolation, time/budget/cleanup bounds, real races/rollback and transport safety |
 | T2.1 | pending | `feat(auth): enforce recent-proof password changes` | pending | Actual actor-derived proof, shared policy/KDF and atomic revocation/notification |
 | T2.2 | pending | `test(auth): verify password change authority` | pending | Current actor/factor/policy/time rejection, concurrency and full rollback |
 | T3.1 | pending | `feat(auth): add one-use mailbox password reset` | pending | Previously verified target, one-use token, credential/revocation/notice and no MFA bypass |
