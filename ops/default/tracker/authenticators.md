@@ -42,7 +42,7 @@ Execution gate: Open
 | T3.1 | complete | `feat(auth): add replay-resistant fallback proof` | `acc2881fa63335b5f15540955e24ed7aecb1ae95` | Encrypted TOTP, exact accepted steps and salted domain-bound one-use backup proof |
 | T3.2 | complete | `test(auth): verify fallback replay and policy` | `56af95e82bdc272815c1571db1228a6616e3cf13` | Trusted-time/step and code races, salts/KDF, no weak-policy substitution and durable budget exhaustion |
 | T4.1 | complete | `feat(auth): enforce authorized factor changes` | `1f7b73b55d3511d5df9cba62a7a4472c5962842a` | Recent trusted authority, bounded own-factor operations, version/revocation and coherent actor rotation |
-| T4.2 | complete | `test(auth): verify authenticator change authority` | pending | Subject isolation, post-lock freshness, last-factor/current-proof constraints, mutation races and rollback |
+| T4.2 | complete | `test(auth): verify authenticator change authority` | `b7a2d6ed1fde75ee861084f0e102109d05289308` | Subject isolation, post-lock freshness, last-factor/current-proof constraints, mutation races and rollback |
 | T5.1 | pending | `test(auth): exercise authenticator browser journeys` | pending | Actual browser/virtual device against production handlers, real PostgreSQL and required stronger proof |
 | T5.2 | pending | `test(auth): close authenticator integration evidence` | pending | Cookie/parser/deadline regression, supported guidance and AU/AUTH evidence mapping |
 
