@@ -21,7 +21,7 @@ Model: [Authenticator model](../spec/authenticators-model.md)
 Tracker: [Delivery tracker](../tracker/authenticators.md)
 Base branch: `dev`
 Planning base: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
-Active slice: Slice 1
+Active slice: Slice 2
 Execution gate: Open
 Go baseline: 1.27.1
 

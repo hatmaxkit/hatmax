@@ -7,12 +7,14 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 1: Restricted Enrollment
 
-Status: reviewing
+Status: delivered
 Delivery set: authenticators
 Plan: [Delivery plan](../../../plan/authenticators.md)
 Tracker: [Delivery tracker](../../../tracker/authenticators.md)
 Branch: `feat/authenticator-enrollment`
 PR: `#98`
+Merged: 2026-10-04
+Merge commit: `d916a27f53e2d0d42d67aed246d018194aacbfcf`
 T1.1: `776b4aca0ab80318fa11d86035684d00efca2b5a`
 T1.2: `f5b62edccb970f2af7e20f80d6f77f1890a3b437`
 
