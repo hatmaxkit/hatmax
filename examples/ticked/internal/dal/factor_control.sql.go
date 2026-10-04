@@ -27,16 +27,17 @@ func (q *Queries) CountFactorSetups(ctx context.Context, userID string) (int64, 
 }
 
 const lockManagedAuthenticator = `-- name: LockManagedAuthenticator :one
-SELECT id, user_id, rp_id, kind, record_version, credential_id, public_key, credential_data, sign_count, backup_eligible, backup_state, user_verified, revision, created_at, replay_revision FROM authenticators WHERE user_id = $1 AND id = $2 FOR UPDATE
+SELECT id, user_id, rp_id, kind, record_version, credential_id, public_key, credential_data, sign_count, backup_eligible, backup_state, user_verified, revision, created_at, replay_revision FROM authenticators WHERE user_id = $1 AND id = $2 AND rp_id = $3 FOR UPDATE
 `
 
 type LockManagedAuthenticatorParams struct {
 	UserID string `json:"user_id"`
 	ID     string `json:"id"`
+	RpID   string `json:"rp_id"`
 }
 
 func (q *Queries) LockManagedAuthenticator(ctx context.Context, arg LockManagedAuthenticatorParams) (Authenticator, error) {
-	row := q.db.QueryRowContext(ctx, lockManagedAuthenticator, arg.UserID, arg.ID)
+	row := q.db.QueryRowContext(ctx, lockManagedAuthenticator, arg.UserID, arg.ID, arg.RpID)
 	var i Authenticator
 	err := row.Scan(
 		&i.ID,
@@ -96,11 +97,16 @@ func (q *Queries) RemoveWebAuthnFactor(ctx context.Context, arg RemoveWebAuthnFa
 
 const safeFactors = `-- name: SafeFactors :many
 
-SELECT id, 1::smallint AS kind, revision, created_at, backup_eligible, backup_state FROM authenticators a WHERE a.user_id = $1
+SELECT id, 1::smallint AS kind, revision, created_at, backup_eligible, backup_state FROM authenticators a WHERE a.user_id = $1 AND a.rp_id = $2
 UNION ALL
 SELECT id, 2::smallint AS kind, revision, created_at, false, false FROM totp_authenticators t WHERE t.user_id = $1
 ORDER BY id LIMIT 21
 `
+
+type SafeFactorsParams struct {
+	UserID string `json:"user_id"`
+	RpID   string `json:"rp_id"`
+}
 
 type SafeFactorsRow struct {
 	ID             string    `json:"id"`
@@ -115,8 +121,8 @@ type SafeFactorsRow struct {
 // SPDX-License-Identifier: Apache-2.0
 //
 // This file is part of Hatmax. See LICENSE for license terms.
-func (q *Queries) SafeFactors(ctx context.Context, userID string) ([]SafeFactorsRow, error) {
-	rows, err := q.db.QueryContext(ctx, safeFactors, userID)
+func (q *Queries) SafeFactors(ctx context.Context, arg SafeFactorsParams) ([]SafeFactorsRow, error) {
+	rows, err := q.db.QueryContext(ctx, safeFactors, arg.UserID, arg.RpID)
 	if err != nil {
 		return nil, err
 	}

@@ -710,7 +710,7 @@ management proof and current access requirements in trusted application code;
 use phishing-resistant MFA by default. An explicit MFA management profile can
 upgrade a TOTP-only account. Password-only proof never manages established factors.
 
-`List` returns at most twenty owned primary factors with kind, ID, security
+`List` returns at most twenty owned primary factors for the configured RP with kind, ID, security
 revision, creation time and verified backup flags. `FactorSelection` is lookup
 metadata; it supplies neither subject identity nor authorization. Zero selection
 means addition in `BeginWebAuthnChange`/`BeginTOTPChange`; a nonzero exact owned
@@ -724,7 +724,10 @@ A retained actor keeps all actual proof times and expiry boundaries unchanged.
 Removing/replacing its proof constituent signs it out; no invalid proof survives.
 At least one primary authenticator must remain, and phishing-resistant access
 requires a remaining WebAuthn authenticator. Backup codes do not satisfy that
-primary-factor constraint. Recovery after loss belongs to a separate workflow.
+primary-factor constraint. Other RP credentials and TOTP records whose key identity
+is unavailable cannot count as usable remaining factors. Core captures actual key
+identities from its supplied fallback service; request policy cannot override them.
+Recovery after loss belongs to a separate workflow.
 
 Ticked exposes `/authenticators/manage`, safe `/authenticators/factors` listing,
 and same-origin JSON `/authenticators/factors/remove`, `/webauthn/begin`,

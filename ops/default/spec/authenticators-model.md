@@ -13,7 +13,7 @@ Approved: 2026-10-04
 Behavior: [Authenticators](authenticators.md)
 Parent model: [Authentication security model](authentication-security-model.md)
 Session foundation: [Authentication and sessions model](authentication-sessions-model.md)
-Implementation status: Slices 1-3 delivered; Slice 4 active
+Implementation status: Slices 1-3 delivered; Slice 4 reviewing
 
 ## Representation and Ownership
 
@@ -293,7 +293,8 @@ mandatory `FactorQueries`. An explicitly supplied fallback service enables TOTP
 changes; nil disables those commands without changing the storage contract.
 `FactorPolicy` captures recent MFA/phishing-resistant management and the current
 usable-primary-factor profile. Password management and zero freshness are denied.
-Finite safe primary factor listings return ID/kind/security revision/time/backup
+The core captures a sorted finite snapshot of actually configured TOTP key identities; caller overrides are ignored.
+Finite safe primary factor listings for the configured RP return ID/kind/security revision/time/backup
 flags only, at most twenty records. Backup regeneration uses the delivered
 one-set operation and returns codes only after committed actor rotation.
 
@@ -313,7 +314,7 @@ rotation. Retention preserves every proof time and lifecycle boundary and requir
 current policy and unremoved proof constituents. Removing/replacing the actor's
 factor revokes that actor and returns no bearer. The new factor must complete a
 real subsequent sign-in. Removal protects at least one primary factor and, under
-phishing-resistant access policy, at least one WebAuthn factor. Backup codes alone
+phishing-resistant access policy, at least one WebAuthn factor. A WebAuthn record from another RP or a TOTP record with an unavailable configured key identity is not a usable remaining factor. Backup codes alone
 do not satisfy that primary-factor constraint. TOTP replacement may replace the
 one owned TOTP record; adding a second TOTP record is denied.
 
@@ -321,3 +322,5 @@ All target locks include owner in lookup. Subject locking precedes pending/actor
 and factor locks; post-lock/post-write time, lease and oldest constituent age are
 rechecked. Storage failure rolls back activation/deletion/version/revocation/
 rotation, while already committed reservation attempts remain spent.
+
+Admission counts all retained initial/established setup rows together with active primary factors under the subject lock. Safe listings/target locks restrict WebAuthn to the configured RP; global factor counts still enforce total retained capacity.

@@ -43,7 +43,7 @@ func factorActor(ctx context.Context, queries *dal.Queries, digest core.SessionD
 		return nil, core.ErrFactorChange
 	}
 
-	err = lockManagedFactors(ctx, queries, *actor, target)
+	err = lockManagedFactors(ctx, queries, *actor, target, settings.RPID)
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +73,8 @@ func factorSubject(ctx context.Context, tx *sql.Tx, digest core.SessionDigest) (
 
 	return state, err
 }
-func safeFactors(ctx context.Context, queries *dal.Queries, user string) ([]core.Factor, error) {
-	rows, err := queries.SafeFactors(ctx, user)
+func safeFactors(ctx context.Context, queries *dal.Queries, user, rp string) ([]core.Factor, error) {
+	rows, err := queries.SafeFactors(ctx, dal.SafeFactorsParams{UserID: user, RpID: rp})
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (q *Queries) ListFactors(ctx context.Context, digest core.SessionDigest, po
 		return nil, err
 	}
 
-	factors, err := safeFactors(ctx, queries, state.UserID)
+	factors, err := safeFactors(ctx, queries, state.UserID, settings.RPID)
 	if err != nil {
 		return nil, err
 	}
@@ -135,13 +135,13 @@ func (q *Queries) ListFactors(ctx context.Context, digest core.SessionDigest, po
 }
 
 // lockFactor checks an exact owned security revision, never a client-selected owner.
-func lockFactor(ctx context.Context, queries *dal.Queries, user string, target core.FactorSelection) error {
+func lockFactor(ctx context.Context, queries *dal.Queries, user string, target core.FactorSelection, rp string) error {
 	if target.Check() != nil {
 		return core.ErrFactorChange
 	}
 
 	if target.Kind == core.FactorWebAuthn {
-		row, err := queries.LockManagedAuthenticator(ctx, dal.LockManagedAuthenticatorParams{UserID: user, ID: target.ID})
+		row, err := queries.LockManagedAuthenticator(ctx, dal.LockManagedAuthenticatorParams{UserID: user, ID: target.ID, RpID: rp})
 		if err != nil {
 			return core.ErrFactorChange
 		}
@@ -163,7 +163,7 @@ func lockFactor(ctx context.Context, queries *dal.Queries, user string, target c
 	return nil
 }
 func factorCapacity(ctx context.Context, queries *dal.Queries, p core.FactorChangePending, settings config.EnrollmentSettings) error {
-	factors, err := safeFactors(ctx, queries, p.State.UserID)
+	factors, err := safeFactors(ctx, queries, p.State.UserID, settings.RPID)
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func factorCapacity(ctx context.Context, queries *dal.Queries, p core.FactorChan
 	}
 
 	if p.Target != (core.FactorSelection{}) {
-		err = lockFactor(ctx, queries, p.State.UserID, p.Target)
+		err = lockFactor(ctx, queries, p.State.UserID, p.Target, settings.RPID)
 		if err != nil {
 			return err
 		}
@@ -187,12 +187,17 @@ func factorCapacity(ctx context.Context, queries *dal.Queries, p core.FactorChan
 		}
 	}
 
+	active, err := queries.CountAuthenticators(ctx, p.State.UserID)
+	if err != nil {
+		return err
+	}
+
 	setups, err := queries.CountFactorSetups(ctx, p.State.UserID)
 	if err != nil {
 		return err
 	}
 
-	if int64(len(factors))+setups >= int64(settings.MaxAuthenticators) {
+	if active+setups >= int64(settings.MaxAuthenticators) {
 		return core.ErrEnrollmentCapacity
 	}
 
@@ -328,7 +333,7 @@ func currentChange(ctx context.Context, queries *dal.Queries, p core.FactorChang
 	}
 
 	if p.Target != (core.FactorSelection{}) {
-		err = lockFactor(ctx, queries, p.State.UserID, p.Target)
+		err = lockFactor(ctx, queries, p.State.UserID, p.Target, settings.RPID)
 		if err != nil {
 			return err
 		}
@@ -421,28 +426,32 @@ func deleteFactor(ctx context.Context, queries *dal.Queries, user string, target
 
 	return nil
 }
-func remainingFactors(ctx context.Context, queries *dal.Queries, user string, policy core.FactorPolicy) error {
-	factors, err := safeFactors(ctx, queries, user)
+func remainingFactors(ctx context.Context, queries *dal.Queries, user string, policy core.FactorPolicy, settings config.EnrollmentSettings) error {
+	factors, err := safeFactors(ctx, queries, user, settings.RPID)
 	if err != nil {
 		return err
 	}
 
-	if len(factors) == 0 {
-		return core.ErrFactorChange
-	}
+	for _, factor := range factors {
+		if factor.Kind == core.FactorWebAuthn {
+			return nil
+		}
 
-	if policy.Access == core.RequirePhishingResistantMFA {
-		for _, f := range factors {
-			if f.Kind == core.FactorWebAuthn {
+		if factor.Kind == core.FactorTOTP && policy.Access != core.RequirePhishingResistantMFA {
+			row, lookupErr := queries.LockTOTP(ctx, user)
+			if lookupErr != nil {
+				return lookupErr
+			}
+
+			if slices.Contains(policy.TOTPKeyIDs[:], row.KeyID) && row.RecordVersion == 1 && len(row.Envelope) == 61 && row.Envelope[0] == 1 {
 				return nil
 			}
 		}
-
-		return core.ErrSessionProof
 	}
 
-	return nil
+	return core.ErrSessionProof
 }
+
 func finishFactorMutation(ctx context.Context, queries *dal.Queries, actor core.Session, digest core.SessionDigest, target core.FactorSelection, replacement core.SessionRecord, policy core.FactorPolicy, settings config.EnrollmentSettings) (*core.Session, error) {
 	expected := actor
 	expected.AuthVersion++
@@ -462,7 +471,7 @@ func finishFactorMutation(ctx context.Context, queries *dal.Queries, actor core.
 		return nil, err
 	}
 
-	err = remainingFactors(ctx, queries, actor.UserID, policy)
+	err = remainingFactors(ctx, queries, actor.UserID, policy, settings)
 	if err != nil {
 		return nil, err
 	}
@@ -636,7 +645,7 @@ func (q *Queries) RemoveFactor(ctx context.Context, digest core.SessionDigest, t
 		return nil, err
 	}
 
-	err = lockFactor(ctx, queries, state.UserID, target)
+	err = lockFactor(ctx, queries, state.UserID, target, settings.RPID)
 	if err != nil {
 		return nil, err
 	}
@@ -661,7 +670,7 @@ func (q *Queries) RemoveFactor(ctx context.Context, digest core.SessionDigest, t
 
 // Initial acquisition uses stable IDs even when actor and target have different
 // kinds. Owner-constrained SQL cannot lock a foreign subject's factor.
-func lockManagedFactors(ctx context.Context, queries *dal.Queries, actor core.Session, target core.FactorSelection) error {
+func lockManagedFactors(ctx context.Context, queries *dal.Queries, actor core.Session, target core.FactorSelection, rp string) error {
 	selections := make([]core.FactorSelection, 0, 2)
 
 	switch actor.Proof.Method {
@@ -696,7 +705,7 @@ func lockManagedFactors(ctx context.Context, queries *dal.Queries, actor core.Se
 				return core.ErrFactorChange
 			}
 		} else {
-			err := lockFactor(ctx, queries, actor.UserID, selection)
+			err := lockFactor(ctx, queries, actor.UserID, selection, rp)
 			if err != nil {
 				return err
 			}

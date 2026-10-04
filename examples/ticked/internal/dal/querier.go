@@ -93,7 +93,7 @@ type Querier interface {
 	// SPDX-License-Identifier: Apache-2.0
 	//
 	// This file is part of Hatmax. See LICENSE for license terms.
-	SafeFactors(ctx context.Context, userID string) ([]SafeFactorsRow, error)
+	SafeFactors(ctx context.Context, arg SafeFactorsParams) ([]SafeFactorsRow, error)
 	SessionClock(ctx context.Context) (time.Time, error)
 	SubjectAuthenticators(ctx context.Context, arg SubjectAuthenticatorsParams) ([]Authenticator, error)
 	UpdateSessionActivity(ctx context.Context, arg UpdateSessionActivityParams) (Session, error)

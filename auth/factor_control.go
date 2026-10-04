@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	"math"
+	"slices"
 	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -61,11 +62,34 @@ type Factor struct {
 type FactorPolicy struct {
 	Management AccessRequirement
 	Access     RequiredProof
+	// TOTPKeyIDs is filled by FactorService from its actual owned key ring.
+	// Caller values are ignored at service entry; storage uses this finite snapshot.
+	TOTPKeyIDs [8]string
 }
 
 func (p FactorPolicy) Check(settings config.EnrollmentSettings) error {
 	if (p.Management.Proof != RequireMFA && p.Management.Proof != RequirePhishingResistantMFA) || p.Management.MaxAge < time.Second || p.Management.MaxAge > settings.RecentProofAge || p.Access < RequirePassword || p.Access > RequirePhishingResistantMFA {
 		return ErrSessionProof
+	}
+
+	previous := ""
+
+	for i, id := range p.TOTPKeyIDs {
+		if id == "" {
+			for _, remaining := range p.TOTPKeyIDs[i:] {
+				if remaining != "" {
+					return ErrFactorChange
+				}
+			}
+
+			break
+		}
+
+		if !boundedID(id, 64) || id <= previous {
+			return ErrFactorChange
+		}
+
+		previous = id
 	}
 
 	return p.Management.Check(settings.PendingTTL)
@@ -181,6 +205,21 @@ func parseFactorChangeToken(token string) (EnrollmentDigest, error) {
 
 	return sha256.Sum256(append([]byte("hatmax/pending/factor-change/v1\x00"), secret...)), nil
 }
+func (s *FactorService) policy(policy FactorPolicy) FactorPolicy {
+	policy.TOTPKeyIDs = [8]string{}
+
+	if s.fallback != nil {
+		identities := make([]string, 0, len(s.fallback.seeds.keys))
+		for id := range s.fallback.seeds.keys {
+			identities = append(identities, id)
+		}
+
+		slices.Sort(identities)
+		copy(policy.TOTPKeyIDs[:], identities)
+	}
+
+	return policy
+}
 func (s *FactorService) actor(ctx context.Context, token string, policy FactorPolicy) (*ValidatedSession, SessionDigest, error) {
 	err := policy.Check(s.enrollment.settings)
 	if err != nil {
@@ -197,6 +236,8 @@ func (s *FactorService) actor(ctx context.Context, token string, policy FactorPo
 	return actor, digest, err
 }
 func (s *FactorService) List(ctx context.Context, token string, policy FactorPolicy) ([]Factor, error) {
+	policy = s.policy(policy)
+
 	err := policy.Check(s.enrollment.settings)
 	if err != nil {
 		return nil, err
@@ -235,6 +276,8 @@ func (s *FactorService) pending(ctx context.Context, token string, kind FactorKi
 
 // BeginWebAuthnChange adds or replaces a factor under actual recent management proof.
 func (s *FactorService) BeginWebAuthnChange(ctx context.Context, token string, target FactorSelection, policy FactorPolicy) (*EnrollmentChallenge, error) {
+	policy = s.policy(policy)
+
 	work, cancel := context.WithTimeout(ctx, s.enrollment.settings.Timeout)
 	defer cancel()
 
@@ -278,6 +321,7 @@ func (s *FactorService) BeginWebAuthnChange(ctx context.Context, token string, t
 	return &EnrollmentChallenge{Token: wire, Options: options}, nil
 }
 func (s *FactorService) BeginTOTPChange(ctx context.Context, token string, target FactorSelection, policy FactorPolicy) (*TOTPSetup, error) {
+	policy = s.policy(policy)
 	if s.fallback == nil {
 		return nil, ErrFactorChange
 	}
@@ -323,6 +367,8 @@ func (s *FactorService) rotation(actor Session) (SessionRecord, string, error) {
 	return SessionRecord{Session: actor, Digest: digest}, token, err
 }
 func (s *FactorService) finish(ctx context.Context, actorToken, token string, kind FactorKind, body []byte, code string, policy FactorPolicy) (*FactorChangeResult, error) {
+	policy = s.policy(policy)
+
 	settings := s.enrollment.settings
 	if policy.Check(settings) != nil || kind == FactorTOTP && s.fallback == nil || kind == FactorWebAuthn && (len(body) == 0 || len(body) > MaxEnrollmentBody) {
 		return nil, ErrFactorChange
@@ -423,6 +469,8 @@ func (s *FactorService) FinishTOTPChange(ctx context.Context, actorToken, token,
 	return s.finish(ctx, actorToken, token, FactorTOTP, nil, code, policy)
 }
 func (s *FactorService) Remove(ctx context.Context, token string, target FactorSelection, policy FactorPolicy) (*FactorChangeResult, error) {
+	policy = s.policy(policy)
+
 	if target.Check() != nil {
 		return nil, ErrFactorChange
 	}
