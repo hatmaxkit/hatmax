@@ -26,7 +26,7 @@ Execution gate: Open
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Restricted enrollment | delivered | `feat/authenticator-enrollment` | `feat(slice-1): add restricted authenticator enrollment` | `#98` | `ops/default/report/slices/authenticators/slice-1-enrollment.md` |
-| Slice 2 | WebAuthn completion | reviewing | `feat/webauthn-completion` | `feat(slice-2): complete WebAuthn authentication and step-up` | pending | `ops/default/report/slices/authenticators/slice-2-webauthn-completion.md` |
+| Slice 2 | WebAuthn completion | reviewing | `feat/webauthn-completion` | `feat(slice-2): complete WebAuthn authentication and step-up` | `#99` | `ops/default/report/slices/authenticators/slice-2-webauthn-completion.md` |
 | Slice 3 | TOTP and backup proof | pending | `feat/authenticator-fallback` | `feat(slice-3): add replay-resistant TOTP and backup proof` | pending | `ops/default/report/slices/authenticators/slice-3-fallback-proof.md` |
 | Slice 4 | Authorized factor changes | pending | `feat/authenticator-control` | `feat(slice-4): enforce authorized authenticator changes` | pending | `ops/default/report/slices/authenticators/slice-4-factor-control.md` |
 | Slice 5 | Browser acceptance | pending | `test/authenticator-acceptance` | `test(slice-5): verify authenticator browser integration` | pending | `ops/default/report/slices/authenticators/slice-5-browser-acceptance.md` |
@@ -108,3 +108,9 @@ Next checkpoint: review/merge Slice 2, verify canonical state, then activate the
 - Parser fuzz: `go test ./auth -run '^$' -fuzz '^FuzzAssertionResponse$' -fuzztime=20s -parallel=2 -timeout=60s`; no KDF/database work.
 - Real PostgreSQL: `go test -race -tags=integration ./examples/ticked/internal/feat/auth -run '^Test(WebAuthnTransactions|EnrollmentTransactions|CredentialTransactions|ProofTransactions|SessionTransactions|ControlTransactions)$' -count=1 -timeout=120s`; explicit owned-cluster connection settings required.
 - T2.1 passed actual signed authentication/step-up with PostgreSQL, package and regression races, strict default/tagged lint, source licensing and docs/example compilation. T2.2 passed signed negative protocol, replay/backup/counter/ownership conflicts, post-lock/post-write time checks, durable admission and full rollback evidence. Parser fuzz completed 484362 executions without failure; PostgreSQL regression races, package races, vet, strict lint, licensing and documentation checks passed.
+
+
+Slice 2 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/99
+Report introduction: `379370c2b25b63cc1726ed6a8af88984a179baab`.
+Next: verify the maintainer merge and matching canonical `origin/dev`, close
+Slice 2 report/tracker on `dev`, then activate the already-approved Slice 3.

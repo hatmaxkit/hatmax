@@ -7,12 +7,12 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 2: WebAuthn Completion
 
-Status: drafting
+Status: reviewing
 Delivery set: authenticators
 Plan: [Delivery plan](../../../plan/authenticators.md)
 Tracker: [Delivery tracker](../../../tracker/authenticators.md)
 Branch: `feat/webauthn-completion`
-PR: pending
+PR: `#99`
 T2.1: `f7df235f4411be7a2bb7eaa0f211077295edba61`
 T2.2: `1b01ea4ba0a64a87705996b37320e745cd20d863`
 
