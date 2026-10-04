@@ -264,3 +264,23 @@ Use another authenticator when adding a second resident passkey for the same
 account. The acceptance fixture uses two virtual devices. Its successful result
 establishes browser integration; production hardware and deployment assurances
 remain your application's responsibility.
+
+## Verify a mailbox
+
+Mailbox ownership is separate from sign-in proof. To enable Ticked verification,
+configure an active mail provider and set `TICKED_RECOVERY_ORIGIN` to the trusted
+HTTPS origin of your application. Localhost HTTP requires explicit development
+configuration. These routes stay disabled without active delivery.
+
+Open `/account/mailbox`, enter your current account email and request a message.
+The response does not reveal whether that account exists or can receive a token.
+Open the link from the message and submit the verification form. Opening the
+link alone cannot verify the address. The secret stays in the URL fragment until
+the form removes it and submits it in a protected POST.
+
+Successful verification signs out existing sessions and cancels unfinished
+security ceremonies. Sign in again using your existing password and any required
+MFA. Verification does not change your address, activate your account or replace
+lost authenticators. An expired or replaced link requires a new bounded request.
+See the [mailbox reference](../../reference/authentication/README.md#mailbox-verification)
+for timing, retry, storage and deployment boundaries.

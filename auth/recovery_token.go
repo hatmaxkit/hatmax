@@ -117,6 +117,9 @@ type MailboxRecord struct {
 	LeaseUntil, ConsumedAt, RevokedAt time.Time
 }
 
+func (p MailboxRecord) String() string   { return "[redacted mailbox record]" }
+func (p MailboxRecord) GoString() string { return p.String() }
+
 // Check validates stored shape and current eligibility; attempts are checked at admission.
 func (p MailboxRecord) Check(now time.Time, revision string, settings config.RecoverySettings) error {
 	id, err := uuid.Parse(p.ID)

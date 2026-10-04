@@ -184,7 +184,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		delivery, initErr := authfeat.NewMailboxDelivery(recoverySvc, authQueries, mailer.New(cfg, logger), origin, cfg.Authenticator.LocalhostDevelopment)
+		delivery, initErr := authfeat.NewMailboxDelivery(recoverySvc, authQueries, mailer.New(cfg, logger), logger, origin, cfg.Authenticator.LocalhostDevelopment)
 		if initErr != nil {
 			logger.Errorf("Cannot initialize mailbox delivery")
 			os.Exit(1)

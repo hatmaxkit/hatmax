@@ -50,6 +50,7 @@ remainder, and turning each `_` into `.`. `HATMAX_DATABASE_HOST` with prefix
 | `server` | `port`, `host` |
 | `database` | `host`, `port`, `user`, `password`, `database`, `schema`, `sslmode` |
 | `auth` | session lifecycle and credential policy/work fields below, `email_encryption_key`, `email_lookup_key` |
+| `recovery` | mailbox token lifetimes, lease, timeout, attempt budgets and cleanup bounds below |
 | `contact` | `pii_encryption_key`, `email_lookup_key` |
 | `property` | `notes_protection_key` |
 | `pubsub` | `enabled`, `poll_interval`, `batch_size` |
@@ -256,3 +257,24 @@ identity. Supply `Issuer`, optional `StrictStep`, optional `BackupCodes` (defaul
 `Config`. Ticked opts in with `TICKED_TOTP_KEY_ID` and `TICKED_TOTP_KEY` (canonical
 standard Base64); both absent leaves fallback routes disabled, partial/invalid
 values fail startup. See the [fallback contract](../authentication/README.md#totp-and-backup-proof).
+
+## Recovery limits
+
+`Config.Recovery` is validated through `RecoverySettings()` at construction and
+by `Config.Validate`. Empty duration strings and zero integer fields select
+these defaults; malformed or out-of-range nonzero values fail.
+
+| Key | Default | Bound |
+| --- | --- | --- |
+| `recovery.verification_ttl` | `24h` | `1m`–`24h` |
+| `recovery.reset_ttl` | `1h` | `1m`–`1h`; reset flow remains unavailable |
+| `recovery.timeout` | `5s` | `1s`–`30s` |
+| `recovery.lease` | `5s` | `1s`–`30s`, at least the operation timeout |
+| `recovery.token_attempts` | `5` | 1–10 |
+| `recovery.issuance_attempts` | `3` | 1–10 per subject/purpose per fixed 15m window |
+| `recovery.completion_attempts` | `10` | 1–20 per subject per fixed 15m window |
+| `recovery.cleanup_batch` | `1000` | 1–1000 |
+
+Durations must use microsecond precision. Terminal token retention is fixed at
+24h. Notification retention and dispatch bounds belong to the application
+adapter. See the [mailbox reference](../authentication/README.md#mailbox-verification).

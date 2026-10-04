@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Applications can verify a current mailbox through a bounded one-use email
+  link. Verification signs out existing sessions and requires normal sign-in
+  again, preserving configured MFA. Ticked provides protected verification forms
+  when active mail delivery and a trusted link origin are configured.
+
 - Applications can enroll an initial WebAuthn authenticator after fresh password
   verification, sign in with verified user presence and verification, and step
   up a live session for phishing-resistant access. Setup invalidates previous

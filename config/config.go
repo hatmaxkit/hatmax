@@ -225,6 +225,10 @@ func New() *Config {
 			ArgonMaxMemoryKiB: 65536, ArgonMaxIterations: 3, ArgonMaxParallelism: 4,
 			PasswordMaxConcurrent: 2,
 		},
+		Recovery: RecoveryConfig{
+			VerificationTTL: "24h", ResetTTL: "1h", Timeout: "5s", Lease: "5s",
+			TokenAttempts: 5, IssuanceAttempts: 3, CompletionAttempts: 10, CleanupBatch: 1000,
+		},
 		PubSub: PubSubConfig{
 			Enabled:      false,
 			PollInterval: "100ms",

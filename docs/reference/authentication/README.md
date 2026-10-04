@@ -790,3 +790,81 @@ bearers remain hidden from page scripts and failure diagnostics.
 Virtual devices establish browser/library/adapter integration. Hardware identity,
 attestation trust, non-exportability, deployment HTTPS/key custody, application
 authorization and any AAL/compliance assertion require separate consumer evidence.
+
+## Mailbox verification
+
+`RecoveryService` extends an existing `Service` and a typed `RecoveryQueries`
+store. Its trusted policy revision is fixed at construction. Mailbox verification
+uses the exact active account address, not a submitted replacement. Existing
+accounts remain unverified until they complete the flow.
+
+| Operation | Result and authority |
+| --- | --- |
+| `RequestMailboxVerification(ctx, mailbox)` | A committed transient `MailboxIssue`, for trusted dispatch only |
+| `ConfirmMailboxVerification(ctx, bearer)` | Committed `MailboxVerification` metadata; no session or factor-management authority |
+| `CleanupMailboxTokens(ctx)` | At most the configured batch of terminal tokens retained for 24h |
+
+The bearer is exactly 80 ASCII bytes: lowercase canonical UUIDv4, a dot, and the
+canonical unpadded URL Base64 encoding of 32 random bytes. Storage keeps only its
+SHA-256 digest, separated by purpose, subject and record identity. Formatting
+and JSON serialization redact the transient secret; snapshots omit the digest
+from JSON. Only `Token.Bearer()` deliberately exposes it to trusted dispatch.
+Verification and reset purposes never resolve as session tokens. Reset remains
+unavailable until its protected implementation is delivered.
+
+Eligibility binds the subject, purpose, exact target, `AuthVersion`, trusted
+policy revision and strictly unexpired time. Equality at expiry is unavailable.
+Reissue replaces the purpose slot and invalidates its previous bearer; it does
+not reset shared budgets. At most two slots exist per account. Current mailbox
+changes must clear verification and advance `AuthVersion`; later reactivation
+cannot revive an old token. UTC timestamps use microsecond precision.
+
+PostgreSQL locks the subject before token and budget rows, charges failed-secret
+attempts in an independent committed reservation, and uses a revision-bound
+finite lease. Final confirmation rechecks time after row waits. It atomically
+consumes the token, records mailbox verification, advances the version once,
+deletes every subject session and restricted continuation, invalidates other
+mailbox tokens and stores one notification intent. Password, account activation,
+roles, confirmed factors, accepted TOTP steps and backup-code state are preserved.
+A failure rolls back every final effect; previously charged attempts remain.
+
+Internal errors distinguish `ErrRecoveryUnavailable`, `ErrRecoveryAttempts`,
+`ErrRecoveryBusy`, `ErrRecoveryCapacity` and operating failure. Ticked groups
+missing, wrong, expired, replaced, replayed and stale confirmations into one
+redacted unavailable response. Initiation acknowledges all eligible/ineligible,
+store and provider outcomes alike, with a six-second target response deadline
+and a five-second work deadline. Earlier request cancellation wins; this timing
+policy is not a production side-channel audit.
+
+### Ticked transport and dispatch
+
+Set the application-owned `TICKED_RECOVERY_ORIGIN` and configure `mailer.enabled`
+and `mailer.mode: active` to enable `/account/mailbox` and
+`/account/mailbox/confirm`. The origin requires HTTPS; explicitly enabled local
+development permits HTTP only for loopback/localhost. Do not derive links from
+request hosts or forwarded headers. A disabled/dry-run or unresolved no-op
+mailer cannot enable these routes.
+
+GET renders a form only. Mail carries the bearer in a URL fragment; the form
+removes the fragment from navigation history and submits the token only through
+an explicit POST. POST requires same-origin protection, exactly one URL-encoded
+field (`email` or `token`), no query fields, and a body of at most 16 KiB.
+Responses use `no-store` and `no-referrer`. Successful verification clears the
+current session cookie and requires ordinary sign-in again.
+
+Ingress runs before account lookup: at most 12 requests per socket IP per minute,
+32 active requests and 1024 current IP entries. Entries expire without a worker.
+Forwarded IP headers cannot select the limiter key. These process-local bounds
+require separate deployment-wide anti-automation and trusted-proxy controls.
+
+A committed issue is delivered outside database locks. Delivery failure does
+not restore its predecessor; explicit bounded reissue is available. Notification
+intents contain no bearer. The application attempts dispatch after confirmation;
+a failure logs a generic error and cannot change the successful verification.
+`MailboxDelivery.DispatchMailboxNotices(ctx, subject, limit)` is the explicit
+application retry entrypoint: batches of 1–20, five attempts per intent,
+seven-day retention and a five-second call deadline. It starts no worker.
+Attempts are committed before sending. Concurrent retries or a lost provider
+acknowledgment can duplicate mail within that finite attempt limit. Actual mail
+provider delivery, deployment-wide protection, password reset and all-factor-loss
+identity proofing are separate boundaries.

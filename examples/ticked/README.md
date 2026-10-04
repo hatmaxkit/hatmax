@@ -226,3 +226,24 @@ The example fixes phishing-resistant management policy in trusted assembly code.
 A TOTP-only application profile must explicitly select permitted MFA management
 to upgrade; the request cannot choose weaker policy. Initial setup endpoints
 remain restricted to accounts without established factors.
+
+## Mailbox verification
+
+Configure `mailer.enabled: true`, `mailer.mode: active` and an active provider,
+then set `TICKED_RECOVERY_ORIGIN` to the application's trusted HTTPS origin.
+For explicit localhost development, `authenticator.localhost_development: true`
+allows a loopback HTTP origin. No-op/dry-run mail cannot enable verification.
+
+Use `/account/mailbox` to request a link for the current account address, then
+submit the form at `/account/mailbox/confirm`. GET never consumes a token.
+Confirmation revokes sessions and unfinished security flows while preserving
+MFA; sign in again through normal authentication. Migration
+`008-account-recovery.sql` adds current verification metadata, bounded token
+slots, shared budgets and durable notification intent.
+
+The example performs one bounded notification dispatch after confirmation and
+exposes `MailboxDelivery.DispatchMailboxNotices` for application-owned retries.
+It starts no retry worker. See the
+[mailbox reference](../../docs/reference/authentication/README.md#mailbox-verification)
+for the explicit dispatch and deployment limits. Password reset and change
+routes remain unavailable in this increment.

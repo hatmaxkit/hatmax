@@ -250,3 +250,21 @@ separate from initial setup and sessions. Actual confirmation commits activation
 version advancement, all-session/pending revocation and optional bearer rotation.
 The retained proof keeps its original times; removing its constituent revokes the
 actor. TOTP changes require an explicitly supplied fallback service/key ring.
+
+## Mailbox verification
+
+`NewRecoveryService(base, recoveryQueries, cfg.Recovery, "mailbox-v1")` composes
+with the existing credential service. `RequestMailboxVerification` returns a
+transient `MailboxIssue` for trusted mail dispatch after storage commit. Its
+`Token.Bearer()` must not appear in public JSON, logs or operator responses.
+`ConfirmMailboxVerification` verifies the current address and revokes prior
+sessions/continuations without authenticating. `CleanupMailboxTokens` performs
+one bounded retained-token batch and starts no worker.
+
+The adapter must serialize through the subject before token/budget locks,
+durably charge failed attempts, recheck current identity/version/policy/time,
+and commit verification, consumption, version advancement, all-session and
+continuation invalidation plus notification intent together. Existing MFA and
+replay records remain unchanged. See the
+[mailbox contract](../docs/reference/authentication/README.md#mailbox-verification).
+Password change and reset are not exposed by this service yet.

@@ -9,11 +9,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"net/mail"
 	"net/url"
 	"time"
 
 	core "hatmax.adrianpk.com/auth"
 	"hatmax.adrianpk.com/examples/ticked/internal/dal"
+	"hatmax.adrianpk.com/log"
 	"hatmax.adrianpk.com/mailer"
 )
 
@@ -24,9 +26,10 @@ type MailboxDelivery struct {
 	queries *Queries
 	sender  mailer.Mailer
 	origin  string
+	logger  log.Logger
 }
 
-func NewMailboxDelivery(service *core.RecoveryService, queries *Queries, sender mailer.Mailer, origin string, localhost bool) (*MailboxDelivery, error) {
+func NewMailboxDelivery(service *core.RecoveryService, queries *Queries, sender mailer.Mailer, logger log.Logger, origin string, localhost bool) (*MailboxDelivery, error) {
 	u, err := url.Parse(origin)
 	if err != nil || u.Hostname() == "" || u.User != nil || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" || u.RawPath != "" || (u.Path != "" && u.Path != "/") || len(origin) > 2048 {
 		return nil, errors.New("invalid trusted recovery origin")
@@ -37,7 +40,7 @@ func NewMailboxDelivery(service *core.RecoveryService, queries *Queries, sender 
 		return nil, errors.New("recovery origin requires HTTPS")
 	}
 
-	if service == nil || queries == nil || sender == nil {
+	if service == nil || queries == nil || sender == nil || logger == nil {
 		return nil, errors.New("mailbox delivery dependencies are required")
 	}
 
@@ -47,12 +50,17 @@ func NewMailboxDelivery(service *core.RecoveryService, queries *Queries, sender 
 
 	u.Path = ""
 
-	return &MailboxDelivery{service: service, queries: queries, sender: sender, origin: u.String()}, nil
+	return &MailboxDelivery{service: service, queries: queries, sender: sender, logger: logger, origin: u.String()}, nil
 }
 
 // RequestMailboxVerification sends only the token committed for the exact mailbox.
 // The HTTP owner groups every result into a fixed-time neutral acknowledgment.
 func (d *MailboxDelivery) RequestMailboxVerification(ctx context.Context, mailbox string) error {
+	address, err := mail.ParseAddress(mailbox)
+	if err != nil || address.Address != mailbox || address.Name != "" {
+		return core.ErrRecoveryUnavailable
+	}
+
 	work, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
@@ -80,7 +88,10 @@ func (d *MailboxDelivery) ConfirmMailboxVerification(ctx context.Context, bearer
 		return err
 	}
 	// Delivery failure cannot undo security state or require another token consume.
-	_ = d.DispatchMailboxNotices(work, result.Subject, 5)
+	dispatchErr := d.DispatchMailboxNotices(work, result.Subject, 5)
+	if dispatchErr != nil {
+		d.logger.Error("Mailbox notification dispatch failed; committed security state is unchanged")
+	}
 
 	return nil
 }

@@ -34,8 +34,8 @@ Execution gate: Open
 
 | Task | Status | Expected commit | Commit | Required evidence |
 | --- | --- | --- | --- | --- |
-| T1.1 | active | `feat(auth): add bounded mailbox verification` | pending | Actual core token flow and synchronized PostgreSQL/HTTP/mail/notice contracts |
-| T1.2 | pending | `test(auth): verify mailbox lifecycle and transactions` | pending | Purpose/state isolation, time/budget/cleanup bounds, real races/rollback and transport safety |
+| T1.1 | completed | `feat(auth): add bounded mailbox verification` | `334046be21b4` | Actual core token flow and synchronized PostgreSQL/HTTP/mail/notice contracts |
+| T1.2 | completed | `test(auth): verify mailbox lifecycle and transactions` | pending | Purpose/state isolation, time/budget/cleanup bounds, real races/rollback and transport safety |
 | T2.1 | pending | `feat(auth): enforce recent-proof password changes` | pending | Actual actor-derived proof, shared policy/KDF and atomic revocation/notification |
 | T2.2 | pending | `test(auth): verify password change authority` | pending | Current actor/factor/policy/time rejection, concurrency and full rollback |
 | T3.1 | pending | `feat(auth): add one-use mailbox password reset` | pending | Previously verified target, one-use token, credential/revocation/notice and no MFA bypass |
@@ -80,9 +80,24 @@ Completed prerequisite gates are not repeated.
 
 ## Slice 1 Finite Validation Selectors
 
-- `go test -tags=integration -race -run '^(TestMailboxTransactions|TestMailboxDeliveryTransactions|TestCredentialTransactions|TestEnrollmentTransactions|TestWebAuthnTransactions|TestFallbackTransactions|TestFactorControlTransactions)$' -count=1 -timeout=180s ./examples/ticked/internal/feat/auth`
+- `go test -tags=integration -race -run '^(TestMailboxTransactions|TestMailboxDeliveryTransactions|TestCredentialTransactions|TestEnrollmentTransactions|TestWebAuthnTransactions|TestFallbackTransactions|TestFactorChanges|TestFactorAuthority|TestSessionTransactions)$' -count=1 -timeout=180s ./examples/ticked/internal/feat/auth`
+- `go test -tags=integration -race -run '^TestMailboxTransportTransactions$' -count=1 -timeout=90s ./examples/ticked/internal/web`
 - `go test -run '^$' -fuzz '^FuzzRecoveryToken$' -fuzztime=20s -parallel=2 -timeout=60s ./auth`
 - Explicit owned PostgreSQL connection settings are required. Mail is captured;
   no active external provider is used. Each database test isolates its schema.
 - Transport tests cover production form handlers, trusted link origin,
   pre-lookup capacity, fixed acknowledgment timing and token-free GET handling.
+
+## Slice 1 Focused Evidence
+
+- Core/config/model/middleware and Ticked unit tests passed with race detection.
+- Real PostgreSQL 18.6 lifecycle, denial budgets, concurrency, rollback, retention
+  and actual WebAuthn preservation passed; affected session, credential,
+  enrollment, WebAuthn, fallback and factor regression passed in 68.026s.
+- Production mailbox transport with actual PostgreSQL and captured mail passed
+  in 19.259s, including equal six-second initiation targets and notification retry.
+- Final mailbox-specific transaction regression passed in 9.033s, including
+  completion budget persistence, notification capacity rollback and cancellation.
+- Canonical token parser fuzz passed for 20s with two workers: 439917 executions.
+- `make source-license-check`, `make vet`, `make lint-strict`, `make docs-check`
+  and whitespace checks passed. The full integrated gate remains after Slice 4.
