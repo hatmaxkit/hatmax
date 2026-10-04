@@ -25,7 +25,7 @@ Execution gate: Open
 
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Restricted enrollment | reviewing | `feat/authenticator-enrollment` | `feat(slice-1): add restricted authenticator enrollment` | pending | `ops/default/report/slices/authenticators/slice-1-enrollment.md` |
+| Slice 1 | Restricted enrollment | reviewing | `feat/authenticator-enrollment` | `feat(slice-1): add restricted authenticator enrollment` | `#98` | `ops/default/report/slices/authenticators/slice-1-enrollment.md` |
 | Slice 2 | WebAuthn completion | pending | `feat/webauthn-completion` | `feat(slice-2): complete WebAuthn authentication and step-up` | pending | `ops/default/report/slices/authenticators/slice-2-webauthn-completion.md` |
 | Slice 3 | TOTP and backup proof | pending | `feat/authenticator-fallback` | `feat(slice-3): add replay-resistant TOTP and backup proof` | pending | `ops/default/report/slices/authenticators/slice-3-fallback-proof.md` |
 | Slice 4 | Authorized factor changes | pending | `feat/authenticator-control` | `feat(slice-4): enforce authorized authenticator changes` | pending | `ops/default/report/slices/authenticators/slice-4-factor-control.md` |
@@ -97,3 +97,8 @@ credential/session regression, affected-package race checks, vet, strict lint,
 source licensing and docs/example compilation. Pending replay issues no session.
 The schema uses a new `004-authenticators.sql` migration for existing databases.
 The complete set's integrated gate remains scheduled after Slice 5 merge.
+
+Slice 1 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/98
+Report introduction: `3f04dc1c00fce625ead88c7611b97da62176a897`.
+Next checkpoint: verify the maintainer merge and canonical `origin/dev`, close
+Slice 1 report/tracker on `dev`, then activate the already-approved Slice 2.
