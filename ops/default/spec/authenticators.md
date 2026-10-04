@@ -16,7 +16,7 @@ Model: [Authenticator model](authenticators-model.md)
 Plan: [Delivery proposal](../plan/authenticators.md)
 Tracker: [Delivery tracker](../tracker/authenticators.md)
 Inspected baseline: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
-Implementation status: Slice 1 delivered; Slice 2 active
+Implementation status: Slice 1 delivered; Slice 2 implemented, review pending
 Execution gate: Open
 
 ## Purpose and Ownership
