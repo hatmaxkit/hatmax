@@ -25,6 +25,7 @@ path = [
   "examples/ticked/internal/dal/assertions.sql.go",
   "examples/ticked/internal/dal/db.go",
   "examples/ticked/internal/dal/enrollment.sql.go",
+  "examples/ticked/internal/dal/fallback.sql.go",
   "examples/ticked/internal/dal/models.go",
   "examples/ticked/internal/dal/querier.go",
   "examples/ticked/internal/dal/todos.sql.go",

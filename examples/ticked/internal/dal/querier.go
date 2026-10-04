@@ -16,23 +16,30 @@ import (
 
 type Querier interface {
 	AcceptAssertionCounter(ctx context.Context, arg AcceptAssertionCounterParams) error
+	AcceptTOTPStep(ctx context.Context, arg AcceptTOTPStepParams) (int64, error)
 	AdvanceAuthenticatorVersion(ctx context.Context, arg AdvanceAuthenticatorVersionParams) error
 	AssertionSubject(ctx context.Context, arg AssertionSubjectParams) (string, error)
 	ChargeFactorBudget(ctx context.Context, arg ChargeFactorBudgetParams) error
 	ConfirmAuthenticator(ctx context.Context, arg ConfirmAuthenticatorParams) error
 	ConsumeAssertion(ctx context.Context, arg ConsumeAssertionParams) (int64, error)
+	ConsumeBackupCode(ctx context.Context, arg ConsumeBackupCodeParams) (int64, error)
 	CountAuthenticators(ctx context.Context, userID string) (int64, error)
 	CountEnrollments(ctx context.Context, userID string) (int64, error)
 	CountSubjectSessions(ctx context.Context, userID string) (int64, error)
 	CountUsers(ctx context.Context) (int64, error)
 	CreateAssertion(ctx context.Context, arg CreateAssertionParams) error
+	CreateBackupCode(ctx context.Context, arg CreateBackupCodeParams) error
+	CreateBackupSet(ctx context.Context, arg CreateBackupSetParams) error
 	CreateEnrollment(ctx context.Context, arg CreateEnrollmentParams) error
+	CreateFallback(ctx context.Context, arg CreateFallbackParams) error
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
+	CreateTOTP(ctx context.Context, arg CreateTOTPParams) error
 	// SPDX-FileCopyrightText: 2026 Adrian PK
 	// SPDX-License-Identifier: Apache-2.0
 	//
 	// This file is part of Hatmax. See LICENSE for license terms.
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteBackupSet(ctx context.Context, userID string) error
 	DeleteExpiredEnrollments(ctx context.Context, dollar_1 int32) (int64, error)
 	DeleteExpiredSessions(ctx context.Context, dollar_1 int32) (int64, error)
 	DeleteSession(ctx context.Context, tokenDigest []byte) (int64, error)
@@ -62,9 +69,16 @@ type Querier interface {
 	ListUsers(ctx context.Context) ([]User, error)
 	LockAssertion(ctx context.Context, arg LockAssertionParams) (AuthPending, error)
 	LockAuthenticator(ctx context.Context, id string) (Authenticator, error)
+	LockBackupCode(ctx context.Context, arg LockBackupCodeParams) (LockBackupCodeRow, error)
+	LockBackupSet(ctx context.Context, userID string) (BackupSet, error)
 	LockEnrollment(ctx context.Context, digest []byte) (AuthPending, error)
 	LockFactorBudget(ctx context.Context, userID string) (AuthFactorBudget, error)
 	LockSubjectSessions(ctx context.Context, userID string) ([]string, error)
+	// SPDX-FileCopyrightText: 2026 Adrian PK
+	// SPDX-License-Identifier: Apache-2.0
+	//
+	// This file is part of Hatmax. See LICENSE for license terms.
+	LockTOTP(ctx context.Context, userID string) (TotpAuthenticator, error)
 	ReclaimSubjectEnrollments(ctx context.Context, userID string) (int64, error)
 	ReclaimSubjectSessions(ctx context.Context, userID string) (int64, error)
 	ReleaseEnrollment(ctx context.Context, arg ReleaseEnrollmentParams) error

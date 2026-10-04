@@ -401,16 +401,20 @@ func toAuthUser(u dal.User) *auth.User {
 }
 
 func toAuthSession(s dal.Session) (*auth.Session, error) {
-	if (s.ProofMethod != int16(auth.PasswordProof) && s.ProofMethod != int16(auth.WebAuthnProof)) || len(s.TokenDigest) != 32 || s.InactivityUs < time.Minute.Microseconds() || s.InactivityUs > (30*24*time.Hour).Microseconds() {
+	if (s.ProofMethod < int16(auth.PasswordProof) || s.ProofMethod > int16(auth.PasswordBackupProof)) || len(s.TokenDigest) != 32 || s.InactivityUs < time.Minute.Microseconds() || s.InactivityUs > (30*24*time.Hour).Microseconds() {
 		return nil, auth.ErrSessionRecord
 	}
 
-	if s.ProofMethod == int16(auth.PasswordProof) && (s.ProofFactorID != "" || s.ProofFactorRevision != 0) || s.ProofMethod == int16(auth.WebAuthnProof) && (len(s.ProofFactorID) == 0 || len(s.ProofFactorID) > 128 || s.ProofFactorRevision < 1) {
+	if s.ProofMethod == int16(auth.PasswordProof) && (s.ProofFactorID != "" || s.ProofFactorRevision != 0) || s.ProofMethod != int16(auth.PasswordProof) && (len(s.ProofFactorID) == 0 || len(s.ProofFactorID) > 128 || s.ProofFactorRevision < 1) {
+		return nil, auth.ErrSessionRecord
+	}
+
+	if s.ProofMethod <= int16(auth.WebAuthnProof) && s.ProofFactorAt.Valid || s.ProofMethod >= int16(auth.PasswordTOTPProof) && !s.ProofFactorAt.Valid {
 		return nil, auth.ErrSessionRecord
 	}
 
 	return &auth.Session{
-		ID: s.ID, UserID: s.UserID, AuthVersion: s.AuthVersion, PolicyRevision: s.PolicyRevision, Generation: s.Generation, Proof: auth.VerifiedProof{Method: auth.ProofMethod(s.ProofMethod), VerifiedAt: s.ProofVerifiedAt, FactorID: s.ProofFactorID, FactorRevision: s.ProofFactorRevision},
+		ID: s.ID, UserID: s.UserID, AuthVersion: s.AuthVersion, PolicyRevision: s.PolicyRevision, Generation: s.Generation, Proof: auth.VerifiedProof{Method: auth.ProofMethod(s.ProofMethod), VerifiedAt: s.ProofVerifiedAt, FactorID: s.ProofFactorID, FactorRevision: s.ProofFactorRevision, FactorAt: s.ProofFactorAt.Time},
 		AuthenticatedAt: s.AuthenticatedAt, CreatedAt: s.CreatedAt, LastActivityAt: s.LastActivityAt,
 		ExpiresAt: s.ExpiresAt, InactivityTTL: time.Duration(s.InactivityUs) * time.Microsecond,
 	}, nil

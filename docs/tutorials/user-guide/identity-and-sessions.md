@@ -196,5 +196,42 @@ Routine counter updates preserve other valid sessions, while removal/security
 revision changes invalidate bound proof. Migration 005 adds the required session
 and assertion representation after migration 004. See the
 [WebAuthn reference](../../reference/authentication/README.md#webauthn-authentication-and-step-up)
-for the exact contracts and response bounds. Browser acceptance, fallback proof
+for the exact contracts and response bounds. Browser acceptance
 and established-factor management are separate remaining delivery boundaries.
+
+## Sign In with TOTP or a Backup Code
+
+Supply an application-managed encryption key identity and 32-byte key to
+`auth.NewFallbackService`. Ticked reads these from `TICKED_TOTP_KEY_ID` and
+`TICKED_TOTP_KEY` (standard Base64); supply both before startup. Keep keys outside
+configuration tracked in Git. Apply migration 006 after the WebAuthn migrations.
+
+For a new account with no established factors, post email/password to
+`/authenticators/totp/setup/begin`. Import the returned provisioning URL into your
+OTP application. Post its current six-digit code to
+`/authenticators/totp/setup/finish`, using the returned `X-Fallback-Token`.
+Confirmation consumes that step and signs out prior sessions. It grants no access.
+Wait for the next OTP step before signing in; reusing setup's code fails.
+
+Post email/password to `/authenticators/totp/authentication/begin`, then send the
+actual OTP code to `/authenticators/fallback/authentication/finish` with the
+returned token header. A successful committed completion sets the session cookie.
+`/authenticators/mfa` accepts this recent password-plus-factor proof;
+`/authenticators/proof` requires phishing-resistant proof and rejects it.
+Step-up uses the matching `/totp/step-up/begin` route with the actor cookie and
+password, then `/fallback/step-up/finish`.
+
+Create a backup set through `/authenticators/backup/issue` with `{}` and a recent
+authorized cookie. Ticked requires phishing-resistant MFA here. Applications
+allowing TOTP-only management can explicitly wire recent `RequireMFA` in trusted
+server code; requests cannot select or weaken this policy. Store returned codes
+once in a safe place. Issue replaces previous codes, rotates the current cookie,
+and signs out other sessions. It preserves the actor's original proof times.
+
+Use `/authenticators/backup/authentication/begin` with email/password, then submit
+one exact backup code to the shared finish route. Do not alter spaces, case or
+encoding. The code is consumed only with successful access completion. Backup
+proof satisfies MFA, and cannot regenerate its own set. See the
+[fallback reference](../../reference/authentication/README.md#totp-and-backup-proof)
+for bounds, freshness and storage requirements. Additional-factor/removal journeys
+and browser acceptance remain later delivery work.

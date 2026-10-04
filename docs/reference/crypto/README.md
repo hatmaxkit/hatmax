@@ -71,15 +71,19 @@ its zero value.
 ## TOTP
 
 `GenerateTOTPKey` uses a 30-second period, six digits, and SHA-1.
-`ValidateTOTPCode` checks the code against the secret.
-`ValidateTOTPCodeWithSkew` allows the supplied number of periods before and
-after the current time, with the same period, digits, and algorithm.
+`MatchTOTPCode(secret, code, now, skew)` accepts canonical six ASCII digits,
+a 32-character secret and trusted time, and returns the matched integer step.
+Skew is zero or one. Current step is checked first, then previous and next.
+`TOTPInWindow` rechecks the selected step at fresh commit time; acceptance must
+also strictly advance the durable last step in the access-completion transaction.
+These primitives do not persist replay state or issue authentication proof.
+The former boolean helpers using hidden current time are removed.
 
 `GenerateQRCodePNG` returns a PNG of the key's QR image at the supplied size.
 
-`GenerateBackupCodes` uses 8 codes when `count` is not positive. Each plain
-code is the first 8 characters of unpadded Base32 of 6 random bytes, uppercased.
-The stored hash is Argon2id of that code with the fixed salt
-`hatmax-backup-code-salt`, encoded as padded Base64.
-`VerifyBackupCode` trims and uppercases the supplied code and returns the
-matching index, or false and `-1`.
+`NewBackupSecret` produces `backup1.<UUID>.<22-character Base64url secret>` with
+128 random secret bits. `ParseBackupCode` rejects noncanonical input before any
+KDF. `BackupVerifierInput` binds purpose, subject, identifier and secret for the
+shared PHC Argon2id engine. Do not persist plaintext codes. The former shared-salt,
+set-scan/index APIs are removed. Use [actual fallback completion](../authentication/README.md#totp-and-backup-proof)
+for independently salted storage, bounded KDF admission and atomic one-use access.

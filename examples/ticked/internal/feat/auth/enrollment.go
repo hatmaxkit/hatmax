@@ -120,7 +120,7 @@ func (q *Queries) CreateEnrollment(ctx context.Context, p core.EnrollmentPending
 		return err
 	}
 
-	err = queries.CreateEnrollment(ctx, dal.CreateEnrollmentParams{RpBinding: p.RPBinding[:], Digest: p.Digest[:], UserID: p.State.UserID, AuthVersion: p.State.Version, RpID: p.RPID, UserHandle: p.Handle, CeremonyData: p.Ceremony, RequiredProof: int16(p.Requirement.Proof), PolicyRevision: p.Requirement.Revision, MaxAgeUs: p.Requirement.MaxAge.Microseconds(), PasswordAt: sql.NullTime{Time: p.PasswordAt, Valid: true}, CreatedAt: p.CreatedAt, ExpiresAt: p.ExpiresAt})
+	err = queries.CreateEnrollment(ctx, dal.CreateEnrollmentParams{RpBinding: p.RPBinding[:], Digest: p.Digest[:], UserID: p.State.UserID, AuthVersion: p.State.Version, RpID: sql.NullString{String: p.RPID, Valid: true}, UserHandle: p.Handle, CeremonyData: p.Ceremony, RequiredProof: int16(p.Requirement.Proof), PolicyRevision: p.Requirement.Revision, MaxAgeUs: p.Requirement.MaxAge.Microseconds(), PasswordAt: sql.NullTime{Time: p.PasswordAt, Valid: true}, CreatedAt: p.CreatedAt, ExpiresAt: p.ExpiresAt})
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (q *Queries) CreateEnrollment(ctx context.Context, p core.EnrollmentPending
 }
 
 func enrollmentSnapshot(row dal.AuthPending) core.EnrollmentPending {
-	p := core.EnrollmentPending{State: core.CredentialState{UserID: row.UserID, Version: row.AuthVersion}, RPID: row.RpID, Handle: row.UserHandle, Ceremony: row.CeremonyData, Requirement: core.AccessRequirement{Proof: core.RequiredProof(row.RequiredProof), Revision: row.PolicyRevision, MaxAge: time.Duration(row.MaxAgeUs) * time.Microsecond}, PasswordAt: row.PasswordAt.Time, CreatedAt: row.CreatedAt, ExpiresAt: row.ExpiresAt, Attempts: int(row.Attempts), Revision: row.Revision}
+	p := core.EnrollmentPending{State: core.CredentialState{UserID: row.UserID, Version: row.AuthVersion}, RPID: row.RpID.String, Handle: row.UserHandle, Ceremony: row.CeremonyData, Requirement: core.AccessRequirement{Proof: core.RequiredProof(row.RequiredProof), Revision: row.PolicyRevision, MaxAge: time.Duration(row.MaxAgeUs) * time.Microsecond}, PasswordAt: row.PasswordAt.Time, CreatedAt: row.CreatedAt, ExpiresAt: row.ExpiresAt, Attempts: int(row.Attempts), Revision: row.Revision}
 	copy(p.Digest[:], row.Digest)
 	copy(p.RPBinding[:], row.RpBinding)
 

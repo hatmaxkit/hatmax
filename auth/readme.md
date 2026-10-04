@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # auth
 
-Password and UV WebAuthn authentication, bound step-up and restricted enrollment with explicit policy and finite bounds.
+Password, UV WebAuthn and password/TOTP or backup authentication, bound step-up and restricted enrollment with explicit policy and finite bounds.
 
 ## Password policy
 
@@ -168,24 +168,26 @@ complete credential and revokes sessions. Stale, inactive or missing state retur
 The caller owns authorization and candidate preparation for `ReplacePassword`;
 this storage contract does not supply a password-reset or recovery workflow.
 
-## TOTP Primitives
+## TOTP and Backup Authentication
 
-For TOTP code generation and validation, see `crypto/totp.go`:
+Construct `NewFallbackService(credentials, fallbackQueries, config.FallbackConfig,
+SeedKeys)` with explicit application-owned encryption keys. Use `BeginTOTPSetup`
+and `ConfirmTOTPSetup` only for initial setup; confirmation consumes the step and
+revokes sessions without issuing access. Begin password/TOTP or password/code
+with `BeginFallbackAuthentication`, or bind a current actor with
+`BeginFallbackStepUp`. `FinishFallback` verifies actual proof and consumes the
+step/code with session completion in one transaction.
 
-```go
-// Generate TOTP key
-key, _ := crypto.GenerateTOTPKey("MyApp", "user@example.com")
+These methods satisfy MFA, never phishing-resistant MFA. `IssueBackupCodes`
+requires actual recent management proof and returns codes once plus a rotated
+actor only after commit. See the [fallback reference](../docs/reference/authentication/README.md#totp-and-backup-proof).
 
-// Generate QR code
-png, _ := crypto.GenerateQRCodePNG(key, 200)
-
-// Validate code
-valid := crypto.ValidateTOTPCode(secret, code)
-
-// Backup codes
-plain, hashed, _ := crypto.GenerateBackupCodes(8)
-valid, index := crypto.VerifyBackupCode(code, hashed)
-```
+Low-level `crypto.MatchTOTPCode(secret, code, trustedTime, skew)` returns a matched
+integer step. The caller must atomically consume that step; primitive verification
+alone grants no session. `crypto.NewBackupSecret` and `ParseBackupCode` provide
+canonical secrets/identifiers; hashing and durable one-use completion belong to
+the bounded service. The old boolean TOTP and shared-salt/index backup APIs are
+removed.
 
 ## Reauthentication and Session Management
 

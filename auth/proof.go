@@ -62,8 +62,10 @@ func (r AccessRequirement) Check(lifetime time.Duration) error {
 type ProofMethod uint8
 
 const (
-	PasswordProof ProofMethod = 1
-	WebAuthnProof ProofMethod = 2
+	PasswordProof       ProofMethod = 1
+	WebAuthnProof       ProofMethod = 2
+	PasswordTOTPProof   ProofMethod = 3
+	PasswordBackupProof ProofMethod = 4
 )
 
 // VerifiedProof is read-only metadata about actual completed core verification.
@@ -71,13 +73,14 @@ const (
 type VerifiedProof struct {
 	Method         ProofMethod
 	VerifiedAt     time.Time
+	FactorAt       time.Time
 	FactorID       string
 	FactorRevision int64
 }
 
 // Check validates the supported proof and its relation to completed authentication.
 func (p VerifiedProof) Check(session Session) error {
-	if (p.Method != PasswordProof && p.Method != WebAuthnProof) || p.VerifiedAt.IsZero() || p.VerifiedAt.Before(session.CreatedAt) || p.VerifiedAt.After(session.AuthenticatedAt) {
+	if (p.Method < PasswordProof || p.Method > PasswordBackupProof) || p.VerifiedAt.IsZero() || p.VerifiedAt.Before(session.CreatedAt) || p.VerifiedAt.After(session.AuthenticatedAt) {
 		return ErrSessionRecord
 	}
 
@@ -85,7 +88,15 @@ func (p VerifiedProof) Check(session Session) error {
 		return ErrSessionRecord
 	}
 
-	if p.Method == WebAuthnProof && (!boundedID(p.FactorID, 128) || p.FactorRevision < 1) {
+	if p.Method != PasswordProof && (!boundedID(p.FactorID, 128) || p.FactorRevision < 1) {
+		return ErrSessionRecord
+	}
+
+	if p.Method == PasswordTOTPProof || p.Method == PasswordBackupProof {
+		if p.FactorAt.IsZero() || p.FactorAt.Before(p.VerifiedAt) || !p.FactorAt.Equal(session.AuthenticatedAt) {
+			return ErrSessionRecord
+		}
+	} else if !p.FactorAt.IsZero() {
 		return ErrSessionRecord
 	}
 
@@ -109,7 +120,7 @@ func (r AccessRequirement) Evaluate(session Session, now time.Time) error {
 		return ErrSessionPolicy
 	}
 
-	if r.Proof != RequirePassword && session.Proof.Method != WebAuthnProof {
+	if r.Proof == RequirePhishingResistantMFA && session.Proof.Method != WebAuthnProof || r.Proof == RequireMFA && session.Proof.Method == PasswordProof {
 		return ErrSessionProof
 	}
 

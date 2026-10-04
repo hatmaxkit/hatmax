@@ -8,6 +8,7 @@ package main
 import (
 	"context"
 	"embed"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"os"
@@ -119,6 +120,36 @@ func main() {
 		webHandler,
 		enrollmentHandler,
 		assertionHandler,
+	}
+
+	// Explicit application-owned encryption material enables fallback routes.
+	keyID, keyText := os.Getenv("TICKED_TOTP_KEY_ID"), os.Getenv("TICKED_TOTP_KEY")
+	if keyID != "" || keyText != "" {
+		key, keyErr := base64.StdEncoding.Strict().DecodeString(keyText)
+		if keyErr != nil || len(key) != 32 || base64.StdEncoding.EncodeToString(key) != keyText || keyID == "" {
+			logger.Errorf("Invalid fallback key configuration")
+			os.Exit(1)
+		}
+
+		fallbackSvc, initErr := auth.NewFallbackService(baseAuthSvc, authQueries, config.FallbackConfig{Limits: cfg.Authenticator, Issuer: "Ticked"}, auth.SeedKeys{Active: keyID, Keys: map[string][]byte{keyID: key}})
+		clear(key)
+
+		if initErr != nil {
+			logger.Errorf("Cannot initialize fallback authentication: %v", initErr)
+			os.Exit(1)
+		}
+
+		lower := authfeat.PasswordRequirement()
+		lower.Proof = auth.RequireMFA
+		lower.MaxAge = 5 * time.Minute
+
+		fallbackHandler, initErr := tickedweb.NewFallbackHandler(fallbackSvc, baseAuthSvc, lower, strong)
+		if initErr != nil {
+			logger.Errorf("Cannot initialize fallback routes: %v", initErr)
+			os.Exit(1)
+		}
+
+		deps = append(deps, fallbackHandler)
 	}
 
 	starts, stops, registrars := app.Setup(ctx, router, deps...)

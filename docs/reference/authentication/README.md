@@ -545,7 +545,7 @@ const response = await fetch("/authenticators/enrollment/finish", {
 
 This delivery exposes initial-registration APIs. Registration alone supplies no
 strong sign-in. The separate assertion APIs below complete authentication;
-additional-factor management, TOTP/backup proof and browser acceptance remain pending. Existing password-only
+additional-factor management, browser acceptance remain pending. Existing password-only
 routes keep their explicit password policy; enrolling a key does not make those
 routes enforce MFA automatically.
 
@@ -611,6 +611,91 @@ same-origin JSON endpoints under server-owned phishing-resistant policy:
 Responses are `no-store`. Errors preserve an existing cookie and issue no bearer;
 begin and finish purposes cannot cross endpoints. Ticked's ordinary routes keep
 their explicit password-or-better minimum. Enrolling a factor alone does not
-change application policy. TOTP/backup proof, established factor management and
+change application policy. Established factor management and
 browser acceptance remain later delivery work. Synced/backup flags do not prove
 hardware storage, non-exportability or an assurance certification.
+
+## TOTP and Backup Proof
+
+`NewFallbackService(credentials, fallbackQueries, fallbackConfig, seedKeys)`
+requires mandatory typed storage and explicit seed keys. No optional store upgrade
+or caller proof callback exists. `FallbackConfig` requires printable issuer
+(1..128 ASCII bytes), uses shared `AuthenticatorConfig` admission bounds without
+requiring an RP, defaults to skew one and eight backups. `StrictStep` selects
+zero skew; `BackupCodes` accepts 1..10. `SeedKeys` supplies one active identity and
+1..8 identities of exactly 32 bytes, copied at construction. Identities are
+printable ASCII, 1..64 bytes. Retain decryption keys while their records remain.
+
+Seeds are AES-256-GCM encrypted at rest in a versioned nonce/ciphertext envelope.
+Associated data binds purpose/version, subject, factor and key identity. Changing
+any binding or missing the referenced key fails closed. Seed material never
+enters user/session snapshots. `BeginTOTPSetup(ctx, email, password, requirement)`
+returns an immediate provisioning URL and restricted token only after actual
+password verification and initial-factor admission. Confirmation with
+`ConfirmTOTPSetup` checks an actual code, inserts the factor with the matched step
+already consumed, advances `AuthVersion`, and deletes all sessions and pending
+records atomically. It issues no access. Existing-factor changes use separate
+management flows.
+
+`BeginFallbackAuthentication(ctx, email, password, method, requirement)` captures
+actual password time, current subject version and one owned TOTP factor or backup
+set. `BeginFallbackStepUp(ctx, actorToken, password, method, requirement)` also
+captures actor ID/digest/generation. `FallbackTOTP` and `FallbackBackup` are trusted
+server selections. A phishing-resistant requirement fails before password work.
+`FinishFallback(ctx, pendingToken, code, requirement)` durably reserves attempts
+and lease before cryptography. The final transaction rechecks current policy,
+subject, factor/replay state, pending/actor snapshot and post-lock time, then
+consumes step/code and pending with session insertion or rotation. Equality at
+expiry, proof age or lease is expired. Operating failure returns no bearer and
+rolls back completion; admitted attempts remain spent.
+
+`totpset1.`, `fallback1.` and `fallstep1.` have separate purposes and digest domains.
+All use the same bounded pending collection and durable subject factor budget as
+WebAuthn. Reissuing or canceling a pending operation cannot reset that budget.
+TOTP uses SHA-1, six digits, 30-second steps and at most one adjacent step. Accepted
+steps strictly increase; routine replay updates preserve security revision.
+Backup format is exactly 67 ASCII bytes: `backup1.<UUID>.<22-character Base64url>`.
+Whitespace, case changes, padding, alternate encodings and malformed IDs reject
+before KDF. Subject/ID lookup selects one verifier; it does not scan a set.
+Each code has an independent 16-byte salt and full bounded PHC Argon2id verifier,
+bound to purpose/subject/ID/secret, using the credential service's shared engine.
+
+Closed `PasswordTOTPProof` and `PasswordBackupProof` store oldest constituent time
+in `VerifiedAt` (actual password) and actual factor time in `FactorAt`, plus
+factor/set ID and security revision. They satisfy password-or-better and MFA,
+never phishing-resistant MFA. Activity and password-only reauthentication cannot
+renew factor authority. Backup proof binds the active set, so consuming a code
+does not invalidate its own completed session; replacing the set does.
+
+`IssueBackupCodes(ctx, actorToken, managementRequirement)` requires actual recent
+MFA or phishing-resistant MFA, with nonzero age at most configured recent age.
+Use phishing-resistant management by default; MFA is an explicit application
+policy for allowed TOTP-only profiles. Password-only and backup-code actors cannot
+replace a set. Reservation durably charges the shared budget before hashing.
+Replacing the finite set, advancing account version, revoking all sessions/pending,
+and retaining one generation-rotated actor commit together. Retained proof times
+and session expiry remain unchanged. Codes return once after commit; no replay
+cache or stored plaintext exists.
+
+Apply `006-fallback-proof.sql` after migration 005. Ticked enables routes only
+with both `TICKED_TOTP_KEY_ID` and canonical standard-Base64 `TICKED_TOTP_KEY`
+encoding 32 externally supplied key bytes. Both absent disables these routes;
+partial/invalid configuration fails startup. Never commit keys. Ticked explicitly
+allows MFA fallback access under its ordinary policy revision; backup management
+keeps recent phishing-resistant policy.
+
+| Endpoint | Input / result |
+| --- | --- |
+| `POST /authenticators/totp/setup/begin` | JSON email/password; token and immediate provisioning URL, no cookie |
+| `POST /authenticators/totp/setup/finish` | JSON code, `X-Fallback-Token: totpset1.…`; confirmed metadata, clears cookie |
+| `POST /authenticators/{totp,backup}/authentication/begin` | JSON email/password; restricted token only |
+| `POST /authenticators/{totp,backup}/step-up/begin` | JSON password and actor cookie; restricted bound token |
+| `POST /authenticators/fallback/authentication/finish` | JSON code, `X-Fallback-Token: fallback1.…`; sets committed session cookie |
+| `POST /authenticators/fallback/step-up/finish` | JSON code, `X-Fallback-Token: fallstep1.…`; replaces committed cookie |
+| `POST /authenticators/backup/issue` | Empty JSON and recent authorized cookie; codes once and rotated cookie |
+| `GET /authenticators/mfa` | Current cookie; safe metadata only when recent MFA satisfies policy |
+
+JSON bodies are at most 64 KiB, password at most 4096 bytes, email at most 254,
+and code at most 128; unknown fields and trailing JSON reject. Every response is
+`no-store`; pending purposes cannot cross finish routes. Failed completion preserves
+cookies. Ordinary session parsing rejects every pending/code wire format.

@@ -87,7 +87,7 @@ func (q *Queries) ConfirmAuthenticator(ctx context.Context, arg ConfirmAuthentic
 }
 
 const countAuthenticators = `-- name: CountAuthenticators :one
-SELECT COUNT(*) FROM authenticators WHERE user_id = $1
+SELECT ((SELECT COUNT(*) FROM authenticators a WHERE a.user_id = $1) + (SELECT COUNT(*) FROM totp_authenticators t WHERE t.user_id = $1))::bigint AS count
 `
 
 func (q *Queries) CountAuthenticators(ctx context.Context, userID string) (int64, error) {
@@ -115,19 +115,19 @@ VALUES ($1,1,1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
 `
 
 type CreateEnrollmentParams struct {
-	Digest         []byte       `json:"digest"`
-	UserID         string       `json:"user_id"`
-	AuthVersion    int64        `json:"auth_version"`
-	RpID           string       `json:"rp_id"`
-	UserHandle     []byte       `json:"user_handle"`
-	CeremonyData   []byte       `json:"ceremony_data"`
-	RequiredProof  int16        `json:"required_proof"`
-	PolicyRevision string       `json:"policy_revision"`
-	MaxAgeUs       int64        `json:"max_age_us"`
-	PasswordAt     sql.NullTime `json:"password_at"`
-	CreatedAt      time.Time    `json:"created_at"`
-	ExpiresAt      time.Time    `json:"expires_at"`
-	RpBinding      []byte       `json:"rp_binding"`
+	Digest         []byte         `json:"digest"`
+	UserID         string         `json:"user_id"`
+	AuthVersion    int64          `json:"auth_version"`
+	RpID           sql.NullString `json:"rp_id"`
+	UserHandle     []byte         `json:"user_handle"`
+	CeremonyData   []byte         `json:"ceremony_data"`
+	RequiredProof  int16          `json:"required_proof"`
+	PolicyRevision string         `json:"policy_revision"`
+	MaxAgeUs       int64          `json:"max_age_us"`
+	PasswordAt     sql.NullTime   `json:"password_at"`
+	CreatedAt      time.Time      `json:"created_at"`
+	ExpiresAt      time.Time      `json:"expires_at"`
+	RpBinding      []byte         `json:"rp_binding"`
 }
 
 func (q *Queries) CreateEnrollment(ctx context.Context, arg CreateEnrollmentParams) error {

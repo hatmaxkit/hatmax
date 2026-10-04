@@ -8,7 +8,7 @@ INSERT INTO webauthn_subjects(user_id,rp_id,handle) VALUES ($1,$2,$3)
 ON CONFLICT (user_id,rp_id) DO UPDATE SET rp_id = EXCLUDED.rp_id RETURNING handle;
 
 -- name: CountAuthenticators :one
-SELECT COUNT(*) FROM authenticators WHERE user_id = $1;
+SELECT ((SELECT COUNT(*) FROM authenticators a WHERE a.user_id = $1) + (SELECT COUNT(*) FROM totp_authenticators t WHERE t.user_id = $1))::bigint AS count;
 
 -- name: CreateEnrollment :exec
 INSERT INTO auth_pending(digest,purpose,record_version,user_id,auth_version,rp_id,user_handle,ceremony_data,

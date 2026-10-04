@@ -22,28 +22,28 @@ type AuthFactorBudget struct {
 }
 
 type AuthPending struct {
-	Digest          []byte       `json:"digest"`
-	Purpose         int16        `json:"purpose"`
-	RecordVersion   int16        `json:"record_version"`
-	UserID          string       `json:"user_id"`
-	AuthVersion     int64        `json:"auth_version"`
-	RpID            string       `json:"rp_id"`
-	UserHandle      []byte       `json:"user_handle"`
-	RpBinding       []byte       `json:"rp_binding"`
-	CeremonyData    []byte       `json:"ceremony_data"`
-	RequiredProof   int16        `json:"required_proof"`
-	PolicyRevision  string       `json:"policy_revision"`
-	MaxAgeUs        int64        `json:"max_age_us"`
-	PasswordAt      sql.NullTime `json:"password_at"`
-	CreatedAt       time.Time    `json:"created_at"`
-	ExpiresAt       time.Time    `json:"expires_at"`
-	Attempts        int32        `json:"attempts"`
-	Revision        int64        `json:"revision"`
-	LeaseUntil      sql.NullTime `json:"lease_until"`
-	FactorBindings  []byte       `json:"factor_bindings"`
-	ActorID         string       `json:"actor_id"`
-	ActorDigest     []byte       `json:"actor_digest"`
-	ActorGeneration int64        `json:"actor_generation"`
+	Digest          []byte         `json:"digest"`
+	Purpose         int16          `json:"purpose"`
+	RecordVersion   int16          `json:"record_version"`
+	UserID          string         `json:"user_id"`
+	AuthVersion     int64          `json:"auth_version"`
+	RpID            sql.NullString `json:"rp_id"`
+	UserHandle      []byte         `json:"user_handle"`
+	RpBinding       []byte         `json:"rp_binding"`
+	CeremonyData    []byte         `json:"ceremony_data"`
+	RequiredProof   int16          `json:"required_proof"`
+	PolicyRevision  string         `json:"policy_revision"`
+	MaxAgeUs        int64          `json:"max_age_us"`
+	PasswordAt      sql.NullTime   `json:"password_at"`
+	CreatedAt       time.Time      `json:"created_at"`
+	ExpiresAt       time.Time      `json:"expires_at"`
+	Attempts        int32          `json:"attempts"`
+	Revision        int64          `json:"revision"`
+	LeaseUntil      sql.NullTime   `json:"lease_until"`
+	FactorBindings  []byte         `json:"factor_bindings"`
+	ActorID         string         `json:"actor_id"`
+	ActorDigest     []byte         `json:"actor_digest"`
+	ActorGeneration int64          `json:"actor_generation"`
 }
 
 type Authenticator struct {
@@ -64,22 +64,30 @@ type Authenticator struct {
 	ReplayRevision int64     `json:"replay_revision"`
 }
 
+type BackupSet struct {
+	ID        string    `json:"id"`
+	UserID    string    `json:"user_id"`
+	Revision  int64     `json:"revision"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type Session struct {
-	ID                  string    `json:"id"`
-	UserID              string    `json:"user_id"`
-	TokenDigest         []byte    `json:"token_digest"`
-	AuthVersion         int64     `json:"auth_version"`
-	PolicyRevision      string    `json:"policy_revision"`
-	Generation          int64     `json:"generation"`
-	ProofMethod         int16     `json:"proof_method"`
-	ProofVerifiedAt     time.Time `json:"proof_verified_at"`
-	AuthenticatedAt     time.Time `json:"authenticated_at"`
-	CreatedAt           time.Time `json:"created_at"`
-	LastActivityAt      time.Time `json:"last_activity_at"`
-	ExpiresAt           time.Time `json:"expires_at"`
-	InactivityUs        int64     `json:"inactivity_us"`
-	ProofFactorID       string    `json:"proof_factor_id"`
-	ProofFactorRevision int64     `json:"proof_factor_revision"`
+	ID                  string       `json:"id"`
+	UserID              string       `json:"user_id"`
+	TokenDigest         []byte       `json:"token_digest"`
+	AuthVersion         int64        `json:"auth_version"`
+	PolicyRevision      string       `json:"policy_revision"`
+	Generation          int64        `json:"generation"`
+	ProofMethod         int16        `json:"proof_method"`
+	ProofVerifiedAt     time.Time    `json:"proof_verified_at"`
+	AuthenticatedAt     time.Time    `json:"authenticated_at"`
+	CreatedAt           time.Time    `json:"created_at"`
+	LastActivityAt      time.Time    `json:"last_activity_at"`
+	ExpiresAt           time.Time    `json:"expires_at"`
+	InactivityUs        int64        `json:"inactivity_us"`
+	ProofFactorID       string       `json:"proof_factor_id"`
+	ProofFactorRevision int64        `json:"proof_factor_revision"`
+	ProofFactorAt       sql.NullTime `json:"proof_factor_at"`
 }
 
 type TodoItem struct {
@@ -96,6 +104,18 @@ type TodoList struct {
 	UserID    string    `json:"user_id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type TotpAuthenticator struct {
+	ID             string    `json:"id"`
+	UserID         string    `json:"user_id"`
+	RecordVersion  int16     `json:"record_version"`
+	KeyID          string    `json:"key_id"`
+	Envelope       []byte    `json:"envelope"`
+	AcceptedStep   int64     `json:"accepted_step"`
+	Revision       int64     `json:"revision"`
+	ReplayRevision int64     `json:"replay_revision"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 
 type User struct {

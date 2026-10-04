@@ -12,6 +12,7 @@ package dal
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
@@ -77,23 +78,23 @@ VALUES ($1,$2,1,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
 `
 
 type CreateAssertionParams struct {
-	Digest          []byte    `json:"digest"`
-	Purpose         int16     `json:"purpose"`
-	UserID          string    `json:"user_id"`
-	AuthVersion     int64     `json:"auth_version"`
-	RpID            string    `json:"rp_id"`
-	UserHandle      []byte    `json:"user_handle"`
-	RpBinding       []byte    `json:"rp_binding"`
-	CeremonyData    []byte    `json:"ceremony_data"`
-	RequiredProof   int16     `json:"required_proof"`
-	PolicyRevision  string    `json:"policy_revision"`
-	MaxAgeUs        int64     `json:"max_age_us"`
-	CreatedAt       time.Time `json:"created_at"`
-	ExpiresAt       time.Time `json:"expires_at"`
-	FactorBindings  []byte    `json:"factor_bindings"`
-	ActorID         string    `json:"actor_id"`
-	ActorDigest     []byte    `json:"actor_digest"`
-	ActorGeneration int64     `json:"actor_generation"`
+	Digest          []byte         `json:"digest"`
+	Purpose         int16          `json:"purpose"`
+	UserID          string         `json:"user_id"`
+	AuthVersion     int64          `json:"auth_version"`
+	RpID            sql.NullString `json:"rp_id"`
+	UserHandle      []byte         `json:"user_handle"`
+	RpBinding       []byte         `json:"rp_binding"`
+	CeremonyData    []byte         `json:"ceremony_data"`
+	RequiredProof   int16          `json:"required_proof"`
+	PolicyRevision  string         `json:"policy_revision"`
+	MaxAgeUs        int64          `json:"max_age_us"`
+	CreatedAt       time.Time      `json:"created_at"`
+	ExpiresAt       time.Time      `json:"expires_at"`
+	FactorBindings  []byte         `json:"factor_bindings"`
+	ActorID         string         `json:"actor_id"`
+	ActorDigest     []byte         `json:"actor_digest"`
+	ActorGeneration int64          `json:"actor_generation"`
 }
 
 func (q *Queries) CreateAssertion(ctx context.Context, arg CreateAssertionParams) error {

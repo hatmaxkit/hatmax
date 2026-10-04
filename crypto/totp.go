@@ -7,21 +7,13 @@ package crypto
 
 import (
 	"bytes"
-	"crypto/subtle"
-	"encoding/base32"
+	"errors"
 	"fmt"
 	"image/png"
-	"strings"
 	"time"
 
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
-	"golang.org/x/crypto/argon2"
-)
-
-const (
-	backupCodeLength = 8
-	backupCodeBytes  = 6
 )
 
 // GenerateTOTPKey creates a new TOTP key for the given issuer and account.
@@ -35,23 +27,50 @@ func GenerateTOTPKey(issuer, account string) (*otp.Key, error) {
 	})
 }
 
-// ValidateTOTPCode validates a TOTP code against the secret.
-func ValidateTOTPCode(secret, code string) bool {
-	return totp.Validate(code, secret)
+// MatchTOTPCode returns a trusted-time matched integer step, preferring the
+// current step. Shape is canonical six ASCII digits; skew is bounded to one.
+func MatchTOTPCode(secret, code string, now time.Time, skew uint) (int64, error) {
+	if len(secret) != 32 || len(code) != 6 || skew > 1 || now.Unix() < 30 {
+		return 0, ErrTOTPCode
+	}
+
+	for i := range len(code) {
+		if code[i] < '0' || code[i] > '9' {
+			return 0, ErrTOTPCode
+		}
+	}
+
+	step := now.Unix() / 30
+
+	offsets := []int64{0}
+	if skew == 1 {
+		offsets = append(offsets, -1, 1)
+	}
+
+	for _, offset := range offsets {
+		candidate := step + offset
+
+		valid, err := totp.ValidateCustom(code, secret, time.Unix(candidate*30, 0), totp.ValidateOpts{Period: 30, Skew: 0, Digits: otp.DigitsSix, Algorithm: otp.AlgorithmSHA1})
+		if err != nil {
+			return 0, ErrTOTPCode
+		}
+
+		if valid {
+			return candidate, nil
+		}
+	}
+
+	return 0, ErrTOTPCode
 }
 
-// ValidateTOTPCodeWithSkew validates a TOTP code allowing for time skew.
-// skew is the number of periods before/after to allow (e.g., 1 allows +-30 seconds).
-func ValidateTOTPCodeWithSkew(secret, code string, skew uint) bool {
-	valid, _ := totp.ValidateCustom(code, secret, time.Now(), totp.ValidateOpts{
-		Period:    30,
-		Skew:      skew,
-		Digits:    otp.DigitsSix,
-		Algorithm: otp.AlgorithmSHA1,
-	})
+// TOTPInWindow is also evaluated with fresh post-lock time at completion.
+func TOTPInWindow(step int64, now time.Time, skew uint) bool {
+	current := now.Unix() / 30
 
-	return valid
+	return skew <= 1 && step >= 1 && step >= current-int64(skew) && step <= current+int64(skew)
 }
+
+var ErrTOTPCode = errors.New("invalid TOTP code")
 
 // GenerateQRCodePNG generates a PNG image of the QR code for the TOTP key.
 func GenerateQRCodePNG(key *otp.Key, size int) ([]byte, error) {
@@ -68,56 +87,4 @@ func GenerateQRCodePNG(key *otp.Key, size int) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
-}
-
-// GenerateBackupCodes generates a set of one-time backup codes.
-// Returns plain text codes for display and hashed codes for storage.
-func GenerateBackupCodes(count int) (plain, hashed []string, err error) {
-	if count <= 0 {
-		count = 8
-	}
-
-	plain = make([]string, count)
-	hashed = make([]string, count)
-
-	for i := 0; i < count; i++ {
-		codeBytes := make([]byte, backupCodeBytes)
-
-		readErr := fillRandom(codeBytes)
-		if readErr != nil {
-			return nil, nil, fmt.Errorf("cannot generate backup code: %w", readErr)
-		}
-
-		code := strings.ToUpper(base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(codeBytes))
-		if len(code) > backupCodeLength {
-			code = code[:backupCodeLength]
-		}
-
-		plain[i] = code
-		hashed[i] = hashBackupCode(code)
-	}
-
-	return plain, hashed, nil
-}
-
-// VerifyBackupCode checks if a code matches any of the hashed backup codes.
-// Returns true if valid and the index of the matched code, -1 otherwise.
-func VerifyBackupCode(code string, hashedCodes []string) (bool, int) {
-	code = strings.ToUpper(strings.TrimSpace(code))
-	codeHash := hashBackupCode(code)
-
-	for i, h := range hashedCodes {
-		if subtle.ConstantTimeCompare([]byte(codeHash), []byte(h)) == 1 {
-			return true, i
-		}
-	}
-
-	return false, -1
-}
-
-func hashBackupCode(code string) string {
-	salt := []byte("hatmax-backup-code-salt")
-	hash := argon2.IDKey([]byte(code), salt, argonTime, argonMemory, argonThreads, argonKeyLength)
-
-	return base32.StdEncoding.EncodeToString(hash)
 }

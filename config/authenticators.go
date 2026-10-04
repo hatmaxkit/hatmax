@@ -66,6 +66,29 @@ func (c AuthenticatorConfig) EnrollmentSettings() (EnrollmentSettings, error) {
 		seen[origin] = true
 	}
 
+	var err error
+
+	s, err = c.factorSettings(s)
+	if err != nil {
+		return s, err
+	}
+
+	encoded, err := json.Marshal(struct {
+		RPID    string
+		Origins []string
+		Profile string
+	}{s.RPID, s.Origins, "ES256/RK/UV/none/v1"})
+	if err != nil {
+		return s, err
+	}
+
+	s.RPBinding = sha256.Sum256(encoded)
+
+	return s, nil
+}
+
+// factorSettings validates shared admission bounds without imposing an RP on OTP.
+func (c AuthenticatorConfig) factorSettings(s EnrollmentSettings) (EnrollmentSettings, error) {
 	durations := []struct {
 		input              string
 		target             *time.Duration
@@ -121,17 +144,6 @@ func (c AuthenticatorConfig) EnrollmentSettings() (EnrollmentSettings, error) {
 
 		*l.target = value
 	}
-
-	encoded, err := json.Marshal(struct {
-		RPID    string
-		Origins []string
-		Profile string
-	}{s.RPID, s.Origins, "ES256/RK/UV/none/v1"})
-	if err != nil {
-		return s, err
-	}
-
-	s.RPBinding = sha256.Sum256(encoded)
 
 	return s, nil
 }

@@ -34,8 +34,8 @@ SET active = $2, updated_at = $3, auth_version = auth_version + 1
 WHERE id = $1;
 
 -- name: CreateSession :one
-INSERT INTO sessions (id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, proof_factor_id, proof_factor_revision, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+INSERT INTO sessions (id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, proof_factor_id, proof_factor_revision, proof_factor_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
 RETURNING *;
 
 -- name: GetSessionByDigest :one
@@ -82,7 +82,7 @@ DELETE FROM sessions WHERE user_id = $1;
 
 -- name: RotateSession :one
 UPDATE sessions SET token_digest = sqlc.arg(new_digest), generation = generation + 1,
-    policy_revision = sqlc.arg(policy_revision), proof_method = sqlc.arg(proof_method), proof_verified_at = sqlc.arg(proof_verified_at), proof_factor_id = sqlc.arg(proof_factor_id), proof_factor_revision = sqlc.arg(proof_factor_revision),
+    policy_revision = sqlc.arg(policy_revision), proof_method = sqlc.arg(proof_method), proof_verified_at = sqlc.arg(proof_verified_at), proof_factor_id = sqlc.arg(proof_factor_id), proof_factor_revision = sqlc.arg(proof_factor_revision), proof_factor_at = sqlc.narg(proof_factor_at),
     authenticated_at = sqlc.arg(authenticated_at), last_activity_at = sqlc.arg(last_activity_at), expires_at = sqlc.arg(expires_at), inactivity_us = sqlc.arg(inactivity_us)
 WHERE token_digest = sqlc.arg(old_digest) AND generation = sqlc.arg(expected_generation)
 RETURNING *;

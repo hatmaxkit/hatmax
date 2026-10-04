@@ -245,3 +245,14 @@ The constructor validates `pending_ttl`, `recent_proof_age`, `timeout`, `lease`,
 finite defaults; malformed or out-of-range values fail construction. A lease
 shorter than the total operation timeout fails. No request-header fallback exists.
 See [enrollment bounds](../authentication/README.md#restricted-webauthn-enrollment).
+
+### Fallback constructor settings
+
+`config.FallbackConfig` is explicit constructor configuration, separate from RP
+identity. Supply `Issuer`, optional `StrictStep`, optional `BackupCodes` (default
+8, range 1..10), and `Limits` using the same finite authenticator admission values.
+`Settings()` validates these without requiring RP/origins. Seed key identities and
+32-byte key material are explicit `auth.SeedKeys` dependencies, never defaults in
+`Config`. Ticked opts in with `TICKED_TOTP_KEY_ID` and `TICKED_TOTP_KEY` (canonical
+standard Base64); both absent leaves fallback routes disabled, partial/invalid
+values fail startup. See the [fallback contract](../authentication/README.md#totp-and-backup-proof).

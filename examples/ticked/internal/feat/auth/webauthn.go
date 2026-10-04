@@ -71,7 +71,7 @@ func (q *Queries) LoadWebAuthnSubject(ctx context.Context, state core.Credential
 }
 
 func assertionSnapshot(row dal.AuthPending) (core.AssertionPending, error) {
-	p := core.AssertionPending{Purpose: core.AssertionPurpose(row.Purpose), State: core.CredentialState{UserID: row.UserID, Version: row.AuthVersion}, RPID: row.RpID, Handle: row.UserHandle, Ceremony: row.CeremonyData, Requirement: core.AccessRequirement{Proof: core.RequiredProof(row.RequiredProof), Revision: row.PolicyRevision, MaxAge: time.Duration(row.MaxAgeUs) * time.Microsecond}, ActorID: row.ActorID, ActorGeneration: row.ActorGeneration, CreatedAt: row.CreatedAt, ExpiresAt: row.ExpiresAt, Attempts: int(row.Attempts), Revision: row.Revision}
+	p := core.AssertionPending{Purpose: core.AssertionPurpose(row.Purpose), State: core.CredentialState{UserID: row.UserID, Version: row.AuthVersion}, RPID: row.RpID.String, Handle: row.UserHandle, Ceremony: row.CeremonyData, Requirement: core.AccessRequirement{Proof: core.RequiredProof(row.RequiredProof), Revision: row.PolicyRevision, MaxAge: time.Duration(row.MaxAgeUs) * time.Microsecond}, ActorID: row.ActorID, ActorGeneration: row.ActorGeneration, CreatedAt: row.CreatedAt, ExpiresAt: row.ExpiresAt, Attempts: int(row.Attempts), Revision: row.Revision}
 	if len(row.Digest) != 32 || len(row.RpBinding) != 32 || len(row.FactorBindings) == 0 || len(row.FactorBindings) > 4096 || row.PasswordAt.Valid {
 		return p, core.ErrWebAuthn
 	}
@@ -207,7 +207,7 @@ func (q *Queries) CreateAssertion(ctx context.Context, p core.AssertionPending, 
 		digest = []byte{}
 	}
 
-	err = queries.CreateAssertion(ctx, dal.CreateAssertionParams{Digest: p.Digest[:], Purpose: int16(p.Purpose), UserID: p.State.UserID, AuthVersion: p.State.Version, RpID: p.RPID, UserHandle: p.Handle, RpBinding: p.RPBinding[:], CeremonyData: p.Ceremony, RequiredProof: int16(p.Requirement.Proof), PolicyRevision: p.Requirement.Revision, MaxAgeUs: p.Requirement.MaxAge.Microseconds(), CreatedAt: p.CreatedAt, ExpiresAt: p.ExpiresAt, FactorBindings: bindings, ActorID: p.ActorID, ActorDigest: digest, ActorGeneration: p.ActorGeneration})
+	err = queries.CreateAssertion(ctx, dal.CreateAssertionParams{Digest: p.Digest[:], Purpose: int16(p.Purpose), UserID: p.State.UserID, AuthVersion: p.State.Version, RpID: sql.NullString{String: p.RPID, Valid: true}, UserHandle: p.Handle, RpBinding: p.RPBinding[:], CeremonyData: p.Ceremony, RequiredProof: int16(p.Requirement.Proof), PolicyRevision: p.Requirement.Revision, MaxAgeUs: p.Requirement.MaxAge.Microseconds(), CreatedAt: p.CreatedAt, ExpiresAt: p.ExpiresAt, FactorBindings: bindings, ActorID: p.ActorID, ActorDigest: digest, ActorGeneration: p.ActorGeneration})
 	if err != nil {
 		return err
 	}
@@ -332,6 +332,24 @@ func validateProofFactor(ctx context.Context, queries *dal.Queries, session core
 		return nil
 	}
 
+	if session.Proof.Method == core.PasswordTOTPProof {
+		row, err := queries.LockTOTP(ctx, session.UserID)
+		if err != nil || row.ID != session.Proof.FactorID || row.Revision != session.Proof.FactorRevision || row.RecordVersion != 1 {
+			return core.ErrSessionProof
+		}
+
+		return nil
+	}
+
+	if session.Proof.Method == core.PasswordBackupProof {
+		row, err := queries.LockBackupSet(ctx, session.UserID)
+		if err != nil || row.ID != session.Proof.FactorID || row.Revision != session.Proof.FactorRevision {
+			return core.ErrSessionProof
+		}
+
+		return nil
+	}
+
 	row, err := queries.LockAuthenticator(ctx, session.Proof.FactorID)
 	if err != nil || row.UserID != session.UserID || row.Revision != session.Proof.FactorRevision || row.Kind != 1 || row.RecordVersion != 1 || !row.UserVerified {
 		return core.ErrSessionProof
@@ -406,6 +424,13 @@ func (q *Queries) CompleteAssertion(ctx context.Context, reserved core.Assertion
 		}
 	}
 
+	if actor != nil {
+		err = validateProofFactor(ctx, queries, *actor)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	now, err := queries.SessionClock(ctx)
 	if err != nil {
 		return nil, err
@@ -467,8 +492,8 @@ func (q *Queries) CompleteAssertion(ctx context.Context, reserved core.Assertion
 }
 
 func sessionInsert(s core.SessionRecord) dal.CreateSessionParams {
-	return dal.CreateSessionParams{ID: s.ID, UserID: s.UserID, TokenDigest: s.Digest[:], AuthVersion: s.AuthVersion, PolicyRevision: s.PolicyRevision, Generation: s.Generation, ProofMethod: int16(s.Proof.Method), ProofVerifiedAt: s.Proof.VerifiedAt, ProofFactorID: s.Proof.FactorID, ProofFactorRevision: s.Proof.FactorRevision, AuthenticatedAt: s.AuthenticatedAt, CreatedAt: s.CreatedAt, LastActivityAt: s.LastActivityAt, ExpiresAt: s.ExpiresAt, InactivityUs: s.InactivityTTL.Microseconds()}
+	return dal.CreateSessionParams{ID: s.ID, UserID: s.UserID, TokenDigest: s.Digest[:], AuthVersion: s.AuthVersion, PolicyRevision: s.PolicyRevision, Generation: s.Generation, ProofMethod: int16(s.Proof.Method), ProofVerifiedAt: s.Proof.VerifiedAt, ProofFactorID: s.Proof.FactorID, ProofFactorRevision: s.Proof.FactorRevision, ProofFactorAt: sql.NullTime{Time: s.Proof.FactorAt, Valid: !s.Proof.FactorAt.IsZero()}, AuthenticatedAt: s.AuthenticatedAt, CreatedAt: s.CreatedAt, LastActivityAt: s.LastActivityAt, ExpiresAt: s.ExpiresAt, InactivityUs: s.InactivityTTL.Microseconds()}
 }
 func sessionRotation(s core.SessionRecord, old core.SessionDigest, generation int64) dal.RotateSessionParams {
-	return dal.RotateSessionParams{OldDigest: old[:], ExpectedGeneration: generation, NewDigest: s.Digest[:], PolicyRevision: s.PolicyRevision, ProofMethod: int16(s.Proof.Method), ProofVerifiedAt: s.Proof.VerifiedAt, ProofFactorID: s.Proof.FactorID, ProofFactorRevision: s.Proof.FactorRevision, AuthenticatedAt: s.AuthenticatedAt, LastActivityAt: s.LastActivityAt, ExpiresAt: s.ExpiresAt, InactivityUs: s.InactivityTTL.Microseconds()}
+	return dal.RotateSessionParams{OldDigest: old[:], ExpectedGeneration: generation, NewDigest: s.Digest[:], PolicyRevision: s.PolicyRevision, ProofMethod: int16(s.Proof.Method), ProofVerifiedAt: s.Proof.VerifiedAt, ProofFactorID: s.Proof.FactorID, ProofFactorRevision: s.Proof.FactorRevision, ProofFactorAt: sql.NullTime{Time: s.Proof.FactorAt, Valid: !s.Proof.FactorAt.IsZero()}, AuthenticatedAt: s.AuthenticatedAt, LastActivityAt: s.LastActivityAt, ExpiresAt: s.ExpiresAt, InactivityUs: s.InactivityTTL.Microseconds()}
 }

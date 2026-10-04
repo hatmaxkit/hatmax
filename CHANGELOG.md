@@ -20,7 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   verification, sign in with verified user presence and verification, and step
   up a live session for phishing-resistant access. Setup invalidates previous
   sessions; successful step-up replaces the old bearer. Ticked provides bounded
-  JSON endpoints with trusted RP/origin configuration.
+  JSON endpoints with trusted RP/origin configuration. Applications can also
+  complete MFA with actual password/TOTP or one-use backup codes. TOTP seeds use
+  application-owned encryption keys; backup sets require recent management
+  proof and codes are shown once. These methods do not satisfy phishing-resistant
+  access.
 
 - Scheduled jobs now retry handler failures within a configured total attempt
   limit and fixed delay. PostgreSQL retry waits survive restarts without resetting
@@ -44,8 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Password reauthentication now rotates the bearer atomically, and recent-proof
   management lists and revokes own sessions. New admission is bounded per user
   without evicting live sessions. Invalid session configuration fails construction. Sign-in and validation
-  require explicit server proof policy and revision. Only password proof is
-  currently supported; unmet MFA requirements return non-authorizing outcomes,
+  require explicit server proof policy and revision. Password-only verification cannot satisfy MFA; unmet requirements return non-authorizing outcomes,
   and policy changes or stale proof reject access before activity is renewed.
 
 - Authentication now checks complete NFC-normalized passwords before signup and

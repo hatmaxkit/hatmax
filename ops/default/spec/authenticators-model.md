@@ -232,3 +232,56 @@ Real PostgreSQL: `go test -race -tags=integration
 ./examples/ticked/internal/feat/auth
 -run '^Test(WebAuthnTransactions|EnrollmentTransactions|CredentialTransactions|ProofTransactions|SessionTransactions|ControlTransactions)$'
 -count=1 -timeout=120s`; missing `DB_HOST` fails. Browser evidence remains Slice 5.
+
+## Slice 3 Concrete Binding
+
+`NewFallbackService` requires the credential service, a mandatory `FallbackQueries`
+adapter, finite `config.FallbackConfig`, and an owned seed key ring (one active
+identity, at most eight 32-byte keys). AES-256-GCM envelopes contain a random
+12-byte nonce and bind purpose/version, subject, factor and key identity as AAD.
+No key is generated implicitly. Ticked enables fallback routes only when both
+`TICKED_TOTP_KEY_ID` and `TICKED_TOTP_KEY` are supplied; partial/invalid settings
+fail initialization. The latter is canonical standard Base64 of 32 key bytes.
+
+TOTP has one active record per subject in a separate typed table, counted together
+with WebAuthn under the shared subject lock. It uses six digits, SHA-1, 30-second
+steps and skew zero or one (default one). Verification returns the actual matched
+step, with current step preferred over adjacent steps. Completion checks that
+step against post-lock time and strictly advances accepted step/replay revision.
+Initial setup consumes its accepted step, advances account version, and revokes
+all sessions and pending records without issuing a session.
+
+Fallback purposes 4 (setup), 5 (sign-in), and 6 (step-up) use distinct `totpset1.`,
+`fallback1.` and `fallstep1.` prefixes/domains. They share `auth_pending`, its
+finite cap, expiry cleanup and durable subject budget. Their bounded ceremony
+payload contains captured method/factor bindings and encrypted setup material;
+RP columns are null/empty for these purposes. Password time is always captured
+from actual password verification. Step-up captures current actor digest,
+identity and generation. Reservation commits attempts/lease before OTP or code
+verification; final completion rechecks the exact snapshot and current factor.
+
+Closed session methods 3 and 4 represent password plus TOTP or backup code.
+`VerifiedAt` is the actual password time, the older constituent; `FactorAt` is
+actual factor verification/completion time. MFA accepts these methods, while
+phishing-resistant MFA accepts only UV WebAuthn. Routine accepted-step/code-use
+changes do not change security revision. Backup session proof binds the active
+set, so consuming its own code does not invalidate the newly completed session.
+
+Backup wire format is `backup1.<UUID identifier>.<22-character Base64url secret>`:
+128 random secret bits, exact canonical ASCII parsing, no case/space rewriting.
+Subject plus identifier selects one stored verifier before one KDF. Each verifier
+is an independently salted PHC Argon2id record using the credential service's
+bounded engine and input domain `hatmax/backup/v1` plus subject, ID and secret.
+Issue defaults to eight codes and admits one through ten. Recent management proof
+is server-owned MFA or phishing-resistant MFA (default), with at most configured
+recent-proof age. Password-only and backup-code actors cannot regenerate a set.
+Reservation charges the durable shared budget before hashing. Replacing the set,
+advancing account version, revoking sessions/pending and rotating the retained
+actor commit together. Plaintexts return once, only after that commit.
+
+Parser fuzz selector: `go test ./crypto -run '^$' -fuzz '^FuzzBackupCode$'
+-fuzztime=20s -parallel=2 -timeout=60s`, without KDF/database work.
+Real PostgreSQL selector: `go test -race -tags=integration
+./examples/ticked/internal/feat/auth
+-run '^Test(FallbackTransactions|WebAuthnTransactions|EnrollmentTransactions|CredentialTransactions|ProofTransactions|SessionTransactions|ControlTransactions)$'
+-count=1 -timeout=180s`; missing `DB_HOST` fails. Browser evidence remains Slice 5.

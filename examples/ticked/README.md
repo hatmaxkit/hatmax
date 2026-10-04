@@ -204,3 +204,15 @@ The screen lists safe metadata and revokes selected, other or all own sessions.
 Policy comes from server wiring, and account roles grant no cross-subject session
 management through these routes. New session admission is capped at 10 retained
 rows per subject; expired rows are reclaimed without evicting live sessions.
+
+### Authenticator fallback
+
+Optional TOTP/backup routes require externally supplied `TICKED_TOTP_KEY_ID` and
+`TICKED_TOTP_KEY` (canonical standard Base64 of 32 bytes). Both absent disables
+fallback routes; partial/invalid values fail startup. Never commit key material.
+Migration 006 stores encrypted seeds, accepted steps, salted code verifiers and
+composite proof. TOTP/backup completion requires an actual password and grants
+MFA, while `/authenticators/proof` still requires phishing-resistant proof.
+Backup issue keeps recent phishing-resistant management policy. Follow the
+[User Guide](../../docs/tutorials/user-guide/identity-and-sessions.md#sign-in-with-totp-or-a-backup-code)
+and [reference](../../docs/reference/authentication/README.md#totp-and-backup-proof).
