@@ -25,6 +25,7 @@ type Querier interface {
 	ConsumeBackupCode(ctx context.Context, arg ConsumeBackupCodeParams) (int64, error)
 	CountAuthenticators(ctx context.Context, userID string) (int64, error)
 	CountEnrollments(ctx context.Context, userID string) (int64, error)
+	CountFactorSetups(ctx context.Context, userID string) (int64, error)
 	CountSubjectSessions(ctx context.Context, userID string) (int64, error)
 	CountUsers(ctx context.Context) (int64, error)
 	CreateAssertion(ctx context.Context, arg CreateAssertionParams) error
@@ -73,6 +74,7 @@ type Querier interface {
 	LockBackupSet(ctx context.Context, userID string) (BackupSet, error)
 	LockEnrollment(ctx context.Context, digest []byte) (AuthPending, error)
 	LockFactorBudget(ctx context.Context, userID string) (AuthFactorBudget, error)
+	LockManagedAuthenticator(ctx context.Context, arg LockManagedAuthenticatorParams) (Authenticator, error)
 	LockSubjectSessions(ctx context.Context, userID string) ([]string, error)
 	// SPDX-FileCopyrightText: 2026 Adrian PK
 	// SPDX-License-Identifier: Apache-2.0
@@ -82,9 +84,16 @@ type Querier interface {
 	ReclaimSubjectEnrollments(ctx context.Context, userID string) (int64, error)
 	ReclaimSubjectSessions(ctx context.Context, userID string) (int64, error)
 	ReleaseEnrollment(ctx context.Context, arg ReleaseEnrollmentParams) error
+	RemoveTOTPFactor(ctx context.Context, arg RemoveTOTPFactorParams) (int64, error)
+	RemoveWebAuthnFactor(ctx context.Context, arg RemoveWebAuthnFactorParams) (int64, error)
 	ReplacePassword(ctx context.Context, arg ReplacePasswordParams) (User, error)
 	RevokeSubjectSessions(ctx context.Context, arg RevokeSubjectSessionsParams) (int64, error)
 	RotateSession(ctx context.Context, arg RotateSessionParams) (Session, error)
+	// SPDX-FileCopyrightText: 2026 Adrian PK
+	// SPDX-License-Identifier: Apache-2.0
+	//
+	// This file is part of Hatmax. See LICENSE for license terms.
+	SafeFactors(ctx context.Context, userID string) ([]SafeFactorsRow, error)
 	SessionClock(ctx context.Context) (time.Time, error)
 	SubjectAuthenticators(ctx context.Context, arg SubjectAuthenticatorsParams) ([]Authenticator, error)
 	UpdateSessionActivity(ctx context.Context, arg UpdateSessionActivityParams) (Session, error)

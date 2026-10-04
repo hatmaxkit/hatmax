@@ -285,3 +285,39 @@ Real PostgreSQL selector: `go test -race -tags=integration
 ./examples/ticked/internal/feat/auth
 -run '^Test(FallbackTransactions|WebAuthnTransactions|EnrollmentTransactions|CredentialTransactions|ProofTransactions|SessionTransactions|ControlTransactions)$'
 -count=1 -timeout=180s`; missing `DB_HOST` fails. Browser evidence remains Slice 5.
+
+## Slice 4 Concrete Binding
+
+`NewFactorService` requires the credential service, existing protocol service and
+mandatory `FactorQueries`. An explicitly supplied fallback service enables TOTP
+changes; nil disables those commands without changing the storage contract.
+`FactorPolicy` captures recent MFA/phishing-resistant management and the current
+usable-primary-factor profile. Password management and zero freshness are denied.
+Finite safe primary factor listings return ID/kind/security revision/time/backup
+flags only, at most twenty records. Backup regeneration uses the delivered
+one-set operation and returns codes only after committed actor rotation.
+
+Established changes use `change1.` tokens and SHA-256 domain
+`hatmax/pending/factor-change/v1`, purpose 7 in the shared bounded `auth_pending`
+collection. The versioned bounded payload captures exact actor/digest/generation,
+proof constituents/times, management/access policy, additional versus replacement
+target/kind/security revision, protocol configuration and actual ceremony or
+AEAD-encrypted TOTP setup. Existing initial-enrollment purposes remain unchanged.
+The current actor bearer is required again at finish. Initial finish, fallback
+finish, ordinary session parsing and cross-kind change finish reject this purpose.
+Reservations commit the existing pending/subject budget and lease before work.
+
+Actual registration/TOTP confirmation and optional target deletion commit with
+account-version advancement, all-session/pending revocation and a retained actor
+rotation. Retention preserves every proof time and lifecycle boundary and requires
+current policy and unremoved proof constituents. Removing/replacing the actor's
+factor revokes that actor and returns no bearer. The new factor must complete a
+real subsequent sign-in. Removal protects at least one primary factor and, under
+phishing-resistant access policy, at least one WebAuthn factor. Backup codes alone
+do not satisfy that primary-factor constraint. TOTP replacement may replace the
+one owned TOTP record; adding a second TOTP record is denied.
+
+All target locks include owner in lookup. Subject locking precedes pending/actor
+and factor locks; post-lock/post-write time, lease and oldest constituent age are
+rechecked. Storage failure rolls back activation/deletion/version/revocation/
+rotation, while already committed reservation attempts remain spent.

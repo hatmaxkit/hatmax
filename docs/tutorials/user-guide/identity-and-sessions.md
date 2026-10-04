@@ -235,3 +235,12 @@ proof satisfies MFA, and cannot regenerate its own set. See the
 [fallback reference](../../reference/authentication/README.md#totp-and-backup-proof)
 for bounds, freshness and storage requirements. Additional-factor/removal journeys
 and browser acceptance remain later delivery work.
+
+After actual recent stronger sign-in or step-up, Ticked's
+`/authenticators/manage` page can add, replace or remove your own authenticators.
+The example requires phishing-resistant management proof. It protects the last
+usable primary factor and signs you out when you remove or replace the factor
+used by the current session. A retained session receives a new cookie with the
+same proof age and expiry; other sessions and unfinished ceremonies are revoked.
+For TOTP-only profiles, trusted application code may explicitly allow recent MFA
+management to enroll a passkey. Request fields cannot change that policy.

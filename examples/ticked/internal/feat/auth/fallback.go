@@ -186,6 +186,15 @@ func (q *Queries) CreateFallback(ctx context.Context, p core.FallbackPending, se
 	}
 
 	if p.Purpose == core.FallbackSetup {
+		setups, err := queries.CountFactorSetups(ctx, p.State.UserID)
+		if err != nil {
+			return err
+		}
+
+		if setups >= int64(settings.MaxAuthenticators) {
+			return core.ErrEnrollmentCapacity
+		}
+
 		count, err := queries.CountAuthenticators(ctx, p.State.UserID)
 		if err != nil {
 			return err

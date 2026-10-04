@@ -241,3 +241,12 @@ state and pending with insertion/rotation. Set the cookie only from a committed
 
 See the [WebAuthn reference](../docs/reference/authentication/README.md#webauthn-authentication-and-step-up)
 for required storage, bounds, counter/backup semantics and Ticked endpoints.
+
+Established-factor management uses `FactorService` with mandatory `FactorQueries`
+and a trusted `FactorPolicy`. Safe finite listings, additional enrollment,
+replacement and removal recheck recent proof, exact ownership/revision and current
+usable-factor policy under the subject lock. `change1.` continuation tokens are
+separate from initial setup and sessions. Actual confirmation commits activation,
+version advancement, all-session/pending revocation and optional bearer rotation.
+The retained proof keeps its original times; removing its constituent revokes the
+actor. TOTP changes require an explicitly supplied fallback service/key ring.

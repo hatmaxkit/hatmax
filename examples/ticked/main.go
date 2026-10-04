@@ -122,6 +122,8 @@ func main() {
 		assertionHandler,
 	}
 
+	var fallbackSvc *auth.FallbackService
+
 	// Explicit application-owned encryption material enables fallback routes.
 	keyID, keyText := os.Getenv("TICKED_TOTP_KEY_ID"), os.Getenv("TICKED_TOTP_KEY")
 	if keyID != "" || keyText != "" {
@@ -131,7 +133,9 @@ func main() {
 			os.Exit(1)
 		}
 
-		fallbackSvc, initErr := auth.NewFallbackService(baseAuthSvc, authQueries, config.FallbackConfig{Limits: cfg.Authenticator, Issuer: "Ticked"}, auth.SeedKeys{Active: keyID, Keys: map[string][]byte{keyID: key}})
+		var initErr error
+
+		fallbackSvc, initErr = auth.NewFallbackService(baseAuthSvc, authQueries, config.FallbackConfig{Limits: cfg.Authenticator, Issuer: "Ticked"}, auth.SeedKeys{Active: keyID, Keys: map[string][]byte{keyID: key}})
 		clear(key)
 
 		if initErr != nil {
@@ -151,6 +155,20 @@ func main() {
 
 		deps = append(deps, fallbackHandler)
 	}
+
+	factorSvc, err := auth.NewFactorService(baseAuthSvc, authQueries, enrollmentSvc.AuthenticatorService, fallbackSvc)
+	if err != nil {
+		logger.Errorf("Cannot initialize factor management: %v", err)
+		os.Exit(1)
+	}
+
+	factorHandler, err := tickedweb.NewFactorHandler(factorSvc, auth.FactorPolicy{Management: strong, Access: auth.RequirePassword}, fallbackSvc != nil)
+	if err != nil {
+		logger.Errorf("Cannot initialize factor routes: %v", err)
+		os.Exit(1)
+	}
+
+	deps = append(deps, factorHandler)
 
 	starts, stops, registrars := app.Setup(ctx, router, deps...)
 

@@ -88,6 +88,15 @@ func (q *Queries) CreateEnrollment(ctx context.Context, p core.EnrollmentPending
 		return err
 	}
 
+	setups, err := queries.CountFactorSetups(ctx, p.State.UserID)
+	if err != nil {
+		return err
+	}
+
+	if setups >= int64(settings.MaxAuthenticators) {
+		return core.ErrEnrollmentCapacity
+	}
+
 	count, err := queries.CountEnrollments(ctx, p.State.UserID)
 	if err != nil {
 		return err

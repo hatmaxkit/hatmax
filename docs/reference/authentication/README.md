@@ -700,3 +700,38 @@ JSON bodies are at most 64 KiB, password at most 4096 bytes, email at most 254,
 and code at most 128; unknown fields, non-object bodies and trailing JSON reject. Every response is
 `no-store`; pending purposes cannot cross finish routes. Failed completion preserves
 cookies. Ordinary session parsing rejects every pending/code wire format.
+
+### Established authenticator changes
+
+`NewFactorService(credentials, queries, enrollment, fallback)` requires typed
+`FactorQueries` and the existing actual registration verifier. A nil fallback
+explicitly disables TOTP additions/replacements. `FactorPolicy` fixes recent
+management proof and current access requirements in trusted application code;
+use phishing-resistant MFA by default. An explicit MFA management profile can
+upgrade a TOTP-only account. Password-only proof never manages established factors.
+
+`List` returns at most twenty owned primary factors with kind, ID, security
+revision, creation time and verified backup flags. `FactorSelection` is lookup
+metadata; it supplies neither subject identity nor authorization. Zero selection
+means addition in `BeginWebAuthnChange`/`BeginTOTPChange`; a nonzero exact owned
+selection means replacement. `Remove` requires a nonzero current selection.
+
+Finish requires both the actor bearer and the restricted `change1.` token under
+the same server policy. This token never resolves as a session or initial setup.
+Actual registration/TOTP confirmation, replacement/removal, version advancement,
+all-session/pending revocation and optional actor rotation share one transaction.
+A retained actor keeps all actual proof times and expiry boundaries unchanged.
+Removing/replacing its proof constituent signs it out; no invalid proof survives.
+At least one primary authenticator must remain, and phishing-resistant access
+requires a remaining WebAuthn authenticator. Backup codes do not satisfy that
+primary-factor constraint. Recovery after loss belongs to a separate workflow.
+
+Ticked exposes `/authenticators/manage`, safe `/authenticators/factors` listing,
+and same-origin JSON `/authenticators/factors/remove`, `/webauthn/begin`,
+`/webauthn/finish`, `/totp/begin`, `/totp/finish` beneath the factors path.
+Commands accept only `target` (kind/ID/revision); TOTP finish accepts `code`.
+WebAuthn finish accepts the bounded real browser registration response. Finish
+uses `X-Factor-Change-Token`; only committed retained actors get a new cookie.
+TOTP routes require the explicitly configured key ring. Backup regeneration
+continues through `/authenticators/backup/issue` and displays codes once.
+Apply migration `007-factor-control.sql` together with the current typed adapter.

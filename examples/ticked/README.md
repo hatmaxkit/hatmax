@@ -216,3 +216,13 @@ MFA, while `/authenticators/proof` still requires phishing-resistant proof.
 Backup issue keeps recent phishing-resistant management policy. Follow the
 [User Guide](../../docs/tutorials/user-guide/identity-and-sessions.md#sign-in-with-totp-or-a-backup-code)
 and [reference](../../docs/reference/authentication/README.md#totp-and-backup-proof).
+
+After a recent passkey sign-in or step-up, open `/authenticators/manage` to list
+owned primary factors, add or replace a passkey/TOTP authenticator, remove a
+factor or regenerate backup codes. TOTP and backup actions require the configured
+fallback key. Removing or replacing the factor used by the current session signs
+it out; other retained sessions rotate without changing actual proof freshness.
+The example fixes phishing-resistant management policy in trusted assembly code.
+A TOTP-only application profile must explicitly select permitted MFA management
+to upgrade; the request cannot choose weaker policy. Initial setup endpoints
+remain restricted to accounts without established factors.

@@ -24,7 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   complete MFA with actual password/TOTP or one-use backup codes. TOTP seeds use
   application-owned encryption keys; backup sets require recent management
   proof and codes are shown once. These methods do not satisfy phishing-resistant
-  access.
+  access. Applications can list, add, replace and remove their own authenticators
+  under recent management proof. Changes revoke other sessions and pending
+  ceremonies, protect the last usable factor and replace a retained session
+  bearer without refreshing its proof. Removing its factor signs the actor out.
 
 - Scheduled jobs now retry handler failures within a configured total attempt
   limit and fixed delay. PostgreSQL retry waits survive restarts without resetting

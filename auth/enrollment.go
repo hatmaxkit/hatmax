@@ -289,6 +289,25 @@ func (s *AuthenticatorService) FinishWebAuthnEnrollment(ctx context.Context, tok
 		return nil, err
 	}
 
+	record, err := s.registration(*pending, body)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.queries.ConfirmEnrollment(work, *pending, *record, requirement, s.settings)
+}
+
+// CleanupEnrollments removes at most the configured expired-row batch. No owned
+// goroutine, clock override or background cleanup loop is introduced.
+func (s *AuthenticatorService) CleanupEnrollments(ctx context.Context) (int64, error) {
+	work, cancel := context.WithTimeout(ctx, s.settings.Timeout)
+	defer cancel()
+
+	return s.queries.DeleteExpiredEnrollments(work, s.settings.CleanupBatch)
+}
+
+// registration verifies the same protocol profile for initial and established enrollment.
+func (s *AuthenticatorService) registration(pending EnrollmentPending, body []byte) (*RegistrationRecord, error) {
 	parsed, err := parseEnrollmentResponse(body)
 	if err != nil {
 		return nil, ErrEnrollment
@@ -333,14 +352,5 @@ func (s *AuthenticatorService) FinishWebAuthnEnrollment(ctx context.Context, tok
 
 	record := RegistrationRecord{Authenticator: Authenticator{ID: model.NewID(), CreatedAt: time.Now().UTC().Truncate(time.Microsecond), BackupEligible: credential.Flags.BackupEligible, BackupState: credential.Flags.BackupState}, CredentialID: credential.ID, PublicKey: credential.PublicKey, Data: data, Counter: credential.Authenticator.SignCount, VerifiedAt: time.Now().UTC().Truncate(time.Microsecond)}
 
-	return s.queries.ConfirmEnrollment(work, *pending, record, requirement, s.settings)
-}
-
-// CleanupEnrollments removes at most the configured expired-row batch. No owned
-// goroutine, clock override or background cleanup loop is introduced.
-func (s *AuthenticatorService) CleanupEnrollments(ctx context.Context) (int64, error) {
-	work, cancel := context.WithTimeout(ctx, s.settings.Timeout)
-	defer cancel()
-
-	return s.queries.DeleteExpiredEnrollments(work, s.settings.CleanupBatch)
+	return &record, nil
 }
