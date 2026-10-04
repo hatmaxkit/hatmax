@@ -388,15 +388,23 @@ func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
 }
 
 func toAuthUser(u dal.User) *auth.User {
+	var verifiedAt *time.Time
+
+	if u.MailboxVerifiedAt.Valid {
+		value := u.MailboxVerifiedAt.Time
+		verifiedAt = &value
+	}
+
 	return &auth.User{
-		ID:           u.ID,
-		Email:        u.Email,
-		PasswordHash: u.PasswordHash,
-		AuthVersion:  u.AuthVersion,
-		Roles:        append([]string(nil), u.Roles...),
-		Active:       u.Active,
-		CreatedAt:    u.CreatedAt,
-		UpdatedAt:    u.UpdatedAt,
+		ID:                u.ID,
+		Email:             u.Email,
+		MailboxVerifiedAt: verifiedAt,
+		PasswordHash:      u.PasswordHash,
+		AuthVersion:       u.AuthVersion,
+		Roles:             append([]string(nil), u.Roles...),
+		Active:            u.Active,
+		CreatedAt:         u.CreatedAt,
+		UpdatedAt:         u.UpdatedAt,
 	}
 }
 

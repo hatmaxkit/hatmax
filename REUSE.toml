@@ -29,6 +29,7 @@ path = [
   "examples/ticked/internal/dal/factor_control.sql.go",
   "examples/ticked/internal/dal/models.go",
   "examples/ticked/internal/dal/querier.go",
+  "examples/ticked/internal/dal/recovery.sql.go",
   "examples/ticked/internal/dal/todos.sql.go",
   "examples/ticked/internal/dal/users.sql.go",
   "examples/ticked/internal/web/testdata/authenticators.mjs",

@@ -25,6 +25,7 @@ import (
 	listfeat "hatmax.adrianpk.com/examples/ticked/internal/feat/list"
 	tickedweb "hatmax.adrianpk.com/examples/ticked/internal/web"
 	"hatmax.adrianpk.com/log"
+	"hatmax.adrianpk.com/mailer"
 	"hatmax.adrianpk.com/middleware"
 	"hatmax.adrianpk.com/pubsub/postgres"
 	"hatmax.adrianpk.com/ui"
@@ -169,6 +170,34 @@ func main() {
 	}
 
 	deps = append(deps, factorHandler)
+
+	// Explicit application-owned origin and active mail enable mailbox routes.
+	if origin := os.Getenv("TICKED_RECOVERY_ORIGIN"); origin != "" {
+		if !cfg.Mailer.Enabled || cfg.Mailer.Mode != mailer.ModeActive {
+			logger.Errorf("Mailbox verification requires active mail delivery")
+			os.Exit(1)
+		}
+
+		recoverySvc, initErr := auth.NewRecoveryService(baseAuthSvc, authQueries, cfg.Recovery, "mailbox-v1")
+		if initErr != nil {
+			logger.Errorf("Cannot initialize mailbox verification")
+			os.Exit(1)
+		}
+
+		delivery, initErr := authfeat.NewMailboxDelivery(recoverySvc, authQueries, mailer.New(cfg, logger), origin, cfg.Authenticator.LocalhostDevelopment)
+		if initErr != nil {
+			logger.Errorf("Cannot initialize mailbox delivery")
+			os.Exit(1)
+		}
+
+		handler, initErr := tickedweb.NewMailboxHandler(delivery)
+		if initErr != nil {
+			logger.Errorf("Cannot initialize mailbox routes")
+			os.Exit(1)
+		}
+
+		deps = append(deps, handler)
+	}
 
 	starts, stops, registrars := app.Setup(ctx, router, deps...)
 

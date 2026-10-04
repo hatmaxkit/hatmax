@@ -58,7 +58,7 @@ establish transaction semantics or production non-enumeration.
 ## Completion Gates
 
 - [x] Concern/model behavior and implementation scope approved; four-slice map recorded.
-- [ ] Planning state committed and Slice 1 branch/worktree created from verified dev.
+- [x] Planning state committed and Slice 1 branch/worktree created from verified dev.
 - [ ] Slice 1 merged and report delivered; mailbox/token transaction evidence recorded.
 - [ ] Slice 2 merged and report delivered; recent-proof credential change evidence recorded.
 - [ ] Slice 3 merged and report delivered; one-use reset/MFA preservation evidence recorded.
@@ -77,3 +77,12 @@ establish transaction semantics or production non-enumeration.
 
 No runtime or final integrated evidence is claimed for the planning change.
 Completed prerequisite gates are not repeated.
+
+## Slice 1 Finite Validation Selectors
+
+- `go test -tags=integration -race -run '^(TestMailboxTransactions|TestMailboxDeliveryTransactions|TestCredentialTransactions|TestEnrollmentTransactions|TestWebAuthnTransactions|TestFallbackTransactions|TestFactorControlTransactions)$' -count=1 -timeout=180s ./examples/ticked/internal/feat/auth`
+- `go test -run '^$' -fuzz '^FuzzRecoveryToken$' -fuzztime=20s -parallel=2 -timeout=60s ./auth`
+- Explicit owned PostgreSQL connection settings are required. Mail is captured;
+  no active external provider is used. Each database test isolates its schema.
+- Transport tests cover production form handlers, trusted link origin,
+  pre-lookup capacity, fixed acknowledgment timing and token-free GET handling.

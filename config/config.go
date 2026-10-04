@@ -26,6 +26,7 @@ type Config struct {
 	Database      DatabaseConfig      `koanf:"database"`
 	Auth          AuthConfig          `koanf:"auth"`
 	Authenticator AuthenticatorConfig `koanf:"authenticator"`
+	Recovery      RecoveryConfig      `koanf:"recovery"`
 	Contact       ContactConfig       `koanf:"contact"`
 	Property      PropertyConfig      `koanf:"property"`
 	PubSub        PubSubConfig        `koanf:"pubsub"`
@@ -310,6 +311,14 @@ func Load(path, envPrefix string, args []string) (*Config, error) {
 	fs.String("contact.pii_encryption_key", "", "Contact PII encryption key")
 	fs.String("contact.email_lookup_key", "", "Contact email lookup key")
 	fs.String("property.notes_protection_key", "", "Property notes protection key")
+	fs.String("recovery.verification_ttl", "24h", "Mailbox verification lifetime")
+	fs.String("recovery.reset_ttl", "1h", "Password reset lifetime")
+	fs.String("recovery.timeout", "5s", "Recovery operation timeout")
+	fs.String("recovery.lease", "5s", "Recovery reservation lifetime")
+	fs.Int("recovery.token_attempts", 5, "Maximum attempts per recovery token")
+	fs.Int("recovery.issuance_attempts", 3, "Recovery issues per subject and purpose per fifteen minutes")
+	fs.Int("recovery.completion_attempts", 10, "Recovery completions per subject per fifteen minutes")
+	fs.Int("recovery.cleanup_batch", 1000, "Maximum retained tokens removed per cleanup call")
 	fs.Bool("pubsub.enabled", false, "Enable pub/sub")
 	fs.String("pubsub.poll_interval", "100ms", "Pub/sub poll interval")
 	fs.Int("pubsub.batch_size", 100, "Pub/sub batch size")
@@ -398,6 +407,11 @@ func (c *Config) Validate() error {
 	}
 
 	_, err = c.Auth.PasswordSettings()
+	if err != nil {
+		return err
+	}
+
+	_, err = c.Recovery.RecoverySettings()
 	if err != nil {
 		return err
 	}

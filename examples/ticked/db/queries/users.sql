@@ -6,20 +6,20 @@
 -- name: CreateUser :one
 INSERT INTO users (id, email, password_hash, roles, active, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, email, password_hash, auth_version, roles, active, created_at, updated_at;
+RETURNING id, email, password_hash, auth_version, roles, active, created_at, updated_at, mailbox_verified_at;
 
 -- name: GetUserByEmail :one
-SELECT id, email, password_hash, auth_version, roles, active, created_at, updated_at
+SELECT id, email, password_hash, auth_version, roles, active, created_at, updated_at, mailbox_verified_at
 FROM users
 WHERE email = $1;
 
 -- name: GetUserByID :one
-SELECT id, email, password_hash, auth_version, roles, active, created_at, updated_at
+SELECT id, email, password_hash, auth_version, roles, active, created_at, updated_at, mailbox_verified_at
 FROM users
 WHERE id = $1;
 
 -- name: ListUsers :many
-SELECT id, email, password_hash, auth_version, roles, active, created_at, updated_at
+SELECT id, email, password_hash, auth_version, roles, active, created_at, updated_at, mailbox_verified_at
 FROM users
 ORDER BY created_at DESC;
 
@@ -69,13 +69,13 @@ DELETE FROM sessions USING expired WHERE sessions.id = expired.id;
 SELECT COUNT(*) FROM users;
 
 -- name: GetUserForAuth :one
-SELECT id, email, password_hash, auth_version, roles, active, created_at, updated_at
+SELECT id, email, password_hash, auth_version, roles, active, created_at, updated_at, mailbox_verified_at
 FROM users WHERE id = $1 FOR UPDATE;
 
 -- name: ReplacePassword :one
 UPDATE users SET password_hash = $2, auth_version = auth_version + 1, updated_at = $3
 WHERE id = $1
-RETURNING id, email, password_hash, auth_version, roles, active, created_at, updated_at;
+RETURNING id, email, password_hash, auth_version, roles, active, created_at, updated_at, mailbox_verified_at;
 
 -- name: DeleteUserSessions :exec
 DELETE FROM sessions WHERE user_id = $1;

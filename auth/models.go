@@ -9,17 +9,18 @@ import "time"
 
 // User represents an authenticated user in the system.
 type User struct {
-	ID             string
-	Email          string
-	PasswordHash   string
-	AuthVersion    int64
-	Roles          []string
-	Active         bool
-	TOTPSecret     string
-	TOTPEnabled    bool
-	TOTPVerifiedAt *time.Time
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID                string
+	Email             string
+	MailboxVerifiedAt *time.Time
+	PasswordHash      string
+	AuthVersion       int64
+	Roles             []string
+	Active            bool
+	TOTPSecret        string
+	TOTPEnabled       bool
+	TOTPVerifiedAt    *time.Time
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 // HasRole checks if the user has the specified role.
