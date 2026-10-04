@@ -8,10 +8,11 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authenticator Model
 
 Date: 2026-10-04
-Status: Proposed
-Behavior: [Authenticators](authenticators-draft.md)
-Parent model: [Authentication security model](../authentication-security-model.md)
-Session foundation: [Authentication and sessions model](../authentication-sessions-model.md)
+Status: Approved
+Approved: 2026-10-04
+Behavior: [Authenticators](authenticators.md)
+Parent model: [Authentication security model](authentication-security-model.md)
+Session foundation: [Authentication and sessions model](authentication-sessions-model.md)
 Implementation status: Pending
 
 ## Representation and Ownership

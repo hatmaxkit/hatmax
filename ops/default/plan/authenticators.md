@@ -8,31 +8,31 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authenticator Delivery Plan
 
 Date: 2026-10-04
-Status: Proposed
+Status: Approved
+Approved: 2026-10-04
 Delivery set: authenticators
 Slice strategy: behavior-first
 Reason: registration, assertion completion, replay-resistant fallback, authorized
 factor changes and browser acceptance are separately reviewable behavior increments.
 Each increment updates required storage, active callers and documentation together.
 Parent: [Authentication security](../spec/authentication-security.md)
-Concern: [Authenticator proposal](../spec/drafts/authenticators-draft.md)
-Model: [Authenticator model](../spec/drafts/authenticators-draft-model.md)
+Concern: [Authenticator proposal](../spec/authenticators.md)
+Model: [Authenticator model](../spec/authenticators-model.md)
 Tracker: [Delivery tracker](../tracker/authenticators.md)
 Base branch: `dev`
 Planning base: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
-Active slice: None
-Execution gate: Closed
+Active slice: Slice 1
+Execution gate: Open
 Go baseline: 1.27.1
 
 ## Outcome and Approval Boundary
 
 Deliver the parent's AUTH-05 mechanisms and actual AUTH-03 factor completion using
 the approved credential/session foundations. This proposal selects the dependency,
-supported profile, finite budgets and required atomic bindings. Review the
-concern/model and this five-slice map together before implementation.
+supported profile, finite budgets and required atomic bindings. The concern/model and this five-slice map were approved on 2026-10-04.
 
-Approval promotes concern/model together, updates direct links and activates
-Slice 1/T1.1 in this tracker. Exact Go/SQL bindings are settled against the model
+Approval promoted concern/model together, updated direct links and activated
+Slice 1/T1.1 in the tracker. Exact Go/SQL bindings are settled against the model
 before each changed runtime contract. No branch, dependency or runtime changes
 are activated by a pending planning proposal.
 

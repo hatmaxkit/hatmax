@@ -8,23 +8,24 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authenticator Tracker
 
 Date: 2026-10-04
-Status: Proposed
+Status: Active
+Approved: 2026-10-04
 Delivery set: authenticators
 Plan: [Delivery plan](../plan/authenticators.md)
-Concern: [Authenticator proposal](../spec/drafts/authenticators-draft.md)
-Model: [Authenticator model](../spec/drafts/authenticators-draft-model.md)
+Concern: [Authenticator proposal](../spec/authenticators.md)
+Model: [Authenticator model](../spec/authenticators-model.md)
 Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
-Active slice: None
-Active tasks: None
-Execution gate: Closed
+Active slice: Slice 1
+Active tasks: T1.1
+Execution gate: Open
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Restricted enrollment | pending | `feat/authenticator-enrollment` | `feat(slice-1): add restricted authenticator enrollment` | pending | `ops/default/report/slices/authenticators/slice-1-enrollment.md` |
+| Slice 1 | Restricted enrollment | active | `feat/authenticator-enrollment` | `feat(slice-1): add restricted authenticator enrollment` | pending | `ops/default/report/slices/authenticators/slice-1-enrollment.md` |
 | Slice 2 | WebAuthn completion | pending | `feat/webauthn-completion` | `feat(slice-2): complete WebAuthn authentication and step-up` | pending | `ops/default/report/slices/authenticators/slice-2-webauthn-completion.md` |
 | Slice 3 | TOTP and backup proof | pending | `feat/authenticator-fallback` | `feat(slice-3): add replay-resistant TOTP and backup proof` | pending | `ops/default/report/slices/authenticators/slice-3-fallback-proof.md` |
 | Slice 4 | Authorized factor changes | pending | `feat/authenticator-control` | `feat(slice-4): enforce authorized authenticator changes` | pending | `ops/default/report/slices/authenticators/slice-4-factor-control.md` |
@@ -48,10 +49,9 @@ Execution gate: Closed
 ## Dependencies and Execution Gate
 
 Credential security and authentication sessions are delivered on canonical `dev`.
-The parent AUTH-05 behavior is approved. This concrete concern/model, proposed
-defaults/dependency/profile and five-slice plan require review before activation.
-No slice, branch or runtime task is active. Promote concern/model together and
-update all direct links on approval; then activate Slice 1/T1.1.
+The concern/model, selected dependency/profile/defaults and five-slice plan were
+approved on 2026-10-04. The concern/model are promoted together; Slice 1/T1.1
+is active. The required branch is `feat/authenticator-enrollment`.
 
 Before T1.1 settle matching Go/SQL/wire fields and exact pinned verifier/key
 dependencies. Before T1.2 record actual finite integration/fuzz selectors;
@@ -61,7 +61,7 @@ setup flags and fake method claims never count as authenticator acceptance.
 
 ## Completion Gates
 
-- [ ] Concern/model/dependency/profile/defaults and plan reviewed; proposal promoted and Slice 1 activated.
+- [x] Concern/model/dependency/profile/defaults and plan reviewed; concern promoted and Slice 1 activated.
 - [ ] Slice 1 merged; delivered enrollment report and real setup/budget evidence recorded.
 - [ ] Slice 2 merged; delivered WebAuthn completion/step-up and atomic replay evidence recorded.
 - [ ] Slice 3 merged; delivered TOTP/backup verification, replay and policy evidence recorded.

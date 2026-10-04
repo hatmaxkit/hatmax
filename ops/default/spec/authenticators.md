@@ -8,15 +8,16 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authenticators
 
 Date: 2026-10-04
-Status: Proposed
+Status: Approved
+Approved: 2026-10-04
 Concern: authenticators
-Parent: [Authentication security foundation](../authentication-security.md)
-Model: [Authenticator model](authenticators-draft-model.md)
-Plan: [Delivery proposal](../../plan/authenticators.md)
-Tracker: [Delivery tracker](../../tracker/authenticators.md)
+Parent: [Authentication security foundation](authentication-security.md)
+Model: [Authenticator model](authenticators-model.md)
+Plan: [Delivery proposal](../plan/authenticators.md)
+Tracker: [Delivery tracker](../tracker/authenticators.md)
 Inspected baseline: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
 Implementation status: Pending
-Execution gate: Closed
+Execution gate: Open
 
 ## Purpose and Ownership
 
@@ -33,13 +34,13 @@ domain authorization. Core has no application-product or tenant dependency.
 Account recovery and operator-assisted all-factor loss retain AUTH-06 ownership;
 the mechanisms here cannot silently reset established stronger factors.
 
-The parent behavior is approved. This proposal selects concrete mechanisms,
-bounds and delivery order for review; it does not activate implementation.
+The concern/model and five-slice delivery plan were approved on 2026-10-04.
+Slice 1 is active under the recorded plan; later slices follow verified merges.
 
 ## Delivered Prerequisites and Inspected Gaps
 
-The [credential tracker](../../tracker/credential-security.md) and
-[session tracker](../../tracker/authentication-sessions.md) record completed
+The [credential tracker](../tracker/credential-security.md) and
+[session tracker](../tracker/authentication-sessions.md) record completed
 sets and exact integrated gates. Their checks are not repeated for this proposal.
 
 - `auth/proof.go` accepts only actual password proof; stronger requirements fail
@@ -249,5 +250,6 @@ accepted backup eligibility/counter policy, initial-versus-established enrollmen
 authority and management policy, backup fallback and proposed finite budgets
 together with the model.
 The behavior list comes from AUTH-05; review resolves its implementation choices.
-Approval promotes this concern/model together and activates the recorded delivery
-plan. No runtime or dependency changes occur before that gate.
+Approval on 2026-10-04 promotes this concern/model together and activates
+Slice 1 of the five-slice delivery plan. The selected profile and finite bounds
+are implementation contracts; material changes require review.
