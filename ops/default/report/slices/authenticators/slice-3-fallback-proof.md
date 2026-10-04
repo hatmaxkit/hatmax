@@ -12,7 +12,7 @@ Delivery set: authenticators
 Plan: [Delivery plan](../../../plan/authenticators.md)
 Tracker: [Delivery tracker](../../../tracker/authenticators.md)
 Branch: `feat/authenticator-fallback`
-PR: pending
+PR: `#100`
 T3.1: `acc2881fa63335b5f15540955e24ed7aecb1ae95`
 T3.2: `56af95e82bdc272815c1571db1228a6616e3cf13`
 Tagged test formatting: `54d75553de6ed8e00616d1cc9bd07d48485f7c18`

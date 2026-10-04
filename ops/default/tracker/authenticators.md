@@ -27,7 +27,7 @@ Execution gate: Open
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Restricted enrollment | delivered | `feat/authenticator-enrollment` | `feat(slice-1): add restricted authenticator enrollment` | `#98` | `ops/default/report/slices/authenticators/slice-1-enrollment.md` |
 | Slice 2 | WebAuthn completion | delivered | `feat/webauthn-completion` | `feat(slice-2): complete WebAuthn authentication and step-up` | `#99` | `ops/default/report/slices/authenticators/slice-2-webauthn-completion.md` |
-| Slice 3 | TOTP and backup proof | reviewing | `feat/authenticator-fallback` | `feat(slice-3): add replay-resistant TOTP and backup proof` | pending | `ops/default/report/slices/authenticators/slice-3-fallback-proof.md` |
+| Slice 3 | TOTP and backup proof | reviewing | `feat/authenticator-fallback` | `feat(slice-3): add replay-resistant TOTP and backup proof` | `#100` | `ops/default/report/slices/authenticators/slice-3-fallback-proof.md` |
 | Slice 4 | Authorized factor changes | pending | `feat/authenticator-control` | `feat(slice-4): enforce authorized authenticator changes` | pending | `ops/default/report/slices/authenticators/slice-4-factor-control.md` |
 | Slice 5 | Browser acceptance | pending | `test/authenticator-acceptance` | `test(slice-5): verify authenticator browser integration` | pending | `ops/default/report/slices/authenticators/slice-5-browser-acceptance.md` |
 
@@ -123,5 +123,7 @@ Next: review/merge Slice 3, verify canonical state, then activate approved Slice
 
 T3.2 passed actual replay/rotation/regeneration races, SQL rollback, current factor/account/policy/key conflicts, oldest-proof expiry after real locks/writes, shared budget reissue exhaustion, salted owner/ID-bound PHC records, cleanup and transport isolation. Parser fuzz completed 920632 executions without failure. Full named PostgreSQL regression passed with race detection (54.089 seconds); package races, vet, strict default/tagged lint, licensing and docs/example compilation passed. Tagged formatting correction: `54d75553de6ed8e00616d1cc9bd07d48485f7c18`.
 
-Slice 3 PR: pending.
+Slice 3 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/100
+Report introduction: `70564689cf5858754e3d7072074dfae41838ccce`.
+Next: verify maintainer merge, close Slice 3 on `dev`, then implement approved Slice 4/T4.1/T4.2.
 The complete set's aggregate gate remains after Slice 5 merge.
