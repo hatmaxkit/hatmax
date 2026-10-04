@@ -230,3 +230,18 @@ Session management requires recent proof (1s through absolute lifetime). Retaine
 session capacity and page size are 1 through 100; zero selects 10 and 50
 respectively. Invalid values fail `auth.NewService` construction. See the
 [authentication contract](../authentication/README.md#reauthentication-and-control).
+
+## Authenticator Enrollment
+
+`Config.Authenticator` is consumed explicitly by `NewAuthenticatorService`; it
+requires `rp_id`, `rp_name` and one through eight exact `origins`. Other applications
+that do not construct that service need no RP configuration. The Ticked example
+configures localhost development on port 8080 explicitly. Production selects an
+HTTPS origin and disables `localhost_development`.
+
+The constructor validates `pending_ttl`, `recent_proof_age`, `timeout`, `lease`,
+`budget_window`, `cooldown`, `max_pending`, `max_authenticators`, `pending_attempts`,
+`subject_attempts`, `max_concurrent` and `cleanup_batch`. Empty/zero fields select
+finite defaults; malformed or out-of-range values fail construction. A lease
+shorter than the total operation timeout fails. No request-header fallback exists.
+See [enrollment bounds](../authentication/README.md#restricted-webauthn-enrollment).

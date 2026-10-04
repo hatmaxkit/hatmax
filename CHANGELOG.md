@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Applications can enroll an initial WebAuthn authenticator after fresh password
+  verification, with bounded setup attempts and trusted RP/origin configuration.
+  Confirmation invalidates previous sessions; registration does not yet complete
+  strong sign-in. Ticked provides the corresponding JSON setup endpoints.
+
 - Scheduled jobs now retry handler failures within a configured total attempt
   limit and fixed delay. PostgreSQL retry waits survive restarts without resetting
   their budget; recurring schedules advance only after terminal completion.

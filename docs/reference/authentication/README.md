@@ -451,3 +451,99 @@ when no user is in the context, when `TOTPEnabled` is true, or when
 `InTOTPGracePeriod` accepts `GraceDays`. A nil `GraceDays` uses zero days.
 Otherwise it redirects to `SetupURL`, or `/totp-setup` when that field is
 empty, with status `303`.
+
+## Restricted WebAuthn Enrollment
+
+`NewAuthenticatorService(credentials *Service, queries AuthenticatorQueries,
+cfg config.AuthenticatorConfig)` validates an owned configuration snapshot. Its
+password verifier shares the existing credential service's finite KDF admission.
+RP ID, exact origin allowlist and access requirement come from trusted server
+code. HTTP headers cannot select the RP or weaken required policy. HTTPS is
+required, except explicit `localhost_development` for `http://localhost`.
+
+| API | Behavior |
+| --- | --- |
+| `BeginWebAuthnEnrollment(ctx, email, password, requirement)` | Verify the actual password; reject inactive/current-state conflicts and established factors; return restricted bearer and exact browser creation options |
+| `FinishWebAuthnEnrollment(ctx, token, response, requirement)` | Reserve a durable attempt/lease, parse bounded browser data, verify registration and commit activation/revocation; return safe metadata |
+| `CleanupEnrollments(ctx)` | Delete a configured finite expired-row batch with a bounded caller operation; no owned loop |
+
+The registration profile requests resident keys, ES256 only, required user
+verification and no attestation. The closed parser accepts `none` attestation;
+both presence and UV must verify. Cross-origin/embedded ceremonies, foreign RP,
+origin, challenge, subject handle, ID or algorithm fail. The library COSE parser also validates
+the ES256 curve and point before persisting attestation-none credentials. Backup eligibility/state
+are recorded from protocol output; state without eligibility fails. No hardware
+or non-exportability certification follows from these flags. The RP handle is a
+stable random 32-byte value independent of email.
+
+`EnrollmentChallenge.Token` is a transient `enroll1.` bearer with independent
+32-byte entropy and a distinct digest domain/collection. Keep it out of URLs,
+logs, ordinary cookies and user/session snapshots. Stored setup binds account
+version, exact policy/freshness, actual password time, RP configuration fingerprint,
+opaque handle and the exact v0.18.2 `SessionData`. Reissue does not reset the
+per-subject factor budget. Stored public metadata is not a proof receipt.
+
+`AuthenticatorQueries` is a required typed storage contract. Subject-first
+transactions check active version, policy and trusted time after waits. Begin
+reclaims at most ten expired subject rows before checking retained capacity;
+it never evicts a live pending row. Reserve charges pending and subject attempts
+and commits one finite revision-bound lease before protocol work. Admitted invalid
+JSON/proof and operating failure spend an attempt. Busy/non-admitted work does
+not. Release only clears its own lease revision, with no refund. If caller
+cancellation prevents release, its finite lease expires; no detached cleanup runs.
+
+Confirmation rechecks live lease, exact captured state and recent password,
+inserts the unique RP/credential record, increments `AuthVersion`, and removes
+all sessions and other pending enrollment in one commit. A failed final commit
+returns no success and rolls back activation/revocation; the prior admission
+remains spent. Retrying must perform verification again. Exact expiry or proof
+freshness equality rejects. Password/account mutation and replay cannot activate
+a stale key. Explicit cleanup uses at most 1000 expired rows and never obtains a
+subject lock after pending locks.
+
+| Bound | Default / permitted range |
+| --- | --- |
+| Pending TTL | 5m / 1m–10m |
+| Recent password | 5m / 1s–10m; trusted requirement may tighten |
+| Retained pending / authenticators | 5 / 1–10; 10 / 1–20 |
+| Pending / subject attempts | 5 / 1–10; 10 / 1–100 |
+| Subject window / cooldown | 15m each / 1m–1h each |
+| Timeout / lease | 5s each / 1ms–30s, lease at least timeout; earlier caller deadline wins |
+| Protocol admission | 2 / 1–2 active verifications, no waiting queue |
+| Origins / cleanup | 8 maximum / 1000 default and maximum |
+| Body / client data / attestation | 64 KiB before parsing / 8 KiB / 32 KiB |
+| COSE key / credential ID / stored ceremony | 4 KiB / 1024 bytes / 16 KiB |
+| JSON / CBOR nesting | 16 levels; CBOR maps/arrays at most 64 entries, no indefinite lengths/tags |
+
+Ticked wires the production service and PostgreSQL adapter explicitly. Migration
+`004-authenticators.sql` adds the enrollment tables to existing databases and is
+also applied after the user/session schema in focused integration fixtures:
+
+
+- `POST /authenticators/enrollment/begin` accepts only JSON `email` and `password`.
+- `POST /authenticators/enrollment/finish` accepts the browser credential JSON
+  and the restricted bearer in `X-Enrollment-Token`.
+- Both require matching Origin/Referer, `Content-Type: application/json` and finite
+  bodies. Responses are not cached; failures expose generic errors, and exhausted
+  capacity/admission/budgets return HTTP 429.
+- Begin never issues a cookie. Successful finish clears a previous session cookie
+  because confirmation invalidated those sessions; failure does not change it.
+
+In a browser capable of WebAuthn JSON conversion, the response returned by begin
+can be used as follows on the configured RP origin:
+
+```javascript
+const publicKey = PublicKeyCredential.parseCreationOptionsFromJSON(begin.options.publicKey);
+const credential = await navigator.credentials.create({ publicKey });
+const response = await fetch("/authenticators/enrollment/finish", {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-Enrollment-Token": begin.token },
+  body: JSON.stringify(credential.toJSON()),
+});
+```
+
+This delivery exposes initial-registration APIs. Registration alone supplies no
+strong sign-in; assertion completion, additional-factor management, TOTP/backup
+proof and the browser acceptance journey remain pending. Existing password-only
+routes keep their explicit password policy; enrolling a key does not make those
+routes enforce MFA automatically.

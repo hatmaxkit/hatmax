@@ -18,14 +18,14 @@ Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
 Active slice: Slice 1
-Active tasks: T1.1
+Active tasks: None; Slice 1 review
 Execution gate: Open
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Restricted enrollment | active | `feat/authenticator-enrollment` | `feat(slice-1): add restricted authenticator enrollment` | pending | `ops/default/report/slices/authenticators/slice-1-enrollment.md` |
+| Slice 1 | Restricted enrollment | reviewing | `feat/authenticator-enrollment` | `feat(slice-1): add restricted authenticator enrollment` | pending | `ops/default/report/slices/authenticators/slice-1-enrollment.md` |
 | Slice 2 | WebAuthn completion | pending | `feat/webauthn-completion` | `feat(slice-2): complete WebAuthn authentication and step-up` | pending | `ops/default/report/slices/authenticators/slice-2-webauthn-completion.md` |
 | Slice 3 | TOTP and backup proof | pending | `feat/authenticator-fallback` | `feat(slice-3): add replay-resistant TOTP and backup proof` | pending | `ops/default/report/slices/authenticators/slice-3-fallback-proof.md` |
 | Slice 4 | Authorized factor changes | pending | `feat/authenticator-control` | `feat(slice-4): enforce authorized authenticator changes` | pending | `ops/default/report/slices/authenticators/slice-4-factor-control.md` |
@@ -35,8 +35,8 @@ Execution gate: Open
 
 | Task | Status | Expected commit | Commit | Required evidence |
 | --- | --- | --- | --- | --- |
-| T1.1 | pending | `feat(auth): add restricted WebAuthn enrollment` | pending | Reviewed dependency/profile; typed bounded pending/budget/setup, actual registration and synchronized adapter |
-| T1.2 | pending | `test(auth): verify enrollment isolation and bounds` | pending | Protocol rejection, pending isolation, durable admission/budgets and real PostgreSQL setup races |
+| T1.1 | complete | `feat(auth): add restricted WebAuthn enrollment` | `776b4aca0ab80318fa11d86035684d00efca2b5a` | Reviewed dependency/profile; typed bounded pending/budget/setup, actual registration and synchronized adapter |
+| T1.2 | complete | `test(auth): verify enrollment isolation and bounds` | pending | Protocol rejection, pending isolation, durable admission/budgets and real PostgreSQL setup races |
 | T2.1 | pending | `feat(auth): complete WebAuthn proof atomically` | pending | Actual assertion, closed facts and atomic counter/pending/session insertion or rotation |
 | T2.2 | pending | `test(auth): verify WebAuthn completion transactions` | pending | Real signatures/one winner, current counter/flags, post-lock time and full rollback |
 | T3.1 | pending | `feat(auth): add replay-resistant fallback proof` | pending | Encrypted TOTP, exact accepted steps and salted domain-bound one-use backup proof |
@@ -83,3 +83,17 @@ setup flags and fake method claims never count as authenticator acceptance.
 No runtime, browser or full delivery-set evidence is claimed for this planning
 proposal. No dependency has been added and previous completed set gates are not
 repeated.
+
+## Slice 1 Focused Validation Bindings
+
+- Protocol/parser fuzz: `go test ./auth -run '^$' -fuzz '^FuzzEnrollmentResponse$' -fuzztime=20s -parallel=2 -timeout=60s`; no KDF/database work in the target.
+- Real PostgreSQL: `go test -race -tags=integration ./examples/ticked/internal/feat/auth -run '^Test(EnrollmentTransactions|CredentialTransactions|ProofTransactions|SessionTransactions|ControlTransactions)$' -count=1 -timeout=120s`; `DB_HOST` and explicit owned-cluster settings are required.
+- T1.1 passed focused auth/config/adapter/HTTP tests, real PostgreSQL registration/replay/revocation, strict lint, licensing, documentation and diff checks. No aggregate delivery-set gate ran.
+
+T1.2 passed protocol rejection/binding tests, finite constructor/HTTP bounds,
+actual registration with both supported backup classes, 20-second parser fuzz
+(354797 executions), real PostgreSQL races/rollback/budgets/cleanup/uniqueness and
+credential/session regression, affected-package race checks, vet, strict lint,
+source licensing and docs/example compilation. Pending replay issues no session.
+The schema uses a new `004-authenticators.sql` migration for existing databases.
+The complete set's integrated gate remains scheduled after Slice 5 merge.

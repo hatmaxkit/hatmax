@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # auth
 
-Password-authenticated sessions with explicit access policy and bounded lifecycle.
+Password-authenticated sessions and restricted WebAuthn enrollment with explicit policy and finite bounds.
 
 ## Password policy
 
@@ -208,3 +208,19 @@ Management defaults to a 5-minute proof age, tightened by any shorter operation
 requirement. Capacity is 10 retained sessions per subject; page size is 50.
 Configuration bounds and required adapter transactions are in the
 [authentication reference](../docs/reference/authentication/README.md).
+
+## Restricted WebAuthn Enrollment
+
+`NewAuthenticatorService(credentials, authenticatorQueries, cfg.Authenticator)`
+requires the existing credential service, mandatory atomic enrollment storage and
+explicit trusted RP configuration. It shares the credential verifier's KDF budget.
+`BeginWebAuthnEnrollment` verifies a fresh actual password and admits initial setup
+only while the active account has no established factor. Its `enroll1.` token is
+independent of ordinary session tokens and cannot access application routes.
+`FinishWebAuthnEnrollment` verifies a bounded ES256 registration with required
+presence/UV through go-webauthn v0.18.2, then atomically activates the key, advances
+account version and deletes earlier sessions/pending setup. It returns safe factor
+metadata, never an issued session. Assertion sign-in is not yet implemented.
+
+See the [enrollment reference](../docs/reference/authentication/README.md#restricted-webauthn-enrollment)
+for configuration, required atomic operations, parser bounds and Ticked endpoints.

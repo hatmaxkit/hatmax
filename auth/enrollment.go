@@ -116,7 +116,7 @@ type AuthenticatorService struct {
 // NewAuthenticatorService validates and snapshots trusted configuration. Password
 // verification shares the credential service's existing KDF admission budget.
 func NewAuthenticatorService(credentials *Service, queries AuthenticatorQueries, cfg config.AuthenticatorConfig) (*AuthenticatorService, error) {
-	if credentials == nil || queries == nil {
+	if credentials == nil || credentials.verifier == nil || credentials.passwordTimeout <= 0 || queries == nil {
 		return nil, errors.New("authenticator dependencies are required")
 	}
 
@@ -311,6 +311,18 @@ func (s *AuthenticatorService) FinishWebAuthnEnrollment(ctx context.Context, tok
 	}
 
 	if !bytes.Equal(parsed.RawID, credential.ID) || !credential.Flags.UserPresent || !credential.Flags.UserVerified || len(credential.ID) == 0 || len(credential.ID) > 1024 || len(credential.PublicKey) == 0 || len(credential.PublicKey) > 4096 {
+		return nil, ErrEnrollment
+	}
+
+	// Attestation-none checks the advertised algorithm but has no attestation
+	// signature that would otherwise force public-key parsing/validation.
+	parsedKey, err := webauthncose.ParsePublicKey(credential.PublicKey)
+	if err != nil {
+		return nil, ErrEnrollment
+	}
+
+	key, ok := parsedKey.(webauthncose.EC2PublicKeyData)
+	if !ok || key.Algorithm != int64(webauthncose.AlgES256) {
 		return nil, ErrEnrollment
 	}
 

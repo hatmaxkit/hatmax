@@ -153,3 +153,20 @@ integration procedure.
 [Previous: Models and Data Flow](models-and-data-flow.md) ·
 [User Guide](README.md) ·
 [Next: Configuration and Runtime Settings](configuration-and-runtime-settings.md)
+
+## Initial Authenticator Enrollment
+
+Construct `auth.NewAuthenticatorService` with the existing credential service,
+required atomic `AuthenticatorQueries` and explicit RP/origin configuration.
+Start enrollment by verifying the account password again. Treat the returned
+setup bearer as permission for this ceremony only; it must not enter application
+cookies, URLs or the session middleware. Pass the browser registration response
+to `FinishWebAuthnEnrollment` using the same trusted access requirement.
+
+A confirmed key advances account version and invalidates previous sessions and
+pending setup. Do not set a new authentication cookie from the safe factor result:
+registration is not a completed strong sign-in. Initial setup rejects accounts
+with established factors. Assertion completion and authorized factor changes are
+not available in this delivery yet. Ticked demonstrates the JSON begin/finish
+endpoints; see the [enrollment reference](../../reference/authentication/README.md#restricted-webauthn-enrollment)
+for the browser call and finite storage/input requirements.

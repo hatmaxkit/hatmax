@@ -107,16 +107,18 @@ func credentialDatabase(t *testing.T) (*sql.DB, *Queries, *config.Config) {
 		root.Close()
 	})
 
-	migration, err := os.ReadFile("../../../assets/migration/postgres/001-users.sql")
-	if err != nil {
-		t.Fatal(err)
-	}
+	for _, name := range []string{"001-users.sql", "004-authenticators.sql"} {
+		migration, readErr := os.ReadFile("../../../assets/migration/postgres/" + name)
+		if readErr != nil {
+			t.Fatal(readErr)
+		}
 
-	up := strings.Split(string(migration), "-- +migrate Down")[0]
+		up := strings.Split(string(migration), "-- +migrate Down")[0]
 
-	_, err = db.ExecContext(t.Context(), up)
-	if err != nil {
-		t.Fatal(err)
+		_, err = db.ExecContext(t.Context(), up)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	q := NewQueries(credentialDB{db})
