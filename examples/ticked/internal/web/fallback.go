@@ -71,6 +71,11 @@ func fallbackBody(w http.ResponseWriter, r *http.Request, target any) error {
 		return err
 	}
 
+	body = bytes.TrimSpace(body)
+	if len(body) == 0 || body[0] != '{' {
+		return auth.ErrFallback
+	}
+
 	decoder := json.NewDecoder(bytes.NewReader(body))
 	decoder.DisallowUnknownFields()
 

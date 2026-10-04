@@ -41,6 +41,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The former hidden-clock TOTP and shared-salt backup helpers are removed.
+  Applications adopting fallback authentication must provide explicit seed keys
+  and typed storage that consumes accepted steps or codes with session completion.
+
 - Sessions now expire after 24 hours or 30 minutes of inactivity by default,
   reject stale account state, and store only token digests. Custom auth stores
   must implement atomic validation and activity updates; middleware must select

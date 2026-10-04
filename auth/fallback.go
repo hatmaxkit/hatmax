@@ -51,6 +51,7 @@ type FallbackFactor struct {
 // FallbackMaterial is the closed, bounded server ceremony payload.
 type FallbackMaterial struct {
 	Method   FallbackMethod
+	Skew     uint
 	Factor   FactorBinding
 	KeyID    string
 	Envelope []byte
@@ -83,7 +84,7 @@ func (p FallbackPending) Check(now time.Time, required AccessRequirement, settin
 		return ErrSessionProofExpired
 	}
 
-	if p.Material.Method != FallbackTOTP && p.Material.Method != FallbackBackup {
+	if p.Material.Method != FallbackTOTP && p.Material.Method != FallbackBackup || p.Material.Skew != settings.Skew {
 		return ErrFallback
 	}
 
@@ -106,7 +107,7 @@ func (p FallbackPending) Check(now time.Time, required AccessRequirement, settin
 	return required.Check(settings.PendingTTL)
 }
 func (p FallbackPending) Matches(b FallbackPending) bool {
-	return p.Digest == b.Digest && p.Purpose == b.Purpose && p.State == b.State && p.Requirement == b.Requirement && p.Material.Method == b.Material.Method && p.Material.Factor == b.Material.Factor && p.Material.KeyID == b.Material.KeyID && bytes.Equal(p.Material.Envelope, b.Material.Envelope) && p.ActorID == b.ActorID && p.ActorDigest == b.ActorDigest && p.ActorGeneration == b.ActorGeneration && p.PasswordAt.Equal(b.PasswordAt) && p.CreatedAt.Equal(b.CreatedAt) && p.ExpiresAt.Equal(b.ExpiresAt) && p.LeaseUntil.Equal(b.LeaseUntil) && p.Attempts == b.Attempts && p.Revision == b.Revision
+	return p.Digest == b.Digest && p.Purpose == b.Purpose && p.State == b.State && p.Requirement == b.Requirement && p.Material.Method == b.Material.Method && p.Material.Skew == b.Material.Skew && p.Material.Factor == b.Material.Factor && p.Material.KeyID == b.Material.KeyID && bytes.Equal(p.Material.Envelope, b.Material.Envelope) && p.ActorID == b.ActorID && p.ActorDigest == b.ActorDigest && p.ActorGeneration == b.ActorGeneration && p.PasswordAt.Equal(b.PasswordAt) && p.CreatedAt.Equal(b.CreatedAt) && p.ExpiresAt.Equal(b.ExpiresAt) && p.LeaseUntil.Equal(b.LeaseUntil) && p.Attempts == b.Attempts && p.Revision == b.Revision
 }
 
 type BackupVerifier struct {
@@ -139,6 +140,7 @@ type BackupSet struct {
 // one transaction, conditionally matching all captured revisions and policy.
 type FallbackQueries interface {
 	GetUserByEmail(context.Context, string) (*User, error)
+	DeleteExpiredEnrollments(context.Context, int) (int64, error)
 	LoadFallbackFactor(context.Context, CredentialState, FallbackMethod) (FactorBinding, error)
 	CreateFallback(context.Context, FallbackPending, config.FallbackSettings) error
 	ReserveFallback(context.Context, FallbackDigest, FallbackPurpose, string, AccessRequirement, config.FallbackSettings) (*FallbackReservation, error)
@@ -235,6 +237,8 @@ func (s *FallbackService) makePending(state CredentialState, at time.Time, purpo
 	if err != nil {
 		return FallbackPending{}, "", err
 	}
+
+	material.Skew = s.settings.Skew
 
 	token := fallbackPrefix(purpose) + base64.RawURLEncoding.EncodeToString(secret[:])
 	digest, _, err := ParseFallbackToken(token)
@@ -654,4 +658,13 @@ func (s *FallbackService) IssueBackupCodes(ctx context.Context, token string, re
 	}
 
 	return plain, &IssuedSession{Session: *completed, Token: bearer}, nil
+}
+
+// CleanupPending removes a finite expired-only batch from the shared collection.
+// It never deletes live owned work or refunds the separate durable budget.
+func (s *FallbackService) CleanupPending(ctx context.Context) (int64, error) {
+	work, cancel := context.WithTimeout(ctx, s.settings.Timeout)
+	defer cancel()
+
+	return s.queries.DeleteExpiredEnrollments(work, s.settings.CleanupBatch)
 }

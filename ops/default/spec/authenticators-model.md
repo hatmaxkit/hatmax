@@ -254,7 +254,7 @@ all sessions and pending records without issuing a session.
 Fallback purposes 4 (setup), 5 (sign-in), and 6 (step-up) use distinct `totpset1.`,
 `fallback1.` and `fallstep1.` prefixes/domains. They share `auth_pending`, its
 finite cap, expiry cleanup and durable subject budget. Their bounded ceremony
-payload contains captured method/factor bindings and encrypted setup material;
+payload contains captured method/skew/factor bindings and encrypted setup material;
 RP columns are null/empty for these purposes. Password time is always captured
 from actual password verification. Step-up captures current actor digest,
 identity and generation. Reservation commits attempts/lease before OTP or code

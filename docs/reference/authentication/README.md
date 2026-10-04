@@ -650,6 +650,7 @@ expiry, proof age or lease is expired. Operating failure returns no bearer and
 rolls back completion; admitted attempts remain spent.
 
 `totpset1.`, `fallback1.` and `fallstep1.` have separate purposes and digest domains.
+`CleanupPending` removes at most the configured expired-only cleanup batch.
 All use the same bounded pending collection and durable subject factor budget as
 WebAuthn. Reissuing or canceling a pending operation cannot reset that budget.
 TOTP uses SHA-1, six digits, 30-second steps and at most one adjacent step. Accepted
@@ -696,6 +697,6 @@ keeps recent phishing-resistant policy.
 | `GET /authenticators/mfa` | Current cookie; safe metadata only when recent MFA satisfies policy |
 
 JSON bodies are at most 64 KiB, password at most 4096 bytes, email at most 254,
-and code at most 128; unknown fields and trailing JSON reject. Every response is
+and code at most 128; unknown fields, non-object bodies and trailing JSON reject. Every response is
 `no-store`; pending purposes cannot cross finish routes. Failed completion preserves
 cookies. Ordinary session parsing rejects every pending/code wire format.
