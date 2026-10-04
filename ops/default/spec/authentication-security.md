@@ -75,7 +75,10 @@ factor completion and AUTH-05 mechanisms, actual browser/transaction evidence
 and the exact integrated gate. Browser presentation, production policy,
 hardware/attestation assurance and administrative authorization remain consumer
 obligations. AUTH-06/AUTH-07 retain their broader recovery/lifecycle and
-attempt-control scope. The complete foundation is not yet delivered.
+attempt-control scope. The [account recovery proposal](account-recovery.md) refines
+mailbox verification and password change/reset with the bounds needed for those
+operations; its [model](account-recovery-model.md) is proposed, not delivered.
+The complete foundation is not yet delivered.
 
 ## Inspected Gaps
 
@@ -269,5 +272,7 @@ units with consumer integration evidence. The first delivery set is
 with its [model](authentication-sessions-model.md),
 [plan](../plan/authentication-sessions.md) and
 [tracker](../tracker/authentication-sessions.md). All three session slices and
-the exact integrated full gate are complete. Further authenticator, lifecycle
-and attempt-control work requires its own approved concern and delivery plan.
+the exact integrated full gate are complete. The linked authenticator set is also
+complete. The [account recovery proposal](account-recovery.md) is the next bounded
+AUTH-06 refinement. Lifecycle and remaining attempt-control work require their
+own approved concern and delivery plan.
