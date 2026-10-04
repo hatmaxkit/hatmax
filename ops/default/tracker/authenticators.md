@@ -18,7 +18,7 @@ Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
 Active slice: Slice 5
-Active tasks: T5.1
+Active tasks: T5.2
 Execution gate: Open
 
 ## Slice Status
@@ -43,8 +43,8 @@ Execution gate: Open
 | T3.2 | complete | `test(auth): verify fallback replay and policy` | `56af95e82bdc272815c1571db1228a6616e3cf13` | Trusted-time/step and code races, salts/KDF, no weak-policy substitution and durable budget exhaustion |
 | T4.1 | complete | `feat(auth): enforce authorized factor changes` | `1f7b73b55d3511d5df9cba62a7a4472c5962842a` | Recent trusted authority, bounded own-factor operations, version/revocation and coherent actor rotation |
 | T4.2 | complete | `test(auth): verify authenticator change authority` | `b7a2d6ed1fde75ee861084f0e102109d05289308` | Subject isolation, post-lock freshness, last-factor/current-proof constraints, mutation races and rollback |
-| T5.1 | active | `test(auth): exercise authenticator browser journeys` | pending | Actual browser/virtual device against production handlers, real PostgreSQL and required stronger proof |
-| T5.2 | pending | `test(auth): close authenticator integration evidence` | pending | Cookie/parser/deadline regression, supported guidance and AU/AUTH evidence mapping |
+| T5.1 | complete | `test(auth): exercise authenticator browser journeys` | pending | Actual browser/virtual device against production handlers, real PostgreSQL and required stronger proof |
+| T5.2 | active | `test(auth): close authenticator integration evidence` | pending | Cookie/parser/deadline regression, supported guidance and AU/AUTH evidence mapping |
 
 ## Dependencies and Execution Gate
 
@@ -168,10 +168,12 @@ Slice 5/T5.1 is active; execute both approved tasks through one reviewable PR.
 - Mandatory executables: `CHROMIUM_BIN=/usr/sbin/chromium` and
   `NODE_BIN=/usr/sbin/node`. Verified Chromium 151.0.7922.173 (Arch Linux),
   Node v26.8.1 and its built-in WebSocket implementation; no npm dependency.
-- CDP virtual device: CTAP2, internal transport, resident key, user verification,
+- CDP virtual device: CTAP2, internal and second-device USB transport, resident key, user verification,
   automatic presence and verified user. ES256/UV/RK are the production profile.
 - The finite harness starts an owned headless browser with an isolated temporary
-  profile and connects only to its loopback debugging endpoint. Production Ticked
+  profile and connects only to its loopback debugging endpoint. Browser socket
+  scratch uses an owned short `/tmp/hatmax-browser-*` path because Unix socket
+  names cannot use the longer worktree build path; normal cleanup removes it. Production Ticked
   handlers/core services and real PostgreSQL perform every proof completion.
 - Localhost HTTP is explicitly enabled for development in the trusted RP/origin
   configuration. Test-only OTP generation uses the existing OTP library and never
@@ -180,3 +182,12 @@ Slice 5/T5.1 is active; execute both approved tasks through one reviewable PR.
   acceptance. Signed fixtures and skipped checks cannot count as browser evidence.
 - Default strict lint and separately tagged browser/integration strict lint are
   required before the task commit. The aggregate gate remains after Slice 5 merge.
+
+
+T5.1 passed actual Chromium 151.0.7922.173 navigator registration and assertion,
+password-to-WebAuthn step-up, retired-actor denial, the production add-passkey
+control with a second virtual device, safe listing/removal/last-factor checks,
+real backup use/reuse denial, and TOTP sign-in/step-up/replay. Browser acceptance
+passed with race detection (12.72 seconds test time); package races, vet,
+strict default/tagged lint, source licensing and docs/example compilation passed.
+No runtime verifier or persistence behavior changed; no dependency was added.
