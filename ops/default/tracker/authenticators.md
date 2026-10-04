@@ -18,7 +18,7 @@ Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
 Active slice: Slice 3
-Active tasks: T3.2
+Active tasks: None
 Execution gate: Open
 
 ## Slice Status
@@ -27,7 +27,7 @@ Execution gate: Open
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Restricted enrollment | delivered | `feat/authenticator-enrollment` | `feat(slice-1): add restricted authenticator enrollment` | `#98` | `ops/default/report/slices/authenticators/slice-1-enrollment.md` |
 | Slice 2 | WebAuthn completion | delivered | `feat/webauthn-completion` | `feat(slice-2): complete WebAuthn authentication and step-up` | `#99` | `ops/default/report/slices/authenticators/slice-2-webauthn-completion.md` |
-| Slice 3 | TOTP and backup proof | active | `feat/authenticator-fallback` | `feat(slice-3): add replay-resistant TOTP and backup proof` | pending | `ops/default/report/slices/authenticators/slice-3-fallback-proof.md` |
+| Slice 3 | TOTP and backup proof | reviewing | `feat/authenticator-fallback` | `feat(slice-3): add replay-resistant TOTP and backup proof` | pending | `ops/default/report/slices/authenticators/slice-3-fallback-proof.md` |
 | Slice 4 | Authorized factor changes | pending | `feat/authenticator-control` | `feat(slice-4): enforce authorized authenticator changes` | pending | `ops/default/report/slices/authenticators/slice-4-factor-control.md` |
 | Slice 5 | Browser acceptance | pending | `test/authenticator-acceptance` | `test(slice-5): verify authenticator browser integration` | pending | `ops/default/report/slices/authenticators/slice-5-browser-acceptance.md` |
 
@@ -40,7 +40,7 @@ Execution gate: Open
 | T2.1 | complete | `feat(auth): complete WebAuthn proof atomically` | `f7df235f4411be7a2bb7eaa0f211077295edba61` | Actual assertion, closed facts and atomic counter/pending/session insertion or rotation |
 | T2.2 | complete | `test(auth): verify WebAuthn completion transactions` | `1b01ea4ba0a64a87705996b37320e745cd20d863` | Real signatures/one winner, current counter/flags, post-lock time and full rollback |
 | T3.1 | complete | `feat(auth): add replay-resistant fallback proof` | `acc2881fa63335b5f15540955e24ed7aecb1ae95` | Encrypted TOTP, exact accepted steps and salted domain-bound one-use backup proof |
-| T3.2 | active | `test(auth): verify fallback replay and policy` | pending | Trusted-time/step and code races, salts/KDF, no weak-policy substitution and durable budget exhaustion |
+| T3.2 | complete | `test(auth): verify fallback replay and policy` | `56af95e82bdc272815c1571db1228a6616e3cf13` | Trusted-time/step and code races, salts/KDF, no weak-policy substitution and durable budget exhaustion |
 | T4.1 | pending | `feat(auth): enforce authorized factor changes` | pending | Recent trusted authority, bounded own-factor operations, version/revocation and coherent actor rotation |
 | T4.2 | pending | `test(auth): verify authenticator change authority` | pending | Subject isolation, post-lock freshness, last-factor/current-proof constraints, mutation races and rollback |
 | T5.1 | pending | `test(auth): exercise authenticator browser journeys` | pending | Actual browser/virtual device against production handlers, real PostgreSQL and required stronger proof |
@@ -51,7 +51,7 @@ Execution gate: Open
 Credential security and authentication sessions are delivered on canonical `dev`.
 The concern/model, selected dependency/profile/defaults and five-slice plan were
 approved on 2026-10-04. The concern/model are promoted together; Slice 1/T1.1
-is delivered. Slices 1-2 are delivered. Slice 3/T3.2 is active after verified PR #99 merge. The required branch is `feat/authenticator-fallback`.
+is delivered. Slices 1-2 are delivered. Slice 3/T3.1/T3.2 is implemented and reviewing after verified PR #99 merge. The required branch is `feat/authenticator-fallback`.
 
 Before T1.1 settle matching Go/SQL/wire fields and exact pinned verifier/key
 dependencies. Before T1.2 record actual finite integration/fuzz selectors;
@@ -113,10 +113,15 @@ Next checkpoint: review/merge Slice 2, verify canonical state, then activate the
 Slice 2 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/99
 Report introduction: `379370c2b25b63cc1726ed6a8af88984a179baab`.
 Verified PR #99 merge: `3d451cf7a0ba7eaf622ec732cc388c379062b3f2`.
-Next: implement approved Slice 3/T3.1/T3.2.
+Next: review/merge Slice 3, verify canonical state, then activate approved Slice 4.
 
 ## Slice 3 Focused Validation Bindings
 
 - Parser fuzz: `go test ./crypto -run '^$' -fuzz '^FuzzBackupCode$' -fuzztime=20s -parallel=2 -timeout=60s`; no KDF/database work.
 - Real PostgreSQL: `go test -race -tags=integration ./examples/ticked/internal/feat/auth -run '^Test(FallbackTransactions|WebAuthnTransactions|EnrollmentTransactions|CredentialTransactions|ProofTransactions|SessionTransactions|ControlTransactions)$' -count=1 -timeout=180s`; explicit owned-cluster settings required, missing `DB_HOST` fails.
 - T3.1 passed actual TOTP setup/MFA, backup issue/use/reuse denial, PostgreSQL regression with race detection, focused package races, vet, strict lint, documentation/example compilation and source licensing.
+
+T3.2 passed actual replay/rotation/regeneration races, SQL rollback, current factor/account/policy/key conflicts, oldest-proof expiry after real locks/writes, shared budget reissue exhaustion, salted owner/ID-bound PHC records, cleanup and transport isolation. Parser fuzz completed 920632 executions without failure. Full named PostgreSQL regression passed with race detection (54.089 seconds); package races, vet, strict default/tagged lint, licensing and docs/example compilation passed. Tagged formatting correction: `54d75553de6ed8e00616d1cc9bd07d48485f7c18`.
+
+Slice 3 PR: pending.
+The complete set's aggregate gate remains after Slice 5 merge.
