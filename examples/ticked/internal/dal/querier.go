@@ -98,6 +98,7 @@ type Querier interface {
 	ReclaimRecoveryNotices(ctx context.Context, userID string) (int64, error)
 	ReclaimSubjectEnrollments(ctx context.Context, userID string) (int64, error)
 	ReclaimSubjectSessions(ctx context.Context, userID string) (int64, error)
+	RecoveryPasswordFactors(ctx context.Context, userID string) ([]RecoveryPasswordFactorsRow, error)
 	ReleaseEnrollment(ctx context.Context, arg ReleaseEnrollmentParams) error
 	ReleaseMailboxToken(ctx context.Context, arg ReleaseMailboxTokenParams) error
 	RemoveTOTPFactor(ctx context.Context, arg RemoveTOTPFactorParams) (int64, error)

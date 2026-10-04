@@ -115,7 +115,12 @@ func (d *MailboxDelivery) DispatchMailboxNotices(ctx context.Context, subject st
 	var failed bool
 
 	for _, n := range notices {
-		err = d.sender.Send(work, &mailer.Message{To: []mailer.Address{{Email: n.Destination}}, Subject: "Your Ticked mailbox was verified", Text: "Your current mailbox was verified. Existing sessions were revoked. Sign in again through the normal authentication flow."})
+		subject, text := "Your Ticked mailbox was verified", "Your current mailbox was verified. Existing sessions were revoked. Sign in again through the normal authentication flow."
+		if n.Kind == 2 {
+			subject, text = "Your Ticked password was changed", "Your password was changed. Existing sessions were revoked. Sign in again through the normal authentication flow. If you did not make this change, contact the account operator."
+		}
+
+		err = d.sender.Send(work, &mailer.Message{To: []mailer.Address{{Email: n.Destination}}, Subject: subject, Text: text})
 		if err != nil {
 			failed = true
 
@@ -168,7 +173,7 @@ func (q *Queries) claimMailboxNotices(ctx context.Context, subject string, limit
 	}
 
 	for _, n := range notices {
-		if n.Kind != 1 {
+		if n.Kind != 1 && n.Kind != 2 {
 			return nil, core.ErrRecoveryUnavailable
 		}
 

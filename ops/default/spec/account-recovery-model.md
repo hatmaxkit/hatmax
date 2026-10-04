@@ -169,3 +169,25 @@ that missed the response. Confirmation cannot preserve an authenticated cookie.
 Acceptance compares these fields, constraints, operations and lock order with
 the concrete adapter schema/queries, failure evidence and production handling.
 The model and behavior were approved together on 2026-10-04.
+
+## Password Change Implementation Names
+
+Slice 2 settles `PasswordChangePolicy` (trusted `Requirement` and explicit
+`AllowPassword`), `PasswordChangeAuthorization` (owned actor digest/session,
+current bounded primary-factor bindings and normalized policy), and
+`PasswordChanged` (safe subject/time only). `RecoveryQueries.AuthorizePasswordChange`
+charges kind 3 before candidate work; `CommitPasswordChange` receives that owned
+snapshot and the encoded record. Factor proof defaults to phishing-resistant MFA;
+password proof is allowed only with no established primary factors and explicit
+policy permission. Proof age defaults/clamps to the credential service's recent
+proof bound. No caller supplies a subject, proof fact or clock to the public service.
+
+`RecoveryPasswordFactors` reads at most 21 owned primary-factor metadata rows
+across all relying parties; more than 20 denies. Existing `ReplacePassword` SQL
+is used inside the protected final transaction. No schema migration is needed.
+Ticked `PasswordChangeHandler` accepts exactly one bounded URL-encoded `password`
+field at `/account/password`; the actor comes only from the session cookie.
+`MailboxDelivery.ChangePassword` commits first and then attempts kind-2 notices.
+Ticked enables this route under its existing explicitly configured recovery/mail
+boundary. It explicitly permits password proof without factors and retains the
+phishing-resistant default when any primary factor is established.

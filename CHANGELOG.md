@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Users can change a password after recent authentication. Accounts with MFA
+  require current qualifying MFA proof; a successful change signs out every
+  session and preserves mailbox verification and authenticators. Ticked provides
+  a protected change form with durable notification and bounded mail retry.
+
 - Applications can verify a current mailbox through a bounded one-use email
   link. Verification signs out existing sessions and requires normal sign-in
   again, preserving configured MFA. Ticked provides protected verification forms

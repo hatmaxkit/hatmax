@@ -196,7 +196,15 @@ func main() {
 			os.Exit(1)
 		}
 
-		deps = append(deps, handler)
+		changePolicy := auth.PasswordChangePolicy{Requirement: strong, AllowPassword: true}
+
+		changeHandler, initErr := tickedweb.NewPasswordChangeHandler(delivery, changePolicy)
+		if initErr != nil {
+			logger.Errorf("Cannot initialize password change routes")
+			os.Exit(1)
+		}
+
+		deps = append(deps, handler, changeHandler)
 	}
 
 	starts, stops, registrars := app.Setup(ctx, router, deps...)

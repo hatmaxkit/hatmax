@@ -73,3 +73,9 @@ UPDATE recovery_notices SET attempts=attempts+1 WHERE id=$1;
 
 -- name: DeliverRecoveryNotice :exec
 UPDATE recovery_notices SET delivered_at=clock_timestamp() WHERE id=$1;
+
+-- name: RecoveryPasswordFactors :many
+SELECT id, 1::smallint AS kind, revision FROM authenticators a WHERE a.user_id=$1
+UNION ALL
+SELECT id, 2::smallint AS kind, revision FROM totp_authenticators t WHERE t.user_id=$1
+ORDER BY id LIMIT 21;

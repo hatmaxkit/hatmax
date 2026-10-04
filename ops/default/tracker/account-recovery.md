@@ -18,7 +18,7 @@ Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `cd9647584a004d2dd0563fe915654ffd316abb8e`
 Active slice: Slice 2 — Protected password change
-Active tasks: T2.1
+Active tasks: T2.2
 Execution gate: Open
 
 ## Slice Status
@@ -36,8 +36,8 @@ Execution gate: Open
 | --- | --- | --- | --- | --- |
 | T1.1 | completed | `feat(auth): add bounded mailbox verification` | `334046be21b4` | Actual core token flow and synchronized PostgreSQL/HTTP/mail/notice contracts |
 | T1.2 | completed | `test(auth): verify mailbox lifecycle and transactions` | `77395af0a3c1` | Purpose/state isolation, time/budget/cleanup bounds, real races/rollback and transport safety |
-| T2.1 | active | `feat(auth): enforce recent-proof password changes` | pending | Actual actor-derived proof, shared policy/KDF and atomic revocation/notification |
-| T2.2 | pending | `test(auth): verify password change authority` | pending | Current actor/factor/policy/time rejection, concurrency and full rollback |
+| T2.1 | completed | `feat(auth): enforce recent-proof password changes` | pending | Actual actor-derived proof, shared policy/KDF and atomic revocation/notification |
+| T2.2 | active | `test(auth): verify password change authority` | pending | Current actor/factor/policy/time rejection, concurrency and full rollback |
 | T3.1 | pending | `feat(auth): add one-use mailbox password reset` | pending | Previously verified target, one-use token, credential/revocation/notice and no MFA bypass |
 | T3.2 | pending | `test(auth): verify password reset isolation and MFA` | pending | Token and reset/change races, rollback, invalidation and real retained MFA/replay state |
 | T4.1 | pending | `test(auth): exercise account recovery browser journeys` | pending | Actual production browser/PostgreSQL lifecycle and current-proof re-entry |

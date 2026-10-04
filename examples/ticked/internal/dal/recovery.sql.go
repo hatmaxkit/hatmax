@@ -317,6 +317,42 @@ func (q *Queries) ReclaimRecoveryNotices(ctx context.Context, userID string) (in
 	return result.RowsAffected()
 }
 
+const recoveryPasswordFactors = `-- name: RecoveryPasswordFactors :many
+SELECT id, 1::smallint AS kind, revision FROM authenticators a WHERE a.user_id=$1
+UNION ALL
+SELECT id, 2::smallint AS kind, revision FROM totp_authenticators t WHERE t.user_id=$1
+ORDER BY id LIMIT 21
+`
+
+type RecoveryPasswordFactorsRow struct {
+	ID       string `json:"id"`
+	Kind     int16  `json:"kind"`
+	Revision int64  `json:"revision"`
+}
+
+func (q *Queries) RecoveryPasswordFactors(ctx context.Context, userID string) ([]RecoveryPasswordFactorsRow, error) {
+	rows, err := q.db.QueryContext(ctx, recoveryPasswordFactors, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []RecoveryPasswordFactorsRow{}
+	for rows.Next() {
+		var i RecoveryPasswordFactorsRow
+		if err := rows.Scan(&i.ID, &i.Kind, &i.Revision); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const releaseMailboxToken = `-- name: ReleaseMailboxToken :exec
 UPDATE mailbox_tokens SET lease_until=NULL WHERE id=$1 AND revision=$2 AND consumed_at IS NULL AND revoked_at IS NULL
 `

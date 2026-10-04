@@ -21,6 +21,8 @@ import (
 // Confirm consumes, verifies, advances version, invalidates all continuations and
 // sessions, and persists a notification intent in one transaction.
 type RecoveryQueries interface {
+	AuthorizePasswordChange(context.Context, SessionDigest, PasswordChangePolicy, config.RecoverySettings) (*PasswordChangeAuthorization, error)
+	CommitPasswordChange(context.Context, PasswordChangeAuthorization, string, PasswordChangePolicy, config.RecoverySettings) (*PasswordChanged, error)
 	IssueMailbox(context.Context, MailboxRecord, config.RecoverySettings) error
 	ReserveMailbox(context.Context, RecoveryToken, string, config.RecoverySettings) (*MailboxRecord, error)
 	ConfirmMailbox(context.Context, MailboxRecord, string, config.RecoverySettings) (*MailboxVerification, error)
