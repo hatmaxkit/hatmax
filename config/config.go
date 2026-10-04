@@ -21,15 +21,16 @@ import (
 
 // Config holds the application configuration.
 type Config struct {
-	Log       LogConfig       `koanf:"log"`
-	Server    ServerConfig    `koanf:"server"`
-	Database  DatabaseConfig  `koanf:"database"`
-	Auth      AuthConfig      `koanf:"auth"`
-	Contact   ContactConfig   `koanf:"contact"`
-	Property  PropertyConfig  `koanf:"property"`
-	PubSub    PubSubConfig    `koanf:"pubsub"`
-	Scheduler SchedulerConfig `koanf:"scheduler"`
-	Mailer    MailerConfig    `koanf:"mailer"`
+	Log           LogConfig           `koanf:"log"`
+	Server        ServerConfig        `koanf:"server"`
+	Database      DatabaseConfig      `koanf:"database"`
+	Auth          AuthConfig          `koanf:"auth"`
+	Authenticator AuthenticatorConfig `koanf:"authenticator"`
+	Contact       ContactConfig       `koanf:"contact"`
+	Property      PropertyConfig      `koanf:"property"`
+	PubSub        PubSubConfig        `koanf:"pubsub"`
+	Scheduler     SchedulerConfig     `koanf:"scheduler"`
+	Mailer        MailerConfig        `koanf:"mailer"`
 }
 
 // LogConfig holds logging configuration.

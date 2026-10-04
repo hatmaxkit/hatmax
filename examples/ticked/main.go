@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"hatmax.adrianpk.com/app"
 	"hatmax.adrianpk.com/auth"
@@ -79,6 +80,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	enrollmentSvc, err := auth.NewAuthenticatorService(baseAuthSvc, authQueries, cfg.Authenticator)
+	if err != nil {
+		logger.Errorf("Cannot initialize authenticators: %v", err)
+		os.Exit(1)
+	}
+
+	enrollmentHandler, err := tickedweb.NewEnrollmentHandler(enrollmentSvc, auth.AccessRequirement{Proof: auth.RequirePhishingResistantMFA, Revision: "enrollment-v1", MaxAge: 5 * time.Minute})
+	if err != nil {
+		logger.Errorf("Cannot initialize enrollment: %v", err)
+		os.Exit(1)
+	}
+
 	authSvc := authfeat.NewService(baseAuthSvc, authQueries, logger)
 	listSvc := listfeat.NewService(listStore, broker, logger)
 
@@ -94,6 +107,7 @@ func main() {
 		authQueries,
 		auditSvc,
 		webHandler,
+		enrollmentHandler,
 	}
 
 	starts, stops, registrars := app.Setup(ctx, router, deps...)

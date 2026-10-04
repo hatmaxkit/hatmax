@@ -15,20 +15,35 @@ import (
 )
 
 type Querier interface {
+	AdvanceAuthenticatorVersion(ctx context.Context, arg AdvanceAuthenticatorVersionParams) error
+	ChargeFactorBudget(ctx context.Context, arg ChargeFactorBudgetParams) error
+	ConfirmAuthenticator(ctx context.Context, arg ConfirmAuthenticatorParams) error
+	CountAuthenticators(ctx context.Context, userID string) (int64, error)
+	CountEnrollments(ctx context.Context, userID string) (int64, error)
 	CountSubjectSessions(ctx context.Context, userID string) (int64, error)
 	CountUsers(ctx context.Context) (int64, error)
+	CreateEnrollment(ctx context.Context, arg CreateEnrollmentParams) error
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	// SPDX-FileCopyrightText: 2026 Adrian PK
 	// SPDX-License-Identifier: Apache-2.0
 	//
 	// This file is part of Hatmax. See LICENSE for license terms.
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteExpiredEnrollments(ctx context.Context, dollar_1 int32) (int64, error)
 	DeleteExpiredSessions(ctx context.Context, dollar_1 int32) (int64, error)
 	DeleteSession(ctx context.Context, tokenDigest []byte) (int64, error)
+	DeleteSubjectEnrollments(ctx context.Context, userID string) error
 	DeleteTodoItem(ctx context.Context, id string) error
 	DeleteTodoItemsByListID(ctx context.Context, listID string) error
 	DeleteTodoList(ctx context.Context, id string) error
 	DeleteUserSessions(ctx context.Context, userID string) error
+	EnrollmentSubject(ctx context.Context, digest []byte) (string, error)
+	EnsureFactorBudget(ctx context.Context, arg EnsureFactorBudgetParams) error
+	// SPDX-FileCopyrightText: 2026 Adrian PK
+	// SPDX-License-Identifier: Apache-2.0
+	//
+	// This file is part of Hatmax. See LICENSE for license terms.
+	EnsureWebAuthnHandle(ctx context.Context, arg EnsureWebAuthnHandleParams) ([]byte, error)
 	GetSessionByDigest(ctx context.Context, tokenDigest []byte) (Session, error)
 	GetSessionForUpdate(ctx context.Context, tokenDigest []byte) (Session, error)
 	GetTodoItemByID(ctx context.Context, id string) (TodoItem, error)
@@ -38,10 +53,15 @@ type Querier interface {
 	GetUserByID(ctx context.Context, id string) (User, error)
 	GetUserForAuth(ctx context.Context, id string) (User, error)
 	InsertTodoItem(ctx context.Context, arg InsertTodoItemParams) error
+	LeaseEnrollment(ctx context.Context, arg LeaseEnrollmentParams) error
 	ListSubjectSessions(ctx context.Context, arg ListSubjectSessionsParams) ([]Session, error)
 	ListUsers(ctx context.Context) ([]User, error)
+	LockEnrollment(ctx context.Context, digest []byte) (AuthPending, error)
+	LockFactorBudget(ctx context.Context, userID string) (AuthFactorBudget, error)
 	LockSubjectSessions(ctx context.Context, userID string) ([]string, error)
+	ReclaimSubjectEnrollments(ctx context.Context, userID string) (int64, error)
 	ReclaimSubjectSessions(ctx context.Context, userID string) (int64, error)
+	ReleaseEnrollment(ctx context.Context, arg ReleaseEnrollmentParams) error
 	ReplacePassword(ctx context.Context, arg ReplacePasswordParams) (User, error)
 	RevokeSubjectSessions(ctx context.Context, arg RevokeSubjectSessionsParams) (int64, error)
 	RotateSession(ctx context.Context, arg RotateSessionParams) (Session, error)

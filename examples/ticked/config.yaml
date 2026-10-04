@@ -40,3 +40,22 @@ auth:
   argon_max_iterations: 3
   argon_max_parallelism: 4
   password_max_concurrent: 2
+
+authenticator:
+  rp_id: localhost
+  rp_name: Ticked
+  origins:
+    - http://localhost:8080
+  localhost_development: true
+  pending_ttl: 5m
+  recent_proof_age: 5m
+  timeout: 5s
+  lease: 5s
+  budget_window: 15m
+  cooldown: 15m
+  max_pending: 5
+  max_authenticators: 10
+  pending_attempts: 5
+  subject_attempts: 10
+  max_concurrent: 2
+  cleanup_batch: 1000

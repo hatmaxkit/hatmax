@@ -74,16 +74,16 @@ func TestProofTransactions(t *testing.T) {
 			}
 		}
 
-		var sessions, pendingTables int
+		var sessions, pendingRows int
 
 		err := db.QueryRowContext(t.Context(), "SELECT count(*) FROM sessions").Scan(&sessions)
 		if err != nil || sessions != 1 {
 			t.Fatal("unavailable methods persisted sessions")
 		}
 
-		err = db.QueryRowContext(t.Context(), "SELECT count(*) FROM information_schema.tables WHERE table_schema=current_schema() AND table_name LIKE '%pending%'").Scan(&pendingTables)
-		if err != nil || pendingTables != 0 {
-			t.Fatal("placeholder pending state exists")
+		err = db.QueryRowContext(t.Context(), "SELECT count(*) FROM auth_pending").Scan(&pendingRows)
+		if err != nil || pendingRows != 0 {
+			t.Fatal("unsupported sign-in persisted pending authority")
 		}
 		// The initial schema also rejects attempts to label unverified methods.
 		_, err = db.ExecContext(t.Context(), "UPDATE sessions SET proof_method=2 WHERE id=$1", issued.ID)

@@ -152,3 +152,34 @@ Before implementation review the library credential/session encoding, encrypted
 envelope/key dependency, internal reservation representation and proof/SQL
 constituent mapping together. These are concrete design bindings of the proposed
 contract, not permission to add placeholder interfaces or an unimplemented method.
+
+## Slice 1 Concrete Binding
+
+`NewAuthenticatorService` requires the existing credential service (and its
+shared bounded password verifier), a mandatory `AuthenticatorQueries` adapter
+and validated `config.AuthenticatorConfig`. The adapter owns stable opaque RP
+handles, enrollment-only pending records, one subject-budget row and atomic
+registration confirmation. It exposes typed storage commands; callers cannot
+submit an approved proof to the service. No optional storage upgrade is used.
+
+Pending secrets use an `enroll1.` wire prefix and SHA-256 domain
+`hatmax/pending/enrollment/v1`; ordinary session parsing rejects that prefix.
+Records capture version, RP, random handle, required profile/revision/freshness,
+password time and the exact v0.18.2 begin-session encoding. Each successful
+reservation increments a durable revision and attempts, with one finite lease.
+The final transaction locks subject before pending, checks post-lock time, and
+inserts the verified credential while incrementing version and deleting all
+sessions and pending enrollment rows. Registration returns safe metadata only.
+
+WebAuthn storage keeps bounded credential ID/public key, counter, verified
+presence/UV/backup flags and versioned library credential data. Initial enrollment
+is the only executable purpose in this slice. TOTP authenticated-encryption keys
+remain application-owned explicit key identities; encrypted envelopes bind
+subject, factor identity and material purpose as associated data. No seed or
+unused encryption interface is introduced before Slice 3.
+
+Parser evidence uses `FuzzEnrollmentResponse` for 20 seconds without KDF or DB
+work. The real PostgreSQL selector is
+`Test(EnrollmentTransactions|Credential|Proof|Session|Control)` with `-race`,
+`-count=1`, and `-timeout=120s`; missing `DB_HOST` is a failure. Browser evidence
+remains Slice 5.
