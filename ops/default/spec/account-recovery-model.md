@@ -8,7 +8,8 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Account Recovery Model
 
 Date: 2026-10-04
-Status: Proposed
+Status: Approved
+Approved: 2026-10-04
 Behavior: [Account lifecycle and password recovery](account-recovery.md)
 Parent model: [Authentication security model](authentication-security-model.md)
 Prerequisite models: [Sessions](authentication-sessions-model.md), [Authenticators](authenticators-model.md)
@@ -167,4 +168,4 @@ that missed the response. Confirmation cannot preserve an authenticated cookie.
 
 Acceptance compares these fields, constraints, operations and lock order with
 the concrete adapter schema/queries, failure evidence and production handling.
-Approve the model and behavior together.
+The model and behavior were approved together on 2026-10-04.

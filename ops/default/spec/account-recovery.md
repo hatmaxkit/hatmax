@@ -8,18 +8,21 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Account Lifecycle and Password Recovery
 
 Date: 2026-10-04
-Status: Proposed
+Status: Approved
+Approved: 2026-10-04
 Concern: account-recovery
 Parent: [Authentication security foundation](authentication-security.md)
 Model: [Account recovery model](account-recovery-model.md)
+Plan: [Delivery plan](../plan/account-recovery.md)
+Tracker: [Delivery tracker](../tracker/account-recovery.md)
 Prerequisites: [Authentication and sessions](authentication-sessions.md), [Authenticators](authenticators.md)
 Inspected baseline: `6e02dea9602e954ed9654b3ce2383049c32f808f`
 Implementation status: Pending
-Execution gate: Pending
+Execution gate: Open
 
 ## Purpose and Ownership
 
-Refine AUTH-06 into verification of the current account mailbox, authenticated
+Implement AUTH-06 through verification of the current account mailbox, authenticated
 password change and mailbox-authorized password reset. Extend the delivered
 credential, session and authenticator engine. Include only the AUTH-07 errors,
 attempt admission and resource bounds needed for these operations.
@@ -193,13 +196,13 @@ origins, bounded bodies, CSRF/origin protection, `no-store` and `no-referrer` on
 token pages, and remove tokens from telemetry/navigation. No token or restricted
 continuation resolves through ordinary session lookup.
 
-## Proposed Defaults and Bounds
+## Selected Defaults and Bounds
 
-These are toolkit choices for review, not standards-mandated assurance claims.
+These are approved toolkit bounds, not standards-mandated assurance claims.
 Validate configuration at construction; reject unknown purposes, invalid ranges
 and silent fallback. Trusted time is UTC with existing microsecond precision.
 
-| Setting or input | Proposed default and bound |
+| Setting or input | Selected default and bound |
 | --- | --- |
 | Verification / reset lifetime | 24h / 1h; configurable 1m–24h / 1m–1h |
 | Token size and syntax | Exactly 80 ASCII bytes; UUIDv4 plus 32-byte canonical secret |
@@ -248,9 +251,10 @@ Sources inspected on 2026-10-04:
 - [NIST SP 800-63B-4, account recovery](https://pages.nist.gov/800-63-4/sp800-63b.html#account-recovery): recovery evidence, authenticator lifecycle and notification depend on required assurance. Mailbox possession does not establish phishing-resistant authentication or full recovery at a claimed AAL.
 - [OWASP forgot-password guidance](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html): supports one-use expiring random tokens, consistent initiation responses, ordinary sign-in after reset and safe transport/delivery boundaries.
 
-Review the verified-mailbox prerequisite, verification-time session invalidation,
-recent-proof change policy, no-session-retention result, token representation,
-finite budgets and durable notification obligation together with the model.
-These are proposed refinements of the approved foundation. Concern/model approval
-settles them; a separate authorized plan must define slices and validation before
-implementation. This proposal activates no delivery set and does not close AUTH-07.
+The concern/model and implementation scope were approved on 2026-10-04,
+including the verified-mailbox prerequisite, verification-time session
+invalidation, recent-proof change policy, no-session-retention result, token
+representation, finite budgets and durable notification obligation. The internal
+four-slice plan records exact branches/tasks/reports and activates Slice 1.
+Approval authorizes this bounded set; it does not close broader AUTH-07 or
+all-factor-loss recovery. Implementation status remains Pending until delivery.

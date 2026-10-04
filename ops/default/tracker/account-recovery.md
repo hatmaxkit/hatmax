@@ -1,0 +1,79 @@
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: Apache-2.0
+
+This file is part of Hatmax. See LICENSE for license terms.
+-->
+
+# Account Recovery Tracker
+
+Date: 2026-10-04
+Status: Active
+Approved: 2026-10-04
+Delivery set: account-recovery
+Plan: [Delivery plan](../plan/account-recovery.md)
+Concern: [Account lifecycle and password recovery](../spec/account-recovery.md)
+Model: [Account recovery model](../spec/account-recovery-model.md)
+Parent: [Authentication security](../spec/authentication-security.md)
+Base branch: `dev`
+Planning base: `cd9647584a004d2dd0563fe915654ffd316abb8e`
+Active slice: Slice 1 — Mailbox verification
+Active tasks: T1.1, T1.2
+Execution gate: Open
+
+## Slice Status
+
+| Slice | Short name | Status | Branch | PR title | PR | Report |
+| --- | --- | --- | --- | --- | --- | --- |
+| Slice 1 | Mailbox verification | active | `feat/account-mailbox-verification` | `feat(slice-1): add bounded mailbox verification` | pending | `ops/default/report/slices/account-recovery/slice-1-mailbox-verification.md` |
+| Slice 2 | Protected password change | pending | `feat/account-password-change` | `feat(slice-2): enforce recent-proof password changes` | pending | `ops/default/report/slices/account-recovery/slice-2-password-change.md` |
+| Slice 3 | Mailbox password reset | pending | `feat/account-password-reset` | `feat(slice-3): add one-use mailbox password reset` | pending | `ops/default/report/slices/account-recovery/slice-3-password-reset.md` |
+| Slice 4 | Recovery acceptance | pending | `test/account-recovery-acceptance` | `test(slice-4): verify account recovery integration` | pending | `ops/default/report/slices/account-recovery/slice-4-recovery-acceptance.md` |
+
+## Tasks
+
+| Task | Status | Expected commit | Commit | Required evidence |
+| --- | --- | --- | --- | --- |
+| T1.1 | active | `feat(auth): add bounded mailbox verification` | pending | Actual core token flow and synchronized PostgreSQL/HTTP/mail/notice contracts |
+| T1.2 | pending | `test(auth): verify mailbox lifecycle and transactions` | pending | Purpose/state isolation, time/budget/cleanup bounds, real races/rollback and transport safety |
+| T2.1 | pending | `feat(auth): enforce recent-proof password changes` | pending | Actual actor-derived proof, shared policy/KDF and atomic revocation/notification |
+| T2.2 | pending | `test(auth): verify password change authority` | pending | Current actor/factor/policy/time rejection, concurrency and full rollback |
+| T3.1 | pending | `feat(auth): add one-use mailbox password reset` | pending | Previously verified target, one-use token, credential/revocation/notice and no MFA bypass |
+| T3.2 | pending | `test(auth): verify password reset isolation and MFA` | pending | Token and reset/change races, rollback, invalidation and real retained MFA/replay state |
+| T4.1 | pending | `test(auth): exercise account recovery browser journeys` | pending | Actual production browser/PostgreSQL lifecycle and current-proof re-entry |
+| T4.2 | pending | `test(auth): close account recovery integration evidence` | pending | Complete supported documentation, finite failure regression and acceptance mapping |
+
+## Dependencies and Execution Gate
+
+The concern/model and implementation scope were approved on 2026-10-04. This
+internal four-slice map implements that scope. Credential/session/authenticator
+prerequisites are delivered. Spec/model/plan/tracker agree; commit this planning
+state before creating Slice 1's recorded branch and canonical worktree.
+
+Before runtime edits settle matching Go/SQL/wire representations. Before T1.2
+record finite real PostgreSQL and parser fuzz commands. Before T4.1 record the
+production browser invocation and mandatory prerequisites. No fake store can
+establish transaction semantics or production non-enumeration.
+
+## Completion Gates
+
+- [x] Concern/model behavior and implementation scope approved; four-slice map recorded.
+- [ ] Planning state committed and Slice 1 branch/worktree created from verified dev.
+- [ ] Slice 1 merged and report delivered; mailbox/token transaction evidence recorded.
+- [ ] Slice 2 merged and report delivered; recent-proof credential change evidence recorded.
+- [ ] Slice 3 merged and report delivered; one-use reset/MFA preservation evidence recorded.
+- [ ] Slice 4 merged and report delivered; actual browser acceptance and supported guidance recorded.
+- [ ] AR-01 through AR-10 mapped to exact evidence.
+- [ ] Exact immutable integrated dev candidate passes `make check`.
+- [ ] Supported AUTH-06 coverage and remaining lifecycle/AUTH-07/consumer obligations recorded.
+
+## Planning Validation
+
+- `make docs-check` — passed, including local links and example compilation.
+- `make source-license-check` — passed: 816 headers, 109 annotations.
+- `make lint-strict` — passed: zero issues.
+- Spec/model approval, four exact branches/titles/report paths, eight tasks and
+  active Slice 1 state agree across the delivery documents.
+
+No runtime or final integrated evidence is claimed for the planning change.
+Completed prerequisite gates are not repeated.
