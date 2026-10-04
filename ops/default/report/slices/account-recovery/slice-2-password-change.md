@@ -12,7 +12,7 @@ Delivery set: account-recovery
 Plan: `ops/default/plan/account-recovery.md`
 Tracker: `ops/default/tracker/account-recovery.md`
 Branch: `feat/account-password-change`
-PR: pending
+PR: `#104`
 
 ## Purpose
 
