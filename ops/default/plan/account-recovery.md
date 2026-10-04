@@ -20,7 +20,7 @@ Tracker: [Delivery tracker](../tracker/account-recovery.md)
 Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `cd9647584a004d2dd0563fe915654ffd316abb8e`
-Active slice: Slice 1 — Mailbox verification
+Active slice: Slice 2 — Protected password change
 Execution gate: Open
 Go baseline: 1.27.1
 

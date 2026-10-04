@@ -17,7 +17,7 @@ Plan: [Delivery plan](../plan/account-recovery.md)
 Tracker: [Delivery tracker](../tracker/account-recovery.md)
 Prerequisites: [Authentication and sessions](authentication-sessions.md), [Authenticators](authenticators.md)
 Inspected baseline: `6e02dea9602e954ed9654b3ce2383049c32f808f`
-Implementation status: Pending
+Implementation status: Partial
 Execution gate: Open
 
 ## Purpose and Ownership
