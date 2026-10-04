@@ -742,11 +742,13 @@ func testFallbackVerifiers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = verifier.Verify(t.Context(), record, foreign); !errors.Is(err, model.ErrPasswordMismatch) {
+	err = verifier.Verify(t.Context(), record, foreign)
+	if !errors.Is(err, model.ErrPasswordMismatch) {
 		t.Fatal("verifier did not bind owner")
 	}
 
-	if err = verifier.Verify(t.Context(), record, parsed.Secret); !errors.Is(err, model.ErrPasswordMismatch) {
+	err = verifier.Verify(t.Context(), record, parsed.Secret)
+	if !errors.Is(err, model.ErrPasswordMismatch) {
 		t.Fatal("verifier accepted password-purpose input")
 	}
 
@@ -767,7 +769,8 @@ func testFallbackVerifiers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = verifier.Verify(t.Context(), record, foreign); !errors.Is(err, model.ErrPasswordMismatch) {
+	err = verifier.Verify(t.Context(), record, foreign)
+	if !errors.Is(err, model.ErrPasswordMismatch) {
 		t.Fatal("verifier did not bind code ID")
 	}
 	// The PHC parser enforces stored costs before KDF admission; a corrupt record spends only the durable attempt.
