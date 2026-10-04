@@ -7,12 +7,14 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 5: Browser Acceptance
 
-Status: reviewing
+Status: delivered
 Delivery set: authenticators
 Plan: [Delivery plan](../../../plan/authenticators.md)
 Tracker: [Delivery tracker](../../../tracker/authenticators.md)
 Branch: `test/authenticator-acceptance`
 PR: `#102`
+Verified merge: `8685ea4b703b1628eda032f960e481ba64b24e2b`
+Delivered: 2026-10-04
 T5.1: `bdffc01cca3f2cf1b520614429caad2cdecec117`
 T5.2: `6f4b5027870569a65bbbbaa4044f766d51d6a1d8`
 
@@ -161,7 +163,7 @@ the approved aggregate gate after this final slice merges.
 
 ## Risks and Follow-ups
 
-- Maintainer review/merge and exact integrated `make check` are still pending.
+- PR #102 is merged; exact integrated `make check` is still pending.
   No aggregate gate, main alignment, release, tag, mirror or deployment ran.
 - Virtual devices establish integration rather than hardware identity,
   non-exportability, attestation trust or AAL/compliance certification. Consumers
