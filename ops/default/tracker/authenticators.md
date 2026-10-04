@@ -17,8 +17,8 @@ Model: [Authenticator model](../spec/authenticators-model.md)
 Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
-Active slice: Slice 2
-Active tasks: None; Slice 2 review
+Active slice: Slice 3
+Active tasks: T3.1
 Execution gate: Open
 
 ## Slice Status
@@ -26,8 +26,8 @@ Execution gate: Open
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Restricted enrollment | delivered | `feat/authenticator-enrollment` | `feat(slice-1): add restricted authenticator enrollment` | `#98` | `ops/default/report/slices/authenticators/slice-1-enrollment.md` |
-| Slice 2 | WebAuthn completion | reviewing | `feat/webauthn-completion` | `feat(slice-2): complete WebAuthn authentication and step-up` | `#99` | `ops/default/report/slices/authenticators/slice-2-webauthn-completion.md` |
-| Slice 3 | TOTP and backup proof | pending | `feat/authenticator-fallback` | `feat(slice-3): add replay-resistant TOTP and backup proof` | pending | `ops/default/report/slices/authenticators/slice-3-fallback-proof.md` |
+| Slice 2 | WebAuthn completion | delivered | `feat/webauthn-completion` | `feat(slice-2): complete WebAuthn authentication and step-up` | `#99` | `ops/default/report/slices/authenticators/slice-2-webauthn-completion.md` |
+| Slice 3 | TOTP and backup proof | active | `feat/authenticator-fallback` | `feat(slice-3): add replay-resistant TOTP and backup proof` | pending | `ops/default/report/slices/authenticators/slice-3-fallback-proof.md` |
 | Slice 4 | Authorized factor changes | pending | `feat/authenticator-control` | `feat(slice-4): enforce authorized authenticator changes` | pending | `ops/default/report/slices/authenticators/slice-4-factor-control.md` |
 | Slice 5 | Browser acceptance | pending | `test/authenticator-acceptance` | `test(slice-5): verify authenticator browser integration` | pending | `ops/default/report/slices/authenticators/slice-5-browser-acceptance.md` |
 
@@ -39,7 +39,7 @@ Execution gate: Open
 | T1.2 | complete | `test(auth): verify enrollment isolation and bounds` | `f5b62edccb970f2af7e20f80d6f77f1890a3b437` | Protocol rejection, pending isolation, durable admission/budgets and real PostgreSQL setup races |
 | T2.1 | complete | `feat(auth): complete WebAuthn proof atomically` | `f7df235f4411be7a2bb7eaa0f211077295edba61` | Actual assertion, closed facts and atomic counter/pending/session insertion or rotation |
 | T2.2 | complete | `test(auth): verify WebAuthn completion transactions` | `1b01ea4ba0a64a87705996b37320e745cd20d863` | Real signatures/one winner, current counter/flags, post-lock time and full rollback |
-| T3.1 | pending | `feat(auth): add replay-resistant fallback proof` | pending | Encrypted TOTP, exact accepted steps and salted domain-bound one-use backup proof |
+| T3.1 | active | `feat(auth): add replay-resistant fallback proof` | pending | Encrypted TOTP, exact accepted steps and salted domain-bound one-use backup proof |
 | T3.2 | pending | `test(auth): verify fallback replay and policy` | pending | Trusted-time/step and code races, salts/KDF, no weak-policy substitution and durable budget exhaustion |
 | T4.1 | pending | `feat(auth): enforce authorized factor changes` | pending | Recent trusted authority, bounded own-factor operations, version/revocation and coherent actor rotation |
 | T4.2 | pending | `test(auth): verify authenticator change authority` | pending | Subject isolation, post-lock freshness, last-factor/current-proof constraints, mutation races and rollback |
@@ -51,7 +51,7 @@ Execution gate: Open
 Credential security and authentication sessions are delivered on canonical `dev`.
 The concern/model, selected dependency/profile/defaults and five-slice plan were
 approved on 2026-10-04. The concern/model are promoted together; Slice 1/T1.1
-is delivered. Slice 2/T2.1 and T2.2 are complete after verified PR #98 merge; review is pending. The required branch is `feat/webauthn-completion`.
+is delivered. Slices 1-2 are delivered. Slice 3/T3.1 is active after verified PR #99 merge. The required branch is `feat/authenticator-fallback`.
 
 Before T1.1 settle matching Go/SQL/wire fields and exact pinned verifier/key
 dependencies. Before T1.2 record actual finite integration/fuzz selectors;
@@ -63,7 +63,7 @@ setup flags and fake method claims never count as authenticator acceptance.
 
 - [x] Concern/model/dependency/profile/defaults and plan reviewed; concern promoted and Slice 1 activated.
 - [x] Slice 1 merged; delivered enrollment report and real setup/budget evidence recorded.
-- [ ] Slice 2 merged; delivered WebAuthn completion/step-up and atomic replay evidence recorded.
+- [x] Slice 2 merged; delivered WebAuthn completion/step-up and atomic replay evidence recorded.
 - [ ] Slice 3 merged; delivered TOTP/backup verification, replay and policy evidence recorded.
 - [ ] Slice 4 merged; delivered current-authority/factor-change evidence recorded.
 - [ ] Slice 5 merged; delivered real browser integration and supported documentation recorded.
@@ -112,5 +112,5 @@ Next checkpoint: review/merge Slice 2, verify canonical state, then activate the
 
 Slice 2 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/99
 Report introduction: `379370c2b25b63cc1726ed6a8af88984a179baab`.
-Next: verify the maintainer merge and matching canonical `origin/dev`, close
-Slice 2 report/tracker on `dev`, then activate the already-approved Slice 3.
+Verified PR #99 merge: `3d451cf7a0ba7eaf622ec732cc388c379062b3f2`.
+Next: implement approved Slice 3/T3.1/T3.2.
