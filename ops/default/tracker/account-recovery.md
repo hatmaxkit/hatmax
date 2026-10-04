@@ -26,7 +26,7 @@ Execution gate: Open
 | Slice | Short name | Status | Branch | PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Mailbox verification | delivered | `feat/account-mailbox-verification` | `feat(slice-1): add bounded mailbox verification` | `#103` | `ops/default/report/slices/account-recovery/slice-1-mailbox-verification.md` |
-| Slice 2 | Protected password change | active | `feat/account-password-change` | `feat(slice-2): enforce recent-proof password changes` | pending | `ops/default/report/slices/account-recovery/slice-2-password-change.md` |
+| Slice 2 | Protected password change | reviewing | `feat/account-password-change` | `feat(slice-2): enforce recent-proof password changes` | pending | `ops/default/report/slices/account-recovery/slice-2-password-change.md` |
 | Slice 3 | Mailbox password reset | pending | `feat/account-password-reset` | `feat(slice-3): add one-use mailbox password reset` | pending | `ops/default/report/slices/account-recovery/slice-3-password-reset.md` |
 | Slice 4 | Recovery acceptance | pending | `test/account-recovery-acceptance` | `test(slice-4): verify account recovery integration` | pending | `ops/default/report/slices/account-recovery/slice-4-recovery-acceptance.md` |
 
@@ -37,7 +37,7 @@ Execution gate: Open
 | T1.1 | completed | `feat(auth): add bounded mailbox verification` | `334046be21b4` | Actual core token flow and synchronized PostgreSQL/HTTP/mail/notice contracts |
 | T1.2 | completed | `test(auth): verify mailbox lifecycle and transactions` | `77395af0a3c1` | Purpose/state isolation, time/budget/cleanup bounds, real races/rollback and transport safety |
 | T2.1 | completed | `feat(auth): enforce recent-proof password changes` | `c0abf13f36e5` | Actual actor-derived proof, shared policy/KDF and atomic revocation/notification |
-| T2.2 | completed | `test(auth): verify password change authority` | pending | Current actor/factor/policy/time rejection, concurrency and full rollback |
+| T2.2 | completed | `test(auth): verify password change authority` | `ecf129548459` | Current actor/factor/policy/time rejection, concurrency and full rollback |
 | T3.1 | pending | `feat(auth): add one-use mailbox password reset` | pending | Previously verified target, one-use token, credential/revocation/notice and no MFA bypass |
 | T3.2 | pending | `test(auth): verify password reset isolation and MFA` | pending | Token and reset/change races, rollback, invalidation and real retained MFA/replay state |
 | T4.1 | pending | `test(auth): exercise account recovery browser journeys` | pending | Actual production browser/PostgreSQL lifecycle and current-proof re-entry |
@@ -130,7 +130,7 @@ gate is included in this unit.
   at every final mutation boundary preserve atomic rollback without refunds.
 - Mailbox verification and established factor/replay/backup state remain; consumed
   backups stay consumed and normal required-MFA authentication works afterward.
-- Production PostgreSQL/form/captured-mail transport passed in 1.460s. GET and
+- Production PostgreSQL/form/captured-mail transport passed in 1.396s. GET and
   forbidden requests cannot mutate. Failed notification delivery preserves the
   completed change and intent; success clears the cookie without issuing access.
 - The full integrated gate and complete browser journeys remain after the
