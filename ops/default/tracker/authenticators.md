@@ -36,7 +36,7 @@ Execution gate: Open
 | Task | Status | Expected commit | Commit | Required evidence |
 | --- | --- | --- | --- | --- |
 | T1.1 | complete | `feat(auth): add restricted WebAuthn enrollment` | `776b4aca0ab80318fa11d86035684d00efca2b5a` | Reviewed dependency/profile; typed bounded pending/budget/setup, actual registration and synchronized adapter |
-| T1.2 | complete | `test(auth): verify enrollment isolation and bounds` | pending | Protocol rejection, pending isolation, durable admission/budgets and real PostgreSQL setup races |
+| T1.2 | complete | `test(auth): verify enrollment isolation and bounds` | `f5b62edccb970f2af7e20f80d6f77f1890a3b437` | Protocol rejection, pending isolation, durable admission/budgets and real PostgreSQL setup races |
 | T2.1 | pending | `feat(auth): complete WebAuthn proof atomically` | pending | Actual assertion, closed facts and atomic counter/pending/session insertion or rotation |
 | T2.2 | pending | `test(auth): verify WebAuthn completion transactions` | pending | Real signatures/one winner, current counter/flags, post-lock time and full rollback |
 | T3.1 | pending | `feat(auth): add replay-resistant fallback proof` | pending | Encrypted TOTP, exact accepted steps and salted domain-bound one-use backup proof |
