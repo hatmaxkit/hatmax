@@ -18,7 +18,7 @@ Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
 Active slice: Slice 5
-Active tasks: T5.2
+Active tasks: None
 Execution gate: Open
 
 ## Slice Status
@@ -43,8 +43,8 @@ Execution gate: Open
 | T3.2 | complete | `test(auth): verify fallback replay and policy` | `56af95e82bdc272815c1571db1228a6616e3cf13` | Trusted-time/step and code races, salts/KDF, no weak-policy substitution and durable budget exhaustion |
 | T4.1 | complete | `feat(auth): enforce authorized factor changes` | `1f7b73b55d3511d5df9cba62a7a4472c5962842a` | Recent trusted authority, bounded own-factor operations, version/revocation and coherent actor rotation |
 | T4.2 | complete | `test(auth): verify authenticator change authority` | `b7a2d6ed1fde75ee861084f0e102109d05289308` | Subject isolation, post-lock freshness, last-factor/current-proof constraints, mutation races and rollback |
-| T5.1 | complete | `test(auth): exercise authenticator browser journeys` | pending | Actual browser/virtual device against production handlers, real PostgreSQL and required stronger proof |
-| T5.2 | active | `test(auth): close authenticator integration evidence` | pending | Cookie/parser/deadline regression, supported guidance and AU/AUTH evidence mapping |
+| T5.1 | complete | `test(auth): exercise authenticator browser journeys` | `bdffc01cca3f2cf1b520614429caad2cdecec117` | Actual browser/virtual device against production handlers, real PostgreSQL and required stronger proof |
+| T5.2 | complete | `test(auth): close authenticator integration evidence` | pending | Cookie/parser/deadline regression, supported guidance and AU/AUTH evidence mapping |
 
 ## Dependencies and Execution Gate
 
@@ -191,3 +191,23 @@ real backup use/reuse denial, and TOTP sign-in/step-up/replay. Browser acceptanc
 passed with race detection (12.72 seconds test time); package races, vet,
 strict default/tagged lint, source licensing and docs/example compilation passed.
 No runtime verifier or persistence behavior changed; no dependency was added.
+
+
+T5.2 browser regression passed with race detection (12.78 seconds test time):
+tampered actual browser UP/UV/signature responses, pending-as-cookie, wrong-purpose
+finish, unknown/non-object/trailing/oversized JSON and failure cookie preservation.
+Browser success still requires actual verification, PostgreSQL and committed proof.
+The production backup handler is bound to recent phishing-resistant management;
+MFA fallback cannot weaken it. Tagged PostgreSQL regression passed with race
+detection (66.488 seconds), including actual lock/write expiry, canceled waits,
+replay/mutation races and forced completion rollback. `go mod verify` passed;
+selected protocol/OTP/key dependencies and their stored licenses were inspected.
+
+
+Supported AUTH-03 completion and AUTH-05 mechanisms now have actual browser and
+real verifier/transaction evidence for the documented WebAuthn, TOTP and backup
+profiles. AUTH-06 recovery and AUTH-07 general abuse/event infrastructure remain
+separate concerns. Consumers still own RP/origin/access policy, database atomicity,
+key custody, HTTPS, hardware/attestation/AAL claims and domain authorization.
+AU-10's aggregate condition remains pending until the final slice merges and its
+exact immutable integrated `dev` candidate passes `make check`.

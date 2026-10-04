@@ -186,7 +186,7 @@ func TestAuthenticatorBrowser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	backup, err := NewFallbackHandler(fallback, base, mfa, mfa)
+	backup, err := NewFallbackHandler(fallback, base, mfa, strong)
 	if err != nil {
 		t.Fatal(err)
 	}

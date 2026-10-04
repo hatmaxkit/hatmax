@@ -78,7 +78,10 @@ try {
   const evaluate = async expression => {
     const result = await page('Runtime.evaluate', {expression, awaitPromise: true, returnByValue: true});
     // Never print exception text: it may contain transient protocol material.
-    assert(!result.exceptionDetails, 'browser journey failed (inspect named step)');
+    const exception = result.exceptionDetails?.exception;
+    const firstLine = exception?.description?.split('\n')[0] || '';
+    const safeDetail = /^Error: \/authenticators\/[a-z/-]+$/.test(firstLine) ? firstLine : exception?.className || 'unknown';
+    assert(!result.exceptionDetails, `browser journey failed (${safeDetail}; inspect named step)`);
     return result.result.value;
   };
   const install = async () => evaluate(`(() => {
@@ -94,21 +97,38 @@ try {
     const denied = async (path, body, headers) => {const r = await request(path, body, headers); check(r.status === 403, path); return true};
     const password = async email => {const r = await fetch('/signin', {method:'POST', body:new URLSearchParams({email,password:'a distinct safe password'})}); check(r.status === 200 && r.headers.get('HX-Redirect') === '/list-items', 'password');};
     const create = async begin => {
-      const publicKey = begin.options.publicKey;
+      const publicKey = structuredClone(begin.options.publicKey);
       publicKey.challenge = decode(publicKey.challenge); publicKey.user.id = decode(publicKey.user.id);
       publicKey.excludeCredentials?.forEach(c => c.id = decode(c.id));
       const c = await navigator.credentials.create({publicKey});
       return {id:c.id, rawId:encode(c.rawId), type:c.type, response:{clientDataJSON:encode(c.response.clientDataJSON), attestationObject:encode(c.response.attestationObject), transports:c.response.getTransports()}, clientExtensionResults:c.getClientExtensionResults()};
     };
     const get = async begin => {
-      const publicKey = begin.options.publicKey; publicKey.challenge = decode(publicKey.challenge);
+      const publicKey = structuredClone(begin.options.publicKey); publicKey.challenge = decode(publicKey.challenge);
       publicKey.allowCredentials?.forEach(c => c.id = decode(c.id));
       const c = await navigator.credentials.get({publicKey});
       return {id:c.id, rawId:encode(c.rawId), type:c.type, response:{clientDataJSON:encode(c.response.clientDataJSON), authenticatorData:encode(c.response.authenticatorData), signature:encode(c.response.signature), userHandle:c.response.userHandle ? encode(c.response.userHandle) : null}, clientExtensionResults:c.getClientExtensionResults()};
     };
     const signin = async () => {const begin = await ok('/authenticators/authentication/begin', {email:'passkey@example.com'}); const s = await ok('/authenticators/authentication/finish', await get(begin), {'X-Assertion-Token':begin.token}); check(s.Proof.Method === 2, 'WebAuthn proof');};
-    const otp = async (url, previous = false) => (await request('/__test/otp', {url,previous})).data.code;
-    window.flow = {check, request, ok, denied, password, create, get, signin, otp};
+    const otp = async (url, previous = false) => {
+      // Keep a previous-step setup code away from the following boundary;
+      // verification still uses production trusted time and fixed skew.
+      const elapsed = Date.now() % 30000;
+      if (previous && elapsed > 27000) await new Promise(resolve => setTimeout(resolve, 30100 - elapsed));
+      return (await request('/__test/otp', {url,previous})).data.code;
+    };
+    const tamper = async (begin, field) => {
+      const response = await get(begin);
+      if (field === 'signature') {
+        const signature = decode(response.response.signature); signature[signature.length-1] ^= 1;
+        response.response.signature = encode(signature);
+      } else {
+        const data = decode(response.response.authenticatorData); data[32] &= ~(field === 'UP' ? 1 : 4);
+        response.response.authenticatorData = encode(data);
+      }
+      return response;
+    };
+    window.flow = {check, request, ok, denied, password, create, get, signin, otp, tamper};
     return isSecureContext && !!navigator.credentials;
   })()`);
   async function navigate(path) {
@@ -138,7 +158,7 @@ try {
     await flow.denied('/authenticators/proof'); await flow.denied('/authenticators/manage');
     window.enroll = await flow.ok('/authenticators/enrollment/begin', {email:'passkey@example.com',password:'a distinct safe password'});
   })()`);
-  assert.equal(await cookie(), weak, 'begin cannot replace password cookie');
+  assert((await cookie()) === weak, 'begin cannot replace password cookie');
   await evaluate(`(async () => {window.registration = await flow.create(enroll); await flow.ok('/authenticators/enrollment/finish', registration, {'X-Enrollment-Token':enroll.token});})()`);
   assert.equal((await cookies()).length, 0, 'registration issues no session');
   await evaluate(`flow.denied('/authenticators/enrollment/finish', registration, {'X-Enrollment-Token':enroll.token})`);
@@ -149,12 +169,32 @@ try {
 
   await evaluate(`flow.password('passkey@example.com')`);
   const actor = await cookie();
-  assert.notEqual(actor, strong);
+  assert(actor !== strong, 'password sign-in issues a distinct bearer');
   await evaluate(`(async () => {await flow.denied('/authenticators/proof'); window.step = await flow.ok('/authenticators/step-up/begin', {});})()`);
-  assert.equal(await cookie(), actor, 'step-up begin cannot issue proof');
+  assert((await cookie()) === actor, 'step-up begin cannot issue proof');
+  const restricted = await evaluate(`step.token`);
+  await replaceCookie(restricted);
+  await evaluate(`(async () => {await flow.denied('/authenticators/proof'); await flow.denied('/authenticators/mfa');})()`);
+  await replaceCookie(actor);
+  for (const field of ['UP', 'UV', 'signature']) {
+    await evaluate(`(async () => {await flow.denied('/authenticators/step-up/finish', await flow.tamper(step, ${JSON.stringify(field)}), {'X-Assertion-Token':step.token});})()`);
+    assert((await cookie()) === actor, 'invalid browser response preserves cookie');
+    await evaluate(`flow.denied('/authenticators/proof')`);
+  }
+  await evaluate(`(async () => {
+    await flow.denied('/authenticators/authentication/begin', {email:'passkey@example.com',proof:2});
+    await flow.denied('/authenticators/step-up/begin', {extra:true});
+    await flow.denied('/authenticators/authentication/finish', {}, {'X-Assertion-Token':step.token});
+    for (const body of ['{}{}', '[]', '{}'+ ' '.repeat(65536)]) {
+      const r = await fetch('/authenticators/authentication/begin', {method:'POST',headers:{'Content-Type':'application/json'},body});
+      flow.check(r.status === 403, 'browser body bound');
+    }
+  })()`);
+  assert((await cookie()) === actor, 'body and purpose failures preserve cookie');
+  stage('real browser UP/UV/signature rejection, pending isolation and wire bounds');
   await evaluate(`(async () => flow.ok('/authenticators/step-up/finish', await flow.get(step), {'X-Assertion-Token':step.token}))()`);
   const elevated = await cookie();
-  assert.notEqual(elevated, actor, 'step-up rotates actor');
+  assert(elevated !== actor, 'step-up rotates actor');
   await replaceCookie(actor);
   await evaluate(`flow.denied('/authenticators/proof')`);
   await replaceCookie(elevated);
@@ -175,17 +215,17 @@ try {
   await evaluate(`(async () => {window.list = await flow.ok('/authenticators/factors'); window.proof = await flow.ok('/authenticators/proof'); window.extra = list.find(f => f.id !== proof.Proof.FactorID); flow.check(list.length === 2, 'safe list'); flow.check(list.every(f => !('public_key' in f) && !('credential_id' in f)), 'no secret fields'); window.codes = (await flow.ok('/authenticators/backup/issue', {})).codes; flow.check(codes.length === 8, 'backup set');})()`);
   const managed = await cookie();
   await evaluate(`flow.ok('/authenticators/factors/remove', {target:{kind:extra.kind,id:extra.id,revision:extra.revision}})`);
-  assert.notEqual(await cookie(), managed, 'management rotates retained actor');
+  assert((await cookie()) !== managed, 'management rotates retained actor');
   await evaluate(`(async () => {window.last = (await flow.ok('/authenticators/factors'))[0]; await flow.denied('/authenticators/factors/remove', {target:{kind:last.kind,id:last.id,revision:last.revision}});})()`);
   stage('production management UI, safe listing, rotation and last-factor denial');
 
   await evaluate(`(async () => {window.recovery = codes[0]; window.backup = await flow.ok('/authenticators/backup/authentication/begin', {email:'passkey@example.com',password:'a distinct safe password'});})()`);
   const beforeBackup = await cookie();
   await evaluate(`(async () => {const s = await flow.ok('/authenticators/fallback/authentication/finish', {code:recovery}, {'X-Fallback-Token':backup.token}); flow.check(s.Proof.Method === 4, 'actual backup proof'); await flow.ok('/authenticators/mfa'); await flow.denied('/authenticators/proof'); await flow.denied('/authenticators/backup/issue', {});})()`);
-  assert.notEqual(await cookie(), beforeBackup);
+  assert((await cookie()) !== beforeBackup, 'backup completion issues a distinct bearer');
   const backupActor = await cookie();
   await evaluate(`(async () => {const retry = await flow.ok('/authenticators/backup/authentication/begin', {email:'passkey@example.com',password:'a distinct safe password'}); await flow.denied('/authenticators/fallback/authentication/finish', {code:recovery}, {'X-Fallback-Token':retry.token});})()`);
-  assert.equal(await cookie(), backupActor, 'consumed-code failure issues no cookie');
+  assert((await cookie()) === backupActor, 'consumed-code failure issues no cookie');
   stage('actual backup MFA, one-use rejection and phishing-resistant denial');
 
   for (const [email, stepUp] of [['totp@example.com',false], ['stepup@example.com',true]]) {
@@ -202,17 +242,17 @@ try {
       const begin = await flow.ok('/authenticators/totp/${stepUp ? 'step-up' : 'authentication'}/begin', {${stepUp ? '' : `email:${JSON.stringify(email)},`}password:'a distinct safe password'});
       window.code = await flow.otp(totpURL);
       const s = await flow.ok('/authenticators/fallback/${stepUp ? 'step-up' : 'authentication'}/finish', {code}, {'X-Fallback-Token':begin.token});
-      flow.check(s.Proof.Method === 3, 'actual TOTP proof'); await flow.ok('/authenticators/mfa'); await flow.denied('/authenticators/proof');
+      flow.check(s.Proof.Method === 3, 'actual TOTP proof'); await flow.ok('/authenticators/mfa'); await flow.denied('/authenticators/proof'); await flow.denied('/authenticators/manage');
       const retry = await flow.ok('/authenticators/totp/authentication/begin', {email:${JSON.stringify(email)},password:'a distinct safe password'});
       await flow.denied('/authenticators/fallback/authentication/finish', {code}, {'X-Fallback-Token':retry.token});
     })()`);
-    assert.notEqual(await cookie(), passwordActor);
+    assert((await cookie()) !== passwordActor, 'TOTP completion issues a distinct bearer');
     stage(`actual TOTP ${stepUp ? 'step-up' : 'sign-in'}, replay and strong-policy denial`);
   }
   const credentials = await page('WebAuthn.getCredentials', {authenticatorId});
   const secondCredentials = await page('WebAuthn.getCredentials', {authenticatorId:secondDevice.authenticatorId});
   assert.equal(credentials.credentials.length + secondCredentials.credentials.length, 2, 'real virtual-device registration inventory');
-  process.stdout.write(`BROWSER ${version.Browser}; CTAP2/internal/RK/UV; journeys complete\n`);
+  process.stdout.write(`BROWSER ${version.Browser}; CTAP2/internal+USB/RK/UV; journeys complete\n`);
 } finally {
   for (const request of pending.values()) clearTimeout(request.timer);
   // Browser.close targets only the debugging connection of our owned profile.

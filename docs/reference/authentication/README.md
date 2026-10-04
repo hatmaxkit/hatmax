@@ -738,3 +738,55 @@ uses `X-Factor-Change-Token`; only committed retained actors get a new cookie.
 TOTP routes require the explicitly configured key ring. Backup regeneration
 continues through `/authenticators/backup/issue` and displays codes once.
 Apply migration `007-factor-control.sql` together with the current typed adapter.
+
+### Browser acceptance
+
+Run the optional `browser` build-tag test explicitly. It fails when prerequisites
+are absent; default package tests do not claim browser coverage. Supply Go 1.27.1,
+a Chromium executable with CDP virtual-authenticator support, Node with its built-in
+`WebSocket` implementation, and an owned PostgreSQL database user that can create
+and drop schemas. The verified local versions are Chromium 151.0.7922.173,
+Node v26.8.1 and PostgreSQL 18.6.
+
+```sh
+export CHROMIUM_BIN=/usr/sbin/chromium NODE_BIN=/usr/sbin/node
+export DB_HOST=/path/to/owned/postgresql/socket DB_PORT=5432
+export DB_USER=postgres DB_NAME=postgres DB_PASSWORD=''
+go test -race -tags=browser ./examples/ticked/internal/web \
+  -run '^TestAuthenticatorBrowser$' -count=1 -timeout=180s -v
+```
+
+Replace database settings with the owned fixture's actual values. The test creates
+a random schema, applies migrations 001 and 004 through 007, and removes that
+schema on cleanup. It starts production Ticked handlers/core services on an
+explicit localhost development origin. Password-only, recent MFA and recent
+phishing-resistant routes share the application's trusted policy revision;
+management requires recent phishing-resistant proof. Factor access is deliberately
+phishing-resistant in this fixture to exercise the last-passkey constraint.
+
+The finite Node harness uses the
+[Chrome DevTools WebAuthn protocol](https://chromedevtools.github.io/devtools-protocol/tot/WebAuthn/)
+with CTAP2/RK/UV, an internal device and a second USB device for another passkey.
+It uses an isolated profile, loopback debugging and owned short socket scratch
+under `/tmp/hatmax-browser-*`. It closes that browser and removes fixture scratch
+after completion. No npm module, externally stored credential or signed-response
+substitute supplies the successful browser journeys.
+
+The test-only `/__test/otp` route generates actual codes through the existing OTP
+library; it never verifies proof or changes persistence. This route exists only
+inside the tagged test server. Production setup/finish verifies and consumes each
+code. A previous-step setup code lets the next actual current-step sign-in complete
+without waiting thirty seconds; setup generation avoids the final three seconds
+of a step. Replay submits the identical consumed code.
+
+Acceptance checks `navigator.credentials.create/get`, production management-page
+registration, registration with no session, actual sign-in/step-up, retired actor
+denial, TOTP and one-use backup MFA, last-factor protection and stronger-policy
+denial. Tampered browser UP/UV/signature responses, pending tokens as cookies,
+wrong-purpose finish, unknown/trailing/non-object/oversized bodies and failures
+must issue no stronger cookie. Cookie metadata is Secure/HttpOnly/SameSite=Lax;
+bearers remain hidden from page scripts and failure diagnostics.
+
+Virtual devices establish browser/library/adapter integration. Hardware identity,
+attestation trust, non-exportability, deployment HTTPS/key custody, application
+authorization and any AAL/compliance assertion require separate consumer evidence.

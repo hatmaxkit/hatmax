@@ -244,3 +244,23 @@ used by the current session. A retained session receives a new cookie with the
 same proof age and expiry; other sessions and unfinished ceremonies are revoked.
 For TOTP-only profiles, trusted application code may explicitly allow recent MFA
 management to enroll a passkey. Request fields cannot change that policy.
+
+## Verify Browser Integration
+
+After wiring migrations, trusted RP/origin policy and encryption keys, run the
+[finite browser acceptance check](../../reference/authentication/README.md#browser-acceptance)
+with an owned PostgreSQL fixture, Chromium and Node. The tagged check performs
+actual passkey registration, sign-in, step-up and the management page's add-passkey
+control. It also completes TOTP and backup-code MFA and rejects their use at the
+phishing-resistant route. Missing prerequisites fail the check.
+
+Keep each begin token separate from your session cookie. Begin and failed finish
+preserve any existing cookie; initial registration/setup confirmation clears it.
+Only committed authentication/step-up or an eligible management rotation issues
+a new bearer. Treat successful registration as a prompt to sign in, and successful
+step-up as replacement of the previous session bearer.
+
+Use another authenticator when adding a second resident passkey for the same
+account. The acceptance fixture uses two virtual devices. Its successful result
+establishes browser integration; production hardware and deployment assurances
+remain your application's responsibility.
