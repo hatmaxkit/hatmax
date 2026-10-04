@@ -115,19 +115,19 @@ VALUES ($1,1,1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
 `
 
 type CreateEnrollmentParams struct {
-	Digest         []byte    `json:"digest"`
-	UserID         string    `json:"user_id"`
-	AuthVersion    int64     `json:"auth_version"`
-	RpID           string    `json:"rp_id"`
-	UserHandle     []byte    `json:"user_handle"`
-	CeremonyData   []byte    `json:"ceremony_data"`
-	RequiredProof  int16     `json:"required_proof"`
-	PolicyRevision string    `json:"policy_revision"`
-	MaxAgeUs       int64     `json:"max_age_us"`
-	PasswordAt     time.Time `json:"password_at"`
-	CreatedAt      time.Time `json:"created_at"`
-	ExpiresAt      time.Time `json:"expires_at"`
-	RpBinding      []byte    `json:"rp_binding"`
+	Digest         []byte       `json:"digest"`
+	UserID         string       `json:"user_id"`
+	AuthVersion    int64        `json:"auth_version"`
+	RpID           string       `json:"rp_id"`
+	UserHandle     []byte       `json:"user_handle"`
+	CeremonyData   []byte       `json:"ceremony_data"`
+	RequiredProof  int16        `json:"required_proof"`
+	PolicyRevision string       `json:"policy_revision"`
+	MaxAgeUs       int64        `json:"max_age_us"`
+	PasswordAt     sql.NullTime `json:"password_at"`
+	CreatedAt      time.Time    `json:"created_at"`
+	ExpiresAt      time.Time    `json:"expires_at"`
+	RpBinding      []byte       `json:"rp_binding"`
 }
 
 func (q *Queries) CreateEnrollment(ctx context.Context, arg CreateEnrollmentParams) error {
@@ -237,7 +237,7 @@ func (q *Queries) LeaseEnrollment(ctx context.Context, arg LeaseEnrollmentParams
 }
 
 const lockEnrollment = `-- name: LockEnrollment :one
-SELECT digest, purpose, record_version, user_id, auth_version, rp_id, user_handle, rp_binding, ceremony_data, required_proof, policy_revision, max_age_us, password_at, created_at, expires_at, attempts, revision, lease_until FROM auth_pending WHERE digest = $1 AND purpose = 1 AND record_version = 1 FOR UPDATE
+SELECT digest, purpose, record_version, user_id, auth_version, rp_id, user_handle, rp_binding, ceremony_data, required_proof, policy_revision, max_age_us, password_at, created_at, expires_at, attempts, revision, lease_until, factor_bindings, actor_id, actor_digest, actor_generation FROM auth_pending WHERE digest = $1 AND purpose = 1 AND record_version = 1 FOR UPDATE
 `
 
 func (q *Queries) LockEnrollment(ctx context.Context, digest []byte) (AuthPending, error) {
@@ -262,6 +262,10 @@ func (q *Queries) LockEnrollment(ctx context.Context, digest []byte) (AuthPendin
 		&i.Attempts,
 		&i.Revision,
 		&i.LeaseUntil,
+		&i.FactorBindings,
+		&i.ActorID,
+		&i.ActorDigest,
+		&i.ActorGeneration,
 	)
 	return i, err
 }

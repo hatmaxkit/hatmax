@@ -61,18 +61,31 @@ func (r AccessRequirement) Check(lifetime time.Duration) error {
 // Enrollment and unimplemented methods cannot create a valid stored fact.
 type ProofMethod uint8
 
-const PasswordProof ProofMethod = 1
+const (
+	PasswordProof ProofMethod = 1
+	WebAuthnProof ProofMethod = 2
+)
 
 // VerifiedProof is read-only metadata about actual completed core verification.
 // Public metadata does not supply a completion or proof-assertion API.
 type VerifiedProof struct {
-	Method     ProofMethod
-	VerifiedAt time.Time
+	Method         ProofMethod
+	VerifiedAt     time.Time
+	FactorID       string
+	FactorRevision int64
 }
 
 // Check validates the supported proof and its relation to completed authentication.
 func (p VerifiedProof) Check(session Session) error {
-	if p.Method != PasswordProof || p.VerifiedAt.IsZero() || p.VerifiedAt.Before(session.CreatedAt) || p.VerifiedAt.After(session.AuthenticatedAt) {
+	if (p.Method != PasswordProof && p.Method != WebAuthnProof) || p.VerifiedAt.IsZero() || p.VerifiedAt.Before(session.CreatedAt) || p.VerifiedAt.After(session.AuthenticatedAt) {
+		return ErrSessionRecord
+	}
+
+	if p.Method == PasswordProof && (p.FactorID != "" || p.FactorRevision != 0) {
+		return ErrSessionRecord
+	}
+
+	if p.Method == WebAuthnProof && (!boundedID(p.FactorID, 128) || p.FactorRevision < 1) {
 		return ErrSessionRecord
 	}
 
@@ -96,7 +109,7 @@ func (r AccessRequirement) Evaluate(session Session, now time.Time) error {
 		return ErrSessionPolicy
 	}
 
-	if r.Proof != RequirePassword {
+	if r.Proof != RequirePassword && session.Proof.Method != WebAuthnProof {
 		return ErrSessionProof
 	}
 

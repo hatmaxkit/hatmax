@@ -40,25 +40,27 @@ func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
 }
 
 const createSession = `-- name: CreateSession :one
-INSERT INTO sessions (id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
-RETURNING id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+INSERT INTO sessions (id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, proof_factor_id, proof_factor_revision, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+RETURNING id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us, proof_factor_id, proof_factor_revision
 `
 
 type CreateSessionParams struct {
-	ID              string    `json:"id"`
-	UserID          string    `json:"user_id"`
-	TokenDigest     []byte    `json:"token_digest"`
-	AuthVersion     int64     `json:"auth_version"`
-	PolicyRevision  string    `json:"policy_revision"`
-	Generation      int64     `json:"generation"`
-	ProofMethod     int16     `json:"proof_method"`
-	ProofVerifiedAt time.Time `json:"proof_verified_at"`
-	AuthenticatedAt time.Time `json:"authenticated_at"`
-	CreatedAt       time.Time `json:"created_at"`
-	LastActivityAt  time.Time `json:"last_activity_at"`
-	ExpiresAt       time.Time `json:"expires_at"`
-	InactivityUs    int64     `json:"inactivity_us"`
+	ID                  string    `json:"id"`
+	UserID              string    `json:"user_id"`
+	TokenDigest         []byte    `json:"token_digest"`
+	AuthVersion         int64     `json:"auth_version"`
+	PolicyRevision      string    `json:"policy_revision"`
+	Generation          int64     `json:"generation"`
+	ProofMethod         int16     `json:"proof_method"`
+	ProofVerifiedAt     time.Time `json:"proof_verified_at"`
+	ProofFactorID       string    `json:"proof_factor_id"`
+	ProofFactorRevision int64     `json:"proof_factor_revision"`
+	AuthenticatedAt     time.Time `json:"authenticated_at"`
+	CreatedAt           time.Time `json:"created_at"`
+	LastActivityAt      time.Time `json:"last_activity_at"`
+	ExpiresAt           time.Time `json:"expires_at"`
+	InactivityUs        int64     `json:"inactivity_us"`
 }
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
@@ -71,6 +73,8 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 		arg.Generation,
 		arg.ProofMethod,
 		arg.ProofVerifiedAt,
+		arg.ProofFactorID,
+		arg.ProofFactorRevision,
 		arg.AuthenticatedAt,
 		arg.CreatedAt,
 		arg.LastActivityAt,
@@ -92,6 +96,8 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 		&i.LastActivityAt,
 		&i.ExpiresAt,
 		&i.InactivityUs,
+		&i.ProofFactorID,
+		&i.ProofFactorRevision,
 	)
 	return i, err
 }
@@ -181,7 +187,7 @@ func (q *Queries) DeleteUserSessions(ctx context.Context, userID string) error {
 }
 
 const getSessionByDigest = `-- name: GetSessionByDigest :one
-SELECT id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+SELECT id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us, proof_factor_id, proof_factor_revision
 FROM sessions WHERE token_digest = $1
 `
 
@@ -202,12 +208,14 @@ func (q *Queries) GetSessionByDigest(ctx context.Context, tokenDigest []byte) (S
 		&i.LastActivityAt,
 		&i.ExpiresAt,
 		&i.InactivityUs,
+		&i.ProofFactorID,
+		&i.ProofFactorRevision,
 	)
 	return i, err
 }
 
 const getSessionForUpdate = `-- name: GetSessionForUpdate :one
-SELECT id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+SELECT id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us, proof_factor_id, proof_factor_revision
 FROM sessions WHERE token_digest = $1 FOR UPDATE
 `
 
@@ -228,6 +236,8 @@ func (q *Queries) GetSessionForUpdate(ctx context.Context, tokenDigest []byte) (
 		&i.LastActivityAt,
 		&i.ExpiresAt,
 		&i.InactivityUs,
+		&i.ProofFactorID,
+		&i.ProofFactorRevision,
 	)
 	return i, err
 }
@@ -298,7 +308,7 @@ func (q *Queries) GetUserForAuth(ctx context.Context, id string) (User, error) {
 }
 
 const listSubjectSessions = `-- name: ListSubjectSessions :many
-SELECT id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+SELECT id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us, proof_factor_id, proof_factor_revision
 FROM sessions WHERE user_id = $1 AND id > $2
 ORDER BY id LIMIT $3::integer
 `
@@ -332,6 +342,8 @@ func (q *Queries) ListSubjectSessions(ctx context.Context, arg ListSubjectSessio
 			&i.LastActivityAt,
 			&i.ExpiresAt,
 			&i.InactivityUs,
+			&i.ProofFactorID,
+			&i.ProofFactorRevision,
 		); err != nil {
 			return nil, err
 		}
@@ -486,23 +498,25 @@ func (q *Queries) RevokeSubjectSessions(ctx context.Context, arg RevokeSubjectSe
 
 const rotateSession = `-- name: RotateSession :one
 UPDATE sessions SET token_digest = $1, generation = generation + 1,
-    policy_revision = $2, proof_method = $3, proof_verified_at = $4,
-    authenticated_at = $5, last_activity_at = $6, expires_at = $7, inactivity_us = $8
-WHERE token_digest = $9 AND generation = $10
-RETURNING id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+    policy_revision = $2, proof_method = $3, proof_verified_at = $4, proof_factor_id = $5, proof_factor_revision = $6,
+    authenticated_at = $7, last_activity_at = $8, expires_at = $9, inactivity_us = $10
+WHERE token_digest = $11 AND generation = $12
+RETURNING id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us, proof_factor_id, proof_factor_revision
 `
 
 type RotateSessionParams struct {
-	NewDigest          []byte    `json:"new_digest"`
-	PolicyRevision     string    `json:"policy_revision"`
-	ProofMethod        int16     `json:"proof_method"`
-	ProofVerifiedAt    time.Time `json:"proof_verified_at"`
-	AuthenticatedAt    time.Time `json:"authenticated_at"`
-	LastActivityAt     time.Time `json:"last_activity_at"`
-	ExpiresAt          time.Time `json:"expires_at"`
-	InactivityUs       int64     `json:"inactivity_us"`
-	OldDigest          []byte    `json:"old_digest"`
-	ExpectedGeneration int64     `json:"expected_generation"`
+	NewDigest           []byte    `json:"new_digest"`
+	PolicyRevision      string    `json:"policy_revision"`
+	ProofMethod         int16     `json:"proof_method"`
+	ProofVerifiedAt     time.Time `json:"proof_verified_at"`
+	ProofFactorID       string    `json:"proof_factor_id"`
+	ProofFactorRevision int64     `json:"proof_factor_revision"`
+	AuthenticatedAt     time.Time `json:"authenticated_at"`
+	LastActivityAt      time.Time `json:"last_activity_at"`
+	ExpiresAt           time.Time `json:"expires_at"`
+	InactivityUs        int64     `json:"inactivity_us"`
+	OldDigest           []byte    `json:"old_digest"`
+	ExpectedGeneration  int64     `json:"expected_generation"`
 }
 
 func (q *Queries) RotateSession(ctx context.Context, arg RotateSessionParams) (Session, error) {
@@ -511,6 +525,8 @@ func (q *Queries) RotateSession(ctx context.Context, arg RotateSessionParams) (S
 		arg.PolicyRevision,
 		arg.ProofMethod,
 		arg.ProofVerifiedAt,
+		arg.ProofFactorID,
+		arg.ProofFactorRevision,
 		arg.AuthenticatedAt,
 		arg.LastActivityAt,
 		arg.ExpiresAt,
@@ -533,6 +549,8 @@ func (q *Queries) RotateSession(ctx context.Context, arg RotateSessionParams) (S
 		&i.LastActivityAt,
 		&i.ExpiresAt,
 		&i.InactivityUs,
+		&i.ProofFactorID,
+		&i.ProofFactorRevision,
 	)
 	return i, err
 }
@@ -550,7 +568,7 @@ func (q *Queries) SessionClock(ctx context.Context) (time.Time, error) {
 
 const updateSessionActivity = `-- name: UpdateSessionActivity :one
 UPDATE sessions SET last_activity_at = $2 WHERE id = $1
-RETURNING id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us
+RETURNING id, user_id, token_digest, auth_version, policy_revision, generation, proof_method, proof_verified_at, authenticated_at, created_at, last_activity_at, expires_at, inactivity_us, proof_factor_id, proof_factor_revision
 `
 
 type UpdateSessionActivityParams struct {
@@ -575,6 +593,8 @@ func (q *Queries) UpdateSessionActivity(ctx context.Context, arg UpdateSessionAc
 		&i.LastActivityAt,
 		&i.ExpiresAt,
 		&i.InactivityUs,
+		&i.ProofFactorID,
+		&i.ProofFactorRevision,
 	)
 	return i, err
 }

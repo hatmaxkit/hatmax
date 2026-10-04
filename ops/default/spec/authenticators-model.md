@@ -183,3 +183,52 @@ work. The real PostgreSQL selector is
 `Test(EnrollmentTransactions|Credential|Proof|Session|Control)` with `-race`,
 `-count=1`, and `-timeout=120s`; missing `DB_HOST` is a failure. Browser evidence
 remains Slice 5.
+
+## Slice 2 Concrete Binding
+
+`NewWebAuthnService` requires the credential service and a `WebAuthnQueries`
+adapter that includes enrollment storage. The existing enrollment-only
+constructor stays valid. Both use the same bounded pinned protocol configuration;
+there is no optional storage upgrade or caller-provided proof callback.
+
+Authentication and step-up use distinct `assert1.` and `stepup1.` tokens and
+SHA-256 domains. Pending purposes 2 and 3 share the bounded collection and durable
+subject attempt budget with enrollment. A stored owned ceremony includes allowed
+credential IDs; bounded factor bindings capture security revisions at begin.
+Step-up additionally captures the current session ID, digest and generation.
+Its entry policy is explicit server-owned password-or-better access under the
+same policy revision, with freshness disabled; completion must satisfy the
+separately captured stronger requirement. Initial authentication has no password
+fact. The nullable enrollment password timestamp is absent for assertions.
+
+A confirmed factor snapshot carries security revision and a distinct replay
+revision. Each assertion advances only replay revision, counter and current
+backup state, atomically with pending consumption and session completion.
+Security revision changes invalidate constituent bindings; routine assertion
+counter updates do not invalidate previously issued sessions. Final completion
+matches both snapshot revisions and the previous counter/backup state under lock.
+Zero/zero counters are permitted; otherwise the new counter must strictly exceed
+the old counter. Backup eligibility cannot change. Required UV/presence and
+signature verification happen in the library; core independently enforces the
+counter policy and finite profile before sending a typed completion command.
+
+`VerifiedProof` has closed password/WebAuthn methods. WebAuthn includes factor ID,
+security revision and actual assertion time; password includes no factor fields.
+Both satisfy password-or-better policy, and only actual UV WebAuthn satisfies MFA
+and phishing-resistant MFA in this slice. Session storage constraints and safe
+metadata agree on this shape. Session validation and actor controls recheck the
+current factor ownership/revision. Password reauthentication produces only a
+fresh password fact, never refreshes WebAuthn constituent time.
+
+Final transactions lock subject, pending and actor sessions before factors.
+Post-lock trusted time rechecks pending expiry, lease, policy, live actor generation
+and completed proof age before writes and again before commit. Session admission
+and cleanup remain bounded. Any completion failure rolls back replay state,
+pending deletion and insertion/rotation; durable admission remains charged.
+
+Parser fuzz: `go test ./auth -run '^$' -fuzz '^FuzzAssertionResponse$'
+-fuzztime=20s -parallel=2 -timeout=60s`, with no KDF/database work.
+Real PostgreSQL: `go test -race -tags=integration
+./examples/ticked/internal/feat/auth
+-run '^Test(WebAuthnTransactions|EnrollmentTransactions|CredentialTransactions|ProofTransactions|SessionTransactions|ControlTransactions)$'
+-count=1 -timeout=120s`; missing `DB_HOST` fails. Browser evidence remains Slice 5.

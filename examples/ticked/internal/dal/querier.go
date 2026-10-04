@@ -15,13 +15,17 @@ import (
 )
 
 type Querier interface {
+	AcceptAssertionCounter(ctx context.Context, arg AcceptAssertionCounterParams) error
 	AdvanceAuthenticatorVersion(ctx context.Context, arg AdvanceAuthenticatorVersionParams) error
+	AssertionSubject(ctx context.Context, arg AssertionSubjectParams) (string, error)
 	ChargeFactorBudget(ctx context.Context, arg ChargeFactorBudgetParams) error
 	ConfirmAuthenticator(ctx context.Context, arg ConfirmAuthenticatorParams) error
+	ConsumeAssertion(ctx context.Context, arg ConsumeAssertionParams) (int64, error)
 	CountAuthenticators(ctx context.Context, userID string) (int64, error)
 	CountEnrollments(ctx context.Context, userID string) (int64, error)
 	CountSubjectSessions(ctx context.Context, userID string) (int64, error)
 	CountUsers(ctx context.Context) (int64, error)
+	CreateAssertion(ctx context.Context, arg CreateAssertionParams) error
 	CreateEnrollment(ctx context.Context, arg CreateEnrollmentParams) error
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	// SPDX-FileCopyrightText: 2026 Adrian PK
@@ -56,6 +60,8 @@ type Querier interface {
 	LeaseEnrollment(ctx context.Context, arg LeaseEnrollmentParams) error
 	ListSubjectSessions(ctx context.Context, arg ListSubjectSessionsParams) ([]Session, error)
 	ListUsers(ctx context.Context) ([]User, error)
+	LockAssertion(ctx context.Context, arg LockAssertionParams) (AuthPending, error)
+	LockAuthenticator(ctx context.Context, id string) (Authenticator, error)
 	LockEnrollment(ctx context.Context, digest []byte) (AuthPending, error)
 	LockFactorBudget(ctx context.Context, userID string) (AuthFactorBudget, error)
 	LockSubjectSessions(ctx context.Context, userID string) ([]string, error)
@@ -66,6 +72,7 @@ type Querier interface {
 	RevokeSubjectSessions(ctx context.Context, arg RevokeSubjectSessionsParams) (int64, error)
 	RotateSession(ctx context.Context, arg RotateSessionParams) (Session, error)
 	SessionClock(ctx context.Context) (time.Time, error)
+	SubjectAuthenticators(ctx context.Context, arg SubjectAuthenticatorsParams) ([]Authenticator, error)
 	UpdateSessionActivity(ctx context.Context, arg UpdateSessionActivityParams) (Session, error)
 	UpdateTodoItem(ctx context.Context, arg UpdateTodoItemParams) error
 	UpdateUserActive(ctx context.Context, arg UpdateUserActiveParams) error
@@ -75,6 +82,11 @@ type Querier interface {
 	//
 	// This file is part of Hatmax. See LICENSE for license terms.
 	UpsertTodoList(ctx context.Context, arg UpsertTodoListParams) error
+	// SPDX-FileCopyrightText: 2026 Adrian PK
+	// SPDX-License-Identifier: Apache-2.0
+	//
+	// This file is part of Hatmax. See LICENSE for license terms.
+	WebAuthnHandle(ctx context.Context, arg WebAuthnHandleParams) ([]byte, error)
 }
 
 var _ Querier = (*Queries)(nil)

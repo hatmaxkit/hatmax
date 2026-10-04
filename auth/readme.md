@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # auth
 
-Password-authenticated sessions and restricted WebAuthn enrollment with explicit policy and finite bounds.
+Password and UV WebAuthn authentication, bound step-up and restricted enrollment with explicit policy and finite bounds.
 
 ## Password policy
 
@@ -73,12 +73,13 @@ and keep secrets/personal data out of them. `MaxAge` zero disables freshness;
 otherwise it is 1 second through absolute lifetime in whole microseconds.
 Exact freshness equality rejects access. Activity cannot renew proof time.
 
-The core verifier currently produces only `VerifiedProof{Method: PasswordProof}`
-and its actual verification time. Session metadata carries those facts plus
+The password verifier produces `PasswordProof`; actual signed UV WebAuthn
+assertions produce `WebAuthnProof` with factor ID/security revision and actual
+verification time. Session metadata carries those facts plus
 `PolicyRevision`. A policy mismatch or unmet stronger/recent proof fails before
 touching activity. Strong profiles never become password-only access.
 
-Unmet MFA returns pending enrollment or proof according to the account's setup
+The password-only sign-in path returns pending enrollment for unmet MFA or proof according to the account's setup
 state, with `AuthenticationMethodUnavailable`. Phishing-resistant MFA returns
 denied/unavailable. Each has no session, secret, pending row or executable
 continuation. Setup flags choose explanatory state only; they prove no factor.
@@ -224,3 +225,17 @@ metadata, never an issued session. Assertion sign-in is not yet implemented.
 
 See the [enrollment reference](../docs/reference/authentication/README.md#restricted-webauthn-enrollment)
 for configuration, required atomic operations, parser bounds and Ticked endpoints.
+
+
+## WebAuthn Assertion Completion
+
+`NewWebAuthnService` requires the base credential service, `WebAuthnQueries`
+(including enrollment storage) and validated RP configuration. Begin subject-first
+sign-in with `BeginWebAuthnAuthentication`; begin bound actor rotation with
+`BeginWebAuthnStepUp`. Neither restricted challenge grants application access.
+`FinishWebAuthn` validates the real signature/UV and atomically consumes replay
+state and pending with insertion/rotation. Set the cookie only from a committed
+`IssuedSession`. Password reauthentication produces password proof only.
+
+See the [WebAuthn reference](../docs/reference/authentication/README.md#webauthn-authentication-and-step-up)
+for required storage, bounds, counter/backup semantics and Ticked endpoints.

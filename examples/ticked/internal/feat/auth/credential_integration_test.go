@@ -107,7 +107,7 @@ func credentialDatabase(t *testing.T) (*sql.DB, *Queries, *config.Config) {
 		root.Close()
 	})
 
-	for _, name := range []string{"001-users.sql", "004-authenticators.sql"} {
+	for _, name := range []string{"001-users.sql", "004-authenticators.sql", "005-webauthn-completion.sql"} {
 		migration, readErr := os.ReadFile("../../../assets/migration/postgres/" + name)
 		if readErr != nil {
 			t.Fatal(readErr)

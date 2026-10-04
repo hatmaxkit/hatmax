@@ -80,7 +80,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	enrollmentSvc, err := auth.NewAuthenticatorService(baseAuthSvc, authQueries, cfg.Authenticator)
+	enrollmentSvc, err := auth.NewWebAuthnService(baseAuthSvc, authQueries, cfg.Authenticator)
 	if err != nil {
 		logger.Errorf("Cannot initialize authenticators: %v", err)
 		os.Exit(1)
@@ -89,6 +89,16 @@ func main() {
 	enrollmentHandler, err := tickedweb.NewEnrollmentHandler(enrollmentSvc, auth.AccessRequirement{Proof: auth.RequirePhishingResistantMFA, Revision: "enrollment-v1", MaxAge: 5 * time.Minute})
 	if err != nil {
 		logger.Errorf("Cannot initialize enrollment: %v", err)
+		os.Exit(1)
+	}
+
+	strong := authfeat.PasswordRequirement()
+	strong.Proof = auth.RequirePhishingResistantMFA
+	strong.MaxAge = 5 * time.Minute
+
+	assertionHandler, err := tickedweb.NewWebAuthnHandler(enrollmentSvc, baseAuthSvc, strong)
+	if err != nil {
+		logger.Errorf("Cannot initialize WebAuthn: %v", err)
 		os.Exit(1)
 	}
 
@@ -108,6 +118,7 @@ func main() {
 		auditSvc,
 		webHandler,
 		enrollmentHandler,
+		assertionHandler,
 	}
 
 	starts, stops, registrars := app.Setup(ctx, router, deps...)

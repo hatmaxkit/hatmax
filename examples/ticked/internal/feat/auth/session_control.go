@@ -66,6 +66,11 @@ func evaluateStored(ctx context.Context, queries *dal.Queries, stored dal.Sessio
 		return nil, err
 	}
 
+	err = validateProofFactor(ctx, queries, *metadata)
+	if err != nil {
+		return nil, err
+	}
+
 	now, err := queries.SessionClock(ctx)
 	if err != nil {
 		return nil, err
@@ -100,7 +105,7 @@ func (q *Queries) RotateSession(ctx context.Context, state auth.CredentialState,
 		return nil, auth.ErrSessionGeneration
 	}
 
-	if replacement.ID != stored.ID || replacement.UserID != user.ID || replacement.AuthVersion != user.AuthVersion || !replacement.CreatedAt.Equal(stored.CreatedAt) || replacement.Digest == digest || replacement.AuthenticatedAt.Before(stored.AuthenticatedAt) || !replacement.Proof.VerifiedAt.Equal(replacement.AuthenticatedAt) {
+	if replacement.Proof.Method != auth.PasswordProof || replacement.ID != stored.ID || replacement.UserID != user.ID || replacement.AuthVersion != user.AuthVersion || !replacement.CreatedAt.Equal(stored.CreatedAt) || replacement.Digest == digest || replacement.AuthenticatedAt.Before(stored.AuthenticatedAt) || !replacement.Proof.VerifiedAt.Equal(replacement.AuthenticatedAt) {
 		return nil, auth.ErrSessionRecord
 	}
 
@@ -109,6 +114,11 @@ func (q *Queries) RotateSession(ctx context.Context, state auth.CredentialState,
 	oldRequirement.MaxAge = 0
 
 	old, err := toAuthSession(stored)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validateProofFactor(ctx, queries, *old)
 	if err != nil {
 		return nil, err
 	}

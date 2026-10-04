@@ -144,7 +144,7 @@ func (q *Queries) CreateSession(ctx context.Context, state auth.CredentialState,
 		return nil, auth.ErrSessionCapacity
 	}
 
-	if session.UserID != state.UserID || session.AuthVersion != state.Version || session.Generation != 1 {
+	if session.Proof.Method != auth.PasswordProof || session.UserID != state.UserID || session.AuthVersion != state.Version || session.Generation != 1 {
 		return nil, auth.ErrCredentialChanged
 	}
 
@@ -256,6 +256,11 @@ func (q *Queries) ValidateSession(ctx context.Context, digest auth.SessionDigest
 
 	if interval < time.Second || interval > 5*time.Minute || interval > metadata.InactivityTTL/4 || interval%time.Microsecond != 0 {
 		return nil, auth.ErrSessionActivity
+	}
+
+	err = validateProofFactor(ctx, queries, *metadata)
+	if err != nil {
+		return nil, err
 	}
 
 	now, err := queries.SessionClock(ctx)
@@ -396,12 +401,16 @@ func toAuthUser(u dal.User) *auth.User {
 }
 
 func toAuthSession(s dal.Session) (*auth.Session, error) {
-	if s.ProofMethod != int16(auth.PasswordProof) || len(s.TokenDigest) != 32 || s.InactivityUs < time.Minute.Microseconds() || s.InactivityUs > (30*24*time.Hour).Microseconds() {
+	if (s.ProofMethod != int16(auth.PasswordProof) && s.ProofMethod != int16(auth.WebAuthnProof)) || len(s.TokenDigest) != 32 || s.InactivityUs < time.Minute.Microseconds() || s.InactivityUs > (30*24*time.Hour).Microseconds() {
+		return nil, auth.ErrSessionRecord
+	}
+
+	if s.ProofMethod == int16(auth.PasswordProof) && (s.ProofFactorID != "" || s.ProofFactorRevision != 0) || s.ProofMethod == int16(auth.WebAuthnProof) && (len(s.ProofFactorID) == 0 || len(s.ProofFactorID) > 128 || s.ProofFactorRevision < 1) {
 		return nil, auth.ErrSessionRecord
 	}
 
 	return &auth.Session{
-		ID: s.ID, UserID: s.UserID, AuthVersion: s.AuthVersion, PolicyRevision: s.PolicyRevision, Generation: s.Generation, Proof: auth.VerifiedProof{Method: auth.ProofMethod(s.ProofMethod), VerifiedAt: s.ProofVerifiedAt},
+		ID: s.ID, UserID: s.UserID, AuthVersion: s.AuthVersion, PolicyRevision: s.PolicyRevision, Generation: s.Generation, Proof: auth.VerifiedProof{Method: auth.ProofMethod(s.ProofMethod), VerifiedAt: s.ProofVerifiedAt, FactorID: s.ProofFactorID, FactorRevision: s.ProofFactorRevision},
 		AuthenticatedAt: s.AuthenticatedAt, CreatedAt: s.CreatedAt, LastActivityAt: s.LastActivityAt,
 		ExpiresAt: s.ExpiresAt, InactivityTTL: time.Duration(s.InactivityUs) * time.Microsecond,
 	}, nil

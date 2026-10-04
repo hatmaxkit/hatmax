@@ -170,3 +170,31 @@ with established factors. Assertion completion and authorized factor changes are
 not available in this delivery yet. Ticked demonstrates the JSON begin/finish
 endpoints; see the [enrollment reference](../../reference/authentication/README.md#restricted-webauthn-enrollment)
 for the browser call and finite storage/input requirements.
+
+
+## Sign In or Step Up with WebAuthn
+
+After registration, construct `auth.NewWebAuthnService` using the required store
+and explicit RP settings. In Ticked, post JSON `email` to
+`/authenticators/authentication/begin`, decode its browser options and pass them
+to `navigator.credentials.get`. Send the credential JSON to
+`/authenticators/authentication/finish` with `X-Assertion-Token` from begin.
+The handler sets an application cookie only after actual assertion verification
+and the final database commit. The challenge token grants no application access.
+
+To upgrade a live password session, post `{}` and its existing cookie to
+`/authenticators/step-up/begin`. Complete the returned ceremony through
+`/authenticators/step-up/finish`. Successful completion replaces the actor cookie
+and invalidates its previous bearer. `/authenticators/proof` requires current
+recent phishing-resistant proof; the ordinary password session cannot enter it.
+Errors issue no cookie and preserve an existing session cookie.
+
+Choose current requirements in server code. UV WebAuthn meets password-or-better,
+MFA and phishing-resistant MFA in the supported profile. Activity cannot renew
+its verification time; password reauthentication gives password proof only.
+Routine counter updates preserve other valid sessions, while removal/security
+revision changes invalidate bound proof. Migration 005 adds the required session
+and assertion representation after migration 004. See the
+[WebAuthn reference](../../reference/authentication/README.md#webauthn-authentication-and-step-up)
+for the exact contracts and response bounds. Browser acceptance, fallback proof
+and established-factor management are separate remaining delivery boundaries.

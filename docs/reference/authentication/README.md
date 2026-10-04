@@ -243,8 +243,9 @@ value: replace that wiring when policy changes, or call service validation with
 current application policy per request. A validated context is not authority for
 later domain writes without their required current-state checks.
 
-`VerifiedProof` has a closed `Method` and `VerifiedAt`. The only supported method
-is `PasswordProof`; its production creation follows the core password verifier.
+`VerifiedProof` has closed password/WebAuthn methods and `VerifiedAt`.
+Password proof follows the core password verifier. Actual UV WebAuthn proof
+also binds a confirmed factor ID/security revision and satisfies stronger policy.
 Its time is nonzero, no earlier than creation and no later than completed
 authentication/current time. Unknown methods or malformed/future facts fail
 closed. Roles, enrollment and `TOTPVerifiedAt` do not supply method facts.
@@ -263,9 +264,9 @@ these metadata DTOs to produce MFA.
 
 Completed results use `AuthenticationSatisfied`; unmet results use
 `AuthenticationMethodUnavailable`. The pending distinction describes the next
-required step, not an enrollment/verification endpoint. No pending secret, SQL
-table or consume method is supplied. AUTH-05 must deliver actual verification
-and atomic factor/challenge consumption before any executable continuation.
+required step, not an enrollment/verification endpoint. This password-only path supplies no pending secret or executable continuation.
+Use the separate WebAuthn begin/finish APIs for actual factor verification and
+atomic challenge/counter consumption.
 `CompletedSession()` returns a session only for a completed, satisfied result
 with a nonnil issued value. Transports must use that check, rather than infer
 access from a nonnil pointer or setup flag.
@@ -543,7 +544,73 @@ const response = await fetch("/authenticators/enrollment/finish", {
 ```
 
 This delivery exposes initial-registration APIs. Registration alone supplies no
-strong sign-in; assertion completion, additional-factor management, TOTP/backup
-proof and the browser acceptance journey remain pending. Existing password-only
+strong sign-in. The separate assertion APIs below complete authentication;
+additional-factor management, TOTP/backup proof and browser acceptance remain pending. Existing password-only
 routes keep their explicit password policy; enrolling a key does not make those
 routes enforce MFA automatically.
+
+## WebAuthn Authentication and Step-up
+
+Construct `auth.NewWebAuthnService(credentials, queries, cfg.Authenticator)` with
+mandatory `auth.WebAuthnQueries`. It includes enrollment storage and adds typed
+subject snapshots, assertion admission/reservation, and atomic completion.
+Enrollment-only applications can keep `NewAuthenticatorService`.
+
+`BeginWebAuthnAuthentication(ctx, email, requirement)` identifies the subject and
+returns an `AssertionChallenge` for its confirmed credentials. It requests UV
+and binds the stable RP handle, exact RP configuration, allowed credential IDs,
+security revisions, current account version and trusted policy. No password fact
+or application access is produced. `BeginWebAuthnStepUp(ctx, sessionToken,
+requirement)` instead binds a live current session ID, digest and generation.
+The entry requirement is password-or-better with the same trusted policy revision;
+completion must meet the supplied stronger requirement. Older proof can enter
+step-up while its session remains live.
+
+Pass the serialized `navigator.credentials.get` result to
+`FinishWebAuthn(ctx, pendingToken, browserJSON, requirement)`. The pinned library
+validates the actual ES256 signature, challenge, RP, exact owned origin,
+credential/subject binding, UP and UV. This profile rejects cross/top origins,
+attested data and extensions in assertion authenticator data. Response bounds
+are 64 KiB total, 8 KiB client data, 1 KiB credential ID, exactly 37 bytes of
+assertion authenticator data, at most 80 signature bytes and an optional exact
+32-byte user handle. JSON nesting is at most 16.
+
+`assert1.` and `stepup1.` secrets have separate digest domains and purposes;
+ordinary session and enrollment lookup reject them. All purposes share the
+finite pending cap and per-subject factor attempt budget. Durable reservation
+spends an attempt before parsing/signature work and grants one finite lease.
+Failure never refunds admission or creates a session/cookie.
+
+Completion locks subject, pending/actor and factor in order, rechecks current
+policy/version, factor security/replay revisions, counter, immutable backup
+eligibility, current backup state, live actor generation, expiry and lease.
+Zero/zero counters are accepted; all other successful assertions strictly
+increase the counter. Counter updates advance replay revision without changing
+the factor's security revision. Counter/backup state, pending consumption and
+one admitted session insertion or generation rotation commit together. Failed
+commit rolls back all completion writes while admission remains spent.
+
+`VerifiedProof{Method: WebAuthnProof}` stores the actual verification time,
+`FactorID` and `FactorRevision`. UV WebAuthn satisfies password-or-better, MFA
+and phishing-resistant MFA within this supported profile. Session validation
+and actor controls recheck the current factor binding. Activity does not refresh
+proof time. Password reauthentication produces password proof only; callers
+requiring strong proof must use actual WebAuthn step-up.
+
+Apply `005-webauthn-completion.sql` after migration 004. Ticked wires these
+same-origin JSON endpoints under server-owned phishing-resistant policy:
+
+| Endpoint | Input / result |
+| --- | --- |
+| `POST /authenticators/authentication/begin` | JSON `email`; restricted challenge, no session cookie |
+| `POST /authenticators/step-up/begin` | Empty JSON `{}` and current session cookie; restricted bound challenge |
+| `POST /authenticators/authentication/finish` | Browser assertion JSON and `X-Assertion-Token: assert1.…`; sets cookie after commit |
+| `POST /authenticators/step-up/finish` | Browser assertion JSON and `X-Assertion-Token: stepup1.…`; replaces cookie after commit |
+| `GET /authenticators/proof` | Current session cookie; returns safe metadata only when current recent strong proof satisfies policy |
+
+Responses are `no-store`. Errors preserve an existing cookie and issue no bearer;
+begin and finish purposes cannot cross endpoints. Ticked's ordinary routes keep
+their explicit password-or-better minimum. Enrolling a factor alone does not
+change application policy. TOTP/backup proof, established factor management and
+browser acceptance remain later delivery work. Synced/backup flags do not prove
+hardware storage, non-exportability or an assurance certification.

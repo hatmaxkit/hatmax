@@ -120,7 +120,7 @@ func (q *Queries) CreateEnrollment(ctx context.Context, p core.EnrollmentPending
 		return err
 	}
 
-	err = queries.CreateEnrollment(ctx, dal.CreateEnrollmentParams{RpBinding: p.RPBinding[:], Digest: p.Digest[:], UserID: p.State.UserID, AuthVersion: p.State.Version, RpID: p.RPID, UserHandle: p.Handle, CeremonyData: p.Ceremony, RequiredProof: int16(p.Requirement.Proof), PolicyRevision: p.Requirement.Revision, MaxAgeUs: p.Requirement.MaxAge.Microseconds(), PasswordAt: p.PasswordAt, CreatedAt: p.CreatedAt, ExpiresAt: p.ExpiresAt})
+	err = queries.CreateEnrollment(ctx, dal.CreateEnrollmentParams{RpBinding: p.RPBinding[:], Digest: p.Digest[:], UserID: p.State.UserID, AuthVersion: p.State.Version, RpID: p.RPID, UserHandle: p.Handle, CeremonyData: p.Ceremony, RequiredProof: int16(p.Requirement.Proof), PolicyRevision: p.Requirement.Revision, MaxAgeUs: p.Requirement.MaxAge.Microseconds(), PasswordAt: sql.NullTime{Time: p.PasswordAt, Valid: true}, CreatedAt: p.CreatedAt, ExpiresAt: p.ExpiresAt})
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (q *Queries) CreateEnrollment(ctx context.Context, p core.EnrollmentPending
 }
 
 func enrollmentSnapshot(row dal.AuthPending) core.EnrollmentPending {
-	p := core.EnrollmentPending{State: core.CredentialState{UserID: row.UserID, Version: row.AuthVersion}, RPID: row.RpID, Handle: row.UserHandle, Ceremony: row.CeremonyData, Requirement: core.AccessRequirement{Proof: core.RequiredProof(row.RequiredProof), Revision: row.PolicyRevision, MaxAge: time.Duration(row.MaxAgeUs) * time.Microsecond}, PasswordAt: row.PasswordAt, CreatedAt: row.CreatedAt, ExpiresAt: row.ExpiresAt, Attempts: int(row.Attempts), Revision: row.Revision}
+	p := core.EnrollmentPending{State: core.CredentialState{UserID: row.UserID, Version: row.AuthVersion}, RPID: row.RpID, Handle: row.UserHandle, Ceremony: row.CeremonyData, Requirement: core.AccessRequirement{Proof: core.RequiredProof(row.RequiredProof), Revision: row.PolicyRevision, MaxAge: time.Duration(row.MaxAgeUs) * time.Microsecond}, PasswordAt: row.PasswordAt.Time, CreatedAt: row.CreatedAt, ExpiresAt: row.ExpiresAt, Attempts: int(row.Attempts), Revision: row.Revision}
 	copy(p.Digest[:], row.Digest)
 	copy(p.RPBinding[:], row.RpBinding)
 
@@ -171,23 +171,18 @@ func lockEnrollment(ctx context.Context, queries *dal.Queries, digest core.Enrol
 	return enrollmentSnapshot(row), nil
 }
 
-func chargeFactorAttempt(ctx context.Context, queries *dal.Queries, p core.EnrollmentPending, settings config.EnrollmentSettings, now time.Time) (time.Time, error) {
-	err := queries.EnsureFactorBudget(ctx, dal.EnsureFactorBudgetParams{UserID: p.State.UserID, WindowStart: now})
+func chargeSubjectFactorAttempt(ctx context.Context, queries *dal.Queries, userID string, settings config.EnrollmentSettings, now time.Time) (time.Time, error) {
+	err := queries.EnsureFactorBudget(ctx, dal.EnsureFactorBudgetParams{UserID: userID, WindowStart: now})
 	if err != nil {
 		return time.Time{}, err
 	}
 
-	budget, err := queries.LockFactorBudget(ctx, p.State.UserID)
+	budget, err := queries.LockFactorBudget(ctx, userID)
 	if err != nil {
 		return time.Time{}, err
 	}
 
 	now, err = queries.SessionClock(ctx)
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	err = p.Check(now, p.Requirement, settings)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -255,7 +250,12 @@ func (q *Queries) ReserveEnrollment(ctx context.Context, digest core.EnrollmentD
 		return nil, core.ErrEnrollmentAttempts
 	}
 
-	now, err = chargeFactorAttempt(ctx, queries, p, settings, now)
+	now, err = chargeSubjectFactorAttempt(ctx, queries, p.State.UserID, settings, now)
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.Check(now, required, settings)
 	if err != nil {
 		return nil, err
 	}

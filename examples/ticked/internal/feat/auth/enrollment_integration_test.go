@@ -53,6 +53,13 @@ func enrollmentFixture(t *testing.T, options config.AuthenticatorConfig) (*sql.D
 // browser response. It does not bypass the production library verifier.
 func enrollmentResponse(t *testing.T, challenge *core.EnrollmentChallenge) []byte {
 	t.Helper()
+	body, _, _ := enrollmentKeyResponse(t, challenge)
+
+	return body
+}
+
+func enrollmentKeyResponse(t *testing.T, challenge *core.EnrollmentChallenge) ([]byte, *ecdsa.PrivateKey, []byte) {
+	t.Helper()
 
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
@@ -93,7 +100,7 @@ func enrollmentResponse(t *testing.T, challenge *core.EnrollmentChallenge) []byt
 		t.Fatal(err)
 	}
 
-	return body
+	return body, key, id
 }
 
 // Real registration and PostgreSQL establish atomic activation, invalidation and
