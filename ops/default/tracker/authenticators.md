@@ -18,7 +18,7 @@ Parent: [Authentication security foundation](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `247487f273a54a8e65a8e6b5f86191f38bcb0be8`
 Active slice: Slice 2
-Active tasks: T2.1
+Active tasks: T2.2
 Execution gate: Open
 
 ## Slice Status
@@ -37,8 +37,8 @@ Execution gate: Open
 | --- | --- | --- | --- | --- |
 | T1.1 | complete | `feat(auth): add restricted WebAuthn enrollment` | `776b4aca0ab80318fa11d86035684d00efca2b5a` | Reviewed dependency/profile; typed bounded pending/budget/setup, actual registration and synchronized adapter |
 | T1.2 | complete | `test(auth): verify enrollment isolation and bounds` | `f5b62edccb970f2af7e20f80d6f77f1890a3b437` | Protocol rejection, pending isolation, durable admission/budgets and real PostgreSQL setup races |
-| T2.1 | active | `feat(auth): complete WebAuthn proof atomically` | pending | Actual assertion, closed facts and atomic counter/pending/session insertion or rotation |
-| T2.2 | pending | `test(auth): verify WebAuthn completion transactions` | pending | Real signatures/one winner, current counter/flags, post-lock time and full rollback |
+| T2.1 | complete | `feat(auth): complete WebAuthn proof atomically` | `f7df235f4411be7a2bb7eaa0f211077295edba61` | Actual assertion, closed facts and atomic counter/pending/session insertion or rotation |
+| T2.2 | active | `test(auth): verify WebAuthn completion transactions` | pending | Real signatures/one winner, current counter/flags, post-lock time and full rollback |
 | T3.1 | pending | `feat(auth): add replay-resistant fallback proof` | pending | Encrypted TOTP, exact accepted steps and salted domain-bound one-use backup proof |
 | T3.2 | pending | `test(auth): verify fallback replay and policy` | pending | Trusted-time/step and code races, salts/KDF, no weak-policy substitution and durable budget exhaustion |
 | T4.1 | pending | `feat(auth): enforce authorized factor changes` | pending | Recent trusted authority, bounded own-factor operations, version/revocation and coherent actor rotation |
@@ -102,3 +102,10 @@ Slice 1 PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/98
 Report introduction: `3f04dc1c00fce625ead88c7611b97da62176a897`.
 Verified PR #98 merge: `d916a27f53e2d0d42d67aed246d018194aacbfcf`.
 Next checkpoint: implement T2.1/T2.2 on the approved Slice 2 branch.
+
+
+## Slice 2 Focused Validation Bindings
+
+- Parser fuzz: `go test ./auth -run '^$' -fuzz '^FuzzAssertionResponse$' -fuzztime=20s -parallel=2 -timeout=60s`; no KDF/database work.
+- Real PostgreSQL: `go test -race -tags=integration ./examples/ticked/internal/feat/auth -run '^Test(WebAuthnTransactions|EnrollmentTransactions|CredentialTransactions|ProofTransactions|SessionTransactions|ControlTransactions)$' -count=1 -timeout=120s`; explicit owned-cluster connection settings required.
+- T2.1 passed actual signed authentication/step-up with PostgreSQL, package and regression races, strict default/tagged lint, source licensing and docs/example compilation. T2.2 adds negative protocol, replay, lock-time, admission and rollback evidence before review.

@@ -6,6 +6,8 @@
 package auth
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"strings"
 	"testing"
@@ -100,5 +102,85 @@ func TestWebAuthnProof(t *testing.T) {
 				t.Fatalf("proof: %v", err)
 			}
 		})
+	}
+}
+
+// Parser-only fuzzing has finite inputs and performs no KDF, signature or DB work.
+func FuzzAssertionResponse(f *testing.F) {
+	f.Add([]byte(`{}`))
+
+	data := make([]byte, 37)
+	data[32] = 5
+	client := []byte(`{"type":"webauthn.get","challenge":"challenge","origin":"https://example.com"}`)
+
+	body, err := json.Marshal(map[string]any{"id": "AA", "rawId": "AA", "type": "public-key", "response": map[string]any{"clientDataJSON": base64.RawURLEncoding.EncodeToString(client), "authenticatorData": base64.RawURLEncoding.EncodeToString(data), "signature": "MAA"}})
+	if err != nil {
+		f.Fatal(err)
+	}
+
+	f.Add(body)
+	f.Fuzz(func(t *testing.T, body []byte) { _, _ = parseAssertionResponse(body) })
+}
+
+// Explicit wire bounds prevent larger protocol fields reaching library parsing.
+func TestAssertionParser(t *testing.T) {
+	data := make([]byte, 37)
+	data[32] = 5
+	client := []byte(`{"type":"webauthn.get","challenge":"challenge","origin":"https://example.com"}`)
+
+	tests := []struct {
+		name   string
+		change func(map[string]any)
+	}{
+		{name: "supported"},
+		{name: "credential bound", change: func(w map[string]any) {
+			value := base64.RawURLEncoding.EncodeToString(make([]byte, 1025))
+			w["id"] = value
+			w["rawId"] = value
+		}},
+		{name: "client bound", change: func(w map[string]any) {
+			w["response"].(map[string]any)["clientDataJSON"] = base64.RawURLEncoding.EncodeToString(make([]byte, 8193))
+		}},
+		{name: "signature bound", change: func(w map[string]any) {
+			w["response"].(map[string]any)["signature"] = base64.RawURLEncoding.EncodeToString(make([]byte, 81))
+		}},
+		{name: "handle bound", change: func(w map[string]any) {
+			w["response"].(map[string]any)["userHandle"] = base64.RawURLEncoding.EncodeToString(make([]byte, 33))
+		}},
+		{name: "authenticator shape", change: func(w map[string]any) {
+			w["response"].(map[string]any)["authenticatorData"] = base64.RawURLEncoding.EncodeToString(make([]byte, 38))
+		}},
+		{name: "JSON depth", change: func(w map[string]any) {
+			w["response"].(map[string]any)["clientDataJSON"] = base64.RawURLEncoding.EncodeToString([]byte(strings.Repeat("[", 17) + "0" + strings.Repeat("]", 17)))
+		}},
+		{name: "raw ID mismatch", change: func(w map[string]any) { w["rawId"] = "AQ" }},
+		{name: "noncanonical encoding", change: func(w map[string]any) { w["id"] = "AB"; w["rawId"] = "AB" }},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			wire := map[string]any{"id": "AA", "rawId": "AA", "type": "public-key", "response": map[string]any{"clientDataJSON": base64.RawURLEncoding.EncodeToString(client), "authenticatorData": base64.RawURLEncoding.EncodeToString(data), "signature": "MAA"}}
+			if test.change != nil {
+				test.change(wire)
+			}
+
+			body, err := json.Marshal(wire)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			parsed, err := parseAssertionResponse(body)
+			if test.change == nil {
+				if err != nil || parsed == nil {
+					t.Fatalf("bounded parse: %v", err)
+				}
+			} else if err == nil || parsed != nil {
+				t.Fatal("unsupported wire reached verifier")
+			}
+		})
+	}
+
+	_, err := parseAssertionResponse(make([]byte, MaxEnrollmentBody+1))
+	if err == nil {
+		t.Fatal("body cap admitted")
 	}
 }

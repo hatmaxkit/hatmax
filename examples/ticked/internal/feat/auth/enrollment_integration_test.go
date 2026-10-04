@@ -61,6 +61,12 @@ func enrollmentResponse(t *testing.T, challenge *core.EnrollmentChallenge) []byt
 func enrollmentKeyResponse(t *testing.T, challenge *core.EnrollmentChallenge) ([]byte, *ecdsa.PrivateKey, []byte) {
 	t.Helper()
 
+	return enrollmentKeyResponseFlags(t, challenge, 0x45)
+}
+
+func enrollmentKeyResponseFlags(t *testing.T, challenge *core.EnrollmentChallenge, flags byte) ([]byte, *ecdsa.PrivateKey, []byte) {
+	t.Helper()
+
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		t.Fatal(err)
@@ -79,7 +85,7 @@ func enrollmentKeyResponse(t *testing.T, challenge *core.EnrollmentChallenge) ([
 	}
 
 	rp := sha256.Sum256([]byte("example.com"))
-	authData := append(rp[:], 0x45, 0, 0, 0, 0)
+	authData := append(rp[:], flags, 0, 0, 0, 0)
 	authData = append(authData, make([]byte, 16)...)
 	authData = append(authData, 0, 32)
 	authData = append(authData, id...)
