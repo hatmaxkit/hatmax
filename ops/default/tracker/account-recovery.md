@@ -39,7 +39,7 @@ Execution gate: Open
 | T2.1 | completed | `feat(auth): enforce recent-proof password changes` | `c0abf13f36e5` | Actual actor-derived proof, shared policy/KDF and atomic revocation/notification |
 | T2.2 | completed | `test(auth): verify password change authority` | `ecf129548459` | Current actor/factor/policy/time rejection, concurrency and full rollback |
 | T3.1 | completed | `feat(auth): add one-use mailbox password reset` | `cd3fbcb6f893` | Previously verified target, one-use token, credential/revocation/notice and no MFA bypass |
-| T3.2 | completed | `test(auth): verify password reset isolation and MFA` | pending | Token and reset/change races, rollback, invalidation and real retained MFA/replay state |
+| T3.2 | completed | `test(auth): verify password reset isolation and MFA` | `8c3f9cb54565` | Token and reset/change races, rollback, invalidation and real retained MFA/replay state |
 | T4.1 | pending | `test(auth): exercise account recovery browser journeys` | pending | Actual production browser/PostgreSQL lifecycle and current-proof re-entry |
 | T4.2 | pending | `test(auth): close account recovery integration evidence` | pending | Complete supported documentation, finite failure regression and acceptance mapping |
 
