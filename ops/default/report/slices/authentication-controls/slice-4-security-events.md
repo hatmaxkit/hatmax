@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 4: Security Observations
 
-Status: reviewing
+Status: delivered
 Delivery set: authentication-controls
 Plan: [Authentication controls plan](../../../plan/authentication-controls.md)
 Tracker: [Authentication controls tracker](../../../tracker/authentication-controls.md)

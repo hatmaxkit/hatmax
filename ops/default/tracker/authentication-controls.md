@@ -16,10 +16,10 @@ Model: [Controls model](../spec/authentication-controls-model.md)
 Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
-Active slice: Slice 4 — Security observations
+Active slice: Slice 5 — Controls acceptance
 Execution gate: Open
 Plan: [Delivery plan](../plan/authentication-controls.md)
-Active tasks: T4.1, T4.2
+Active tasks: T5.1, T5.2
 
 ## Slice Status
 
@@ -28,8 +28,8 @@ Active tasks: T4.1, T4.2
 | Slice 1 | Durable credential admission | delivered | `feat/credential-admission` | `feat(slice-1): add shared credential admission` | `#107` | `ops/default/report/slices/authentication-controls/slice-1-credential-admission.md` |
 | Slice 2 | Guarded password entry | delivered | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | `#108` | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
 | Slice 3 | Finite public authentication | delivered | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | `#109` | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
-| Slice 4 | Security observations | reviewing | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | `#110` | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
-| Slice 5 | Controls acceptance | pending | `test/authentication-controls-acceptance` | `test(slice-5): verify authentication controls integration` | pending | `ops/default/report/slices/authentication-controls/slice-5-controls-acceptance.md` |
+| Slice 4 | Security observations | delivered | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | `#110` | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
+| Slice 5 | Controls acceptance | active | `test/authentication-controls-acceptance` | `test(slice-5): verify authentication controls integration` | pending | `ops/default/report/slices/authentication-controls/slice-5-controls-acceptance.md` |
 
 ## Tasks
 
@@ -43,7 +43,7 @@ Active tasks: T4.1, T4.2
 | T3.2 | completed | `test(auth): verify neutral public authentication` | `fd0c0a41e80e` |
 | T4.1 | completed | `feat(auth): observe bounded security outcomes` | `466894a7ba57` |
 | T4.2 | completed | `test(auth): verify security observation boundaries` | `10d48427296d` |
-| T5.1 | pending | `test(auth): exercise authentication controls journeys` | pending |
+| T5.1 | active | `test(auth): exercise authentication controls journeys` | pending |
 | T5.2 | pending | `test(auth): close authentication controls evidence` | pending |
 
 ## Completion Gates
@@ -53,7 +53,7 @@ Active tasks: T4.1, T4.2
 - [x] Slice 1 merged and report delivered; actual durable admission evidence.
 - [x] Slice 2 merged and report delivered; actual shared password-entry budgets.
 - [x] Slice 3 merged and report delivered; finite ingress/neutral transport.
-- [ ] Slice 4 merged and report delivered; redacted bounded observations.
+- [x] Slice 4 merged and report delivered; redacted bounded observations.
 - [ ] Slice 5 merged and report delivered; actual browser/affected regression.
 - [ ] All ten task/commit/PR mappings and AC-01 through AC-08 recorded.
 - [ ] Exact immutable integrated candidate passes `make check`.
@@ -185,3 +185,9 @@ Slice 5/integrated boundary. Both Slice 4 tasks are complete; PR #110 targets de
 report introduction `10d48427296d`. Maintainer merge is pending. After verified
 merge, close Slice 4 on dev and immediately activate recorded Slice 5 browser/
 controls acceptance without another go-ahead.
+
+Slice 4 PR #110 is canonically merged into dev at `e7a9c36e172b`; its
+report is delivered. Both task mappings and focused checks are recorded.
+Slice 5 is active under the approved continuation map; actual browser journeys
+and final affected evidence precede its maintainer merge. The full immutable
+integrated gate remains after all five canonical merges.
