@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 2: Guarded Password Entry
 
-Status: reviewing
+Status: delivered
 Delivery set: authentication-controls
 Plan: `ops/default/plan/authentication-controls.md`
 Tracker: `ops/default/tracker/authentication-controls.md`

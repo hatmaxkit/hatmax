@@ -16,18 +16,18 @@ Model: [Controls model](../spec/authentication-controls-model.md)
 Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
-Active slice: Slice 2 — Guarded password entry
+Active slice: Slice 3 — Finite public authentication
 Execution gate: Open
 Plan: [Delivery plan](../plan/authentication-controls.md)
-Active tasks: None; Slice 2 review
+Active tasks: T3.1, T3.2
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Durable credential admission | delivered | `feat/credential-admission` | `feat(slice-1): add shared credential admission` | `#107` | `ops/default/report/slices/authentication-controls/slice-1-credential-admission.md` |
-| Slice 2 | Guarded password entry | reviewing | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | `#108` | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
-| Slice 3 | Finite public authentication | pending | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | pending | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
+| Slice 2 | Guarded password entry | delivered | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | `#108` | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
+| Slice 3 | Finite public authentication | active | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | pending | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
 | Slice 4 | Security observations | pending | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | pending | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
 | Slice 5 | Controls acceptance | pending | `test/authentication-controls-acceptance` | `test(slice-5): verify authentication controls integration` | pending | `ops/default/report/slices/authentication-controls/slice-5-controls-acceptance.md` |
 
@@ -39,7 +39,7 @@ Active tasks: None; Slice 2 review
 | T1.2 | completed | `test(auth): verify credential admission transactions` | `c1ed78985aba` |
 | T2.1 | completed | `feat(auth): guard password authentication paths` | `dd425e7a244d` |
 | T2.2 | completed | `test(auth): verify shared password entry budgets` | `59ddb46fc792` |
-| T3.1 | pending | `feat(auth): bound public authentication ingress` | pending |
+| T3.1 | active | `feat(auth): bound public authentication ingress` | pending |
 | T3.2 | pending | `test(auth): verify neutral public authentication` | pending |
 | T4.1 | pending | `feat(auth): observe bounded security outcomes` | pending |
 | T4.2 | pending | `test(auth): verify security observation boundaries` | pending |
@@ -51,7 +51,7 @@ Active tasks: None; Slice 2 review
 - [x] Scope/model and internal slice map approved.
 - [x] Planning state committed and Slice 1 canonical worktree activated.
 - [x] Slice 1 merged and report delivered; actual durable admission evidence.
-- [ ] Slice 2 merged and report delivered; actual shared password-entry budgets.
+- [x] Slice 2 merged and report delivered; actual shared password-entry budgets.
 - [ ] Slice 3 merged and report delivered; finite ingress/neutral transport.
 - [ ] Slice 4 merged and report delivered; redacted bounded observations.
 - [ ] Slice 5 merged and report delivered; actual browser/affected regression.
@@ -115,5 +115,6 @@ password-entry evidence; neutral transport, observation and actual browser
 acceptance remain in Slices 3–5. Full integrated validation remains after all
 five canonical merges.
 
-Slice 2 review PR: #108 to dev. Canonical report is reviewing; both task commits
-and focused evidence are recorded. Maintainer merge is the next state transition.
+Slice 2 PR #108 is canonically merged into dev at `1ae69f0ddb49`; its report
+is delivered. Both task commits and focused evidence are recorded. Slice 3
+is active under the approved continuation map.
