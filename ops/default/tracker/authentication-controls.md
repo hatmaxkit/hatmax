@@ -16,17 +16,17 @@ Model: [Controls model](../spec/authentication-controls-model.md)
 Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
-Active slice: Slice 1 — Durable credential admission
+Active slice: Slice 2 — Guarded password entry
 Execution gate: Open
 Plan: [Delivery plan](../plan/authentication-controls.md)
-Active tasks: None; Slice 1 review
+Active tasks: T2.1, T2.2
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Durable credential admission | reviewing | `feat/credential-admission` | `feat(slice-1): add shared credential admission` | `#107` | `ops/default/report/slices/authentication-controls/slice-1-credential-admission.md` |
-| Slice 2 | Guarded password entry | pending | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | pending | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
+| Slice 1 | Durable credential admission | delivered | `feat/credential-admission` | `feat(slice-1): add shared credential admission` | `#107` | `ops/default/report/slices/authentication-controls/slice-1-credential-admission.md` |
+| Slice 2 | Guarded password entry | active | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | pending | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
 | Slice 3 | Finite public authentication | pending | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | pending | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
 | Slice 4 | Security observations | pending | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | pending | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
 | Slice 5 | Controls acceptance | pending | `test/authentication-controls-acceptance` | `test(slice-5): verify authentication controls integration` | pending | `ops/default/report/slices/authentication-controls/slice-5-controls-acceptance.md` |
@@ -37,7 +37,7 @@ Active tasks: None; Slice 1 review
 | --- | --- | --- | --- |
 | T1.1 | completed | `feat(auth): add shared credential admission` | `f32729cd06e0` |
 | T1.2 | completed | `test(auth): verify credential admission transactions` | `c1ed78985aba` |
-| T2.1 | pending | `feat(auth): guard password authentication paths` | pending |
+| T2.1 | active | `feat(auth): guard password authentication paths` | pending |
 | T2.2 | pending | `test(auth): verify shared password entry budgets` | pending |
 | T3.1 | pending | `feat(auth): bound public authentication ingress` | pending |
 | T3.2 | pending | `test(auth): verify neutral public authentication` | pending |
@@ -50,7 +50,7 @@ Active tasks: None; Slice 1 review
 
 - [x] Scope/model and internal slice map approved.
 - [x] Planning state committed and Slice 1 canonical worktree activated.
-- [ ] Slice 1 merged and report delivered; actual durable admission evidence.
+- [x] Slice 1 merged and report delivered; actual durable admission evidence.
 - [ ] Slice 2 merged and report delivered; actual shared password-entry budgets.
 - [ ] Slice 3 merged and report delivered; finite ingress/neutral transport.
 - [ ] Slice 4 merged and report delivered; redacted bounded observations.
@@ -94,5 +94,6 @@ entry and transport boundaries remain for later recorded slices.
 Licensing, vet, strict lint and documentation checks passed. The full integrated
 `make check` gate remains after five canonical merges.
 
-Slice 1 review PR: #107 to dev. Canonical report is reviewing; both task commits
-and focused evidence are recorded. Maintainer merge is the next state transition.
+Slice 1 PR #107 is canonically merged into dev at `abb2ea6afe99`; its report
+is delivered. Both task commits and focused evidence are recorded. Slice 2
+is active under the approved continuation map.

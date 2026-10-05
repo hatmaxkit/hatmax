@@ -16,7 +16,7 @@ Model: [Controls model](../spec/authentication-controls-model.md)
 Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
-Active slice: Slice 1 — Durable credential admission
+Active slice: Slice 2 — Guarded password entry
 Execution gate: Open
 Tracker: [Delivery tracker](../tracker/authentication-controls.md)
 Slice strategy: layered
