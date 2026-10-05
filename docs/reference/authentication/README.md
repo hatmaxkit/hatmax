@@ -809,8 +809,8 @@ canonical unpadded URL Base64 encoding of 32 random bytes. Storage keeps only it
 SHA-256 digest, separated by purpose, subject and record identity. Formatting
 and JSON serialization redact the transient secret; snapshots omit the digest
 from JSON. Only `Token.Bearer()` deliberately exposes it to trusted dispatch.
-Verification and reset purposes never resolve as session tokens. Reset remains
-unavailable until its protected implementation is delivered.
+Verification and reset purposes never resolve as session tokens. See
+[mailbox password reset](#mailbox-password-reset) for the separate completion contract.
 
 Eligibility binds the subject, purpose, exact target, `AuthVersion`, trusted
 policy revision and strictly unexpired time. Equality at expiry is unavailable.
@@ -866,8 +866,8 @@ application retry entrypoint: batches of 1–20, five attempts per intent,
 seven-day retention and a five-second call deadline. It starts no worker.
 Attempts are committed before sending. Concurrent retries or a lost provider
 acknowledgment can duplicate mail within that finite attempt limit. Actual mail
-provider delivery, deployment-wide protection, password reset and all-factor-loss
-identity proofing are separate boundaries.
+provider delivery, deployment-wide protection and all-factor-loss identity
+proofing are separate boundaries.
 
 
 ## Recent-proof password change
@@ -903,7 +903,7 @@ The existing checker and shared bounded password verifier prepare/hash the compl
 candidate outside database locks. Password policy, checker, KDF admission and
 cancellation failures cannot refund the attempt. Oversized input or a malformed
 bearer is rejected before storage. The existing fifteen-minute completion window
-is shared with mailbox confirmation and, when supported, reset completion.
+is shared with mailbox confirmation and reset completion.
 
 `CommitPasswordChange` locks subject first and rechecks the actual actor digest,
 generation, expiry, proof time, policy and complete current factor bindings after
@@ -939,3 +939,82 @@ retains notification intent for explicit `DispatchMailboxNotices` retry, under
 the same five-attempt, seven-day and finite-batch bounds as verification notices.
 No retry worker starts. Captured mail tests establish this application boundary;
 they do not establish external delivery or deployment-wide anti-automation.
+
+
+## Mailbox password reset
+
+`RecoveryService.RequestPasswordReset(ctx, mailbox)` issues a purpose-2 token only
+for the active account's previously verified current address. Verification time
+must be nonzero and not in the future. The exact address, subject, authentication
+version and trusted recovery revision bind the issued record. It uses the
+configured reset TTL, a separate issuance budget and the same two-slot bounded
+storage as verification. Reissue invalidates the preceding reset link; it cannot
+refund issuance, token attempts or shared completion admission. Core returns a
+transient `MailboxIssue` only to trusted dispatch. The application keeps bearer
+values out of public/operator responses and diagnostic output.
+
+`ResetPassword(ctx, bearer, candidate)` rejects oversized candidates and malformed
+bearers before storage. `RecoveryQueries.ReservePasswordReset` locks the subject
+before its actual token, verifies the secret and purpose, commits finite token
+attempts and kind-3 subject admission, then returns an owned revision/lease.
+Known wrong secrets spend token attempts without running the password checker.
+Foreign-purpose, terminal and stale records cannot enter password work. The
+existing password policy and shared bounded verifier prepare/hash the complete
+candidate outside database locks. Candidate rejection, checker failure, KDF
+admission failure and cancellation cannot refund committed attempts. Canceled
+work may leave a finite lease until expiry; no background cleanup worker starts.
+
+`CompletePasswordReset` locks the subject first, rechecks the exact reservation,
+current eligibility/version/policy and database time after lock waits, then commits
+all effects together: complete encoded credential replacement, one version
+advance, token consumption, deletion of every account session and restricted
+continuation, revocation of other outstanding mailbox slots and a kind-3 notice.
+Trusted time is checked after writes too; expiry or notice capacity/write failure
+rolls back every security effect while attempts remain spent. Reset/change races
+permit one winner against the same captured version. An ambiguous commit error
+is an operating failure, not evidence of rollback or permission to retry blindly.
+
+`PasswordReset` contains safe subject/time only. The operation never activates an
+account, changes roles/address verification, issues a session or weakens factor
+requirements. Confirmed WebAuthn/TOTP records, accepted counters/time steps and
+backup verifiers/consumption remain intact. Ordinary sign-in with the new password
+must satisfy the current application policy; all-factor loss requires separate
+identity proofing. A reset link is not an authentication, enrollment or step-up
+continuation.
+
+### Ticked reset forms and operator initiation
+
+The same explicit trusted recovery origin and active-mail configuration enables
+GET/POST `/account/password/reset` and `/account/password/reset/confirm`. GET only
+renders forms. Initiation accepts exactly one `email` field and acknowledges
+eligible, missing, inactive, unverified, throttled, storage-failed and provider-failed
+accounts alike with a six-second target and a five-second work deadline. This
+bounded response policy is not a production side-channel audit. Admission occurs
+before account lookup: 12 requests per socket IP per minute, 32 active calls and
+1024 current IP entries, shared across this handler's public and operator routes.
+Forwarded headers cannot choose the limiter key; deployment-wide protection is
+application responsibility.
+
+Mail carries the bearer in a fragment at `/account/password/reset/confirm#token=…`.
+The form removes the fragment from history and completes only through explicit
+POST. Completion accepts exactly `token` and `password`, no query fields, at most
+16 KiB of form body, an 80-byte token and 4096 bytes of complete password text.
+Same-origin protection, `no-store` and `no-referrer` apply. Success clears the
+session cookie without replacement; denial text omits secrets/provider errors.
+
+GET/POST `/admin/password-reset` requires a current actual session, the application's
+`admin` or `superadmin` role and trusted recent MFA policy. Ticked selects
+phishing-resistant proof with a five-minute age bound; trusted assembly may
+explicitly permit supported MFA, never password-only proof. Admission precedes
+session/account lookup. The operator submits only an email and receives the same
+neutral acknowledgment. It cannot choose a password or notification destination,
+obtain the bearer, bypass mailbox verification or grant authentication. Operator
+roles belong to the application rather than the reusable core service.
+
+`MailboxDelivery.ResetPassword` commits first and attempts the existing bounded
+notification dispatch. Kind-3 notices contain no password, verifier, bearer or
+recovery link. Provider failure leaves reset successful and retains notification
+intent for explicit `DispatchMailboxNotices` retry (1–20 intents, five attempts,
+seven-day retention, five-second call deadline). It starts no retry worker.
+Captured-mail PostgreSQL/HTTP tests establish this boundary; browser journeys,
+external provider delivery and deployment protection require their own evidence.

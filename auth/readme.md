@@ -286,4 +286,17 @@ notification intent. `PasswordChanged` contains safe subject/time only; no
 replacement session is returned. Mailbox verification, factors and replay/backup
 records remain intact. See the
 [password change contract](../docs/reference/authentication/README.md#recent-proof-password-change).
-Password reset remains outside the currently exposed service methods.
+
+## Mailbox password reset
+
+`RecoveryService.RequestPasswordReset` issues only to the active account's
+previously verified current mailbox. Trusted application mail dispatch receives
+the transient bearer; public and operator initiation responses never receive it.
+`ResetPassword(ctx, bearer, candidate)` reserves the actual purpose-separated
+one-use token before shared password policy/KDF work. Completion atomically
+replaces the password, consumes the token, advances the authentication version,
+invalidates all sessions/continuations/mailbox links and records notification
+intent. `PasswordReset` returns safe subject/time only and cannot authenticate.
+Confirmed factors, replay state and backup-code consumption remain intact; normal
+sign-in with the new password still requires the application's current MFA policy.
+See the [password reset contract](../docs/reference/authentication/README.md#mailbox-password-reset).

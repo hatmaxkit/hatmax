@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Account Recovery Tracker
 
-Date: 2026-10-04
+Date: 2026-10-05
 Status: Active
 Approved: 2026-10-04
 Delivery set: account-recovery
@@ -18,7 +18,7 @@ Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `cd9647584a004d2dd0563fe915654ffd316abb8e`
 Active slice: Slice 3 — Mailbox password reset
-Active tasks: T3.2
+Active tasks: None
 Execution gate: Open
 
 ## Slice Status
@@ -38,8 +38,8 @@ Execution gate: Open
 | T1.2 | completed | `test(auth): verify mailbox lifecycle and transactions` | `77395af0a3c1` | Purpose/state isolation, time/budget/cleanup bounds, real races/rollback and transport safety |
 | T2.1 | completed | `feat(auth): enforce recent-proof password changes` | `c0abf13f36e5` | Actual actor-derived proof, shared policy/KDF and atomic revocation/notification |
 | T2.2 | completed | `test(auth): verify password change authority` | `ecf129548459` | Current actor/factor/policy/time rejection, concurrency and full rollback |
-| T3.1 | completed | `feat(auth): add one-use mailbox password reset` | pending | Previously verified target, one-use token, credential/revocation/notice and no MFA bypass |
-| T3.2 | active | `test(auth): verify password reset isolation and MFA` | pending | Token and reset/change races, rollback, invalidation and real retained MFA/replay state |
+| T3.1 | completed | `feat(auth): add one-use mailbox password reset` | `cd3fbcb6f893` | Previously verified target, one-use token, credential/revocation/notice and no MFA bypass |
+| T3.2 | completed | `test(auth): verify password reset isolation and MFA` | pending | Token and reset/change races, rollback, invalidation and real retained MFA/replay state |
 | T4.1 | pending | `test(auth): exercise account recovery browser journeys` | pending | Actual production browser/PostgreSQL lifecycle and current-proof re-entry |
 | T4.2 | pending | `test(auth): close account recovery integration evidence` | pending | Complete supported documentation, finite failure regression and acceptance mapping |
 
@@ -149,3 +149,20 @@ previously verified current mailbox and complete MFA/replay preservation.
 - Actual isolated PostgreSQL, shared password verification, captured mail and
   production protected transports are required. Full browser acceptance and
   the one integrated gate remain the final approved slice/set boundaries.
+
+
+## Slice 3 Focused Evidence
+
+T3.1 and T3.2 are implemented. Actual PostgreSQL races and failures establish
+one-use purpose isolation, durable admission, one-winner reset/change/reissue,
+post-lock eligibility and expiry checks, complete transaction rollback and all
+session/continuation invalidation. Actual WebAuthn, TOTP and backup authentication
+preserves counters, accepted steps and consumed codes, with current-policy sign-in
+required after reset. Production HTTP/captured-mail tests establish neutral
+six-second initiation, protected explicit completion, no session grant, retained
+notification intent and actual operator role/proof/version checks.
+
+The finite affected authentication regression passed in 94.370s and production
+HTTP evidence passed in 43.693s. Supported core/reference/example/User Guide
+contracts now include reset. The full integrated gate and browser acceptance
+remain the final approved boundaries; external provider delivery is unproven.

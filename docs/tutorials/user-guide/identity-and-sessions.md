@@ -304,3 +304,25 @@ a successful change. See the
 [password change reference](../../reference/authentication/README.md#recent-proof-password-change)
 for policy, retry and resource limits. Losing a required factor needs a separate
 identity-recovery procedure; changing the password cannot replace it.
+
+
+## Reset a forgotten password
+
+With Ticked's active-mail and trusted recovery-origin configuration enabled,
+open `/account/password/reset` and enter your current account email. Reset requires
+that address to have been verified earlier. The acknowledgment does not reveal
+whether the account is eligible. Open the mailed link and explicitly submit the
+complete new password; opening the page alone cannot reset it. Request a new link
+when the old one has expired or been replaced.
+
+Success signs out every session and cancels unfinished security ceremonies.
+Sign in normally with the new password and any currently required MFA. Confirmed
+authenticators remain required and spent backup codes remain spent. Losing all
+required authenticators needs a separate identity-recovery procedure.
+
+An authorized Ticked operator can request this same mailed flow at
+`/admin/password-reset` after recent phishing-resistant authentication. The
+operator cannot choose your new password, receive your link or sign you in.
+A failed notification does not undo a successful reset. See the
+[reset reference](../../reference/authentication/README.md#mailbox-password-reset)
+for retry, timing and deployment boundaries.

@@ -245,7 +245,7 @@ The example performs one bounded notification dispatch after confirmation and
 exposes `MailboxDelivery.DispatchMailboxNotices` for application-owned retries.
 It starts no retry worker. See the
 [mailbox reference](../../docs/reference/authentication/README.md#mailbox-verification)
-for the explicit dispatch and deployment limits. Password reset remains unavailable.
+for the explicit dispatch and deployment limits.
 
 ## Change a password
 
@@ -261,3 +261,25 @@ mailbox verification, authenticators and replay/backup state. No new authenticat
 cookie is issued. A notification failure leaves the committed change intact;
 `DispatchMailboxNotices` supports bounded explicit retries. See the
 [password change reference](../../docs/reference/authentication/README.md#recent-proof-password-change).
+
+
+## Reset a password
+
+The active-mail and trusted recovery-origin configuration also enables
+`/account/password/reset`. Request a link for the account's previously verified
+current email, then explicitly submit the new password at the mailed confirmation
+page. A missing, inactive or unverified account receives the same acknowledgment;
+GET cannot consume a link. Reissue invalidates the previous reset link.
+
+Success signs out all sessions and cancels unfinished security flows while
+preserving address verification, confirmed factors and replay/backup state. Sign
+in with the new password and the currently required MFA. A password reset cannot
+replace a lost required factor. Notification failure leaves a committed reset
+intact; explicit bounded notice retry remains available.
+
+`/admin/password-reset` requires the current `admin`/`superadmin` role and actual
+phishing-resistant authentication no older than five minutes. The operator can
+initiate the same verified-mailbox flow only: no chosen password, returned link or
+authentication grant. See the
+[reset reference](../../docs/reference/authentication/README.md#mailbox-password-reset)
+for storage, transport, timing and delivery limits.
