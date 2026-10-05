@@ -279,8 +279,8 @@ capacity refusals, classified redacted events and retained actual MFA/recovery
 passed. The [tracker](../tracker/authentication-controls.md#requirement-evidence)
 maps AC-01 through AC-08 to exact evidence and remaining obligations.
 
-Acceptance is reviewing; its maintainer merge and the single exact integrated
-`make check` remain pending. Implementation stays Partial until that gate. The
+All five slices are merged and delivered. The single exact integrated
+`make check` remains pending. Implementation stays Partial until that gate. The
 supported AUTH-07 mechanisms do not close cumulative authenticator disabling/
 rebinding, all-factor-loss identity proofing, durable external audit delivery or
 consumer/deployment assurance. The parent foundation remains Partial.

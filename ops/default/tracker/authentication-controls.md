@@ -16,10 +16,10 @@ Model: [Controls model](../spec/authentication-controls-model.md)
 Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
-Active slice: Slice 5 — Controls acceptance
+Active slice: None; all five delivered, integrated validation pending
 Execution gate: Open
 Plan: [Delivery plan](../plan/authentication-controls.md)
-Active tasks: None; both Slice 5 tasks completed, maintainer review pending
+Active tasks: None; all ten completed, integrated validation pending
 
 ## Slice Status
 
@@ -29,7 +29,7 @@ Active tasks: None; both Slice 5 tasks completed, maintainer review pending
 | Slice 2 | Guarded password entry | delivered | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | `#108` | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
 | Slice 3 | Finite public authentication | delivered | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | `#109` | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
 | Slice 4 | Security observations | delivered | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | `#110` | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
-| Slice 5 | Controls acceptance | reviewing | `test/authentication-controls-acceptance` | `test(slice-5): verify authentication controls integration` | `#111` | `ops/default/report/slices/authentication-controls/slice-5-controls-acceptance.md` |
+| Slice 5 | Controls acceptance | delivered | `test/authentication-controls-acceptance` | `test(slice-5): verify authentication controls integration` | `#111` | `ops/default/report/slices/authentication-controls/slice-5-controls-acceptance.md` |
 
 ## Tasks
 
@@ -54,7 +54,7 @@ Active tasks: None; both Slice 5 tasks completed, maintainer review pending
 - [x] Slice 2 merged and report delivered; actual shared password-entry budgets.
 - [x] Slice 3 merged and report delivered; finite ingress/neutral transport.
 - [x] Slice 4 merged and report delivered; redacted bounded observations.
-- [ ] Slice 5 merged and report delivered; actual browser/affected regression.
+- [x] Slice 5 merged and report delivered; actual browser/affected regression.
 - [x] All ten task/commit/PR mappings and AC-01 through AC-08 recorded.
 - [ ] Exact immutable integrated candidate passes `make check`.
 - [x] Supported AUTH-07 and remaining lifecycle/consumer boundaries recorded.
@@ -251,8 +251,8 @@ neutral errors and observation do not implement cumulative authenticator
 disabling/rebinding, all-factor-loss identity proofing or consumer audit/deployment
 assurance. The parent remains Partial.
 
-Slice 5 PR #111 is reviewing against dev. T5.1 `85e88174f0c8` and T5.2/report
+Slice 5 PR #111 is canonically merged into dev at `7943586b42a0`. T5.1 `85e88174f0c8` and T5.2/report
 introduction `d3ed655724d4` complete the ten recorded task mappings. The immutable
-report link is recorded in the canonical PR. After verified merge, close this
-slice on dev and immediately prepare/run the single exact integrated gate; no
-additional scope confirmation is required.
+report link is recorded in the canonical PR. The report is delivered on dev. This documentary preparation finalizes the
+immutable integrated candidate; record its full hash and execute the single
+full gate before closing this delivery set. No additional scope approval is needed.

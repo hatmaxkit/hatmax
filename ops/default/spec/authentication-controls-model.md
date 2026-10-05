@@ -22,8 +22,8 @@ namespace/key provisioning, SQL tables/queries, trusted time and delivery adapte
 Extend the existing Ticked `internal/feat/auth`, migration and generated-query
 layout. The logical contracts below match the settled Go/SQL/config representations
 recorded for Slices 1–4. Those runtime slices are merged and delivered; actual
-browser/affected acceptance is reviewing in Slice 5. Its maintainer merge and
-the exact integrated gate remain pending.
+browser/affected acceptance is delivered in Slice 5. All five slices are merged;
+the exact integrated gate remains pending.
 
 ## Credential Admission Record
 

@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 5: Controls Acceptance
 
-Status: reviewing
+Status: delivered
 Delivery set: authentication-controls
 Plan: [Authentication controls plan](../../../plan/authentication-controls.md)
 Tracker: [Authentication controls tracker](../../../tracker/authentication-controls.md)
@@ -86,9 +86,9 @@ agree on required shared admission/observation, neutral transport, finite ingres
 and actual proof. Existing Unreleased notes already describe the delivered product
 outcome; acceptance adds no separate user-facing capability.
 
-The concern/model and parent record four delivered runtime slices and reviewing
-acceptance. Implementation remains Partial until final merge and the exact full
-gate; broader foundation and consumer obligations remain explicit.
+The concern/model and parent record all five delivered slices. Implementation
+remains Partial until the exact full gate; broader foundation and consumer
+obligations remain explicit.
 
 ## Files of Interest
 
@@ -130,8 +130,8 @@ production, external-provider or full-repository gate results.
 
 ## Risks and Follow-ups
 
-- Maintainer merge and the single exact immutable integrated dev `make check`
-  remain pending. Close the set only after that gate is green. Required repository
+- Maintainer merge is verified at `7943586b42a0`; the single exact immutable
+  integrated dev `make check` remains pending. Close the set only after that gate is green. Required repository
   corrections use the approved validation-fix branch and dev PR, followed by the
   corrected integrated candidate gate; no correction branch for a green result.
 - Applications own canonical identity/alias convergence, stable namespace/key,

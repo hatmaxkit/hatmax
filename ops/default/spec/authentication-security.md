@@ -84,9 +84,9 @@ supported AUTH-06 delivery and the remaining consumer/assurance boundaries.
 The [approved authentication controls concern](authentication-controls.md) and
 its [model](authentication-controls-model.md) refine the remaining AUTH-07
 credential admission, public outcome, finite ingress and event boundaries.
-Four runtime slices are delivered; actual browser/affected controls acceptance
-is reviewing. Their [requirement evidence](../tracker/authentication-controls.md#requirement-evidence)
-records supported AUTH-07 mechanisms and the pending final merge/integrated gate.
+All five controls slices, including actual browser/affected acceptance, are
+merged and delivered. Their [requirement evidence](../tracker/authentication-controls.md#requirement-evidence)
+records supported AUTH-07 mechanisms and the pending exact integrated gate.
 Cumulative authenticator disabling/rebinding, all-factor-loss proofing and consumer
 audit/deployment assurance remain separate obligations.
 The complete foundation is not yet delivered.
