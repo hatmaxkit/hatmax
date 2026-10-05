@@ -41,8 +41,8 @@ their own threat review; these password operations cannot authorize them.
 ## Delivered Prerequisites and Current Gaps
 
 The linked prerequisite concerns and their delivery sets are complete. Mailbox
-verification and protected password change are delivered.
-The reset and final acceptance slices remain pending.
+verification, protected password change and one-use mailbox reset are delivered.
+Final browser acceptance and the integrated delivery gate remain pending.
 
 - `auth.Service` owns the validated password policy and shared bounded verifier.
 - `auth.Queries.ReplacePassword` and the Ticked adapter check `CredentialState`,
@@ -52,7 +52,7 @@ The reset and final acceptance slices remain pending.
 - Session/factor operations serialize through the subject row and recheck actual
   proof, policy, generation, factor bindings and trusted time.
 - Current-mailbox verification, purpose-bound tokens and atomic confirmation are
-  delivered. One-use token-consumption/password-replacement remains Slice 3.
+  delivered, including one-use token consumption and atomic password replacement.
 
 Extend `auth` and the repository-owned Ticked adapter. Exact Go identifiers are
 finalized with the delivery plan; operation names below are logical contracts.

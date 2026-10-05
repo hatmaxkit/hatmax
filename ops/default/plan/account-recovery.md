@@ -20,7 +20,7 @@ Tracker: [Delivery tracker](../tracker/account-recovery.md)
 Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `cd9647584a004d2dd0563fe915654ffd316abb8e`
-Active slice: Slice 3 — Mailbox password reset
+Active slice: Slice 4 — Recovery acceptance
 Execution gate: Open
 Go baseline: 1.27.1
 

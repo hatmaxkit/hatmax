@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 3: Mailbox Password Reset
 
-Status: reviewing
+Status: delivered
 Delivery set: account-recovery
 Plan: `ops/default/plan/account-recovery.md`
 Tracker: `ops/default/tracker/account-recovery.md`

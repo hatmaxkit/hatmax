@@ -17,8 +17,8 @@ Model: [Account recovery model](../spec/account-recovery-model.md)
 Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `cd9647584a004d2dd0563fe915654ffd316abb8e`
-Active slice: Slice 3 — Mailbox password reset
-Active tasks: None
+Active slice: Slice 4 — Recovery acceptance
+Active tasks: T4.1
 Execution gate: Open
 
 ## Slice Status
@@ -27,8 +27,8 @@ Execution gate: Open
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Mailbox verification | delivered | `feat/account-mailbox-verification` | `feat(slice-1): add bounded mailbox verification` | `#103` | `ops/default/report/slices/account-recovery/slice-1-mailbox-verification.md` |
 | Slice 2 | Protected password change | delivered | `feat/account-password-change` | `feat(slice-2): enforce recent-proof password changes` | `#104` | `ops/default/report/slices/account-recovery/slice-2-password-change.md` |
-| Slice 3 | Mailbox password reset | reviewing | `feat/account-password-reset` | `feat(slice-3): add one-use mailbox password reset` | `#105` | `ops/default/report/slices/account-recovery/slice-3-password-reset.md` |
-| Slice 4 | Recovery acceptance | pending | `test/account-recovery-acceptance` | `test(slice-4): verify account recovery integration` | pending | `ops/default/report/slices/account-recovery/slice-4-recovery-acceptance.md` |
+| Slice 3 | Mailbox password reset | delivered | `feat/account-password-reset` | `feat(slice-3): add one-use mailbox password reset` | `#105` | `ops/default/report/slices/account-recovery/slice-3-password-reset.md` |
+| Slice 4 | Recovery acceptance | active | `test/account-recovery-acceptance` | `test(slice-4): verify account recovery integration` | pending | `ops/default/report/slices/account-recovery/slice-4-recovery-acceptance.md` |
 
 ## Tasks
 
@@ -40,7 +40,7 @@ Execution gate: Open
 | T2.2 | completed | `test(auth): verify password change authority` | `ecf129548459` | Current actor/factor/policy/time rejection, concurrency and full rollback |
 | T3.1 | completed | `feat(auth): add one-use mailbox password reset` | `cd3fbcb6f893` | Previously verified target, one-use token, credential/revocation/notice and no MFA bypass |
 | T3.2 | completed | `test(auth): verify password reset isolation and MFA` | `8c3f9cb54565` | Token and reset/change races, rollback, invalidation and real retained MFA/replay state |
-| T4.1 | pending | `test(auth): exercise account recovery browser journeys` | pending | Actual production browser/PostgreSQL lifecycle and current-proof re-entry |
+| T4.1 | active | `test(auth): exercise account recovery browser journeys` | pending | Actual production browser/PostgreSQL lifecycle and current-proof re-entry |
 | T4.2 | pending | `test(auth): close account recovery integration evidence` | pending | Complete supported documentation, finite failure regression and acceptance mapping |
 
 ## Dependencies and Execution Gate
@@ -61,7 +61,7 @@ establish transaction semantics or production non-enumeration.
 - [x] Planning state committed and Slice 1 branch/worktree created from verified dev.
 - [x] Slice 1 merged and report delivered; mailbox/token transaction evidence recorded.
 - [x] Slice 2 merged and report delivered; recent-proof credential change evidence recorded.
-- [ ] Slice 3 merged and report delivered; one-use reset/MFA preservation evidence recorded.
+- [x] Slice 3 merged and report delivered; one-use reset/MFA preservation evidence recorded.
 - [ ] Slice 4 merged and report delivered; actual browser acceptance and supported guidance recorded.
 - [ ] AR-01 through AR-10 mapped to exact evidence.
 - [ ] Exact immutable integrated dev candidate passes `make check`.
@@ -166,3 +166,25 @@ The finite affected authentication regression passed in 94.370s and production
 HTTP evidence passed in 43.693s. Supported core/reference/example/User Guide
 contracts now include reset. The full integrated gate and browser acceptance
 remain the final approved boundaries; external provider delivery is unproven.
+
+
+## Slice 3 Merge and Slice 4 Activation
+
+PR `#105` is canonically merged at `15d867fa56c4b8c84bbac7f4cd7399c1ae7eceb1`.
+Slice 3 is delivered. Slice 4 continues the approved set with actual browser
+recovery journeys, final finite regressions and AR-01 through AR-10 mapping.
+
+## Slice 4 Finite Validation Selectors
+
+- `go test -tags=browser -race -run '^TestAccountRecoveryBrowser$' -count=1 -timeout=300s ./examples/ticked/internal/web`
+- Browser prerequisites are mandatory: Node with native WebSocket support,
+  Chromium with CDP/virtual WebAuthn support, explicit `NODE_BIN`, `CHROMIUM_BIN`,
+  `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` (may be empty), and `DB_NAME`.
+  Use an owned isolated PostgreSQL fixture and captured mail; no external send.
+  The browser child deadline is 240 seconds; CDP calls and owned-profile cleanup
+  remain finite. Missing prerequisites fail the test rather than skip it.
+- `go test -tags=integration -race -run '^(TestPasswordResetTransactions|TestPasswordChangeTransactions|TestMailboxTransactions|TestMailboxDeliveryTransactions|TestCredentialTransactions|TestSessionTransactions|TestWebAuthnTransactions|TestFallbackTransactions|TestFactorAuthority)$' -count=1 -timeout=180s ./examples/ticked/internal/feat/auth`
+- `go test -tags=integration -race -run '^(TestMailboxTransportTransactions|TestPasswordChangeTransportTransactions|TestPasswordResetTransportTransactions)$' -count=1 -timeout=180s ./examples/ticked/internal/web`
+- `go test -run '^$' -fuzz '^FuzzRecoveryToken$' -fuzztime=20s -parallel=2 -timeout=60s ./auth`
+- `go test -race ./auth ./config ./model ./middleware ./examples/ticked/internal/feat/auth ./examples/ticked/internal/web`
+- The single full integrated `make check` remains after all four verified merges.
