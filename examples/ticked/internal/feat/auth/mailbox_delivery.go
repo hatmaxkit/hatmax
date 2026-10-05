@@ -56,6 +56,9 @@ func NewMailboxDelivery(service *core.RecoveryService, queries *Queries, sender 
 // RequestMailboxVerification sends only the token committed for the exact mailbox.
 // The HTTP owner groups every result into a fixed-time neutral acknowledgment.
 func (d *MailboxDelivery) RequestMailboxVerification(ctx context.Context, mailbox string) error {
+	return d.requestMailbox(ctx, mailbox, core.VerifyMailbox)
+}
+func (d *MailboxDelivery) requestMailbox(ctx context.Context, mailbox string, purpose core.RecoveryPurpose) error {
 	address, err := mail.ParseAddress(mailbox)
 	if err != nil || address.Address != mailbox || address.Name != "" {
 		return core.ErrRecoveryUnavailable
@@ -64,14 +67,28 @@ func (d *MailboxDelivery) RequestMailboxVerification(ctx context.Context, mailbo
 	work, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	issue, err := d.service.RequestMailboxVerification(work, mailbox)
+	var issue *core.MailboxIssue
+	if purpose == core.VerifyMailbox {
+		issue, err = d.service.RequestMailboxVerification(work, mailbox)
+	} else if purpose == core.ResetPassword {
+		issue, err = d.service.RequestPasswordReset(work, mailbox)
+	} else {
+		return core.ErrRecoveryUnavailable
+	}
+
 	if err != nil {
 		return err
 	}
 
 	link := d.origin + "/account/mailbox/confirm#token=" + issue.Token.Bearer()
 
-	err = d.sender.Send(work, &mailer.Message{To: []mailer.Address{{Email: issue.Target}}, Subject: "Verify your Ticked mailbox", Text: "Open this link and submit the verification form:\n" + link + "\nThis link does not sign you in."})
+	subject, text := "Verify your Ticked mailbox", "Open this link and submit the verification form:\n"+link+"\nThis link does not sign you in."
+	if purpose == core.ResetPassword {
+		link = d.origin + "/account/password/reset/confirm#token=" + issue.Token.Bearer()
+		subject, text = "Reset your Ticked password", "Open this link and explicitly submit the reset form with your new password:\n"+link+"\nThis link does not sign you in or replace required MFA."
+	}
+
+	err = d.sender.Send(work, &mailer.Message{To: []mailer.Address{{Email: issue.Target}}, Subject: subject, Text: text})
 	if err != nil {
 		return errors.New("mailbox dispatch failed")
 	}
@@ -118,6 +135,10 @@ func (d *MailboxDelivery) DispatchMailboxNotices(ctx context.Context, subject st
 		subject, text := "Your Ticked mailbox was verified", "Your current mailbox was verified. Existing sessions were revoked. Sign in again through the normal authentication flow."
 		if n.Kind == 2 {
 			subject, text = "Your Ticked password was changed", "Your password was changed. Existing sessions were revoked. Sign in again through the normal authentication flow. If you did not make this change, contact the account operator."
+		}
+
+		if n.Kind == 3 {
+			subject, text = "Your Ticked password was reset", "Your password was reset. Existing sessions were revoked. Required MFA remains unchanged. Sign in again through normal authentication. If you did not request this reset, contact the account operator."
 		}
 
 		err = d.sender.Send(work, &mailer.Message{To: []mailer.Address{{Email: n.Destination}}, Subject: subject, Text: text})
@@ -173,7 +194,7 @@ func (q *Queries) claimMailboxNotices(ctx context.Context, subject string, limit
 	}
 
 	for _, n := range notices {
-		if n.Kind != 1 && n.Kind != 2 {
+		if n.Kind < 1 || n.Kind > 3 {
 			return nil, core.ErrRecoveryUnavailable
 		}
 

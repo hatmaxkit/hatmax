@@ -122,8 +122,13 @@ func (p MailboxRecord) GoString() string { return p.String() }
 
 // Check validates stored shape and current eligibility; attempts are checked at admission.
 func (p MailboxRecord) Check(now time.Time, revision string, settings config.RecoverySettings) error {
+	ttl := settings.VerificationTTL
+	if p.Purpose == ResetPassword {
+		ttl = settings.ResetTTL
+	}
+
 	id, err := uuid.Parse(p.ID)
-	if err != nil || id.Version() != 4 || id.Variant() != uuid.RFC4122 || id.String() != p.ID || !boundedID(p.State.UserID, 128) || p.State.Version < 1 || p.State.Version == math.MaxInt64 || p.Purpose != VerifyMailbox || len(p.Target) == 0 || len(p.Target) > 254 || strings.ContainsAny(p.Target, "\x00\r\n") || !validRecoveryRevision(revision) || p.PolicyRevision != revision || p.Digest == ([32]byte{}) || p.Revision < 1 || p.AttemptLimit != settings.TokenAttempts || p.Attempts < 0 || p.Attempts > p.AttemptLimit || p.CreatedAt.After(now) || p.ExpiresAt.Sub(p.CreatedAt) != settings.VerificationTTL || !now.Before(p.ExpiresAt) || !p.ConsumedAt.IsZero() || !p.RevokedAt.IsZero() {
+	if err != nil || id.Version() != 4 || id.Variant() != uuid.RFC4122 || id.String() != p.ID || !boundedID(p.State.UserID, 128) || p.State.Version < 1 || p.State.Version == math.MaxInt64 || (p.Purpose != VerifyMailbox && p.Purpose != ResetPassword) || len(p.Target) == 0 || len(p.Target) > 254 || strings.ContainsAny(p.Target, "\x00\r\n") || !validRecoveryRevision(revision) || p.PolicyRevision != revision || p.Digest == ([32]byte{}) || p.Revision < 1 || p.AttemptLimit != settings.TokenAttempts || p.Attempts < 0 || p.Attempts > p.AttemptLimit || p.CreatedAt.After(now) || p.ExpiresAt.Sub(p.CreatedAt) != ttl || !now.Before(p.ExpiresAt) || !p.ConsumedAt.IsZero() || !p.RevokedAt.IsZero() {
 		return ErrRecoveryUnavailable
 	}
 

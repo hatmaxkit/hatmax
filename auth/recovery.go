@@ -21,6 +21,9 @@ import (
 // Confirm consumes, verifies, advances version, invalidates all continuations and
 // sessions, and persists a notification intent in one transaction.
 type RecoveryQueries interface {
+	IssuePasswordReset(context.Context, MailboxRecord, config.RecoverySettings) error
+	ReservePasswordReset(context.Context, RecoveryToken, string, config.RecoverySettings) (*MailboxRecord, error)
+	CompletePasswordReset(context.Context, MailboxRecord, string, string, config.RecoverySettings) (*PasswordReset, error)
 	AuthorizePasswordChange(context.Context, SessionDigest, PasswordChangePolicy, config.RecoverySettings) (*PasswordChangeAuthorization, error)
 	CommitPasswordChange(context.Context, PasswordChangeAuthorization, string, PasswordChangePolicy, config.RecoverySettings) (*PasswordChanged, error)
 	IssueMailbox(context.Context, MailboxRecord, config.RecoverySettings) error
@@ -54,6 +57,10 @@ func NewRecoveryService(base *Service, queries RecoveryQueries, cfg config.Recov
 // RequestMailboxVerification resolves only the caller's canonical current address.
 // Applications map unavailable/budget outcomes to the same public acknowledgment.
 func (s *RecoveryService) RequestMailboxVerification(ctx context.Context, mailbox string) (*MailboxIssue, error) {
+	return s.requestMailbox(ctx, mailbox, VerifyMailbox)
+}
+
+func (s *RecoveryService) requestMailbox(ctx context.Context, mailbox string, purpose RecoveryPurpose) (*MailboxIssue, error) {
 	if len(mailbox) == 0 || len(mailbox) > 254 || strings.ContainsAny(mailbox, "\x00\r\n") {
 		return nil, ErrRecoveryUnavailable
 	}
@@ -70,7 +77,7 @@ func (s *RecoveryService) RequestMailboxVerification(ctx context.Context, mailbo
 		return nil, fmt.Errorf("cannot resolve recovery subject: %w", err)
 	}
 
-	if user == nil || !user.Active || user.Email != mailbox {
+	if user == nil || !user.Active || user.Email != mailbox || purpose == ResetPassword && (user.MailboxVerifiedAt == nil || user.MailboxVerifiedAt.IsZero() || user.MailboxVerifiedAt.After(time.Now().UTC())) {
 		return nil, ErrRecoveryUnavailable
 	}
 
@@ -80,14 +87,25 @@ func (s *RecoveryService) RequestMailboxVerification(ctx context.Context, mailbo
 	}
 
 	now := time.Now().UTC().Truncate(time.Microsecond)
-	record := MailboxRecord{ID: token.ID(), State: CredentialState{UserID: user.ID, Version: user.AuthVersion}, Purpose: VerifyMailbox, Target: user.Email, PolicyRevision: s.policyRevision, Digest: RecoveryDigest(token, user.ID, VerifyMailbox), CreatedAt: now, ExpiresAt: now.Add(s.settings.VerificationTTL), AttemptLimit: s.settings.TokenAttempts, Revision: 1}
+
+	ttl := s.settings.VerificationTTL
+	if purpose == ResetPassword {
+		ttl = s.settings.ResetTTL
+	}
+
+	record := MailboxRecord{ID: token.ID(), State: CredentialState{UserID: user.ID, Version: user.AuthVersion}, Purpose: purpose, Target: user.Email, PolicyRevision: s.policyRevision, Digest: RecoveryDigest(token, user.ID, purpose), CreatedAt: now, ExpiresAt: now.Add(ttl), AttemptLimit: s.settings.TokenAttempts, Revision: 1}
 
 	err = record.Check(now, s.policyRevision, s.settings)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.queries.IssueMailbox(work, record, s.settings)
+	if purpose == VerifyMailbox {
+		err = s.queries.IssueMailbox(work, record, s.settings)
+	} else {
+		err = s.queries.IssuePasswordReset(work, record, s.settings)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +132,7 @@ func (s *RecoveryService) ConfirmMailboxVerification(ctx context.Context, bearer
 		return nil, err
 	}
 
-	if pending == nil {
+	if pending == nil || pending.Purpose != VerifyMailbox {
 		return nil, ErrRecoveryUnavailable
 	}
 	// A cancelled release leaves only the finite lease; it cannot extend request time.

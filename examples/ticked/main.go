@@ -204,7 +204,13 @@ func main() {
 			os.Exit(1)
 		}
 
-		deps = append(deps, handler, changeHandler)
+		resetHandler, initErr := tickedweb.NewPasswordResetHandler(delivery, baseAuthSvc, strong)
+		if initErr != nil {
+			logger.Errorf("Cannot initialize password reset routes")
+			os.Exit(1)
+		}
+
+		deps = append(deps, handler, changeHandler, resetHandler)
 	}
 
 	starts, stops, registrars := app.Setup(ctx, router, deps...)

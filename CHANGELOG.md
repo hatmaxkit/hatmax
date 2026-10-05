@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Users with a verified current mailbox can reset a forgotten password through
+  a bounded one-use email link. Reset signs out every session while preserving
+  authenticators and spent backup codes; normal sign-in still requires configured
+  MFA. Ticked offers protected reset forms and operator-authorized requests that
+  send the same account-holder link without exposing it or choosing a password.
+
 - Users can change a password after recent authentication. Accounts with MFA
   require current qualifying MFA proof; a successful change signs out every
   session and preserves mailbox verification and authenticators. Ticked provides

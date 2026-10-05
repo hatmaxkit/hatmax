@@ -191,3 +191,28 @@ field at `/account/password`; the actor comes only from the session cookie.
 Ticked enables this route under its existing explicitly configured recovery/mail
 boundary. It explicitly permits password proof without factors and retains the
 phishing-resistant default when any primary factor is established.
+
+## Password Reset Implementation Names
+
+Slice 3 settles `RecoveryService.RequestPasswordReset`, `ResetPassword` and
+safe `PasswordReset` subject/time completion. Existing redacted `MailboxIssue`
+and owned `MailboxRecord` represent both closed token purposes with distinct TTLs.
+`RecoveryQueries.IssuePasswordReset`, `ReservePasswordReset` and
+`CompletePasswordReset` preserve explicit purpose authority. The adapter shares
+subject-first issuance/reservation mechanics while each entrypoint rejects the
+other purpose before admission. No additional schema or token wire format is needed.
+
+Reset requires an active subject and a current mailbox verification timestamp
+at or before trusted time, at both issuance and final use. The reservation charges
+kind 3 plus the token attempt before shared candidate/checker/KDF work. The exact
+revision/digest/lease snapshot binds final consumption, complete credential change,
+all-session/pending invalidation, other mailbox-slot revocation and kind-3 notice.
+No access session, factor change or activation is produced.
+
+`PasswordResetHandler` owns GET/POST `/account/password/reset` and
+`/account/password/reset/confirm`; completion accepts exactly `token` and `password`,
+with existing token/password/body bounds and no query fields. Links use fragments
+and explicit POST. Public initiation has the same six-second neutral response for
+all eligibility/storage/provider outcomes. Ticked's `/admin/password-reset` uses
+actual recent qualified session proof and existing admin/superadmin role policy
+before invoking the same mail-only request. Core defines no operator role or bypass.

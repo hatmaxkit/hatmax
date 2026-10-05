@@ -51,6 +51,9 @@ func chargeRecoveryWindow(ctx context.Context, q *dal.Queries, user string, kind
 
 // IssueMailbox replaces one purpose slot under the same subject lock as budget admission.
 func (q *Queries) IssueMailbox(ctx context.Context, p core.MailboxRecord, settings config.RecoverySettings) error {
+	return q.issueMailbox(ctx, p, settings, core.VerifyMailbox)
+}
+func (q *Queries) issueMailbox(ctx context.Context, p core.MailboxRecord, settings config.RecoverySettings, purpose core.RecoveryPurpose) error {
 	tx, err := q.beginCredentialTx(ctx)
 	if err != nil {
 		return err
@@ -74,7 +77,7 @@ func (q *Queries) IssueMailbox(ctx context.Context, p core.MailboxRecord, settin
 	}
 
 	err = p.Check(now, p.PolicyRevision, settings)
-	if err != nil || user.Email != p.Target || user.MailboxVerifiedAt.Valid || p.Attempts != 0 || p.Revision != 1 || !p.LeaseUntil.IsZero() {
+	if err != nil || p.Purpose != purpose || user.Email != p.Target || !eligibleMailbox(user, purpose, now) || p.Attempts != 0 || p.Revision != 1 || !p.LeaseUntil.IsZero() {
 		return core.ErrRecoveryUnavailable
 	}
 
@@ -98,7 +101,7 @@ func mailboxSnapshot(row dal.MailboxToken) core.MailboxRecord {
 	return p
 }
 
-func lockMailbox(ctx context.Context, tx *sql.Tx, id string) (core.MailboxRecord, error) {
+func lockMailbox(ctx context.Context, tx *sql.Tx, id string, purpose core.RecoveryPurpose) (core.MailboxRecord, error) {
 	queries := dal.New(tx)
 
 	subject, err := queries.MailboxSubject(ctx, id)
@@ -128,7 +131,12 @@ func lockMailbox(ctx context.Context, tx *sql.Tx, id string) (core.MailboxRecord
 		return core.MailboxRecord{}, err
 	}
 
-	if !user.Active || user.AuthVersion != row.AuthVersion || user.Email != row.Target || user.MailboxVerifiedAt.Valid || len(row.SecretDigest) != 32 {
+	now, err := queries.SessionClock(ctx)
+	if err != nil {
+		return core.MailboxRecord{}, err
+	}
+
+	if !user.Active || core.RecoveryPurpose(row.Purpose) != purpose || user.AuthVersion != row.AuthVersion || user.Email != row.Target || !eligibleMailbox(user, purpose, now) || len(row.SecretDigest) != 32 {
 		return core.MailboxRecord{}, core.ErrRecoveryUnavailable
 	}
 
@@ -137,13 +145,16 @@ func lockMailbox(ctx context.Context, tx *sql.Tx, id string) (core.MailboxRecord
 
 // ReserveMailbox durably commits invalid-secret attempts; no error path refunds them.
 func (q *Queries) ReserveMailbox(ctx context.Context, token core.RecoveryToken, policy string, settings config.RecoverySettings) (*core.MailboxRecord, error) {
+	return q.reserveMailbox(ctx, token, policy, settings, core.VerifyMailbox)
+}
+func (q *Queries) reserveMailbox(ctx context.Context, token core.RecoveryToken, policy string, settings config.RecoverySettings, purpose core.RecoveryPurpose) (*core.MailboxRecord, error) {
 	tx, err := q.beginCredentialTx(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	p, err := lockMailbox(ctx, tx, token.ID())
+	p, err := lockMailbox(ctx, tx, token.ID(), purpose)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +228,7 @@ func (q *Queries) ConfirmMailbox(ctx context.Context, pending core.MailboxRecord
 	}
 	defer tx.Rollback()
 
-	p, err := lockMailbox(ctx, tx, pending.ID)
+	p, err := lockMailbox(ctx, tx, pending.ID, core.VerifyMailbox)
 	if err != nil {
 		return nil, err
 	}
@@ -311,4 +322,13 @@ func (q *Queries) DeleteExpiredMailboxTokens(ctx context.Context, limit int) (in
 	}
 
 	return dal.New(q.dbProvider.GetDB()).DeleteExpiredMailboxTokens(ctx, int32(limit))
+}
+
+// Eligibility is current-address ownership, never activation or MFA proof.
+func eligibleMailbox(user dal.User, purpose core.RecoveryPurpose, now time.Time) bool {
+	if purpose == core.VerifyMailbox {
+		return !user.MailboxVerifiedAt.Valid
+	}
+
+	return purpose == core.ResetPassword && user.MailboxVerifiedAt.Valid && !user.MailboxVerifiedAt.Time.IsZero() && !user.MailboxVerifiedAt.Time.After(now)
 }
