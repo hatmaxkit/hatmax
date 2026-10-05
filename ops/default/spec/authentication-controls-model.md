@@ -8,7 +8,8 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authentication Controls Model
 
 Date: 2026-10-05
-Status: Proposed
+Approved: 2026-10-05
+Status: Approved
 Behavior: [Authentication attempts, errors and security events](authentication-controls.md)
 Parent model: [Authentication security model](authentication-security-model.md)
 Implementation status: Pending

@@ -8,14 +8,15 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authentication Attempts, Errors and Security Events
 
 Date: 2026-10-05
-Status: Proposed
+Approved: 2026-10-05
+Status: Approved
 Concern: authentication-controls
 Parent: [Authentication security foundation](authentication-security.md)
 Model: [Authentication controls model](authentication-controls-model.md)
 Prerequisites: [Sessions](authentication-sessions.md), [Authenticators](authenticators.md), [Account recovery](account-recovery.md)
 Inspected baseline: `74b4e86d4d3dd4829ad8da61f62fecdb0da187e1`
 Implementation status: Pending
-Execution gate: Closed
+Execution gate: Open
 
 ## Purpose and Ownership
 
@@ -208,7 +209,7 @@ requirement separately instead of treating this observer as durable evidence.
 
 ## Proposed Defaults and Hard Bounds
 
-These are proposal decisions for review. Invalid configuration fails construction;
+These behavior and default decisions were approved on 2026-10-05. Invalid configuration fails construction;
 zero optional values select documented defaults, not unlimited behavior.
 
 | Boundary | Default | Supported bound |
@@ -259,8 +260,10 @@ Sources verified on 2026-10-05:
 - [OWASP authentication guidance](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#authentication-and-error-messages): public outcomes/timing and account-based throttling need review together with malicious lockout risks.
 - [OWASP logging guidance](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html#data-to-exclude): redact sensitive authentication data, bound event fields and handle observation failure without changing application authority.
 
-Approval is requested for this bounded behavior and defaults, particularly shared
-charged-operation semantics, neutral registration without automatic sign-in and
-best-effort observation. No implementation plan, slice activation or runtime
-change is authorized by this proposal. The parent remains partially implemented;
-all-factor-loss/lifecycle and consumer assurance boundaries are not closed here.
+The bounded behavior/defaults and implementation scope were approved on
+2026-10-05, including charged operations without refunds, neutral registration
+without automatic sign-in and best-effort observation. The internal
+[delivery plan](../plan/authentication-controls.md) and
+[tracker](../tracker/authentication-controls.md) record five slices and ten tasks.
+The parent remains partially implemented; all-factor-loss/lifecycle and consumer
+assurance boundaries are not closed by scope approval.

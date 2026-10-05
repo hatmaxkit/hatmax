@@ -1,0 +1,74 @@
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: Apache-2.0
+
+This file is part of Hatmax. See LICENSE for license terms.
+-->
+
+# Authentication Controls Tracker
+
+Date: 2026-10-05
+Status: Active
+Approved: 2026-10-05
+Delivery set: authentication-controls
+Concern: [Authentication controls](../spec/authentication-controls.md)
+Model: [Controls model](../spec/authentication-controls-model.md)
+Parent: [Authentication security](../spec/authentication-security.md)
+Base branch: `dev`
+Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
+Active slice: Slice 1 — Durable credential admission
+Execution gate: Open
+Plan: [Delivery plan](../plan/authentication-controls.md)
+Active tasks: T1.1, T1.2
+
+## Slice Status
+
+| Slice | Short name | Status | Branch | Expected PR title | PR | Report |
+| --- | --- | --- | --- | --- | --- | --- |
+| Slice 1 | Durable credential admission | active | `feat/credential-admission` | `feat(slice-1): add shared credential admission` | pending | `ops/default/report/slices/authentication-controls/slice-1-credential-admission.md` |
+| Slice 2 | Guarded password entry | pending | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | pending | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
+| Slice 3 | Finite public authentication | pending | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | pending | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
+| Slice 4 | Security observations | pending | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | pending | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
+| Slice 5 | Controls acceptance | pending | `test/authentication-controls-acceptance` | `test(slice-5): verify authentication controls integration` | pending | `ops/default/report/slices/authentication-controls/slice-5-controls-acceptance.md` |
+
+## Tasks
+
+| Task | Status | Expected commit | Commit |
+| --- | --- | --- | --- |
+| T1.1 | pending | `feat(auth): add shared credential admission` | pending |
+| T1.2 | pending | `test(auth): verify credential admission transactions` | pending |
+| T2.1 | pending | `feat(auth): guard password authentication paths` | pending |
+| T2.2 | pending | `test(auth): verify shared password entry budgets` | pending |
+| T3.1 | pending | `feat(auth): bound public authentication ingress` | pending |
+| T3.2 | pending | `test(auth): verify neutral public authentication` | pending |
+| T4.1 | pending | `feat(auth): observe bounded security outcomes` | pending |
+| T4.2 | pending | `test(auth): verify security observation boundaries` | pending |
+| T5.1 | pending | `test(auth): exercise authentication controls journeys` | pending |
+| T5.2 | pending | `test(auth): close authentication controls evidence` | pending |
+
+## Completion Gates
+
+- [x] Scope/model and internal slice map approved.
+- [ ] Planning state committed and Slice 1 canonical worktree activated.
+- [ ] Slice 1 merged and report delivered; actual durable admission evidence.
+- [ ] Slice 2 merged and report delivered; actual shared password-entry budgets.
+- [ ] Slice 3 merged and report delivered; finite ingress/neutral transport.
+- [ ] Slice 4 merged and report delivered; redacted bounded observations.
+- [ ] Slice 5 merged and report delivered; actual browser/affected regression.
+- [ ] All ten task/commit/PR mappings and AC-01 through AC-08 recorded.
+- [ ] Exact immutable integrated candidate passes `make check`.
+- [ ] Supported AUTH-07 and remaining lifecycle/consumer boundaries recorded.
+
+## Slice 1 Recorded Validation
+
+Use the exact integration and parser-fuzz commands in the approved plan. Database
+prerequisites fail when absent. Compare two actual adapter/service instances with
+the same namespace/key; prove independent registration purpose, exact final
+admission, durable restart/no-reset, capacity, rollback, bounded cleanup and held
+lock caller deadlines. Measure finite row/index costs and admission latency;
+results describe this fixture, not deployment throughput. Core tests may use a
+bounded fake only for orchestration, never for distributed semantics.
+
+The remaining slices use their recorded task scope. No new slice is inferred
+from an implementation finding; maintain plan/model/tracker consistency first.
+The full integrated gate remains after five verified canonical merges.
