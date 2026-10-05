@@ -35,7 +35,7 @@ func TestCredentialServiceConfig(t *testing.T) {
 				tc.change(cfg)
 			}
 
-			svc, err := NewService(newMockQueries(), cfg, tc.checker, log.NewTestLogger("error"))
+			svc, err := NewService(newMockQueries(), cfg, tc.checker, newAdmissionForTest(t), log.NewTestLogger("error"))
 			if err == nil || svc != nil {
 				t.Fatal("invalid credential setup was accepted")
 			}
@@ -73,7 +73,7 @@ func TestCredentialServicePolicy(t *testing.T) {
 			})
 			q := newMockQueries()
 
-			svc, err := NewService(q, cfg, checker, log.NewTestLogger("error"))
+			svc, err := NewService(q, cfg, checker, newAdmissionForTest(t), log.NewTestLogger("error"))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -150,6 +150,23 @@ func TestCredentialServiceFailures(t *testing.T) {
 			session, err := testSignin(svc, ctx, user.Email, tc.password)
 			if session != nil || !errors.Is(err, tc.want) || len(q.sessions) != 0 {
 				t.Fatalf("failed proof issued a session: %v; want %v", err, tc.want)
+			}
+		})
+	}
+}
+
+// Mandatory admission prevents accidental construction of an unguarded service.
+func TestCredentialAdmissionRequired(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		admission *CredentialAdmission
+	}{
+		{"missing", nil}, {"uninitialized", &CredentialAdmission{}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			svc, err := NewService(newMockQueries(), config.New(), passwordCheckerFunc(func(context.Context, string) (bool, error) { return false, nil }), tc.admission, log.NewTestLogger("error"))
+			if err == nil || svc != nil {
+				t.Fatal("unguarded construction accepted")
 			}
 		})
 	}

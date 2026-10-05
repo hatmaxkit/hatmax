@@ -114,7 +114,7 @@ func resetCountingService(t *testing.T, f resetFixture, checker core.PasswordChe
 	cfg.Auth.ArgonIterations = 2
 	cfg.Auth.ArgonParallelism = 1
 
-	base, err := core.NewService(f.q, cfg, checker, log.NewTestLogger("error"))
+	base, err := core.NewService(f.q, cfg, checker, credentialAdmissionForTest(t, f.q, cfg.CredentialAdmission), log.NewTestLogger("error"))
 	if err != nil {
 		t.Fatal(err)
 	}

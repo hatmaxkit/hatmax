@@ -11,8 +11,9 @@ This file is part of Hatmax. See LICENSE for license terms.
 implementation. The implementation note is
 [auth/readme.md](../../../auth/readme.md).
 
-`NewService(queries, cfg, checker, logger)` returns a service or a construction
-error. It requires a caller-owned checker, validates credential settings and
+`NewService(queries, cfg, checker, admission, logger)` returns a service or a construction
+error. It requires a caller-owned checker and shared durable admission, validates
+credential settings and
 owns one shared policy/verifier. Signup checks complete normalized candidates;
 sign-in verifies PHC Argon2id records and rechecks current persistent state.
 Session record IDs use `model.NewID`; bearer secrets use 32 random bytes.
@@ -1097,8 +1098,13 @@ retry time through `CredentialAdmissionDenial`, while capacity and invalid state
 remain separate classifications. Do not disclose identity-specific retry time in
 unauthenticated responses or reinterpret storage failure as admitted work.
 
-This standalone service does not yet guard the existing password entrypoints.
-Their mandatory integration is a separate delivery increment. Current factor
-and recovery budgets, shared KDF limits and proof authority remain unchanged.
+Pass this required admission service to `NewService`. Signup charges registration
+before its checker/hash; sign-in, initial enrollment and password-based fallback
+charge proof before lookup/verification. Reauthentication charges the validated
+subject identity before verification. Helpers never charge a single check twice.
+Raw password byte/encoding bounds precede admission; new-password policy
+failures still spend admitted registration work. The existing whole-operation
+deadline includes admission. Current factor/recovery budgets, shared KDF limits
+and proof authority remain unchanged.
 Fixed-window admission does not implement cumulative authenticator disabling
 or establish an authentication assurance level.

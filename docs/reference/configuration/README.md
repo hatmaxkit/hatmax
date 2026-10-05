@@ -298,5 +298,9 @@ zero fields resolve to defaults; explicit invalid values fail construction.
 
 Namespace/private key provisioning is an application adapter dependency, not a
 request field or core key-management service. Restart and access-policy changes
-cannot reset a live budget. These settings bound the standalone admission
-service; they do not yet install guards around existing password entrypoints.
+cannot reset a live budget. These settings bound the mandatory shared admission
+service supplied to authentication construction. Ticked requires
+`TICKED_CREDENTIAL_NAMESPACE` and `TICKED_CREDENTIAL_KEY` (canonical base64,
+32–64 decoded bytes). All replicas must use stable application-owned material
+and consistent settings. Missing or invalid material fails startup; do not put
+the key in source, public examples or logs.

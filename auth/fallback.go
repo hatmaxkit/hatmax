@@ -214,8 +214,9 @@ type TOTPSetup struct {
 }
 
 func (s *FallbackService) verifyPassword(ctx context.Context, email, password string) (*User, time.Time, error) {
-	if len(email) == 0 || len(email) > 254 {
-		return nil, time.Time{}, ErrFallback
+	err := s.credentials.admitCredential(ctx, email, password, CredentialPasswordProof)
+	if err != nil {
+		return nil, time.Time{}, err
 	}
 
 	user, err := s.queries.GetUserByEmail(ctx, email)
@@ -259,7 +260,7 @@ func (s *FallbackService) BeginTOTPSetup(ctx context.Context, email, password st
 		return nil, err
 	}
 
-	work, cancel := context.WithTimeout(ctx, s.settings.Timeout)
+	work, cancel := context.WithTimeout(ctx, min(s.settings.Timeout, s.credentials.passwordTimeout))
 	defer cancel()
 
 	user, at, err := s.verifyPassword(work, email, password)
@@ -298,16 +299,19 @@ func (s *FallbackService) BeginFallbackAuthentication(ctx context.Context, email
 	return s.begin(ctx, email, password, "", method, required)
 }
 func (s *FallbackService) BeginFallbackStepUp(ctx context.Context, token, password string, method FallbackMethod, required AccessRequirement) (*FallbackChallenge, error) {
+	work, cancel := context.WithTimeout(ctx, min(s.settings.Timeout, s.credentials.passwordTimeout))
+	defer cancel()
+
 	entry := required
 	entry.Proof = RequirePassword
 	entry.MaxAge = 0
 
-	actor, err := s.credentials.ValidateSession(ctx, token, entry, NoActivity)
+	actor, err := s.credentials.ValidateSession(work, token, entry, NoActivity)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.begin(ctx, actor.User.Email, password, token, method, required)
+	return s.begin(work, actor.User.Email, password, token, method, required)
 }
 func (s *FallbackService) begin(ctx context.Context, email, password, actorToken string, method FallbackMethod, required AccessRequirement) (*FallbackChallenge, error) {
 	if required.Proof == RequirePhishingResistantMFA || method < FallbackTOTP || method > FallbackBackup {
@@ -319,7 +323,7 @@ func (s *FallbackService) begin(ctx context.Context, email, password, actorToken
 		return nil, err
 	}
 
-	work, cancel := context.WithTimeout(ctx, s.settings.Timeout)
+	work, cancel := context.WithTimeout(ctx, min(s.settings.Timeout, s.credentials.passwordTimeout))
 	defer cancel()
 
 	user, at, err := s.verifyPassword(work, email, password)

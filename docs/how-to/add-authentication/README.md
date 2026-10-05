@@ -37,8 +37,14 @@ TOTP grace-period checks.
 
 ## Create the service
 
+Supply a durable `CredentialAdmissionQueries` adapter with a stable private
+namespace/key and canonical identity. All password entrypoints share this
+admission service; never substitute a process-local counter.
+
 ```go
-account, err := auth.NewService(queries, cfg, checker, logger)
+admission, err := auth.NewCredentialAdmission(admissionQueries, cfg.CredentialAdmission)
+if err != nil { return err }
+account, err := auth.NewService(queries, cfg, checker, admission, logger)
 if err != nil { return err }
 ```
 

@@ -185,6 +185,11 @@ func (s *AuthenticatorService) BeginWebAuthnEnrollment(ctx context.Context, emai
 	work, cancel := context.WithTimeout(ctx, min(s.settings.Timeout, s.credentials.passwordTimeout))
 	defer cancel()
 
+	err = s.credentials.admitCredential(work, email, password, CredentialPasswordProof)
+	if err != nil {
+		return nil, err
+	}
+
 	user, err := s.queries.GetUserByEmail(work, email)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrUserNotFound

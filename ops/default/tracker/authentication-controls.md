@@ -19,7 +19,7 @@ Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
 Active slice: Slice 2 — Guarded password entry
 Execution gate: Open
 Plan: [Delivery plan](../plan/authentication-controls.md)
-Active tasks: T2.1, T2.2
+Active tasks: T2.2
 
 ## Slice Status
 
@@ -37,8 +37,8 @@ Active tasks: T2.1, T2.2
 | --- | --- | --- | --- |
 | T1.1 | completed | `feat(auth): add shared credential admission` | `f32729cd06e0` |
 | T1.2 | completed | `test(auth): verify credential admission transactions` | `c1ed78985aba` |
-| T2.1 | active | `feat(auth): guard password authentication paths` | pending |
-| T2.2 | pending | `test(auth): verify shared password entry budgets` | pending |
+| T2.1 | completed | `feat(auth): guard password authentication paths` | pending |
+| T2.2 | active | `test(auth): verify shared password entry budgets` | pending |
 | T3.1 | pending | `feat(auth): bound public authentication ingress` | pending |
 | T3.2 | pending | `test(auth): verify neutral public authentication` | pending |
 | T4.1 | pending | `feat(auth): observe bounded security outcomes` | pending |

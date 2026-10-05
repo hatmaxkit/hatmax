@@ -61,6 +61,8 @@ func browserQueries(t *testing.T) (*featureauth.Queries, *config.Config) {
 	}
 
 	cfg.Database.Port = port
+	cfg.CredentialAdmission.PasswordAttempts = 20
+	cfg.CredentialAdmission.RegistrationAttempts = 10
 	cfg.Auth.ArgonMemoryKiB = 19456
 	cfg.Auth.ArgonIterations = 2
 	cfg.Auth.ArgonParallelism = 1
@@ -99,7 +101,7 @@ func browserQueries(t *testing.T) (*featureauth.Queries, *config.Config) {
 	db.SetMaxOpenConns(4)
 	t.Cleanup(func() { _ = db.Close() })
 
-	for _, name := range []string{"001-users.sql", "004-authenticators.sql", "005-webauthn-completion.sql", "006-fallback-proof.sql", "007-factor-control.sql", "008-account-recovery.sql"} {
+	for _, name := range []string{"001-users.sql", "004-authenticators.sql", "005-webauthn-completion.sql", "006-fallback-proof.sql", "007-factor-control.sql", "008-account-recovery.sql", "009-credential-admission.sql"} {
 		migration, readErr := os.ReadFile("../../assets/migration/postgres/" + name)
 		if readErr != nil {
 			t.Fatal(readErr)
@@ -142,7 +144,7 @@ func runAuthenticatorBrowser(t *testing.T, recovery bool) {
 	q, cfg := browserQueries(t)
 	logger := log.NewTestLogger("error")
 
-	base, err := auth.NewService(q, cfg, featureauth.NewPasswordChecker(), logger)
+	base, err := auth.NewService(q, cfg, featureauth.NewPasswordChecker(), webCredentialAdmission(t, q, cfg.CredentialAdmission), logger)
 	if err != nil {
 		t.Fatal(err)
 	}

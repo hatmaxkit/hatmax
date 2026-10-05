@@ -26,7 +26,7 @@ func sessionFixture(t *testing.T) (*sql.DB, *Queries, *core.Service, *core.Issue
 	t.Helper()
 	db, q, cfg := credentialDatabase(t)
 
-	svc, err := core.NewService(q, cfg, NewPasswordChecker(), log.NewTestLogger("error"))
+	svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -21,8 +21,10 @@ applies policy at signup, and uses the versioned model verifier.
 ## Usage
 
 ```go
-// Create service with your Queries implementation
-svc, err := auth.NewService(queries, cfg, checker, log)
+// Create shared durable admission and a service with your Queries implementation.
+admission, err := auth.NewCredentialAdmission(admissionQueries, cfg.CredentialAdmission)
+if err != nil { return err }
+svc, err := auth.NewService(queries, cfg, checker, admission, log)
 if err != nil { return err }
 
 // Signup

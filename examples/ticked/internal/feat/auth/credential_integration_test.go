@@ -76,6 +76,8 @@ func credentialDatabase(t *testing.T) (*sql.DB, *Queries, *config.Config) {
 		cfg.Database.Port = number
 	}
 
+	cfg.CredentialAdmission.PasswordAttempts = 20
+	cfg.CredentialAdmission.RegistrationAttempts = 10
 	cfg.Auth.ArgonMemoryKiB = 19456
 	cfg.Auth.ArgonIterations = 2
 	cfg.Auth.ArgonParallelism = 1
@@ -107,7 +109,7 @@ func credentialDatabase(t *testing.T) (*sql.DB, *Queries, *config.Config) {
 		root.Close()
 	})
 
-	for _, name := range []string{"001-users.sql", "004-authenticators.sql", "005-webauthn-completion.sql", "006-fallback-proof.sql", "007-factor-control.sql", "008-account-recovery.sql"} {
+	for _, name := range []string{"001-users.sql", "004-authenticators.sql", "005-webauthn-completion.sql", "006-fallback-proof.sql", "007-factor-control.sql", "008-account-recovery.sql", "009-credential-admission.sql"} {
 		migration, readErr := os.ReadFile("../../../assets/migration/postgres/" + name)
 		if readErr != nil {
 			t.Fatal(readErr)
@@ -137,7 +139,7 @@ func TestCredentialTransactions(t *testing.T) {
 	t.Run("simultaneous Unicode signup", func(t *testing.T) {
 		db, q, cfg := credentialDatabase(t)
 
-		svc, err := core.NewService(q, cfg, NewPasswordChecker(), log.NewTestLogger("error"))
+		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -188,7 +190,7 @@ func TestCredentialTransactions(t *testing.T) {
 	t.Run("conditional replacement", func(t *testing.T) {
 		db, q, cfg := credentialDatabase(t)
 
-		svc, err := core.NewService(q, cfg, NewPasswordChecker(), log.NewTestLogger("error"))
+		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -271,7 +273,7 @@ func TestCredentialTransactions(t *testing.T) {
 	t.Run("mutation before session commit", func(t *testing.T) {
 		db, q, cfg := credentialDatabase(t)
 
-		svc, err := core.NewService(q, cfg, NewPasswordChecker(), log.NewTestLogger("error"))
+		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -302,7 +304,7 @@ func TestCredentialTransactions(t *testing.T) {
 			return changeErr
 		}}
 
-		staleSvc, err := core.NewService(changing, cfg, NewPasswordChecker(), log.NewTestLogger("error"))
+		staleSvc, err := core.NewService(changing, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -322,7 +324,7 @@ func TestCredentialTransactions(t *testing.T) {
 	t.Run("row lock and activation cycle", func(t *testing.T) {
 		db, q, cfg := credentialDatabase(t)
 
-		svc, err := core.NewService(q, cfg, NewPasswordChecker(), log.NewTestLogger("error"))
+		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -398,7 +400,7 @@ func TestCredentialTransactions(t *testing.T) {
 	t.Run("replacement rollback", func(t *testing.T) {
 		db, q, cfg := credentialDatabase(t)
 
-		svc, err := core.NewService(q, cfg, NewPasswordChecker(), log.NewTestLogger("error"))
+		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -466,4 +468,18 @@ func testSignin(svc *core.Service, ctx context.Context, email, password string) 
 	}
 
 	return issued, nil
+}
+
+// Every constructor in one isolated schema shares explicit fixture material.
+func credentialAdmissionForTest(t *testing.T, q *Queries, cfg config.CredentialAdmissionConfig) *core.CredentialAdmission {
+	t.Helper()
+	store, err := NewCredentialAdmissionStore(q, "credential-fixture", make([]byte, 32))
+	if err != nil {
+		t.Fatal(err)
+	}
+	admission, err := core.NewCredentialAdmission(store, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return admission
 }

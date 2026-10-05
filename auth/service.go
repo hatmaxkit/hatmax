@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"unicode/utf8"
 
 	"hatmax.adrianpk.com/config"
 	"hatmax.adrianpk.com/log"
@@ -57,6 +58,7 @@ type Queries interface {
 // Service owns a shared credential policy/verifier and caller-owned storage.
 type Service struct {
 	queries         Queries
+	admission       *CredentialAdmission
 	cfg             *config.Config
 	log             log.Logger
 	policy          *PasswordPolicy
@@ -66,11 +68,12 @@ type Service struct {
 	sessionToken    func() (string, SessionDigest, error)
 }
 
-// NewService validates credential configuration and requires a bounded checker.
+// NewService validates credentials and requires a bounded checker and shared
+// durable admission. Every password entrypoint uses that mandatory dependency.
 // The current service permits password-only access and always uses a minimum of
 // 15 code points. This constructor does not implement an always-MFA flow.
-func NewService(queries Queries, cfg *config.Config, checker PasswordChecker, logger log.Logger) (*Service, error) {
-	if queries == nil || cfg == nil || logger == nil {
+func NewService(queries Queries, cfg *config.Config, checker PasswordChecker, admission *CredentialAdmission, logger log.Logger) (*Service, error) {
+	if queries == nil || cfg == nil || logger == nil || admission == nil || admission.queries == nil {
 		return nil, errors.New("auth service dependencies are required")
 	}
 
@@ -94,7 +97,25 @@ func NewService(queries Queries, cfg *config.Config, checker PasswordChecker, lo
 		return nil, err
 	}
 
-	return &Service{queries: queries, cfg: cfg, log: logger, policy: policy, verifier: verifier, passwordTimeout: settings.Timeout, sessions: sessionSettings, sessionToken: newSessionToken}, nil
+	return &Service{queries: queries, admission: admission, cfg: cfg, log: logger, policy: policy, verifier: verifier, passwordTimeout: settings.Timeout, sessions: sessionSettings, sessionToken: newSessionToken}, nil
+}
+
+// admitCredential checks raw structure without running policy or credential work.
+// The caller owns the whole-operation deadline and canonical identity.
+func (s *Service) admitCredential(ctx context.Context, identity, password string, purpose CredentialAdmissionPurpose) error {
+	if len(password) > s.policy.config.MaxBytes || !utf8.ValidString(password) {
+		if purpose == CredentialPasswordProof {
+			return model.ErrPasswordInput
+		}
+
+		if len(password) > s.policy.config.MaxBytes {
+			return ErrPasswordTooLong
+		}
+
+		return ErrPasswordEncoding
+	}
+
+	return s.admission.Admit(ctx, identity, purpose)
 }
 
 // Signup applies candidate policy and creates a salted, encoded credential.
@@ -106,6 +127,11 @@ func (s *Service) Signup(ctx context.Context, email, password string) (*User, er
 
 	workCtx, cancel := context.WithTimeout(ctx, s.passwordTimeout)
 	defer cancel()
+
+	err := s.admitCredential(workCtx, email, password, CredentialRegistration)
+	if err != nil {
+		return nil, err
+	}
 
 	candidate, err := s.policy.Prepare(workCtx, password)
 	if err != nil {
@@ -139,6 +165,11 @@ func (s *Service) Signin(ctx context.Context, email, password string, requiremen
 
 	workCtx, cancel := context.WithTimeout(ctx, s.passwordTimeout)
 	defer cancel()
+
+	err = s.admitCredential(workCtx, email, password, CredentialPasswordProof)
+	if err != nil {
+		return nil, err
+	}
 
 	user, err := s.queries.GetUserByEmail(workCtx, email)
 	if err == sql.ErrNoRows {

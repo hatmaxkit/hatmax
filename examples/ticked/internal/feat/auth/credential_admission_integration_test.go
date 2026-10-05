@@ -44,16 +44,8 @@ func newAdmissionFixture(t *testing.T, cfg config.CredentialAdmissionConfig) adm
 		t.Fatal("DB_PASSWORD must be explicit and may be empty")
 	}
 	db, q, _ := credentialDatabase(t)
-	data, err := os.ReadFile("../../../assets/migration/postgres/009-credential-admission.sql")
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = db.ExecContext(t.Context(), strings.Split(string(data), "-- +migrate Down")[0])
-	if err != nil {
-		t.Fatal(err)
-	}
 	key := make([]byte, 32)
-	_, err = rand.Read(key)
+	_, err := rand.Read(key)
 	if err != nil {
 		t.Fatal(err)
 	}

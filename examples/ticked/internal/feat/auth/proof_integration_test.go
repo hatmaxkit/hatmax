@@ -189,7 +189,7 @@ func TestProofTransactions(t *testing.T) {
 		db, q, cfg := credentialDatabase(t)
 		observed := observedProofQueries{Queries: q, proof: make(chan core.SessionRecord, 1)}
 
-		svc, err := core.NewService(observed, cfg, NewPasswordChecker(), log.NewTestLogger("error"))
+		svc, err := core.NewService(observed, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}

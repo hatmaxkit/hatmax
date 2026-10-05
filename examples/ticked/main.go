@@ -76,7 +76,31 @@ func main() {
 
 	auditSvc := auditfeat.NewService(broker, auditStore, logger)
 
-	baseAuthSvc, err := auth.NewService(authQueries, cfg, authfeat.NewPasswordChecker(), logger)
+	// All replicas require the same application-owned durable admission material.
+	namespace := os.Getenv("TICKED_CREDENTIAL_NAMESPACE")
+	keyText := os.Getenv("TICKED_CREDENTIAL_KEY")
+
+	admissionKey, err := base64.StdEncoding.Strict().DecodeString(keyText)
+	if err != nil || base64.StdEncoding.EncodeToString(admissionKey) != keyText {
+		logger.Errorf("Invalid credential admission configuration")
+		os.Exit(1)
+	}
+
+	admissionStore, err := authfeat.NewCredentialAdmissionStore(authQueries, namespace, admissionKey)
+	clear(admissionKey)
+
+	if err != nil {
+		logger.Errorf("Invalid credential admission configuration")
+		os.Exit(1)
+	}
+
+	admission, err := auth.NewCredentialAdmission(admissionStore, cfg.CredentialAdmission)
+	if err != nil {
+		logger.Errorf("Cannot initialize credential admission")
+		os.Exit(1)
+	}
+
+	baseAuthSvc, err := auth.NewService(authQueries, cfg, authfeat.NewPasswordChecker(), admission, logger)
 	if err != nil {
 		logger.Errorf("Cannot initialize authentication: %v", err)
 		os.Exit(1)

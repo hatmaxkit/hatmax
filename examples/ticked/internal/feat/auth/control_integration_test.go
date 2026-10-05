@@ -43,7 +43,7 @@ func (q rotationWait) RotateSession(ctx context.Context, state core.CredentialSt
 func rotationService(t *testing.T, q rotationWait, cfg *config.Config) *core.Service {
 	t.Helper()
 
-	svc, err := core.NewService(q, cfg, NewPasswordChecker(), log.NewTestLogger("error"))
+	svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q.Queries, cfg.CredentialAdmission), log.NewTestLogger("error"))
 	if err != nil {
 		t.Fatal(err)
 	}

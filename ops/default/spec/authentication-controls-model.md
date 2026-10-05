@@ -185,3 +185,23 @@ may continue at a lowered capacity; new identities wait until occupancy permits
 insertion. Cleanup locks/rechecks retired rows and decrements capacity atomically.
 No subject/session/factor/recovery table is touched. Slice 2 connects these
 implemented admission methods to every actual password entrypoint.
+
+## Slice 2 Settled Representations
+
+`NewService(queries, cfg, checker, admission, logger)` requires a non-nil
+`*CredentialAdmission`; optional construction and process-local fallback are
+not supported. Enrollment and fallback reuse this credentials service and its
+same admission instance. A package-local structural helper checks bounded UTF-8
+password input before committing the selected purpose, without calling the
+new-password checker. Public entrypoints charge before account lookup; session
+reauthentication charges the validated subject email before actual verification.
+Fallback helper calls charge once. Admission is nested under the existing whole
+operation deadline; fallback proof operations use the lesser credential/factor
+timeout. Recovery new-password policy and backup proof budgets remain distinct.
+
+Ticked requires `TICKED_CREDENTIAL_NAMESPACE` and a canonical base64
+`TICKED_CREDENTIAL_KEY` decoding to 32–64 application-owned bytes. Its adapter
+copies the key; assembly clears its temporary decoded bytes. Missing/invalid
+material fails construction without logging it. No schema/query change is needed
+beyond delivered migration 009. Unit acceptance fakes cover orchestration only;
+real adapter fixtures share explicit fixture keys across constructors.

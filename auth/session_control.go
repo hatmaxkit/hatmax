@@ -130,6 +130,11 @@ func (s *Service) Reauthenticate(ctx context.Context, token, password string, re
 		return nil, ErrSessionGeneration
 	}
 
+	err = s.admitCredential(workCtx, current.User.Email, password, CredentialPasswordProof)
+	if err != nil {
+		return nil, err
+	}
+
 	err = s.verifier.Verify(workCtx, current.User.PasswordHash, password)
 	if errors.Is(err, model.ErrPasswordMismatch) {
 		return nil, ErrInvalidPassword
