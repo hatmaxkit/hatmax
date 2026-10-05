@@ -28,7 +28,7 @@ Active tasks: T4.1, T4.2
 | Slice 1 | Durable credential admission | delivered | `feat/credential-admission` | `feat(slice-1): add shared credential admission` | `#107` | `ops/default/report/slices/authentication-controls/slice-1-credential-admission.md` |
 | Slice 2 | Guarded password entry | delivered | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | `#108` | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
 | Slice 3 | Finite public authentication | delivered | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | `#109` | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
-| Slice 4 | Security observations | reviewing | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | pending | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
+| Slice 4 | Security observations | reviewing | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | `#110` | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
 | Slice 5 | Controls acceptance | pending | `test/authentication-controls-acceptance` | `test(slice-5): verify authentication controls integration` | pending | `ops/default/report/slices/authentication-controls/slice-5-controls-acceptance.md` |
 
 ## Tasks
@@ -42,7 +42,7 @@ Active tasks: T4.1, T4.2
 | T3.1 | completed | `feat(auth): bound public authentication ingress` | `24b86323236e` |
 | T3.2 | completed | `test(auth): verify neutral public authentication` | `fd0c0a41e80e` |
 | T4.1 | completed | `feat(auth): observe bounded security outcomes` | `466894a7ba57` |
-| T4.2 | completed | `test(auth): verify security observation boundaries` | pending |
+| T4.2 | completed | `test(auth): verify security observation boundaries` | `10d48427296d` |
 | T5.1 | pending | `test(auth): exercise authentication controls journeys` | pending |
 | T5.2 | pending | `test(auth): close authentication controls evidence` | pending |
 
@@ -181,5 +181,7 @@ AC-08's browser/integrated gate remains Slice 5 after canonical merge.
 Final source licensing (888 headers, 112 annotations), vet, strict lint and
 documentation checks passed. The owned PostgreSQL cluster is stopped after
 zero other clients; actual browser journeys and `make check` remain the approved
-Slice 5/integrated boundary. Both Slice 4 tasks are complete; canonical PR
-review/maintainer merge is pending.
+Slice 5/integrated boundary. Both Slice 4 tasks are complete; PR #110 targets dev and links immutable
+report introduction `10d48427296d`. Maintainer merge is pending. After verified
+merge, close Slice 4 on dev and immediately activate recorded Slice 5 browser/
+controls acceptance without another go-ahead.

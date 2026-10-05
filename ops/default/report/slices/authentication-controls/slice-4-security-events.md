@@ -12,7 +12,9 @@ Delivery set: authentication-controls
 Plan: [Authentication controls plan](../../../plan/authentication-controls.md)
 Tracker: [Authentication controls tracker](../../../tracker/authentication-controls.md)
 Branch: `feat/authentication-events`
-PR: pending
+Implementation base: `09497e836932dbd84c8ad90294f18805172900d8`
+Task commits: T4.1 `466894a7ba57`, T4.2 `10d48427296d`
+PR: `#110`
 
 ## Purpose
 
