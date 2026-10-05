@@ -27,7 +27,7 @@ Execution gate: Open
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Mailbox verification | delivered | `feat/account-mailbox-verification` | `feat(slice-1): add bounded mailbox verification` | `#103` | `ops/default/report/slices/account-recovery/slice-1-mailbox-verification.md` |
 | Slice 2 | Protected password change | delivered | `feat/account-password-change` | `feat(slice-2): enforce recent-proof password changes` | `#104` | `ops/default/report/slices/account-recovery/slice-2-password-change.md` |
-| Slice 3 | Mailbox password reset | active | `feat/account-password-reset` | `feat(slice-3): add one-use mailbox password reset` | pending | `ops/default/report/slices/account-recovery/slice-3-password-reset.md` |
+| Slice 3 | Mailbox password reset | reviewing | `feat/account-password-reset` | `feat(slice-3): add one-use mailbox password reset` | `#105` | `ops/default/report/slices/account-recovery/slice-3-password-reset.md` |
 | Slice 4 | Recovery acceptance | pending | `test/account-recovery-acceptance` | `test(slice-4): verify account recovery integration` | pending | `ops/default/report/slices/account-recovery/slice-4-recovery-acceptance.md` |
 
 ## Tasks
