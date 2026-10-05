@@ -15,8 +15,8 @@ Parent: [Authentication security foundation](authentication-security.md)
 Model: [Authentication controls model](authentication-controls-model.md)
 Prerequisites: [Sessions](authentication-sessions.md), [Authenticators](authenticators.md), [Account recovery](account-recovery.md)
 Inspected baseline: `74b4e86d4d3dd4829ad8da61f62fecdb0da187e1`
-Implementation status: Partial
-Execution gate: Open
+Implementation status: Complete
+Execution gate: Closed
 
 ## Purpose and Ownership
 
@@ -279,8 +279,11 @@ capacity refusals, classified redacted events and retained actual MFA/recovery
 passed. The [tracker](../tracker/authentication-controls.md#requirement-evidence)
 maps AC-01 through AC-08 to exact evidence and remaining obligations.
 
-All five slices are merged and delivered. The single exact integrated
-`make check` remains pending. Implementation stays Partial until that gate. The
+All five slices are merged and delivered. The exact integrated candidate
+`d598c465521384424e511f761019b351eaac69e1` passed the single full `make check`
+with 80.7% coverage against 80% and zero strict-lint issues. The concern is
+complete; [delivery-set closure](../tracker/authentication-controls.md#delivery-set-closure)
+records the exact result and remaining application obligations. The
 supported AUTH-07 mechanisms do not close cumulative authenticator disabling/
 rebinding, all-factor-loss identity proofing, durable external audit delivery or
 consumer/deployment assurance. The parent foundation remains Partial.

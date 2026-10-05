@@ -8,7 +8,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authentication Controls Tracker
 
 Date: 2026-10-05
-Status: Active
+Status: Completed
 Approved: 2026-10-05
 Delivery set: authentication-controls
 Concern: [Authentication controls](../spec/authentication-controls.md)
@@ -16,10 +16,10 @@ Model: [Controls model](../spec/authentication-controls-model.md)
 Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
-Active slice: None; all five delivered, integrated validation pending
-Execution gate: Open
+Active slice: None; all five delivered
+Execution gate: Closed
 Plan: [Delivery plan](../plan/authentication-controls.md)
-Active tasks: None; all ten completed, integrated validation pending
+Active tasks: None; all ten completed
 
 ## Slice Status
 
@@ -56,7 +56,7 @@ Active tasks: None; all ten completed, integrated validation pending
 - [x] Slice 4 merged and report delivered; redacted bounded observations.
 - [x] Slice 5 merged and report delivered; actual browser/affected regression.
 - [x] All ten task/commit/PR mappings and AC-01 through AC-08 recorded.
-- [ ] Exact immutable integrated candidate passes `make check`.
+- [x] Exact immutable integrated candidate passes `make check`.
 - [x] Supported AUTH-07 and remaining lifecycle/consumer boundaries recorded.
 
 ## Slice 1 Recorded Validation
@@ -176,21 +176,18 @@ reentrant signout and lost acknowledgment preserve actual authority.
 
 Six-package race, 20s two-worker event fuzz (300449 executions), browser consumer
 compilation and scoped integration lint passed. AC-07 has focused real evidence;
-AC-08's browser/integrated gate remains Slice 5 after canonical merge.
+AC-08's browser/integrated gate was completed in Slice 5 and final closure.
 
 Final source licensing (888 headers, 112 annotations), vet, strict lint and
 documentation checks passed. The owned PostgreSQL cluster is stopped after
-zero other clients; actual browser journeys and `make check` remain the approved
-Slice 5/integrated boundary. Both Slice 4 tasks are complete; PR #110 targets dev and links immutable
-report introduction `10d48427296d`. Maintainer merge is pending. After verified
-merge, close Slice 4 on dev and immediately activate recorded Slice 5 browser/
-controls acceptance without another go-ahead.
+zero other clients. Both Slice 4 tasks are complete; merged PR #110 targets dev
+and links immutable report introduction `10d48427296d`. Its canonical closure
+activated the approved Slice 5 browser/controls acceptance.
 
 Slice 4 PR #110 is canonically merged into dev at `e7a9c36e172b`; its
 report is delivered. Both task mappings and focused checks are recorded.
-Slice 5 is active under the approved continuation map; actual browser journeys
-and final affected evidence precede its maintainer merge. The full immutable
-integrated gate remains after all five canonical merges.
+Slice 5 followed the approved continuation map and is now delivered. Its browser
+acceptance and the exact integrated result are recorded below.
 
 ## Slice 5 Focused Evidence
 
@@ -219,7 +216,7 @@ AC mapping and immutable-candidate preparation.
 | AC-05 | `TestCredentialTransactions`, `TestPublicAuthenticationTransactions`, `TestAuthenticationObservationTransactions` and both browser journeys: one winner/conflict, equal neutral navigation, no automatic session/cookie, candidate-only feedback and redaction | Local fixture timing is not production side-channel assurance |
 | AC-06 | Password-entry and actual HTTP selectors: missing/inactive/wrong/throttled/operating neutral policy, accepted cookie/challenges, caller cancellation/capacity; browser missing/wrong/exhausted replies and real MFA | Setup flags grant no proof; consumers select current trusted access policy |
 | AC-07 | `TestSecurityObservationTransactions`, actual HTTP logger and both browser journeys: committed/pending/denied/unknown provenance, actual methods, no lock-held callbacks, saturation, late/failing delivery and real re-entry; valid unique redacted capture | Best-effort cooperative observation is not durable audit delivery |
-| AC-08 | Recorded adapter/HTTP/race/browser selectors retain invalidation, token/replay/backup consumption and actual proof; core/config/example/User Guide and docs checks agree | Exact immutable integrated dev `make check` remains after final maintainer merge |
+| AC-08 | Recorded adapter/HTTP/race/browser selectors retain invalidation, token/replay/backup consumption and actual proof; core/config/example/User Guide and docs checks agree | Exact immutable integrated dev `make check` passed; see delivery-set closure |
 
 ## Password Verification Inventory
 
@@ -253,6 +250,36 @@ assurance. The parent remains Partial.
 
 Slice 5 PR #111 is canonically merged into dev at `7943586b42a0`. T5.1 `85e88174f0c8` and T5.2/report
 introduction `d3ed655724d4` complete the ten recorded task mappings. The immutable
-report link is recorded in the canonical PR. The report is delivered on dev. This documentary preparation finalizes the
-immutable integrated candidate; record its full hash and execute the single
-full gate before closing this delivery set. No additional scope approval is needed.
+report link is recorded in the canonical PR. The report is delivered on dev.
+Documentary preparation finalized the immutable integrated candidate before
+the successful single full gate recorded below.
+
+## Delivery Set Closure
+
+All five slices are canonically merged/delivered in PRs #107–#111. All ten
+recorded task commits and AC-01 through AC-08 evidence are complete. Slice 5
+merged at `7943586b42a0f877ce60d6cc14b83e60f1dc0cfe`; documentary preparation
+finalized the exact immutable integrated dev candidate
+`d598c465521384424e511f761019b351eaac69e1` before validation.
+
+That exact clean pushed dev candidate passed the single full `make check` on
+2026-10-05 with Go 1.27.1 and actual owned PostgreSQL 18.6: source licensing
+(890 headers, 113 annotations), formatting, vet, the complete default suite,
+coverage 80.7% against the required 80%, and strict lint with zero issues.
+HEAD and tracked files remained unchanged. The canonical remote still matched
+that candidate before documentary closure. The gate did not replace the
+separately recorded actual browser/adapter/HTTP/race and parser-fuzz evidence.
+
+No correction branch or additional full gate was needed. This closure updates
+only Markdown evidence and completion metadata; it does not define another
+runtime validation candidate. Result-only closure is pushed to dev. The delivery
+set is Completed and its execution gate Closed. Main alignment, release and
+publication remain separate authority.
+
+Supported AUTH-07 shared resource admission, neutral responses, finite ingress
+and bounded observation are complete within this concern. Applications still
+own canonical identities, stable private namespace/key, deployment admission,
+trusted proxies, cleanup/shutdown and cooperative observer delivery. Cumulative
+authenticator disabling/rebinding, all-factor-loss identity proofing, durable
+external audit and consumer/deployment assurance remain separate obligations.
+The parent authentication foundation remains Partial.

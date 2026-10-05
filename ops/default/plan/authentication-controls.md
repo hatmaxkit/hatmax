@@ -8,7 +8,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Authentication Controls Delivery Plan
 
 Date: 2026-10-05
-Status: Active
+Status: Completed
 Approved: 2026-10-05
 Delivery set: authentication-controls
 Concern: [Authentication controls](../spec/authentication-controls.md)
@@ -16,8 +16,8 @@ Model: [Controls model](../spec/authentication-controls-model.md)
 Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
-Active slice: None; all five delivered, integrated validation pending
-Execution gate: Open
+Active slice: None; all five delivered
+Execution gate: Closed
 Tracker: [Delivery tracker](../tracker/authentication-controls.md)
 Slice strategy: layered
 Reason: the shared storage/admission contract must be valid before mandatory
@@ -108,3 +108,15 @@ Close only with five delivered reports, all ten task/commit/PR mappings, AC-01
 through AC-08 exact evidence and the integrated gate. Supported AUTH-07 admission,
 errors and observation do not close cumulative authenticator disabling/rebinding,
 all-factor-loss identity proofing, external audit or consumer assurance.
+
+## Delivery Set Closure
+
+All five canonical PRs #107–#111 are merged and all reports delivered. Ten task
+mappings and AC-01 through AC-08 are complete in the tracker. The exact integrated
+dev candidate `d598c465521384424e511f761019b351eaac69e1` passed the single
+full `make check` on 2026-10-05 with actual PostgreSQL 18.6 and Go 1.27.1:
+80.7% coverage against 80%, zero strict-lint issues and unchanged tracked files.
+No correction branch is required. Result-only documentary closure does not
+create another runtime candidate. The set is Completed; no further slice or
+runtime implementation is authorized by this plan. The parent remains Partial
+at the recorded lifecycle and consumer/deployment boundaries.

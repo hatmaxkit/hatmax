@@ -86,9 +86,9 @@ agree on required shared admission/observation, neutral transport, finite ingres
 and actual proof. Existing Unreleased notes already describe the delivered product
 outcome; acceptance adds no separate user-facing capability.
 
-The concern/model and parent record all five delivered slices. Implementation
-remains Partial until the exact full gate; broader foundation and consumer
-obligations remain explicit.
+The concern/model record all five delivered slices and the successful exact
+integrated gate. This bounded concern is complete; the broader foundation stays
+Partial at its recorded lifecycle and consumer obligations.
 
 ## Files of Interest
 
@@ -113,8 +113,9 @@ Owned socket `/tmp/hatmax-credential-pg-56439`, port 56439, no TCP listener;
 fixtures create/drop only their schemas. `NODE_BIN=/usr/sbin/node` and
 `CHROMIUM_BIN=/usr/sbin/chromium`; required `DB_*` settings select that instance.
 Use per-worktree `TMPDIR=$PWD/.tmp/build`, `GOTMPDIR=$PWD/.tmp/build`, `GOFLAGS=-p=2`.
-Logs stay in ignored scratch. These are focused local integration checks, not
-production, external-provider or full-repository gate results.
+Logs stay in ignored scratch. The commands below are focused local checks;
+the full repository result is recorded separately under Exact Integrated Gate.
+No production or external-provider validation is claimed.
 
 - `make source-license-check` — passed.
 - `make vet` — passed.
@@ -128,12 +129,21 @@ production, external-provider or full-repository gate results.
 - `node --check examples/ticked/internal/web/testdata/controls.mjs` — passed.
 - `git diff --check` — passed.
 
+### Exact Integrated Gate
+
+After verified canonical merge of all five slices, documentary preparation
+finalized dev candidate `d598c465521384424e511f761019b351eaac69e1`.
+`make check` passed once on 2026-10-05 with Go 1.27.1 and actual PostgreSQL 18.6:
+source-license, format, vet, complete default suite, 80.7% coverage against the
+80% threshold and zero strict-lint issues. HEAD and tracked files remained
+unchanged. This is the full repository gate; separately recorded tagged browser,
+adapter/HTTP and race evidence remains valid. Result-only documentary closure
+does not define another runtime candidate or require another full run.
+
 ## Risks and Follow-ups
 
-- Maintainer merge is verified at `7943586b42a0`; the single exact immutable
-  integrated dev `make check` remains pending. Close the set only after that gate is green. Required repository
-  corrections use the approved validation-fix branch and dev PR, followed by the
-  corrected integrated candidate gate; no correction branch for a green result.
+- Maintainer merge is verified at `7943586b42a0`; the exact integrated gate
+  passed and the delivery set is closed. No correction branch is required.
 - Applications own canonical identity/alias convergence, stable namespace/key,
   replica configuration, trusted proxies, cleanup/shutdown and deployment admission.
   This fixture timing is not a production side-channel or throughput audit.

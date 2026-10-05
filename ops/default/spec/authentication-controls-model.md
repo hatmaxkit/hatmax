@@ -12,7 +12,7 @@ Approved: 2026-10-05
 Status: Approved
 Behavior: [Authentication attempts, errors and security events](authentication-controls.md)
 Parent model: [Authentication security model](authentication-security-model.md)
-Implementation status: Partial
+Implementation status: Complete
 
 ## Ownership and Representations
 
@@ -23,7 +23,8 @@ Extend the existing Ticked `internal/feat/auth`, migration and generated-query
 layout. The logical contracts below match the settled Go/SQL/config representations
 recorded for Slices 1–4. Those runtime slices are merged and delivered; actual
 browser/affected acceptance is delivered in Slice 5. All five slices are merged;
-the exact integrated gate remains pending.
+the exact integrated gate passed as recorded in the
+[delivery-set closure](../tracker/authentication-controls.md#delivery-set-closure).
 
 ## Credential Admission Record
 
@@ -294,4 +295,5 @@ active request count and closed redacted event values, never proof or secret
 material. A bounded 512-line/2048-byte capture validates unique event IDs, actual
 methods and timely delivery; fixture setup observations are accounted separately.
 No product contract, table, migration, configuration default or authority changes
-are introduced by acceptance. The exact integrated gate remains post-merge.
+are introduced by acceptance. The exact integrated candidate passed the single
+full gate; the tracker records its immutable identity and result.

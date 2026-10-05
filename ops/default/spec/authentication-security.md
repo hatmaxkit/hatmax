@@ -86,7 +86,8 @@ its [model](authentication-controls-model.md) refine the remaining AUTH-07
 credential admission, public outcome, finite ingress and event boundaries.
 All five controls slices, including actual browser/affected acceptance, are
 merged and delivered. Their [requirement evidence](../tracker/authentication-controls.md#requirement-evidence)
-records supported AUTH-07 mechanisms and the pending exact integrated gate.
+and [delivery-set closure](../tracker/authentication-controls.md#delivery-set-closure)
+record supported AUTH-07 mechanisms and the successful exact integrated gate.
 Cumulative authenticator disabling/rebinding, all-factor-loss proofing and consumer
 audit/deployment assurance remain separate obligations.
 The complete foundation is not yet delivered.
