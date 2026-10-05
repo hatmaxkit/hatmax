@@ -11,6 +11,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -27,8 +28,9 @@ import (
 	"hatmax.adrianpk.com/auth"
 	"hatmax.adrianpk.com/config"
 	featureauth "hatmax.adrianpk.com/examples/ticked/internal/feat/auth"
-	"hatmax.adrianpk.com/log"
 	"hatmax.adrianpk.com/model"
+	"hatmax.adrianpk.com/ui"
+	baseweb "hatmax.adrianpk.com/web"
 )
 
 type browserDatabase struct{ db *sql.DB }
@@ -142,9 +144,14 @@ func runAuthenticatorBrowser(t *testing.T, recovery bool) {
 	}
 
 	q, cfg := browserQueries(t)
-	logger := log.NewTestLogger("error")
+	logger := &browserSecurityLog{}
 
-	base, err := auth.NewService(q, cfg, featureauth.NewPasswordChecker(), webCredentialAdmission(t, q, cfg.CredentialAdmission), webSecurityObservations(t), logger)
+	observations, err := auth.NewSecurityObservations(featureauth.SecurityLogger{Logger: logger}, cfg.SecurityObservation)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	base, err := auth.NewService(q, cfg, featureauth.NewPasswordChecker(), webCredentialAdmission(t, q, cfg.CredentialAdmission), observations, logger)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,12 +163,33 @@ func runAuthenticatorBrowser(t *testing.T, recovery bool) {
 		}
 	}
 
+	// Seed a finite nearly spent budget through actual failed password operations.
+	_, err = base.Signup(t.Context(), "budget@example.com", "a distinct safe password")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for range cfg.CredentialAdmission.PasswordAttempts - 1 {
+		_, err = base.Signin(t.Context(), "budget@example.com", "wrong browser password", featureauth.PasswordRequirement())
+		if !errors.Is(err, auth.ErrInvalidPassword) {
+			t.Fatalf("seed admission: %v", err)
+		}
+	}
+
+	observedBefore := observations.Diagnostics().Delivered
+
+	logger.reset()
+
 	cfg.AuthenticationIngress.PeerRequests = 1000
+	cfg.AuthenticationIngress.MaxActive = 2
+
 	ingress, err := NewAuthenticationIngress(cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	t.Cleanup(ingress.Close)
+
 	router := chi.NewRouter()
 	router.Use(ingress.Middleware)
 
@@ -172,6 +200,10 @@ func runAuthenticatorBrowser(t *testing.T, recovery bool) {
 	}
 
 	server := httptest.NewUnstartedServer(router)
+	server.Config.ReadHeaderTimeout = 2 * time.Second
+	server.Config.ReadTimeout = 7 * time.Second
+	server.Config.WriteTimeout = 7 * time.Second
+	server.Config.IdleTimeout = 30 * time.Second
 	t.Cleanup(server.Close)
 	origin := "http://" + strings.Replace(server.Listener.Addr().String(), "127.0.0.1", "localhost", 1)
 
@@ -224,7 +256,7 @@ func runAuthenticatorBrowser(t *testing.T, recovery bool) {
 	}
 
 	if recovery {
-		recoveryFixture.register(t, router, base, q, origin, strong)
+		recoveryFixture.register(t, router, base, q, origin, strong, logger)
 	}
 
 	enrollment.RegisterRoutes(router)
@@ -232,7 +264,24 @@ func runAuthenticatorBrowser(t *testing.T, recovery bool) {
 	backup.RegisterRoutes(router)
 	control.RegisterRoutes(router)
 
-	password := &Handler{authSvc: featureauth.NewService(base, q, logger), log: logger}
+	templates := baseweb.NewTemplateManager(testAssetsFS, logger, baseweb.WithFuncMap(ui.FuncMap()))
+
+	err = templates.Start(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	password := &Handler{authSvc: featureauth.NewService(base, q, logger), log: logger, tmpl: templates}
+	router.Post("/signup", password.handleSignup)
+	router.Get("/signin", password.handleSigninForm)
+	router.Get("/__test/security-events", logger.snapshot)
+	router.Get("/__test/ingress-active", func(w http.ResponseWriter, _ *http.Request) {
+		ingress.mu.Lock()
+		active := ingress.active
+		ingress.mu.Unlock()
+		w.Header().Set("Cache-Control", "no-store")
+		_ = json.NewEncoder(w).Encode(active)
+	})
 	router.Post("/signin", password.handleSignin)
 	router.Get("/", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
@@ -275,9 +324,9 @@ func runAuthenticatorBrowser(t *testing.T, recovery bool) {
 	})
 	server.Start()
 
-	timeout := 150 * time.Second
+	timeout := 210 * time.Second
 	if recovery {
-		timeout = 240 * time.Second
+		timeout = 300 * time.Second
 	}
 
 	ctx, cancel := context.WithTimeout(t.Context(), timeout)
@@ -293,6 +342,17 @@ func runAuthenticatorBrowser(t *testing.T, recovery bool) {
 	output, err := command.CombinedOutput()
 	if err != nil {
 		t.Fatalf("browser acceptance: %v\n%s", err, output)
+	}
+
+	logger.verify(t, recovery)
+
+	events, err := logger.events()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if diagnostics := observations.Diagnostics(); diagnostics.Delivered-observedBefore != uint64(len(events)) || diagnostics.Saturated != 0 || diagnostics.Rejected != 0 || diagnostics.Operating != 0 || diagnostics.Deadline != 0 || diagnostics.Canceled != 0 {
+		t.Fatalf("browser observation delivery: %+v", diagnostics)
 	}
 
 	t.Logf("%s", output)

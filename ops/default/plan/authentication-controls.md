@@ -85,6 +85,9 @@ Record and execute finite checks with bounded per-worktree scratch:
 - Slice 4: `go test -tags=integration -race -run '^(TestAuthenticationObservationTransactions|TestMailboxTransportTransactions|TestPasswordChangeTransportTransactions|TestPasswordResetTransportTransactions)$' -count=1 -timeout=180s ./examples/ticked/internal/web`.
 - Slice 4: `go test -run '^$' -fuzz '^FuzzSecurityEvent$' -fuzztime=20s -parallel=2 -timeout=60s ./auth`.
 - Slice 4: `go test -tags=browser -run '^$' ./examples/ticked/internal/web` verifies affected construction; real browser journeys remain Slice 5.
+- Slice 5: `go test -tags=browser -race -v -run '^(TestAuthenticatorBrowser|TestAccountRecoveryBrowser)$' -count=1 -timeout=600s ./examples/ticked/internal/web` runs both actual Chromium/PostgreSQL journeys, registration/admission/ingress/events and retained MFA/recovery.
+- Slice 5: `go test -tags=integration -race -run '^(TestCredentialAdmissionTransactions|TestPasswordEntryBudgets|TestCredentialTransactions|TestSessionTransactions|TestEnrollmentTransactions|TestWebAuthnTransactions|TestFallbackTransactions|TestFactorChanges|TestFactorAuthority|TestPasswordChangeTransactions|TestPasswordResetTransactions|TestSecurityObservationTransactions)$' -count=1 -timeout=300s ./examples/ticked/internal/feat/auth`.
+- Slice 5: `go test -tags=integration -race -run '^(TestAuthenticationIngressTransactions|TestPublicAuthenticationTransactions|TestAuthenticationObservationTransactions|TestMailboxTransportTransactions|TestPasswordChangeTransportTransactions|TestPasswordResetTransportTransactions)$' -count=1 -timeout=300s ./examples/ticked/internal/web`.
 - Required database settings fail the integration selector when absent. Use an
   owned PostgreSQL instance with isolated schemas; record actual counter races,
   rollback, lock deadlines and finite row/index cost measurements.

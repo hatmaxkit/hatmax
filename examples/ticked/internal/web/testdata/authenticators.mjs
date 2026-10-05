@@ -4,6 +4,7 @@
 // This file is part of Hatmax. See LICENSE for license terms.
 
 import assert from 'node:assert/strict';
+import {runControls} from './controls.mjs';
 import {runRecovery} from './recovery.mjs';
 import {spawn} from 'node:child_process';
 import {mkdtemp, readFile, rm} from 'node:fs/promises';
@@ -153,6 +154,7 @@ try {
   const stage = name => process.stdout.write(`PASS ${name}\n`);
 
   await navigate('/');
+  await runControls({evaluate,cookies,stage});
   await evaluate(`flow.password('passkey@example.com')`);
   const weak = await cookie();
   await evaluate(`(async () => {

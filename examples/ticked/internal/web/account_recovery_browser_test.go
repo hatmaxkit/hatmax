@@ -71,10 +71,8 @@ func (f *recoveryBrowserFixture) Send(_ context.Context, m *mailer.Message) erro
 	return nil
 }
 
-func (f *recoveryBrowserFixture) register(t *testing.T, r chi.Router, base *auth.Service, q *featureauth.Queries, origin string, strong auth.AccessRequirement) {
+func (f *recoveryBrowserFixture) register(t *testing.T, r chi.Router, base *auth.Service, q *featureauth.Queries, origin string, strong auth.AccessRequirement, logger log.Logger) {
 	t.Helper()
-
-	logger := log.NewTestLogger("error")
 
 	service, err := auth.NewRecoveryService(base, q, config.RecoveryConfig{}, "mailbox-v1")
 	if err != nil {
@@ -138,6 +136,7 @@ func (f *recoveryBrowserFixture) register(t *testing.T, r chi.Router, base *auth
 		err := json.NewDecoder(r.Body).Decode(&input)
 		if err != nil {
 			http.Error(w, "Invalid fixture input", 400)
+
 			return
 		}
 
@@ -150,6 +149,7 @@ func (f *recoveryBrowserFixture) register(t *testing.T, r chi.Router, base *auth
 		err := delivery.DispatchMailboxNotices(r.Context(), user.ID, 5)
 		if err != nil {
 			http.Error(w, "Fixture retry failed", 500)
+
 			return
 		}
 
@@ -184,6 +184,7 @@ func (f *recoveryBrowserFixture) loseResponse(next http.Handler) http.Handler {
 		conn, _, err := w.(http.Hijacker).Hijack()
 		if err != nil {
 			http.Error(w, "Fixture transport failed", 500)
+
 			return
 		}
 

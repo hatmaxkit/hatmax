@@ -34,6 +34,7 @@ path = [
   "examples/ticked/internal/dal/todos.sql.go",
   "examples/ticked/internal/dal/users.sql.go",
   "examples/ticked/internal/web/testdata/authenticators.mjs",
+  "examples/ticked/internal/web/testdata/controls.mjs",
   "examples/ticked/internal/web/testdata/recovery.mjs",
   "examples/ticked/internal/feat/list/testdata/assets/templates/todos/item.html",
   "examples/ticked/internal/feat/list/testdata/assets/templates/todos/list.html",
