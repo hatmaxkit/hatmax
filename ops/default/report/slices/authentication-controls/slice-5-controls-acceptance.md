@@ -13,8 +13,8 @@ Plan: [Authentication controls plan](../../../plan/authentication-controls.md)
 Tracker: [Authentication controls tracker](../../../tracker/authentication-controls.md)
 Branch: `test/authentication-controls-acceptance`
 Implementation base: `947fb0c4c113`
-Task commit: T5.1 `85e88174f0c8`; T5.2 introduces this report.
-PR: pending
+Task commits: T5.1 `85e88174f0c8`, T5.2/report introduction `d3ed655724d4`.
+PR: `#111`
 
 ## Purpose
 
