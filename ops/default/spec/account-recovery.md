@@ -41,7 +41,7 @@ their own threat review; these password operations cannot authorize them.
 ## Delivered Prerequisites and Current Gaps
 
 The linked prerequisite concerns and their delivery sets are complete. Mailbox
-verification is delivered; protected password change is implemented in Slice 2.
+verification and protected password change are delivered.
 The reset and final acceptance slices remain pending.
 
 - `auth.Service` owns the validated password policy and shared bounded verifier.
