@@ -16,10 +16,10 @@ Model: [Controls model](../spec/authentication-controls-model.md)
 Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
-Active slice: Slice 3 — Finite public authentication
+Active slice: Slice 4 — Security observations
 Execution gate: Open
 Plan: [Delivery plan](../plan/authentication-controls.md)
-Active tasks: T3.1, T3.2
+Active tasks: T4.1, T4.2
 
 ## Slice Status
 
@@ -27,8 +27,8 @@ Active tasks: T3.1, T3.2
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Durable credential admission | delivered | `feat/credential-admission` | `feat(slice-1): add shared credential admission` | `#107` | `ops/default/report/slices/authentication-controls/slice-1-credential-admission.md` |
 | Slice 2 | Guarded password entry | delivered | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | `#108` | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
-| Slice 3 | Finite public authentication | reviewing | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | `#109` | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
-| Slice 4 | Security observations | pending | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | pending | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
+| Slice 3 | Finite public authentication | delivered | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | `#109` | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
+| Slice 4 | Security observations | active | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | pending | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
 | Slice 5 | Controls acceptance | pending | `test/authentication-controls-acceptance` | `test(slice-5): verify authentication controls integration` | pending | `ops/default/report/slices/authentication-controls/slice-5-controls-acceptance.md` |
 
 ## Tasks
@@ -41,7 +41,7 @@ Active tasks: T3.1, T3.2
 | T2.2 | completed | `test(auth): verify shared password entry budgets` | `59ddb46fc792` |
 | T3.1 | completed | `feat(auth): bound public authentication ingress` | `24b86323236e` |
 | T3.2 | completed | `test(auth): verify neutral public authentication` | `fd0c0a41e80e` |
-| T4.1 | pending | `feat(auth): observe bounded security outcomes` | pending |
+| T4.1 | active | `feat(auth): observe bounded security outcomes` | pending |
 | T4.2 | pending | `test(auth): verify security observation boundaries` | pending |
 | T5.1 | pending | `test(auth): exercise authentication controls journeys` | pending |
 | T5.2 | pending | `test(auth): close authentication controls evidence` | pending |
@@ -52,7 +52,7 @@ Active tasks: T3.1, T3.2
 - [x] Planning state committed and Slice 1 canonical worktree activated.
 - [x] Slice 1 merged and report delivered; actual durable admission evidence.
 - [x] Slice 2 merged and report delivered; actual shared password-entry budgets.
-- [ ] Slice 3 merged and report delivered; finite ingress/neutral transport.
+- [x] Slice 3 merged and report delivered; finite ingress/neutral transport.
 - [ ] Slice 4 merged and report delivered; redacted bounded observations.
 - [ ] Slice 5 merged and report delivered; actual browser/affected regression.
 - [ ] All ten task/commit/PR mappings and AC-01 through AC-08 recorded.
@@ -145,7 +145,8 @@ post-merge integrated validation. Timing describes the bounded fixture and
 response policy, not production constant-time assurance. Full `make check`
 remains after all five canonical merges.
 
-Slice 3 PR #109 targets dev and is reviewing. Both task commits and focused
+Slice 3 PR #109 is canonically merged into dev at `26613b55a897`; its report
+is delivered. Slice 4 is active under the approved continuation map. Both task commits and focused
 checks are recorded; its PR links immutable report introduction `4ab28ddd0bc4`.
 After verified merge, close Slice 3 on dev and immediately execute recorded
 Slice 4. No additional scope, main alignment or release is authorized.
