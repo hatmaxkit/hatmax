@@ -12,7 +12,7 @@ Delivery set: authentication-controls
 Plan: `ops/default/plan/authentication-controls.md`
 Tracker: `ops/default/tracker/authentication-controls.md`
 Branch: `feat/authentication-ingress`
-PR: pending
+PR: `#109`
 
 ## Purpose
 

@@ -27,7 +27,7 @@ Active tasks: T3.1, T3.2
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Durable credential admission | delivered | `feat/credential-admission` | `feat(slice-1): add shared credential admission` | `#107` | `ops/default/report/slices/authentication-controls/slice-1-credential-admission.md` |
 | Slice 2 | Guarded password entry | delivered | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | `#108` | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
-| Slice 3 | Finite public authentication | reviewing | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | pending | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
+| Slice 3 | Finite public authentication | reviewing | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | `#109` | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
 | Slice 4 | Security observations | pending | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | pending | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
 | Slice 5 | Controls acceptance | pending | `test/authentication-controls-acceptance` | `test(slice-5): verify authentication controls integration` | pending | `ops/default/report/slices/authentication-controls/slice-5-controls-acceptance.md` |
 
@@ -144,3 +144,8 @@ observations; Slice 5 owns real browser journeys, final evidence mapping and
 post-merge integrated validation. Timing describes the bounded fixture and
 response policy, not production constant-time assurance. Full `make check`
 remains after all five canonical merges.
+
+Slice 3 PR #109 targets dev and is reviewing. Both task commits and focused
+checks are recorded; its PR links immutable report introduction `4ab28ddd0bc4`.
+After verified merge, close Slice 3 on dev and immediately execute recorded
+Slice 4. No additional scope, main alignment or release is authorized.
