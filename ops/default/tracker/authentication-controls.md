@@ -19,13 +19,13 @@ Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
 Active slice: Slice 1 — Durable credential admission
 Execution gate: Open
 Plan: [Delivery plan](../plan/authentication-controls.md)
-Active tasks: None; Slice 1 review preparation
+Active tasks: None; Slice 1 review
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Durable credential admission | active | `feat/credential-admission` | `feat(slice-1): add shared credential admission` | pending | `ops/default/report/slices/authentication-controls/slice-1-credential-admission.md` |
+| Slice 1 | Durable credential admission | reviewing | `feat/credential-admission` | `feat(slice-1): add shared credential admission` | pending | `ops/default/report/slices/authentication-controls/slice-1-credential-admission.md` |
 | Slice 2 | Guarded password entry | pending | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | pending | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
 | Slice 3 | Finite public authentication | pending | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | pending | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
 | Slice 4 | Security observations | pending | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | pending | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
@@ -36,7 +36,7 @@ Active tasks: None; Slice 1 review preparation
 | Task | Status | Expected commit | Commit |
 | --- | --- | --- | --- |
 | T1.1 | completed | `feat(auth): add shared credential admission` | `f32729cd06e0` |
-| T1.2 | completed | `test(auth): verify credential admission transactions` | pending |
+| T1.2 | completed | `test(auth): verify credential admission transactions` | `c1ed78985aba` |
 | T2.1 | pending | `feat(auth): guard password authentication paths` | pending |
 | T2.2 | pending | `test(auth): verify shared password entry budgets` | pending |
 | T3.1 | pending | `feat(auth): bound public authentication ingress` | pending |
