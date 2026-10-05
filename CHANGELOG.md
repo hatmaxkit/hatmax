@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Applications can bound registration and password authentication across
+  replicas with durable per-identity budgets. Sign-in, reauthentication, initial
+  WebAuthn enrollment and password-based fallback share one proof budget;
+  registration uses a separate budget. Successful and failed admitted work
+  spends its charge, and restart cannot reset a live window. Ticked requires
+  a stable `TICKED_CREDENTIAL_NAMESPACE` and `TICKED_CREDENTIAL_KEY` at startup.
+
 - Users with a verified current mailbox can reset a forgotten password through
   a bounded one-use email link. Reset signs out every session while preserving
   authenticators and spent backup codes; normal sign-in still requires configured

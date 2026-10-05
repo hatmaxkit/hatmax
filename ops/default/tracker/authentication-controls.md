@@ -19,7 +19,7 @@ Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
 Active slice: Slice 2 — Guarded password entry
 Execution gate: Open
 Plan: [Delivery plan](../plan/authentication-controls.md)
-Active tasks: T2.2
+Active tasks: None; Slice 2 review preparation
 
 ## Slice Status
 
@@ -37,8 +37,8 @@ Active tasks: T2.2
 | --- | --- | --- | --- |
 | T1.1 | completed | `feat(auth): add shared credential admission` | `f32729cd06e0` |
 | T1.2 | completed | `test(auth): verify credential admission transactions` | `c1ed78985aba` |
-| T2.1 | completed | `feat(auth): guard password authentication paths` | pending |
-| T2.2 | active | `test(auth): verify shared password entry budgets` | pending |
+| T2.1 | completed | `feat(auth): guard password authentication paths` | `dd425e7a244d` |
+| T2.2 | completed | `test(auth): verify shared password entry budgets` | pending |
 | T3.1 | pending | `feat(auth): bound public authentication ingress` | pending |
 | T3.2 | pending | `test(auth): verify neutral public authentication` | pending |
 | T4.1 | pending | `feat(auth): observe bounded security outcomes` | pending |
@@ -97,3 +97,20 @@ Licensing, vet, strict lint and documentation checks passed. The full integrated
 Slice 1 PR #107 is canonically merged into dev at `abb2ea6afe99`; its report
 is delivered. Both task commits and focused evidence are recorded. Slice 2
 is active under the approved continuation map.
+
+## Slice 2 Focused Evidence
+
+`TestPasswordEntryBudgets` and the exact affected adapter selector passed with
+Go 1.27.1, actual PostgreSQL 18.6 and race detection in 103.857s. Twenty-four
+requests across two sign-in instances, initial enrollment, TOTP setup and fallback
+shared four allowed proof operations; denial performed no account lookup.
+Successful proof and session-derived reauthentication, registration/checker
+failure, inactive/invalid/stale state, cancellation, lost admission result and
+caller lock deadlines retained their actual charges without manufactured users.
+
+The affected recovery HTTP selector passed in 62.668s; six-package race, licensing,
+vet, strict lint, documentation and browser consumer compilation passed. The
+selector names/commands are in the plan and Slice 2 report. AC-01/AC-02/AC-03 have
+password-entry evidence; neutral transport, observation and actual browser
+acceptance remain in Slices 3–5. Full integrated validation remains after all
+five canonical merges.

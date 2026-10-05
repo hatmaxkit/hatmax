@@ -270,9 +270,10 @@ assurance boundaries are not closed by scope approval.
 
 ## Implementation Coverage
 
-Slice 1 implements callable typed admission, validated settings and actual
-PostgreSQL private-key capacity/window transactions. Focused real storage, race
-and parser evidence passed. Mandatory password-entry wiring, finite public
-ingress, neutral transport, security observations and browser/integrated
-acceptance remain in the approved delivery map. This partial layer does not
-close AUTH-07 or the parent authentication foundation.
+Slices 1–2 implement typed admission, validated settings, actual PostgreSQL
+private-key capacity/window transactions and mandatory registration/password
+entry wiring. Cross-path admission, current proof/session/factor authority and
+affected recovery/HTTP regressions passed on actual adapters with race detection.
+Finite public ingress, neutral transport, security observations and browser/
+integrated acceptance remain in the approved map. This partial coverage does
+not close AUTH-07 or the parent authentication foundation.

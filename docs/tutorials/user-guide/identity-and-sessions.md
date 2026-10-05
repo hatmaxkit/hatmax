@@ -37,6 +37,31 @@ Handlers translate those results into safe form feedback. They do not expose
 whether an address exists, a password hash failed, or a database operation
 failed when that distinction would leak account information.
 
+## Bound Password Entry Across Replicas
+
+Supply a shared durable `CredentialAdmission` when constructing authentication.
+Registration has its own window. Sign-in, password reauthentication, initial
+WebAuthn enrollment and password-based fallback share a proof window for the
+canonical account identity. Session reauthentication derives that identity from
+the live actor. Core does not fold email case or invent aliases; application
+lookup and admission must receive the same canonical value.
+
+Successful and failed admitted work consumes one charge. Default proof admission
+permits ten operations in ten minutes with a ten-minute cooldown; registration
+permits three in one hour with a one-hour cooldown. Denial does not extend the
+cooldown. Restart, session issuance and credential changes do not reset it.
+Invalid encoding/byte bounds perform no password work. Storage failure is a
+failure to admit work; do not retry an ambiguous charge automatically.
+
+Ticked requires `TICKED_CREDENTIAL_NAMESPACE` and `TICKED_CREDENTIAL_KEY` at
+startup. Provision a stable namespace and canonical base64 key containing 32–64
+random bytes through application-owned private configuration. All replicas share
+that material and consistent limits. Keep it separate from TOTP encryption keys
+and never commit it or expose it in forms/logs. Schedule bounded admission cleanup
+explicitly. See [configuration](../../reference/configuration/README.md#credential-admission-limits)
+for validated limits and [authentication](../../reference/authentication/README.md#standalone-credential-admission)
+for the storage contract. Public response/timing policy remains application-owned.
+
 ## Carry the Session in a Secure Cookie
 
 Sign-in requires current server policy and returns an authentication outcome.
