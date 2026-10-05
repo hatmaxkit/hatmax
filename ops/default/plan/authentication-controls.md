@@ -76,6 +76,10 @@ Record and execute finite checks with bounded per-worktree scratch:
 - Slice 2: `go test -tags=integration -race -run '^(TestMailboxTransportTransactions|TestPasswordChangeTransportTransactions|TestPasswordResetTransportTransactions)$' -count=1 -timeout=180s ./examples/ticked/internal/web`.
 - Slice 1: `go test -run '^$' -fuzz '^FuzzCredentialIdentity$' -fuzztime=20s -parallel=2 -timeout=60s ./auth`.
 - Slice 2: `go test -tags=browser -run '^$' ./examples/ticked/internal/web` checks affected browser consumer construction without running browser journeys.
+- Slice 3: `go test -tags=integration -race -run '^(TestAuthenticationIngressTransactions|TestPublicAuthenticationTransactions|TestMailboxTransportTransactions|TestPasswordChangeTransportTransactions|TestPasswordResetTransportTransactions)$' -count=1 -timeout=240s ./examples/ticked/internal/web`.
+- Slice 3: `go test -tags=integration -race -run '^(TestCredentialTransactions|TestPasswordEntryBudgets)$' -count=1 -timeout=180s ./examples/ticked/internal/feat/auth`.
+- Slice 3: `go test -run '^$' -fuzz '^FuzzRateLimitPeer$' -fuzztime=20s -parallel=2 -timeout=60s ./middleware`.
+- Slice 3: `go test -tags=browser -run '^$' ./examples/ticked/internal/web` verifies consumer construction only; actual browser journeys remain Slice 5.
 - Required database settings fail the integration selector when absent. Use an
   owned PostgreSQL instance with isolated schemas; record actual counter races,
   rollback, lock deadlines and finite row/index cost measurements.

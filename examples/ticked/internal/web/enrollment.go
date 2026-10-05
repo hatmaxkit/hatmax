@@ -103,7 +103,7 @@ func (h *EnrollmentHandler) begin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(input.Email) > 254 || len(input.Password) > 4096 {
+	if auth.CheckCredentialIdentity(input.Email) != nil || input.Password == "" || len(input.Password) > 4096 {
 		enrollmentResponse(w, nil, auth.ErrEnrollment)
 
 		return
@@ -118,8 +118,20 @@ func (h *EnrollmentHandler) begin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.service.BeginWebAuthnEnrollment(r.Context(), input.Email, input.Password, h.requirement)
-	enrollmentResponse(w, result, err)
+	ctx, cancel, admitted := publicAuthenticationWork(w, r)
+	if !admitted {
+		return
+	}
+	defer cancel()
+
+	result, err := h.service.BeginWebAuthnEnrollment(ctx, input.Email, input.Password, h.requirement)
+	if err != nil {
+		publicPasswordDenial(w, r)
+
+		return
+	}
+
+	enrollmentResponse(w, result, nil)
 }
 
 func (h *EnrollmentHandler) finish(w http.ResponseWriter, r *http.Request) {

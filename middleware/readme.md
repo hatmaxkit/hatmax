@@ -35,7 +35,12 @@ r.Route("/static", func(r chi.Router) {
 r.Use(middleware.RequireRole(model.RoleAdmin))
 
 // Rate limiting
-limiter := middleware.NewRateLimiter(100, time.Minute)
+limiter, err := middleware.NewRateLimiter(middleware.RateLimitConfig{
+    Limit: 100, Window: time.Minute, MaxPeers: 1024, CleanupBatch: 128,
+})
+if err != nil {
+    return err
+}
 r.Use(middleware.RateLimit(limiter))
 
 // Same-origin protection for state-changing browser requests

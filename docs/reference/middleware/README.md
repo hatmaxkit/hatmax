@@ -122,10 +122,16 @@ substitute for its proof properties. Activity is a trusted server choice; backgr
 
 ## Rate limit
 
-`NewRateLimiter(limit, window)` starts a cleanup goroutine that runs every
-five minutes. `Allow(ip)` records the current time and returns true while
-that IP has fewer than `limit` timestamps inside the window. The next call
-returns false and does not record another timestamp.
+`NewRateLimiter(RateLimitConfig)` returns a limiter and configuration error.
+Each canonical peer owns one counter and fixed window. Zero fields default to
+12 requests per minute, 1024 peers and a cleanup batch of 128. Valid bounds are
+1–1000 requests, a 1s–1h window, 1–10000 peers and a 1–1000 cleanup batch.
+Construction starts no goroutine or ticker.
+
+`Allow(ip)` charges one allowed operation. Denial does not extend a live window.
+A full table rejects an unknown peer without evicting any live counter. Each
+admission and explicit `Cleanup()` inspect at most one configured batch;
+expired target counters also renew directly. Cleanup needs no shutdown hook.
 
 `RateLimit` uses `ClientIP(r)`, so it shares the installed proxy policy.
 Without `ProxyHeaders`, rate buckets use only the connection peer. Ports

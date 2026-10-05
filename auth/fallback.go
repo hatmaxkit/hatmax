@@ -10,6 +10,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/base64"
 	"errors"
 	"math"
@@ -220,8 +221,24 @@ func (s *FallbackService) verifyPassword(ctx context.Context, email, password st
 	}
 
 	user, err := s.queries.GetUserByEmail(ctx, email)
-	if err != nil || user == nil || !user.Active || user.AuthVersion < 1 {
-		return nil, time.Time{}, ErrFallback
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, time.Time{}, errors.Join(ErrFallback, ErrUserNotFound)
+	}
+
+	if err != nil {
+		return nil, time.Time{}, err
+	}
+
+	if user == nil {
+		return nil, time.Time{}, ErrCredentialAdmissionState
+	}
+
+	if !user.Active {
+		return nil, time.Time{}, errors.Join(ErrFallback, ErrUserInactive)
+	}
+
+	if user.AuthVersion < 1 {
+		return nil, time.Time{}, errors.Join(ErrFallback, ErrCredentialChanged)
 	}
 
 	err = s.credentials.verifier.Verify(ctx, user.PasswordHash, password)

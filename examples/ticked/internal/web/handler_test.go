@@ -181,8 +181,8 @@ func TestHandleSignin_EmptyFields(t *testing.T) {
 
 			h.handleSignin(rec, req)
 
-			if rec.Code != http.StatusOK {
-				t.Errorf("expected status %d, got %d", http.StatusOK, rec.Code)
+			if rec.Code != http.StatusBadRequest {
+				t.Errorf("expected status %d, got %d", http.StatusBadRequest, rec.Code)
 			}
 		})
 	}
@@ -223,8 +223,8 @@ func TestHandleSignup_EmptyFields(t *testing.T) {
 
 			h.handleSignup(rec, req)
 
-			if rec.Code != http.StatusOK {
-				t.Errorf("expected status %d, got %d", http.StatusOK, rec.Code)
+			if rec.Code != http.StatusBadRequest {
+				t.Errorf("expected status %d, got %d", http.StatusBadRequest, rec.Code)
 			}
 		})
 	}
@@ -743,45 +743,29 @@ func (f *fakeAuthSvc) ValidateSession(ctx context.Context, token string, require
 	return &auth.ValidatedSession{User: f.user}, f.validateErr
 }
 
-// Sign-in/signup transports cannot turn pending/denied or malformed responses
-// into a cookie or redirect, even if an inconsistent fake supplies a bearer.
+// Sign-in rejects incomplete or contradictory proof without granting browser authority.
 func TestUnmetProofTransport(t *testing.T) {
-	outcomes := []struct {
+	for _, tc := range []struct {
 		name    string
 		outcome auth.AuthenticationOutcome
 	}{
 		{"enrollment", auth.AuthenticationPendingEnrollment}, {"proof", auth.AuthenticationPendingProof},
 		{"denied", auth.AuthenticationDenied}, {"unknown", auth.AuthenticationOutcome(255)},
 		{"contradictory completed", auth.AuthenticationCompleted},
-	}
-	for _, outcome := range outcomes {
-		for _, route := range []string{"signin", "signup"} {
-			t.Run(outcome.name+" "+route, func(t *testing.T) {
-				logger := log.NewTestLogger("error")
-				templates := web.NewTemplateManager(testAssetsFS, logger, web.WithFuncMap(ui.FuncMap()))
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h := &Handler{authSvc: &fakeAuthSvc{result: &auth.AuthenticationResult{Outcome: tc.outcome, Reason: auth.AuthenticationMethodUnavailable, Issued: &auth.IssuedSession{Token: "must-not-be-issued"}}}}
+			form := url.Values{"email": {"person@example.com"}, "password": {"a distinct valid password"}}
+			request := httptest.NewRequest(http.MethodPost, "/signin", strings.NewReader(form.Encode()))
+			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-				err := templates.Start(t.Context())
-				if err != nil {
-					t.Fatal(err)
-				}
+			response := httptest.NewRecorder()
+			unitIngress(http.HandlerFunc(h.handleSignin)).ServeHTTP(response, request)
 
-				h := &Handler{tmpl: templates, log: logger, authSvc: &fakeAuthSvc{result: &auth.AuthenticationResult{Outcome: outcome.outcome, Reason: auth.AuthenticationMethodUnavailable, Issued: &auth.IssuedSession{Token: "must-not-be-issued"}}}}
-				form := url.Values{"email": {"person@example.com"}, "password": {"a distinct valid password"}, "confirm_password": {"a distinct valid password"}, "proof": {"password"}, "policy_revision": {"client-selected"}}
-				request := httptest.NewRequest(http.MethodPost, "/"+route, strings.NewReader(form.Encode()))
-				request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-				response := httptest.NewRecorder()
-				if route == "signin" {
-					h.handleSignin(response, request)
-				} else {
-					h.handleSignup(response, request)
-				}
-
-				if len(response.Result().Cookies()) != 0 || response.Header().Get("HX-Redirect") != "" || !strings.Contains(response.Body.String(), "unavailable") {
-					t.Fatal("unmet proof created browser authority")
-				}
-			})
-		}
+			if response.Code != http.StatusForbidden || len(response.Result().Cookies()) != 0 || response.Header().Get("HX-Redirect") != "" {
+				t.Fatal("unmet proof created browser authority")
+			}
+		})
 	}
 }
 

@@ -205,3 +205,45 @@ copies the key; assembly clears its temporary decoded bytes. Missing/invalid
 material fails construction without logging it. No schema/query change is needed
 beyond delivered migration 009. Unit acceptance fakes cover orchestration only;
 real adapter fixtures share explicit fixture keys across constructors.
+
+## Slice 3 Settled Representations
+
+`middleware.RateLimitConfig` supplies finite limit/window, maximum peers and
+cleanup batch. `NewRateLimiter(cfg)` returns a validated limiter or error and
+starts no worker. A map indexes one list node per canonical peer; the bounded
+list rotates at most one cleanup batch per admission or explicit `Cleanup`.
+Nodes contain only peer, window start and count. No live eviction or timestamp
+slices are used; exact expiry equality retires a window.
+
+`config.AuthenticationIngressConfig` supplies peer requests/window, maximum
+peers/active requests, cleanup batch and acknowledgment. Settings derive the
+maximum actual credential/authenticator/recovery deadline, with a five-second
+floor for existing recovery initiation. Acknowledgment must fit work plus
+100ms observer budget and 100ms margin, up to 31s; default is 6s.
+
+Ticked's `AuthenticationIngress` is one application composition instance. Its
+root middleware protects POST sign-in/signup/sign-out/reauthentication, session
+revocation, authenticator and account recovery paths before body/identity work.
+Accepted request context carries fixed work/ack deadlines; public credential
+handlers require it before service calls. Active capacity is retained through
+response waits and released on every exit. Explicit `Close` stops new admissions
+before application context cancellation and infrastructure shutdown. Narrower
+existing recovery guards remain inside this shared boundary.
+
+Credential forms are bounded to 16KiB, exact single fields and supported media
+type with no query input. Protected POST uses existing same-origin middleware.
+The actual HTTP connection receives a read deadline at the captured whole-work
+deadline without clearing it before the server drains the body. The server owns finite
+header/read timeouts and a write timeout one second longer than acknowledgment;
+net/http resets those deadlines between requests. Slow body ingress cannot
+retain active capacity indefinitely. The server propagates shutdown context.
+
+Ticked's `AuthenticationLog` omits URI logging on authentication paths, including
+safe methods whose query could contain credential material. Ordinary request
+logging remains enabled; typed terminal security observation belongs to Slice 4.
+
+Candidate-only policy feedback is explicit; all valid new/duplicate registration
+outcomes navigate to normal sign-in without a cookie. Public password denial
+uses one fixed response policy without raw identities/errors or identity retry
+time. Registration operating failures use a uniform non-authorizing unavailable
+response at the same target; shutdown cancellation also returns unavailable. `ErrUserInactive` supplies the missing stable core classification.

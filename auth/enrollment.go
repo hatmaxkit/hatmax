@@ -199,7 +199,11 @@ func (s *AuthenticatorService) BeginWebAuthnEnrollment(ctx context.Context, emai
 		return nil, err
 	}
 
-	if !user.Active || user.TOTPEnabled || len(email) > 254 {
+	if !user.Active {
+		return nil, errors.Join(ErrEnrollment, ErrUserInactive)
+	}
+
+	if user.TOTPEnabled {
 		return nil, ErrEnrollment
 	}
 

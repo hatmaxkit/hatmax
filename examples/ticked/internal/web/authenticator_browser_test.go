@@ -156,7 +156,14 @@ func runAuthenticatorBrowser(t *testing.T, recovery bool) {
 		}
 	}
 
+	cfg.AuthenticationIngress.PeerRequests = 1000
+	ingress, err := NewAuthenticationIngress(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(ingress.Close)
 	router := chi.NewRouter()
+	router.Use(ingress.Middleware)
 
 	var recoveryFixture *recoveryBrowserFixture
 	if recovery {

@@ -171,33 +171,29 @@ func (h *Handler) handleSigninForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) handleSignin(w http.ResponseWriter, r *http.Request) {
-	form, err := web.ParseForm(r)
+	email, password, err := credentialForm(w, r, false)
 	if err != nil {
-		h.renderSigninError(w, "Invalid form data")
+		http.Error(w, "Invalid credential form", http.StatusBadRequest)
 
 		return
 	}
 
-	email := form.String("email")
-	password := form.String("password")
-
-	if email == "" || password == "" {
-		h.renderSigninError(w, "Email and password are required")
-
+	ctx, cancel, admitted := publicAuthenticationWork(w, r)
+	if !admitted {
 		return
 	}
+	defer cancel()
 
-	result, err := h.authSvc.Signin(r.Context(), email, password)
+	result, err := h.authSvc.Signin(ctx, email, password)
 	if err != nil {
-		h.log.Errorf("signin failed for %s: %v", email, err)
-		h.renderSigninError(w, "Invalid email or password")
+		publicPasswordDenial(w, r)
 
 		return
 	}
 
 	session, completed := result.CompletedSession()
 	if !completed {
-		h.renderSigninError(w, "Additional authentication is required and unavailable")
+		publicPasswordDenial(w, r)
 
 		return
 	}
@@ -217,56 +213,57 @@ func (h *Handler) handleSignupForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) handleSignup(w http.ResponseWriter, r *http.Request) {
-	form, err := web.ParseForm(r)
+	email, password, err := credentialForm(w, r, true)
 	if err != nil {
-		h.renderSignupError(w, "Invalid form data")
+		http.Error(w, "Invalid credential form", http.StatusBadRequest)
 
 		return
 	}
 
-	email := form.String("email")
-	password := form.String("password")
-	confirmPassword := form.String("confirm_password")
+	ctx, cancel, admitted := publicAuthenticationWork(w, r)
+	if !admitted {
+		return
+	}
+	defer cancel()
 
-	if email == "" || password == "" {
-		h.renderSignupError(w, "Email and password are required")
+	_, err = h.authSvc.Signup(ctx, email, password)
+	// These messages depend only on the submitted candidate, never account state.
+	message := ""
+
+	switch {
+	case errors.Is(err, auth.ErrPasswordTooShort):
+		message = "Password is too short"
+	case errors.Is(err, auth.ErrPasswordTooLong):
+		message = "Password is too long"
+	case errors.Is(err, auth.ErrPasswordDisallowed):
+		message = "Choose a different password"
+	}
+
+	if message != "" {
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderSignupError(w, message)
+
+		return
+	}
+	// Acknowledgment grants no authority and makes no claim that an account exists.
+	if !waitAuthentication(r) {
+		http.Error(w, "Request unavailable", http.StatusServiceUnavailable)
 
 		return
 	}
 
-	if password != confirmPassword {
-		h.renderSignupError(w, "Passwords do not match")
+	switch {
+	case err == nil, errors.Is(err, auth.ErrEmailTaken), errors.Is(err, auth.ErrCredentialAdmissionAttempts):
+	default:
+		http.Error(w, "Registration unavailable", http.StatusServiceUnavailable)
 
 		return
 	}
 
-	_, err = h.authSvc.Signup(r.Context(), email, password)
-	if err != nil {
-		h.log.Errorf("signup failed for %s: %v", email, err)
-		h.renderSignupError(w, err.Error())
-
-		return
-	}
-
-	result, err := h.authSvc.Signin(r.Context(), email, password)
-	if err != nil {
-		http.Redirect(w, r, "/signin", http.StatusSeeOther)
-
-		return
-	}
-
-	session, completed := result.CompletedSession()
-	if !completed {
-		h.renderSignupError(w, "Additional authentication is required and unavailable")
-
-		return
-	}
-
-	maxAge := int(time.Until(session.ExpiresAt).Seconds())
-	auth.SetSessionCookie(w, session.Token, maxAge)
-
-	w.Header().Set("HX-Redirect", "/list-items")
-	w.WriteHeader(http.StatusOK)
+	w.Header().Set("HX-Redirect", "/signin")
+	w.Header().Set("Location", "/signin")
+	w.WriteHeader(http.StatusSeeOther)
+	_, _ = w.Write([]byte("Continue to sign in\n"))
 }
 
 func (h *Handler) handleSignout(w http.ResponseWriter, r *http.Request) {

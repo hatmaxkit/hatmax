@@ -235,7 +235,7 @@ func TestRateLimitIdentity(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			limiter := &RateLimiter{requests: make(map[string][]time.Time), limit: 1, window: time.Minute}
+			limiter := rateLimiterForTest(t, RateLimitConfig{Limit: 1, Window: time.Minute})
 			handler := RateLimit(limiter)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			}))
@@ -270,7 +270,7 @@ func TestRateLimitIdentity(t *testing.T) {
 func TestRateLimitSpoof(t *testing.T) {
 	for _, header := range []string{"X-Forwarded-For", "X-Real-IP"} {
 		t.Run(header, func(t *testing.T) {
-			limiter := &RateLimiter{requests: make(map[string][]time.Time), limit: 1, window: time.Minute}
+			limiter := rateLimiterForTest(t, RateLimitConfig{Limit: 1, Window: time.Minute})
 			handler := RateLimit(limiter)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			}))

@@ -110,6 +110,7 @@ func TestFallbackHTTP(t *testing.T) {
 			}
 
 			router := chi.NewRouter()
+			router.Use(unitIngress)
 			h.RegisterRoutes(router)
 
 			request := httptest.NewRequest(http.MethodPost, "http://example.com/authenticators/"+test.path, strings.NewReader(test.body))

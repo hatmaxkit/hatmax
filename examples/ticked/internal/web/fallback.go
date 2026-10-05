@@ -103,14 +103,26 @@ func (h *FallbackHandler) setup(w http.ResponseWriter, r *http.Request) {
 	var input fallbackCredentials
 
 	err := fallbackBody(w, r, &input)
-	if err != nil || len(input.Email) > 254 || len(input.Password) > 4096 {
+	if err != nil || auth.CheckCredentialIdentity(input.Email) != nil || input.Password == "" || len(input.Password) > 4096 {
 		assertionResponse(w, nil, auth.ErrFallback)
 
 		return
 	}
 
-	result, err := h.service.BeginTOTPSetup(r.Context(), input.Email, input.Password, h.access)
-	assertionResponse(w, result, err)
+	ctx, cancel, admitted := publicAuthenticationWork(w, r)
+	if !admitted {
+		return
+	}
+	defer cancel()
+
+	result, err := h.service.BeginTOTPSetup(ctx, input.Email, input.Password, h.access)
+	if err != nil {
+		publicPasswordDenial(w, r)
+
+		return
+	}
+
+	assertionResponse(w, result, nil)
 }
 func (h *FallbackHandler) confirm(w http.ResponseWriter, r *http.Request) {
 	var input struct {
@@ -137,7 +149,7 @@ func (h *FallbackHandler) begin(w http.ResponseWriter, r *http.Request, method a
 	var input fallbackCredentials
 
 	err := fallbackBody(w, r, &input)
-	if err != nil || len(input.Email) > 254 || len(input.Password) > 4096 || stepUp && input.Email != "" {
+	if err != nil || len(input.Password) > 4096 || input.Password == "" || stepUp && input.Email != "" || !stepUp && auth.CheckCredentialIdentity(input.Email) != nil {
 		assertionResponse(w, nil, auth.ErrFallback)
 
 		return
@@ -159,8 +171,20 @@ func (h *FallbackHandler) begin(w http.ResponseWriter, r *http.Request, method a
 		return
 	}
 
-	result, err = h.service.BeginFallbackAuthentication(r.Context(), input.Email, input.Password, method, h.access)
-	assertionResponse(w, result, err)
+	ctx, cancel, admitted := publicAuthenticationWork(w, r)
+	if !admitted {
+		return
+	}
+	defer cancel()
+
+	result, err = h.service.BeginFallbackAuthentication(ctx, input.Email, input.Password, method, h.access)
+	if err != nil {
+		publicPasswordDenial(w, r)
+
+		return
+	}
+
+	assertionResponse(w, result, nil)
 }
 func (h *FallbackHandler) finish(w http.ResponseWriter, r *http.Request, purpose auth.FallbackPurpose) {
 	token := r.Header.Get("X-Fallback-Token")

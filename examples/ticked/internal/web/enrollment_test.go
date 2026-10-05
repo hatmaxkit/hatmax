@@ -69,6 +69,7 @@ func TestEnrollmentHTTP(t *testing.T) {
 			}
 
 			router := chi.NewRouter()
+			router.Use(unitIngress)
 			handler.RegisterRoutes(router)
 
 			request := httptest.NewRequest(http.MethodPost, "http://example.com/authenticators/enrollment/"+test.path, strings.NewReader(test.body))

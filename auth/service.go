@@ -19,6 +19,7 @@ import (
 )
 
 var (
+	ErrUserInactive      = errors.New("user is not active")
 	ErrUserNotFound      = errors.New("user not found")
 	ErrInvalidPassword   = errors.New("invalid password")
 	ErrEmailTaken        = errors.New("email already taken")
@@ -181,7 +182,7 @@ func (s *Service) Signin(ctx context.Context, email, password string, requiremen
 	}
 
 	if !user.Active {
-		return nil, errors.New("user is not active")
+		return nil, ErrUserInactive
 	}
 
 	// Capture the owned snapshot before expensive verification. The final storage

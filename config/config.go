@@ -21,18 +21,19 @@ import (
 
 // Config holds the application configuration.
 type Config struct {
-	Log                 LogConfig                 `koanf:"log"`
-	Server              ServerConfig              `koanf:"server"`
-	Database            DatabaseConfig            `koanf:"database"`
-	Auth                AuthConfig                `koanf:"auth"`
-	Authenticator       AuthenticatorConfig       `koanf:"authenticator"`
-	Recovery            RecoveryConfig            `koanf:"recovery"`
-	CredentialAdmission CredentialAdmissionConfig `koanf:"credential_admission"`
-	Contact             ContactConfig             `koanf:"contact"`
-	Property            PropertyConfig            `koanf:"property"`
-	PubSub              PubSubConfig              `koanf:"pubsub"`
-	Scheduler           SchedulerConfig           `koanf:"scheduler"`
-	Mailer              MailerConfig              `koanf:"mailer"`
+	Log                   LogConfig                   `koanf:"log"`
+	Server                ServerConfig                `koanf:"server"`
+	Database              DatabaseConfig              `koanf:"database"`
+	Auth                  AuthConfig                  `koanf:"auth"`
+	Authenticator         AuthenticatorConfig         `koanf:"authenticator"`
+	Recovery              RecoveryConfig              `koanf:"recovery"`
+	AuthenticationIngress AuthenticationIngressConfig `koanf:"authentication_ingress"`
+	CredentialAdmission   CredentialAdmissionConfig   `koanf:"credential_admission"`
+	Contact               ContactConfig               `koanf:"contact"`
+	Property              PropertyConfig              `koanf:"property"`
+	PubSub                PubSubConfig                `koanf:"pubsub"`
+	Scheduler             SchedulerConfig             `koanf:"scheduler"`
+	Mailer                MailerConfig                `koanf:"mailer"`
 }
 
 // LogConfig holds logging configuration.
@@ -333,6 +334,12 @@ func Load(path, envPrefix string, args []string) (*Config, error) {
 	fs.String("credential_admission.registration_window", "1h", "Registration admission window")
 	fs.String("credential_admission.registration_cooldown", "1h", "Registration admission cooldown")
 	fs.String("credential_admission.timeout", "1s", "Shared credential admission operation timeout")
+	fs.Int("authentication_ingress.peer_requests", 12, "Authentication requests per peer window")
+	fs.String("authentication_ingress.peer_window", "1m", "Authentication peer admission window")
+	fs.Int("authentication_ingress.max_peers", 1024, "Maximum live authentication peers")
+	fs.Int("authentication_ingress.max_active", 32, "Maximum active authentication requests")
+	fs.Int("authentication_ingress.cleanup_batch", 128, "Maximum peers inspected per cleanup")
+	fs.String("authentication_ingress.acknowledgment", "6s", "Fixed public authentication acknowledgment target")
 	fs.Bool("pubsub.enabled", false, "Enable pub/sub")
 	fs.String("pubsub.poll_interval", "100ms", "Pub/sub poll interval")
 	fs.Int("pubsub.batch_size", 100, "Pub/sub batch size")

@@ -10,11 +10,14 @@ import (
 	"embed"
 	"encoding/base64"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 
 	"hatmax.adrianpk.com/app"
 	"hatmax.adrianpk.com/auth"
@@ -58,9 +61,18 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	ingress, err := tickedweb.NewAuthenticationIngress(cfg)
+	if err != nil {
+		logger.Errorf("Cannot initialize authentication ingress")
+		os.Exit(1)
+	}
+
 	router := app.NewRouter(
 		logger,
-		app.WithMiddleware(middleware.DefaultStack()...),
+		app.WithMiddleware(
+			middleware.RequestID, middleware.ProxyHeaders(), tickedweb.AuthenticationLog,
+			chimiddleware.Recoverer, ingress.Middleware,
+		),
 		app.WithPing(),
 		app.WithDebugRoutes(),
 	)
@@ -247,7 +259,17 @@ func main() {
 
 	logger.Infof("%s(%s) started successfully", name, version)
 
-	server := &http.Server{Addr: cfg.Server.Port, Handler: router}
+	ingressSettings, err := cfg.AuthenticationIngressSettings()
+	if err != nil {
+		logger.Errorf("Cannot initialize authentication HTTP deadlines")
+		os.Exit(1)
+	}
+
+	server := &http.Server{
+		Addr: cfg.Server.Port, Handler: router, BaseContext: func(net.Listener) context.Context { return ctx },
+		ReadHeaderTimeout: ingressSettings.WorkTimeout, ReadTimeout: ingressSettings.WorkTimeout,
+		WriteTimeout: ingressSettings.Acknowledgment + time.Second,
+	}
 
 	go func() {
 		logger.Infof("Server listening on %s", cfg.Server.Port)
@@ -263,5 +285,7 @@ func main() {
 	<-stop
 
 	logger.Infof("Shutting down %s(%s)...", name, version)
+	ingress.Close()
+	cancel()
 	app.Shutdown(server, logger, stops)
 }

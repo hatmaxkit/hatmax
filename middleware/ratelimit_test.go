@@ -8,174 +8,152 @@ package middleware
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/netip"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
 
-func TestNewRateLimiter(t *testing.T) {
-	rl := NewRateLimiter(10, time.Minute)
-	if rl == nil {
-		t.Fatal("expected non-nil rate limiter")
+func rateLimiterForTest(t *testing.T, cfg RateLimitConfig) *RateLimiter {
+	t.Helper()
+
+	limiter, err := NewRateLimiter(cfg)
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	if rl.limit != 10 {
-		t.Errorf("expected limit 10, got %d", rl.limit)
-	}
-
-	if rl.window != time.Minute {
-		t.Errorf("expected window 1m, got %v", rl.window)
-	}
+	return limiter
 }
 
-func TestRateLimiterAllow(t *testing.T) {
-	tests := []struct {
-		name      string
-		limit     int
-		window    time.Duration
-		requests  int
-		wantAllow bool
+// Configuration rejects unbounded inputs rather than starting a cleanup worker.
+func TestRateLimitConfig(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		cfg  RateLimitConfig
 	}{
-		{
-			name:      "under limit",
-			limit:     5,
-			window:    time.Minute,
-			requests:  3,
-			wantAllow: true,
-		},
-		{
-			name:      "at limit boundary",
-			limit:     5,
-			window:    time.Minute,
-			requests:  5,
-			wantAllow: true,
-		},
-		{
-			name:      "over limit",
-			limit:     5,
-			window:    time.Minute,
-			requests:  6,
-			wantAllow: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			rl := &RateLimiter{
-				requests: make(map[string][]time.Time),
-				limit:    tt.limit,
-				window:   tt.window,
-			}
-
-			var lastResult bool
-			for i := 0; i < tt.requests; i++ {
-				lastResult = rl.Allow("192.168.1.1")
-			}
-
-			if lastResult != tt.wantAllow {
-				t.Errorf("Allow() = %v, want %v after %d requests", lastResult, tt.wantAllow, tt.requests)
+		{"negative limit", RateLimitConfig{Limit: -1}},
+		{"large limit", RateLimitConfig{Limit: 1001}},
+		{"short window", RateLimitConfig{Window: time.Millisecond}},
+		{"large window", RateLimitConfig{Window: 2 * time.Hour}},
+		{"negative peers", RateLimitConfig{MaxPeers: -1}},
+		{"large peers", RateLimitConfig{MaxPeers: 10001}},
+		{"negative cleanup", RateLimitConfig{CleanupBatch: -1}},
+		{"large cleanup", RateLimitConfig{CleanupBatch: 1001}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := NewRateLimiter(tc.cfg)
+			if err == nil {
+				t.Fatal("invalid finite limit accepted")
 			}
 		})
 	}
 }
 
-func TestRateLimiterAllowDifferentIPs(t *testing.T) {
-	rl := &RateLimiter{
-		requests: make(map[string][]time.Time),
-		limit:    2,
-		window:   time.Minute,
+// Fixed windows reject overflow without evicting live peers or extending denial.
+func TestRateLimitBounds(t *testing.T) {
+	limiter := rateLimiterForTest(t, RateLimitConfig{Limit: 2, MaxPeers: 2, CleanupBatch: 1})
+	now := time.Unix(100, 0)
+
+	limiter.now = func() time.Time { return now }
+	for _, peer := range []string{"192.0.2.1", "2001:db8::1"} {
+		if !limiter.Allow(peer) || !limiter.Allow(peer) || limiter.Allow(peer) {
+			t.Fatal("fixed allowance changed")
+		}
 	}
 
-	if !rl.Allow("192.168.1.1") {
-		t.Error("first request from IP1 should be allowed")
+	if limiter.Allow("192.0.2.2") || limiter.Allow("::ffff:192.0.2.1") || limiter.Allow("2001:0db8:0:0::1") {
+		t.Fatal("live capacity or canonical bucket bypassed")
 	}
 
-	if !rl.Allow("192.168.1.1") {
-		t.Error("second request from IP1 should be allowed")
+	if len(limiter.peers) != 2 {
+		t.Fatal("live peer evicted")
 	}
 
-	if rl.Allow("192.168.1.1") {
-		t.Error("third request from IP1 should be denied")
+	now = now.Add(time.Minute)
+
+	if !limiter.Allow("2001:db8::1") {
+		t.Fatal("expired target outside cleanup cursor was not renewed")
 	}
 
-	if !rl.Allow("192.168.1.2") {
-		t.Error("first request from IP2 should be allowed")
+	if len(limiter.peers) > 2 {
+		t.Fatal("peer capacity exceeded")
 	}
 
-	if !rl.Allow("192.168.1.2") {
-		t.Error("second request from IP2 should be allowed")
-	}
-}
+	now = now.Add(-2 * time.Minute)
 
-func TestRateLimiterWindowExpiry(t *testing.T) {
-	rl := &RateLimiter{
-		requests: make(map[string][]time.Time),
-		limit:    2,
-		window:   50 * time.Millisecond,
-	}
-
-	rl.Allow("192.168.1.1")
-	rl.Allow("192.168.1.1")
-
-	if rl.Allow("192.168.1.1") {
-		t.Error("should be rate limited")
-	}
-
-	time.Sleep(60 * time.Millisecond)
-
-	if !rl.Allow("192.168.1.1") {
-		t.Error("should be allowed after window expiry")
+	if limiter.Allow("2001:db8::1") {
+		t.Fatal("backward clock reset allowance")
 	}
 }
 
-func TestRateLimitMiddleware(t *testing.T) {
-	rl := &RateLimiter{
-		requests: make(map[string][]time.Time),
-		limit:    2,
-		window:   time.Minute,
+// Explicit retirement touches at most one batch and leaves live entries intact.
+func TestRateLimitCleanup(t *testing.T) {
+	limiter := rateLimiterForTest(t, RateLimitConfig{MaxPeers: 4, CleanupBatch: 1})
+	now := time.Unix(100, 0)
+
+	limiter.now = func() time.Time { return now }
+	for _, peer := range []string{"192.0.2.1", "192.0.2.2", "192.0.2.3", "192.0.2.4"} {
+		limiter.Allow(peer)
 	}
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+	if limiter.Cleanup() != 0 || len(limiter.peers) != 4 {
+		t.Fatal("live peer retired")
+	}
+
+	now = now.Add(time.Minute)
+
+	if limiter.Cleanup() != 1 || len(limiter.peers) != 3 {
+		t.Fatal("cleanup exceeded one entry")
+	}
+}
+
+// Concurrent callers compete for exactly one finite allowance without queues.
+func TestRateLimitRace(t *testing.T) {
+	limiter := rateLimiterForTest(t, RateLimitConfig{Limit: 5})
+
+	var (
+		allowed atomic.Int32
+		group   sync.WaitGroup
+	)
+	for range 50 {
+		group.Go(func() {
+			if limiter.Allow("192.0.2.1") {
+				allowed.Add(1)
+			}
+		})
+	}
+
+	group.Wait()
+
+	if allowed.Load() != 5 {
+		t.Fatal("concurrent allowance exceeded")
+	}
+}
+
+// Arbitrary input cannot create invalid or unbounded peer identities.
+func FuzzRateLimitPeer(f *testing.F) {
+	for _, peer := range []string{"192.0.2.1", "::ffff:192.0.2.1", "2001:db8::1", "invalid", "fe80::1%eth0", ""} {
+		f.Add(peer)
+	}
+
+	f.Fuzz(func(t *testing.T, peer string) {
+		limiter := rateLimiterForTest(t, RateLimitConfig{Limit: 1, MaxPeers: 1})
+		ip, err := netip.ParseAddr(peer)
+
+		valid := err == nil && ip.Zone() == ""
+		if limiter.Allow(peer) != valid {
+			t.Fatal("peer parser disagreed with canonical address")
+		}
+
+		if valid && (limiter.Allow(ip.Unmap().String()) || limiter.Allow("192.0.2.254") && ip.Unmap().String() != "192.0.2.254") {
+			t.Fatal("bucket or capacity bypassed")
+		}
+
+		if len(limiter.peers) > 1 {
+			t.Fatal("peer capacity exceeded")
+		}
 	})
-
-	middleware := RateLimit(rl)
-	wrappedHandler := middleware(handler)
-
-	tests := []struct {
-		name           string
-		remoteAddr     string
-		wantStatusCode int
-	}{
-		{
-			name:           "first request allowed",
-			remoteAddr:     "192.168.1.1:12345",
-			wantStatusCode: http.StatusOK,
-		},
-		{
-			name:           "second request allowed",
-			remoteAddr:     "192.168.1.1:12345",
-			wantStatusCode: http.StatusOK,
-		},
-		{
-			name:           "third request rate limited",
-			remoteAddr:     "192.168.1.1:12345",
-			wantStatusCode: http.StatusTooManyRequests,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			req.RemoteAddr = tt.remoteAddr
-			rec := httptest.NewRecorder()
-
-			wrappedHandler.ServeHTTP(rec, req)
-
-			if rec.Code != tt.wantStatusCode {
-				t.Errorf("got status %d, want %d", rec.Code, tt.wantStatusCode)
-			}
-		})
-	}
 }
 
 // TestClientIPFallback verifies that without proxy policy only the socket peer is used.

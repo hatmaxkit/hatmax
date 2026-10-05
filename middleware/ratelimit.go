@@ -6,98 +6,143 @@
 package middleware
 
 import (
+	"container/list"
+	"errors"
 	"net/http"
+	"net/netip"
 	"sync"
 	"time"
 )
 
-// RateLimiter provides simple IP-based rate limiting.
+// ErrRateLimitConfig rejects invalid finite peer admission limits.
+var ErrRateLimitConfig = errors.New("invalid rate limit configuration")
+
+// RateLimitConfig bounds one process-local fixed window per canonical peer.
+type RateLimitConfig struct {
+	Limit        int
+	Window       time.Duration
+	MaxPeers     int
+	CleanupBatch int
+}
+type peerWindow struct {
+	peer  string
+	start time.Time
+	count int
+}
+
+// RateLimiter owns finite counters and explicit bounded cleanup, without workers.
 type RateLimiter struct {
-	mu       sync.Mutex
-	requests map[string][]time.Time
-	limit    int
-	window   time.Duration
+	mu    sync.Mutex
+	peers map[string]*list.Element
+	order *list.List
+	cfg   RateLimitConfig
+	now   func() time.Time
 }
 
-// NewRateLimiter creates a new rate limiter.
-// limit is the maximum number of requests allowed within the window duration.
-func NewRateLimiter(limit int, window time.Duration) *RateLimiter {
-	rl := &RateLimiter{
-		requests: make(map[string][]time.Time),
-		limit:    limit,
-		window:   window,
+// NewRateLimiter validates finite defaults and starts no goroutine.
+func NewRateLimiter(cfg RateLimitConfig) (*RateLimiter, error) {
+	if cfg.Limit == 0 {
+		cfg.Limit = 12
 	}
-	go rl.cleanup()
 
-	return rl
+	if cfg.Window == 0 {
+		cfg.Window = time.Minute
+	}
+
+	if cfg.MaxPeers == 0 {
+		cfg.MaxPeers = 1024
+	}
+
+	if cfg.CleanupBatch == 0 {
+		cfg.CleanupBatch = 128
+	}
+
+	if cfg.Limit < 1 || cfg.Limit > 1000 || cfg.Window < time.Second || cfg.Window > time.Hour || cfg.MaxPeers < 1 || cfg.MaxPeers > 10000 || cfg.CleanupBatch < 1 || cfg.CleanupBatch > 1000 {
+		return nil, ErrRateLimitConfig
+	}
+
+	return &RateLimiter{peers: make(map[string]*list.Element), order: list.New(), cfg: cfg, now: time.Now}, nil
 }
+func (rl *RateLimiter) cleanupLocked(now time.Time) int {
+	removed := 0
 
-// Allow checks if a request from the given IP is allowed.
-func (rl *RateLimiter) Allow(ip string) bool {
-	rl.mu.Lock()
-	defer rl.mu.Unlock()
+	for range min(rl.cfg.CleanupBatch, rl.order.Len()) {
+		e := rl.order.Front()
 
-	now := time.Now()
-	windowStart := now.Add(-rl.window)
+		w := e.Value.(*peerWindow)
+		if !now.Before(w.start.Add(rl.cfg.Window)) {
+			delete(rl.peers, w.peer)
+			rl.order.Remove(e)
 
-	times := rl.requests[ip]
-
-	var valid []time.Time
-
-	for _, t := range times {
-		if t.After(windowStart) {
-			valid = append(valid, t)
+			removed++
+		} else {
+			rl.order.MoveToBack(e)
 		}
 	}
 
-	if len(valid) >= rl.limit {
-		rl.requests[ip] = valid
+	return removed
+}
 
+// Allow charges one fixed-window operation. Denial never extends a live window.
+func (rl *RateLimiter) Allow(peer string) bool {
+	if rl == nil || rl.now == nil {
 		return false
 	}
 
-	valid = append(valid, now)
-	rl.requests[ip] = valid
+	ip, err := netip.ParseAddr(peer)
+	if err != nil || ip.Zone() != "" {
+		return false
+	}
+
+	peer = ip.Unmap().String()
+
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	now := rl.now()
+	rl.cleanupLocked(now)
+
+	e, exists := rl.peers[peer]
+	if !exists {
+		if len(rl.peers) >= rl.cfg.MaxPeers {
+			return false
+		}
+
+		e = rl.order.PushBack(&peerWindow{peer: peer, start: now})
+		rl.peers[peer] = e
+	}
+
+	w := e.Value.(*peerWindow)
+	if !now.Before(w.start.Add(rl.cfg.Window)) {
+		w.start, w.count = now, 0
+	}
+
+	if now.Before(w.start) || w.count >= rl.cfg.Limit {
+		return false
+	}
+
+	w.count++
 
 	return true
 }
 
-func (rl *RateLimiter) cleanup() {
-	ticker := time.NewTicker(5 * time.Minute)
-	defer ticker.Stop()
-
-	for range ticker.C {
-		rl.mu.Lock()
-
-		now := time.Now()
-		windowStart := now.Add(-rl.window)
-
-		for ip, times := range rl.requests {
-			var valid []time.Time
-
-			for _, t := range times {
-				if t.After(windowStart) {
-					valid = append(valid, t)
-				}
-			}
-
-			if len(valid) == 0 {
-				delete(rl.requests, ip)
-			} else {
-				rl.requests[ip] = valid
-			}
-		}
-
-		rl.mu.Unlock()
+// Cleanup inspects at most one configured batch, retaining every live peer.
+func (rl *RateLimiter) Cleanup() int {
+	if rl == nil || rl.now == nil {
+		return 0
 	}
+
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	return rl.cleanupLocked(rl.now())
 }
 
-// RateLimit returns a middleware that rate limits requests.
+// RateLimit uses the existing explicit trusted-proxy ClientIP contract.
 func RateLimit(limiter *RateLimiter) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ip := ClientIP(r)
-			if !limiter.Allow(ip) {
+			if !limiter.Allow(ClientIP(r)) {
 				http.Error(w, "Too many requests", http.StatusTooManyRequests)
 
 				return
