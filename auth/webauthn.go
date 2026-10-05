@@ -350,6 +350,8 @@ func ValidAssertionCounter(previous, current uint32) bool {
 
 func (s *WebAuthnService) finishWebAuthn(ctx context.Context, token string, body []byte, required AccessRequirement) (*IssuedSession, error) {
 	if len(body) == 0 || len(body) > MaxEnrollmentBody {
+		securityClassification(ctx, SecurityInvalidProof)
+
 		return nil, ErrWebAuthn
 	}
 
@@ -392,6 +394,8 @@ func (s *WebAuthnService) finishWebAuthn(ctx context.Context, token string, body
 
 	parsed, err := parseAssertionResponse(body)
 	if err != nil || !slices.Contains(s.settings.Origins, parsed.Response.CollectedClientData.Origin) {
+		securityClassification(work, SecurityInvalidProof)
+
 		return nil, ErrWebAuthn
 	}
 

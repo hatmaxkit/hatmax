@@ -20,6 +20,11 @@ import (
 	"hatmax.adrianpk.com/model"
 )
 
+type panickingSecurityError struct{}
+
+func (panickingSecurityError) Error() string { return "private callback detail" }
+func (panickingSecurityError) Is(error) bool { panic("private callback detail") }
+
 type securityObserverFunc func(context.Context, SecurityEvent) error
 
 func (f securityObserverFunc) Observe(ctx context.Context, e SecurityEvent) error { return f(ctx, e) }
@@ -64,6 +69,7 @@ func TestSecurityDelivery(t *testing.T) {
 		{"rejected", func(context.Context, SecurityEvent) error { return ErrSecurityObservationRejected }, SecurityObservationDiagnostics{Rejected: 1}},
 		{"operating", func(context.Context, SecurityEvent) error { return errors.New("secret adapter detail") }, SecurityObservationDiagnostics{Operating: 1}},
 		{"panic", func(context.Context, SecurityEvent) error { panic("secret adapter detail") }, SecurityObservationDiagnostics{Operating: 1}},
+		{"error classification panic", func(context.Context, SecurityEvent) error { return panickingSecurityError{} }, SecurityObservationDiagnostics{Operating: 1}},
 		{"late success", func(ctx context.Context, _ SecurityEvent) error {
 			<-ctx.Done()
 
@@ -213,4 +219,91 @@ func FuzzSecurityEvent(f *testing.F) {
 			}
 		}
 	})
+}
+
+// The closed shape rejects injected references, unknown enums and fabricated completion.
+func TestSecurityShape(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		change func(*SecurityEvent)
+	}{
+		{"operation", func(e *SecurityEvent) { e.Operation = "request-selected" }},
+		{"outcome", func(e *SecurityEvent) { e.Outcome = "request-selected" }},
+		{"identity", func(e *SecurityEvent) { e.Subject = "raw@example.com" }},
+		{"long reference", func(e *SecurityEvent) { e.Record = strings.Repeat("a", 129) }},
+		{"newline", func(e *SecurityEvent) { e.Record = "safe\nprivate" }},
+		{"proof method", func(e *SecurityEvent) { e.Proof = ProofMethod(5) }},
+		{"unverified completion", func(e *SecurityEvent) { e.Outcome = SecurityAuthenticated }},
+		{"time", func(e *SecurityEvent) { e.OccurredAt = time.Time{} }},
+		{"timezone", func(e *SecurityEvent) { e.OccurredAt = e.OccurredAt.In(time.FixedZone("untrusted", 3600)) }},
+		{"bearer id", func(e *SecurityEvent) { e.ID = "token-derived" }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			event := securityTestEvent()
+			tc.change(&event)
+
+			err := event.Check()
+			if !errors.Is(err, ErrSecurityEvent) {
+				t.Fatal("unsafe shape accepted")
+			}
+
+			var calls int
+
+			s := observationForTest(t, securityObserverFunc(func(context.Context, SecurityEvent) error {
+				calls++
+
+				return nil
+			}), config.SecurityObservationConfig{})
+			s.observe(t.Context(), event)
+
+			if calls != 0 || s.Diagnostics().Operating != 1 {
+				t.Fatal("invalid event reached observer")
+			}
+		})
+	}
+}
+
+// Setup flags select explanatory pending state, never verified MFA or a session.
+func TestSecurityPendingOutcomes(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		required RequiredProof
+		enrolled bool
+		expected SecurityOutcome
+	}{
+		{"enrollment", RequireMFA, false, SecurityPendingEnrollment},
+		{"factor proof", RequireMFA, true, SecurityPendingProof},
+		{"unavailable method", RequirePhishingResistantMFA, true, SecurityDenied},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			q := newMockQueries()
+			svc := newServiceForTest(t, q, config.New(), log.NewTestLogger("error"))
+
+			user, err := svc.Signup(t.Context(), "session@example.com", "a distinct safe password")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			q.users[user.ID].TOTPEnabled = tc.enrolled
+
+			var events []SecurityEvent
+
+			svc.observations = observationForTest(t, securityObserverFunc(func(_ context.Context, event SecurityEvent) error {
+				events = append(events, event)
+
+				return nil
+			}), config.SecurityObservationConfig{})
+			required := testRequirement()
+			required.Proof = tc.required
+
+			result, err := svc.Signin(t.Context(), user.Email, "a distinct safe password", required)
+			if err != nil || result.Issued != nil || len(q.sessions) != 0 {
+				t.Fatal("pending password proof authorized access")
+			}
+
+			if len(events) != 1 || events[0].Outcome != tc.expected || events[0].Proof != PasswordProof {
+				t.Fatal("pending event manufactured MFA or duplicated")
+			}
+		})
+	}
 }

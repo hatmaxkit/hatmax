@@ -81,6 +81,7 @@ Record and execute finite checks with bounded per-worktree scratch:
 - Slice 3: `go test -run '^$' -fuzz '^FuzzRateLimitPeer$' -fuzztime=20s -parallel=2 -timeout=60s ./middleware`.
 - Slice 3: `go test -tags=browser -run '^$' ./examples/ticked/internal/web` verifies consumer construction only; actual browser journeys remain Slice 5.
 - Slice 4: `go test -tags=integration -race -run '^(TestSecurityObservationTransactions|TestCredentialTransactions|TestPasswordEntryBudgets|TestSessionTransactions|TestEnrollmentTransactions|TestWebAuthnTransactions|TestFallbackTransactions|TestFactorChanges|TestFactorAuthority|TestPasswordChangeTransactions|TestPasswordResetTransactions)$' -count=1 -timeout=240s ./examples/ticked/internal/feat/auth`.
+- Slice 4 provenance refinement: `go test -tags=integration -race -run '^(TestSecurityObservationTransactions|TestWebAuthnTransactions)$' -count=1 -timeout=180s ./examples/ticked/internal/feat/auth` checks malformed assertions after classification changes.
 - Slice 4: `go test -tags=integration -race -run '^(TestAuthenticationObservationTransactions|TestMailboxTransportTransactions|TestPasswordChangeTransportTransactions|TestPasswordResetTransportTransactions)$' -count=1 -timeout=180s ./examples/ticked/internal/web`.
 - Slice 4: `go test -run '^$' -fuzz '^FuzzSecurityEvent$' -fuzztime=20s -parallel=2 -timeout=60s ./auth`.
 - Slice 4: `go test -tags=browser -run '^$' ./examples/ticked/internal/web` verifies affected construction; real browser journeys remain Slice 5.

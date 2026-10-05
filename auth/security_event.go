@@ -248,6 +248,13 @@ func invokeSecurityObserver(observer SecurityObserver, ctx context.Context, even
 }
 
 func (s *SecurityObservations) deliveryError(err error) {
+	// Adapter error classification is also untrusted callback behavior.
+	defer func() {
+		if recover() != nil {
+			s.operating.Add(1)
+		}
+	}()
+
 	switch {
 	case errors.Is(err, context.DeadlineExceeded):
 		s.deadline.Add(1)
