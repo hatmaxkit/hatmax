@@ -1059,3 +1059,46 @@ within the owned fixture. They never approve proof, mint tokens or mutate factor
 This proves browser/library/adapter integration, not external mail delivery,
 hardware/attestation assurance, distributed anti-automation or all-factor-loss
 identity recovery.
+
+## Standalone credential admission
+
+`NewCredentialAdmission(queries, cfg)` validates
+`config.CredentialAdmissionConfig` and returns an immutable shared admission
+service. `Admit(ctx, canonicalIdentity, purpose)` commits one operation before
+lookup/checker/cryptography; `Cleanup(ctx)` removes at most its configured batch.
+Both honor earlier caller deadlines. Admission grants no proof or session and
+has no refund or retry operation. Identity must be valid UTF-8, 1–254 bytes without
+control characters; applications own canonicalization and alias convergence.
+
+Closed purposes are `CredentialRegistration` and `CredentialPasswordProof`.
+Known, inactive and unknown identities share durable accounting; no subject is
+created by admission. All operations, including later failed or canceled work,
+spend their accepted charge. Defaults are ten proof operations per ten-minute
+window with ten-minute cooldown, and three registrations per hour with one-hour
+cooldown. The final allowed charge sets cooldown; denial does not extend it.
+A new window starts only after window and cooldown end, including exact equality.
+Tightening does not erase counts; relaxing/restarting does not replenish a window.
+
+The caller implements `CredentialAdmissionQueries`. Ticked supplies
+`NewCredentialAdmissionStore(queries, namespace, key)` with typed PostgreSQL
+transactions and migration `009-credential-admission.sql`. Supply a stable
+1–64-byte namespace using letters, digits, dot, underscore or hyphen, and a
+separate application-owned 32–64-byte key; all
+replicas share them. The adapter copies the key and stores only private HMAC
+identity/binding values. A different key for an existing namespace is operating
+failure. Do not put the key in source, public configuration examples or logs.
+Private HMAC keys/digests are not authentication bearers or public event fields.
+
+Storage caps both purposes together at 10000 records by default (100–100000).
+Full capacity rejects new identities without live eviction; existing identities
+retain their counts. Cleanup is explicit, bounded and worker-free; applications
+own scheduling/cancellation. `ErrCredentialAdmissionAttempts` carries internal
+retry time through `CredentialAdmissionDenial`, while capacity and invalid state
+remain separate classifications. Do not disclose identity-specific retry time in
+unauthenticated responses or reinterpret storage failure as admitted work.
+
+This standalone service does not yet guard the existing password entrypoints.
+Their mandatory integration is a separate delivery increment. Current factor
+and recovery budgets, shared KDF limits and proof authority remain unchanged.
+Fixed-window admission does not implement cumulative authenticator disabling
+or establish an authentication assurance level.

@@ -279,3 +279,24 @@ Durations must use microsecond precision. Terminal token retention is fixed at
 24h. Notification retention and dispatch bounds belong to the application
 adapter. See the [mailbox reference](../authentication/README.md#mailbox-verification)
 and [password reset contract](../authentication/README.md#mailbox-password-reset).
+
+## Credential admission limits
+
+`credential_admission` supplies validated durable operation budgets. Optional
+zero fields resolve to defaults; explicit invalid values fail construction.
+`CredentialAdmissionSettings.Check` rejects unresolved or invalid adapter input.
+
+| Field | Default | Bound |
+| --- | --- | --- |
+| `password_attempts` | 10 | 1–20 |
+| `password_window`, `password_cooldown` | `10m` each | `1m`–`1h`, microsecond precision |
+| `registration_attempts` | 3 | 1–10 |
+| `registration_window`, `registration_cooldown` | `1h` each | `1m`–`1h`, microsecond precision |
+| `max_identities` | 10000 | 100–100000 across both purposes |
+| `timeout` | `1s` | `100ms`–`5s`, microsecond precision; earlier caller deadlines apply |
+| `cleanup_batch` | 1000 | 1–1000 retired records per call |
+
+Namespace/private key provisioning is an application adapter dependency, not a
+request field or core key-management service. Restart and access-policy changes
+cannot reset a live budget. These settings bound the standalone admission
+service; they do not yet install guards around existing password entrypoints.

@@ -19,7 +19,7 @@ Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
 Active slice: Slice 1 — Durable credential admission
 Execution gate: Open
 Plan: [Delivery plan](../plan/authentication-controls.md)
-Active tasks: T1.2
+Active tasks: None; Slice 1 review preparation
 
 ## Slice Status
 
@@ -35,8 +35,8 @@ Active tasks: T1.2
 
 | Task | Status | Expected commit | Commit |
 | --- | --- | --- | --- |
-| T1.1 | completed | `feat(auth): add shared credential admission` | pending |
-| T1.2 | active | `test(auth): verify credential admission transactions` | pending |
+| T1.1 | completed | `feat(auth): add shared credential admission` | `f32729cd06e0` |
+| T1.2 | completed | `test(auth): verify credential admission transactions` | pending |
 | T2.1 | pending | `feat(auth): guard password authentication paths` | pending |
 | T2.2 | pending | `test(auth): verify shared password entry budgets` | pending |
 | T3.1 | pending | `feat(auth): bound public authentication ingress` | pending |
@@ -79,3 +79,17 @@ Planning commit `989c4bbca7b0` is clean and pushed on dev. The recorded
 `feat/credential-admission` branch is active in its canonical worktree. Matching
 config/Go/SQL representations were settled in the approved companion model
 before runtime edits; private key/namespace have no outer-product justification.
+
+## Slice 1 Focused Evidence
+
+The recorded Go 1.27.1 race, real PostgreSQL 18.6 admission selector and finite
+identity-parser fuzz run passed on 2026-10-05. Two actual service instances
+admitted exactly ten of 24 concurrent proof requests. Separate registration,
+restart/key binding, captured policy, capacity, trusted retirement, bounded
+cleanup, renewal races, trigger fault rollback and caller lock deadlines passed.
+No user rows were manufactured. Exact commands and fixture storage costs belong
+to the Slice 1 report. AC-02/AC-03 have admission-layer evidence; their password
+entry and transport boundaries remain for later recorded slices.
+
+Licensing, vet, strict lint and documentation checks passed. The full integrated
+`make check` gate remains after five canonical merges.

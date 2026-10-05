@@ -15,7 +15,7 @@ Parent: [Authentication security foundation](authentication-security.md)
 Model: [Authentication controls model](authentication-controls-model.md)
 Prerequisites: [Sessions](authentication-sessions.md), [Authenticators](authenticators.md), [Account recovery](account-recovery.md)
 Inspected baseline: `74b4e86d4d3dd4829ad8da61f62fecdb0da187e1`
-Implementation status: Pending
+Implementation status: Partial
 Execution gate: Open
 
 ## Purpose and Ownership
@@ -267,3 +267,12 @@ without automatic sign-in and best-effort observation. The internal
 [tracker](../tracker/authentication-controls.md) record five slices and ten tasks.
 The parent remains partially implemented; all-factor-loss/lifecycle and consumer
 assurance boundaries are not closed by scope approval.
+
+## Implementation Coverage
+
+Slice 1 implements callable typed admission, validated settings and actual
+PostgreSQL private-key capacity/window transactions. Focused real storage, race
+and parser evidence passed. Mandatory password-entry wiring, finite public
+ingress, neutral transport, security observations and browser/integrated
+acceptance remain in the approved delivery map. This partial layer does not
+close AUTH-07 or the parent authentication foundation.
