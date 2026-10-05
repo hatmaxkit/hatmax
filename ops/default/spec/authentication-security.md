@@ -81,6 +81,10 @@ operations. Its [model](account-recovery-model.md) accompanies four delivered
 recovery slices and a successful exact integrated gate. The
 [recovery closure](../tracker/account-recovery.md#delivery-set-closure) records
 supported AUTH-06 delivery and the remaining consumer/assurance boundaries.
+The [proposed authentication controls concern](authentication-controls.md) and
+its [model](authentication-controls-model.md) refine the remaining AUTH-07
+credential admission, public outcome, finite ingress and event boundaries.
+Their execution gate is closed pending scope approval; no delivery is claimed.
 The complete foundation is not yet delivered.
 
 ## Inspected Gaps
