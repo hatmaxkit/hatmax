@@ -27,7 +27,7 @@ Active tasks: T3.1, T3.2
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Durable credential admission | delivered | `feat/credential-admission` | `feat(slice-1): add shared credential admission` | `#107` | `ops/default/report/slices/authentication-controls/slice-1-credential-admission.md` |
 | Slice 2 | Guarded password entry | delivered | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | `#108` | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
-| Slice 3 | Finite public authentication | active | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | pending | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
+| Slice 3 | Finite public authentication | reviewing | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | pending | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
 | Slice 4 | Security observations | pending | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | pending | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
 | Slice 5 | Controls acceptance | pending | `test/authentication-controls-acceptance` | `test(slice-5): verify authentication controls integration` | pending | `ops/default/report/slices/authentication-controls/slice-5-controls-acceptance.md` |
 
@@ -40,7 +40,7 @@ Active tasks: T3.1, T3.2
 | T2.1 | completed | `feat(auth): guard password authentication paths` | `dd425e7a244d` |
 | T2.2 | completed | `test(auth): verify shared password entry budgets` | `59ddb46fc792` |
 | T3.1 | completed | `feat(auth): bound public authentication ingress` | `24b86323236e` |
-| T3.2 | completed | `test(auth): verify neutral public authentication` | pending |
+| T3.2 | completed | `test(auth): verify neutral public authentication` | `fd0c0a41e80e` |
 | T4.1 | pending | `feat(auth): observe bounded security outcomes` | pending |
 | T4.2 | pending | `test(auth): verify security observation boundaries` | pending |
 | T5.1 | pending | `test(auth): exercise authentication controls journeys` | pending |
