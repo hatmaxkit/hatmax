@@ -8,7 +8,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Account Recovery Delivery Plan
 
 Date: 2026-10-04
-Status: Active
+Status: Completed
 Approved: 2026-10-04
 Delivery set: account-recovery
 Slice strategy: behavior-first
@@ -21,7 +21,7 @@ Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `cd9647584a004d2dd0563fe915654ffd316abb8e`
 Active slice: None
-Execution gate: Open
+Execution gate: Closed
 Go baseline: 1.27.1
 
 ## Approved Scope and Prerequisites
@@ -143,3 +143,25 @@ are completed. The remaining authorized step is one full `make check` for the
 immutable integrated dev candidate finalized by this documentary preparation.
 Record its exact commit and result before closing the set; do not broaden scope
 or repeat completed focused browser/database/parser checks without a new cause.
+
+
+## Delivery Set Closure
+
+All four canonical PRs (`#103`, `#104`, `#105`, `#106`) are merged, all four
+reports are delivered and all eight tasks have recorded commit mappings.
+The exact integrated dev candidate `9a8a245e7cf56c01699fda474fab74d47eb398ed` passed the single full
+`make check` on 2026-10-05 with Go 1.27.1 and owned PostgreSQL 18.6 in 44.936s.
+Aggregate coverage is 81.5% against the required 80%; strict lint found zero
+issues. The tracked working tree remained unchanged by validation. The owned
+database was stopped after completion and a zero-other-client check.
+
+AR-01 through AR-10 are satisfied for the approved scope, combining this exact
+aggregate gate with the separately recorded actual browser, PostgreSQL race,
+HTTP, rollback and parser evidence. No repository correction was required.
+This closure changes documentation only and does not create another gate candidate.
+
+Supported AUTH-06 mailbox verification and password change/reset are delivered.
+All-factor-loss identity proofing, broader account lifecycle, remaining AUTH-07
+and application/provider/physical-device assurance obligations remain outside
+this completed set. No slice, merge or validation step remains for this set;
+a new concern requires its own approved scope.

@@ -13,7 +13,7 @@ Approved: 2026-10-04
 Behavior: [Account lifecycle and password recovery](account-recovery.md)
 Parent model: [Authentication security model](authentication-security-model.md)
 Prerequisite models: [Sessions](authentication-sessions-model.md), [Authenticators](authenticators-model.md)
-Implementation status: Partial
+Implementation status: Implemented
 
 ## Ownership and Representation
 
@@ -22,7 +22,9 @@ tables, queries, canonical mailbox policy and mail/notification persistence.
 Use the existing subject, `CredentialState`, `AuthVersion`, session generations,
 factor bindings and versioned password record. Names below are logical contracts;
 the settled delivery representations below identify the implemented Go/SQL/wire
-contracts. All four slices are delivered; the integrated gate remains pending.
+contracts. All four slices and the exact integrated gate are complete; the
+[tracker closure](../tracker/account-recovery.md#delivery-set-closure) records
+candidate identity and the remaining assurance boundaries.
 
 ## Current Mailbox and Credential State
 

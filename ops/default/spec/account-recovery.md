@@ -17,8 +17,8 @@ Plan: [Delivery plan](../plan/account-recovery.md)
 Tracker: [Delivery tracker](../tracker/account-recovery.md)
 Prerequisites: [Authentication and sessions](authentication-sessions.md), [Authenticators](authenticators.md)
 Inspected baseline: `6e02dea9602e954ed9654b3ce2383049c32f808f`
-Implementation status: Partial
-Execution gate: Open
+Implementation status: Implemented
+Execution gate: Closed
 
 ## Purpose and Ownership
 
@@ -42,10 +42,11 @@ their own threat review; these password operations cannot authorize them.
 
 The linked prerequisite concerns and their delivery sets are complete. Mailbox
 verification, protected password change and one-use mailbox reset are delivered.
-Final browser acceptance and finite focused regression are implemented and
-validated in delivered Slice 4. The exact integrated delivery gate remains
-pending; the [tracker](../tracker/account-recovery.md#acceptance-evidence-map)
-maps the supported criteria and remaining assurance boundaries.
+All four slices and their reports are delivered. Actual browser acceptance and
+finite focused regression passed. Exact candidate `9a8a245e7cf56c01699fda474fab74d47eb398ed`
+passed the single full `make check` with 81.5% aggregate coverage and zero lint
+issues. The [tracker](../tracker/account-recovery.md#delivery-set-closure) records
+closure, the acceptance map and remaining assurance boundaries.
 
 - `auth.Service` owns the validated password policy and shared bounded verifier.
 - `auth.Queries.ReplacePassword` and the Ticked adapter check `CredentialState`,
@@ -260,6 +261,6 @@ The concern/model and implementation scope were approved on 2026-10-04,
 including the verified-mailbox prerequisite, verification-time session
 invalidation, recent-proof change policy, no-session-retention result, token
 representation, finite budgets and durable notification obligation. The internal
-four-slice plan records exact branches/tasks/reports and activates Slice 1.
-Approval authorizes this bounded set; it does not close broader AUTH-07 or
-all-factor-loss recovery. Implementation status remains Pending until delivery.
+four-slice plan records exact branches/tasks/reports. All four slices and the
+exact integrated gate are complete. This bounded delivery does not close broader
+AUTH-07, account lifecycle or all-factor-loss identity proofing.

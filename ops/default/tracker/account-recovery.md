@@ -8,7 +8,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Account Recovery Tracker
 
 Date: 2026-10-05
-Status: Active
+Status: Completed
 Approved: 2026-10-04
 Delivery set: account-recovery
 Plan: [Delivery plan](../plan/account-recovery.md)
@@ -19,7 +19,7 @@ Base branch: `dev`
 Planning base: `cd9647584a004d2dd0563fe915654ffd316abb8e`
 Active slice: None
 Active tasks: None
-Execution gate: Open
+Execution gate: Closed
 
 ## Slice Status
 
@@ -63,9 +63,9 @@ establish transaction semantics or production non-enumeration.
 - [x] Slice 2 merged and report delivered; recent-proof credential change evidence recorded.
 - [x] Slice 3 merged and report delivered; one-use reset/MFA preservation evidence recorded.
 - [x] Slice 4 merged and report delivered; actual browser acceptance and supported guidance recorded.
-- [x] AR-01 through AR-10 mapped to exact evidence, with integrated AR-10 gate explicitly pending.
-- [ ] Exact immutable integrated dev candidate passes `make check`.
-- [ ] Supported AUTH-06 coverage and remaining lifecycle/AUTH-07/consumer obligations recorded.
+- [x] AR-01 through AR-10 mapped to exact focused and integrated evidence.
+- [x] Exact immutable integrated dev candidate passes `make check`.
+- [x] Supported AUTH-06 coverage and remaining lifecycle/AUTH-07/consumer obligations recorded.
 
 ## Planning Validation
 
@@ -224,11 +224,11 @@ invalid old cookie; a consumed token cannot repeat the mutation.
 | AR-07 | `TestMailboxRecord` expiry equality; tagged mailbox/reset budget/expiry cases; `TestRecoveryBoundaries` deadline/owned release/retained cleanup; ingress unit/HTTP/browser cases | Applications invoke cleanup and deployment-wide admission |
 | AR-08 | `TestMailboxTransportTransactions`, `TestPasswordChangeTransportTransactions`, `TestPasswordResetTransportTransactions`; `TestAccountRecoveryBrowser` actual forms, fragment/GET, foreign origin and namespace isolation | Timing policy is not a production side-channel audit |
 | AR-09 | `TestMailboxDeliveryTransactions`; change/reset failure/notice cases; actual reset operator HTTP role/proof/version tests; browser dispatch/retry/operator/lost-response journey | Captured mail is not external delivery; retry may duplicate notices |
-| AR-10 | `make docs-check`, source licensing, vet, strict lint, example compilation, public/core/config/User Guide contracts; all focused selectors above | The exact immutable integrated dev `make check` remains after Slice 4 merge |
+| AR-10 | `make docs-check`, source licensing, vet, strict lint, example compilation, public/core/config/User Guide contracts; all focused selectors above | Exact integrated candidate passed `make check`; see [closure](#delivery-set-closure). External delivery/assurance remain consumer obligations |
 
-The map records all ten criteria while distinguishing focused evidence from the
-pending integrated gate. Final delivery requires the fourth verified merge and
-that one exact-candidate full check; this table does not close the set early.
+The map records all ten criteria with focused evidence and the successful exact
+integrated gate. The [closure](#delivery-set-closure) records candidate identity,
+aggregate result and the remaining consumer and assurance boundaries.
 
 ## Slice 4 Focused Closure
 
@@ -254,3 +254,25 @@ The documentary preparation commit finalizes the immutable integrated candidate.
 Run the approved full `make check` once with the owned database and bounded build
 scratch; record exact identity/result before marking this delivery set complete.
 The approved correction procedure applies only if a repository change is needed.
+
+
+## Delivery Set Closure
+
+All four canonical PRs (`#103`, `#104`, `#105`, `#106`) are merged, all four
+reports are delivered and all eight tasks have recorded commit mappings.
+The exact integrated dev candidate `9a8a245e7cf56c01699fda474fab74d47eb398ed` passed the single full
+`make check` on 2026-10-05 with Go 1.27.1 and owned PostgreSQL 18.6 in 44.936s.
+Aggregate coverage is 81.5% against the required 80%; strict lint found zero
+issues. The tracked working tree remained unchanged by validation. The owned
+database was stopped after completion and a zero-other-client check.
+
+AR-01 through AR-10 are satisfied for the approved scope, combining this exact
+aggregate gate with the separately recorded actual browser, PostgreSQL race,
+HTTP, rollback and parser evidence. No repository correction was required.
+This closure changes documentation only and does not create another gate candidate.
+
+Supported AUTH-06 mailbox verification and password change/reset are delivered.
+All-factor-loss identity proofing, broader account lifecycle, remaining AUTH-07
+and application/provider/physical-device assurance obligations remain outside
+this completed set. No slice, merge or validation step remains for this set;
+a new concern requires its own approved scope.

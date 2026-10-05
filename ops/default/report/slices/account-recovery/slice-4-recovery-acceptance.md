@@ -19,7 +19,8 @@ PR: `#106`
 Establish actual browser recovery journeys and finite final boundary regressions,
 then map the approved criteria to exact evidence. This is Slice 4 of 4 in the
 [plan](../../../plan/account-recovery.md) and [tracker](../../../tracker/account-recovery.md).
-The full integrated gate remains after this slice's verified merge.
+The full integrated gate passed after all four verified merges; exact evidence
+is recorded below and in the tracker closure.
 
 ## Delivered Behavior
 
@@ -114,15 +115,19 @@ Slices 1–3 supply actual token/proof/version/expiry/budget races, full fault r
 all-session/pending invalidation and retained WebAuthn/TOTP/replay/backup state.
 This slice reruns those affected production adapters and transports and adds
 actual browser recovery, lost-response and final finite boundary evidence.
-AR-10's focused documentation/consumer compilation checks pass; its one exact
-immutable integrated dev `make check` remains pending the fourth merge.
+AR-10's focused documentation/consumer compilation checks and full integrated
+gate passed. Exact integrated candidate `9a8a245e7cf56c01699fda474fab74d47eb398ed` passed
+`make check` on 2026-10-05 in 44.936s with Go 1.27.1 and owned PostgreSQL 18.6.
+Aggregate coverage was 81.5% (80% required), strict lint reported zero issues and
+the tracked working tree remained unchanged. The owned database was stopped
+after a zero-other-client check. This aggregate gate complements the tagged
+browser and adapter evidence above; those focused checks were not repeated.
 
 ## Risks and Follow-ups
 
-- After verified merge, deliver this report, finalize the immutable integrated
-  candidate and run one full `make check`. Do not mark the set or bounded AUTH-06
-  coverage closed before that result. Repository corrections use the approved
-  `fix/account-recovery-validation` branch and merge procedure only if needed.
+- All four merges and the exact integrated gate are complete. Supported AUTH-06
+  coverage is delivered; no repository correction was required. Broader lifecycle
+  and assurance work requires a separate approved concern.
 - Applications own trusted origins/RP/policy, active mail provider delivery,
   bounded cleanup/notice retry scheduling, trusted proxies and deployment-wide
   anti-automation. Neutral timing is not a production side-channel audit.

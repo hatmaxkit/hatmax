@@ -78,7 +78,9 @@ obligations. AUTH-06/AUTH-07 retain their broader recovery/lifecycle and
 attempt-control scope. The [approved account recovery concern](account-recovery.md) refines
 mailbox verification and password change/reset with the bounds needed for those
 operations. Its [model](account-recovery-model.md) accompanies four delivered
-recovery slices; the exact integrated gate remains pending.
+recovery slices and a successful exact integrated gate. The
+[recovery closure](../tracker/account-recovery.md#delivery-set-closure) records
+supported AUTH-06 delivery and the remaining consumer/assurance boundaries.
 The complete foundation is not yet delivered.
 
 ## Inspected Gaps
@@ -274,6 +276,6 @@ with its [model](authentication-sessions-model.md),
 [plan](../plan/authentication-sessions.md) and
 [tracker](../tracker/authentication-sessions.md). All three session slices and
 the exact integrated full gate are complete. The linked authenticator set is also
-complete. The [approved account recovery concern](account-recovery.md) is the current bounded
-AUTH-06 refinement. Lifecycle and remaining attempt-control work require their
+complete. The [completed account recovery concern](account-recovery.md) delivers
+the bounded AUTH-06 refinement. Lifecycle and remaining attempt-control work require their
 own approved concern and delivery plan.
