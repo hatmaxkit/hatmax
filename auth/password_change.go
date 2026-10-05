@@ -71,10 +71,7 @@ type PasswordChanged struct {
 	ChangedAt time.Time `json:"changedAt"`
 }
 
-// ChangePassword derives ownership exclusively from the real session bearer.
-// Admission commits before the shared checker/KDF, which run outside DB locks.
-// Failure never refunds admission; ambiguous commits are not retried.
-func (s *RecoveryService) ChangePassword(ctx context.Context, bearer, password string, policy PasswordChangePolicy) (*PasswordChanged, error) {
+func (s *RecoveryService) changePassword(ctx context.Context, bearer, password string, policy PasswordChangePolicy) (*PasswordChanged, error) {
 	if policy.Requirement.Proof == 0 {
 		policy.Requirement.Proof = RequirePhishingResistantMFA
 	}
@@ -115,6 +112,8 @@ func (s *RecoveryService) ChangePassword(ctx context.Context, bearer, password s
 		return nil, err
 	}
 
+	securityActor(work, pending.Actor)
+
 	passwordWork, passwordCancel := context.WithTimeout(work, s.base.passwordTimeout)
 	defer passwordCancel()
 
@@ -134,7 +133,13 @@ func (s *RecoveryService) ChangePassword(ctx context.Context, bearer, password s
 	}
 
 	if result == nil || result.Subject != pending.Actor.UserID || result.ChangedAt.IsZero() {
+		securityClassification(work, SecurityOperatingUnknown)
+
 		return nil, ErrRecoveryUnavailable
+	}
+
+	if work.Err() != nil {
+		return nil, work.Err()
 	}
 
 	return result, nil

@@ -21,6 +21,7 @@ import (
 
 // Config holds the application configuration.
 type Config struct {
+	SecurityObservation   SecurityObservationConfig   `koanf:"security_observation"`
 	Log                   LogConfig                   `koanf:"log"`
 	Server                ServerConfig                `koanf:"server"`
 	Database              DatabaseConfig              `koanf:"database"`
@@ -334,6 +335,8 @@ func Load(path, envPrefix string, args []string) (*Config, error) {
 	fs.String("credential_admission.registration_window", "1h", "Registration admission window")
 	fs.String("credential_admission.registration_cooldown", "1h", "Registration admission cooldown")
 	fs.String("credential_admission.timeout", "1s", "Shared credential admission operation timeout")
+	fs.String("security_observation.timeout", "100ms", "Maximum synchronous security observation time")
+	fs.Int("security_observation.concurrency", 2, "Maximum simultaneous security observations")
 	fs.Int("authentication_ingress.peer_requests", 12, "Authentication requests per peer window")
 	fs.String("authentication_ingress.peer_window", "1m", "Authentication peer admission window")
 	fs.Int("authentication_ingress.max_peers", 1024, "Maximum live authentication peers")
@@ -433,6 +436,11 @@ func (c *Config) Validate() error {
 	}
 
 	_, err = c.Recovery.RecoverySettings()
+	if err != nil {
+		return err
+	}
+
+	_, err = c.SecurityObservation.SecurityObservationSettings()
 	if err != nil {
 		return err
 	}

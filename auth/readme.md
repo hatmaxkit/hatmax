@@ -24,7 +24,10 @@ applies policy at signup, and uses the versioned model verifier.
 // Create shared durable admission and a service with your Queries implementation.
 admission, err := auth.NewCredentialAdmission(admissionQueries, cfg.CredentialAdmission)
 if err != nil { return err }
-svc, err := auth.NewService(queries, cfg, checker, admission, log)
+// Supply a cooperative, concurrency-safe observer; discard explicitly only when appropriate.
+observations, err := auth.NewSecurityObservations(observer, cfg.SecurityObservation)
+if err != nil { return err }
+svc, err := auth.NewService(queries, cfg, checker, admission, observations, log)
 if err != nil { return err }
 
 // Signup

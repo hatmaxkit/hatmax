@@ -139,7 +139,7 @@ func TestCredentialTransactions(t *testing.T) {
 	t.Run("simultaneous Unicode signup", func(t *testing.T) {
 		db, q, cfg := credentialDatabase(t)
 
-		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
+		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), securityObservationsForTest(t), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -190,7 +190,7 @@ func TestCredentialTransactions(t *testing.T) {
 	t.Run("conditional replacement", func(t *testing.T) {
 		db, q, cfg := credentialDatabase(t)
 
-		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
+		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), securityObservationsForTest(t), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -273,7 +273,7 @@ func TestCredentialTransactions(t *testing.T) {
 	t.Run("mutation before session commit", func(t *testing.T) {
 		db, q, cfg := credentialDatabase(t)
 
-		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
+		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), securityObservationsForTest(t), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -304,7 +304,7 @@ func TestCredentialTransactions(t *testing.T) {
 			return changeErr
 		}}
 
-		staleSvc, err := core.NewService(changing, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
+		staleSvc, err := core.NewService(changing, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), securityObservationsForTest(t), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -324,7 +324,7 @@ func TestCredentialTransactions(t *testing.T) {
 	t.Run("row lock and activation cycle", func(t *testing.T) {
 		db, q, cfg := credentialDatabase(t)
 
-		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
+		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), securityObservationsForTest(t), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -400,7 +400,7 @@ func TestCredentialTransactions(t *testing.T) {
 	t.Run("replacement rollback", func(t *testing.T) {
 		db, q, cfg := credentialDatabase(t)
 
-		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
+		svc, err := core.NewService(q, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), securityObservationsForTest(t), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -144,7 +144,7 @@ func runAuthenticatorBrowser(t *testing.T, recovery bool) {
 	q, cfg := browserQueries(t)
 	logger := log.NewTestLogger("error")
 
-	base, err := auth.NewService(q, cfg, featureauth.NewPasswordChecker(), webCredentialAdmission(t, q, cfg.CredentialAdmission), logger)
+	base, err := auth.NewService(q, cfg, featureauth.NewPasswordChecker(), webCredentialAdmission(t, q, cfg.CredentialAdmission), webSecurityObservations(t), logger)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -44,7 +44,10 @@ admission service; never substitute a process-local counter.
 ```go
 admission, err := auth.NewCredentialAdmission(admissionQueries, cfg.CredentialAdmission)
 if err != nil { return err }
-account, err := auth.NewService(queries, cfg, checker, admission, logger)
+// Supply a cooperative, concurrency-safe observer; discard explicitly only when appropriate.
+observations, err := auth.NewSecurityObservations(observer, cfg.SecurityObservation)
+if err != nil { return err }
+account, err := auth.NewService(queries, cfg, checker, admission, observations, logger)
 if err != nil { return err }
 ```
 

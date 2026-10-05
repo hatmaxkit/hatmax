@@ -52,7 +52,7 @@ func newEntryFixture(t *testing.T, attempts int) entryFixture {
 	cfg.CredentialAdmission.PasswordAttempts = attempts
 	cfg.CredentialAdmission.RegistrationAttempts = 2
 	observed := &entryQueries{Queries: q}
-	base, err := core.NewService(observed, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
+	base, err := core.NewService(observed, cfg, NewPasswordChecker(), credentialAdmissionForTest(t, q, cfg.CredentialAdmission), securityObservationsForTest(t), log.NewTestLogger("error"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +91,7 @@ func (q lostEntryAdmission) ChargeCredentialAdmission(ctx context.Context, ident
 func TestPasswordEntryBudgets(t *testing.T) {
 	t.Run("unknown cross-path race", func(t *testing.T) {
 		f := newEntryFixture(t, 4)
-		second, err := core.NewService(f.q, f.cfg, NewPasswordChecker(), credentialAdmissionForTest(t, f.q.Queries, f.cfg.CredentialAdmission), log.NewTestLogger("error"))
+		second, err := core.NewService(f.q, f.cfg, NewPasswordChecker(), credentialAdmissionForTest(t, f.q.Queries, f.cfg.CredentialAdmission), securityObservationsForTest(t), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -238,7 +238,7 @@ func TestPasswordEntryBudgets(t *testing.T) {
 			_, err := f.db.ExecContext(ctx, "UPDATE users SET auth_version=auth_version+1")
 			return err
 		}}
-		svc, err := core.NewService(changed, f.cfg, NewPasswordChecker(), credentialAdmissionForTest(t, f.q.Queries, f.cfg.CredentialAdmission), log.NewTestLogger("error"))
+		svc, err := core.NewService(changed, f.cfg, NewPasswordChecker(), credentialAdmissionForTest(t, f.q.Queries, f.cfg.CredentialAdmission), securityObservationsForTest(t), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -285,7 +285,7 @@ func TestPasswordEntryBudgets(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		svc, err := core.NewService(f.q, f.cfg, NewPasswordChecker(), admission, log.NewTestLogger("error"))
+		svc, err := core.NewService(f.q, f.cfg, NewPasswordChecker(), admission, securityObservationsForTest(t), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -311,7 +311,7 @@ func TestPasswordEntryBudgets(t *testing.T) {
 			calls.Add(1)
 			return false, errors.New("fixture checker failure")
 		}}
-		svc, err := core.NewService(f.q, f.cfg, checker, credentialAdmissionForTest(t, f.q.Queries, f.cfg.CredentialAdmission), log.NewTestLogger("error"))
+		svc, err := core.NewService(f.q, f.cfg, checker, credentialAdmissionForTest(t, f.q.Queries, f.cfg.CredentialAdmission), securityObservationsForTest(t), log.NewTestLogger("error"))
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -233,6 +233,10 @@ func (s *FactorService) actor(ctx context.Context, token string, policy FactorPo
 
 	actor, err := s.enrollment.credentials.ValidateSession(ctx, token, policy.Management, NoActivity)
 
+	if err == nil && actor != nil {
+		securityActor(ctx, actor.Session)
+	}
+
 	return actor, digest, err
 }
 func (s *FactorService) List(ctx context.Context, token string, policy FactorPolicy) ([]Factor, error) {
@@ -274,8 +278,7 @@ func (s *FactorService) pending(ctx context.Context, token string, kind FactorKi
 	return p, wire, actor.User.Email, nil
 }
 
-// BeginWebAuthnChange adds or replaces a factor under actual recent management proof.
-func (s *FactorService) BeginWebAuthnChange(ctx context.Context, token string, target FactorSelection, policy FactorPolicy) (*EnrollmentChallenge, error) {
+func (s *FactorService) beginWebAuthnChange(ctx context.Context, token string, target FactorSelection, policy FactorPolicy) (*EnrollmentChallenge, error) {
 	policy = s.policy(policy)
 
 	work, cancel := context.WithTimeout(ctx, s.enrollment.settings.Timeout)
@@ -320,7 +323,7 @@ func (s *FactorService) BeginWebAuthnChange(ctx context.Context, token string, t
 
 	return &EnrollmentChallenge{Token: wire, Options: options}, nil
 }
-func (s *FactorService) BeginTOTPChange(ctx context.Context, token string, target FactorSelection, policy FactorPolicy) (*TOTPSetup, error) {
+func (s *FactorService) beginTOTPChange(ctx context.Context, token string, target FactorSelection, policy FactorPolicy) (*TOTPSetup, error) {
 	policy = s.policy(policy)
 	if s.fallback == nil {
 		return nil, ErrFactorChange
@@ -411,6 +414,8 @@ func (s *FactorService) finish(ctx context.Context, actorToken, token string, ki
 		return nil, err
 	}
 
+	securityActor(work, p.Actor)
+
 	record := FactorChangeRecord{}
 	if kind == FactorWebAuthn {
 		record.Registration, err = s.enrollment.registration(EnrollmentPending{RPID: p.RPID, Handle: p.Handle, Ceremony: p.Ceremony, CreatedAt: p.CreatedAt, ExpiresAt: p.ExpiresAt}, body)
@@ -458,17 +463,17 @@ func (s *FactorService) finish(ctx context.Context, actorToken, token string, ki
 
 	return result, nil
 }
-func (s *FactorService) FinishWebAuthnChange(ctx context.Context, actorToken, token string, body []byte, policy FactorPolicy) (*FactorChangeResult, error) {
+func (s *FactorService) finishWebAuthnChange(ctx context.Context, actorToken, token string, body []byte, policy FactorPolicy) (*FactorChangeResult, error) {
 	return s.finish(ctx, actorToken, token, FactorWebAuthn, body, "", policy)
 }
-func (s *FactorService) FinishTOTPChange(ctx context.Context, actorToken, token, code string, policy FactorPolicy) (*FactorChangeResult, error) {
+func (s *FactorService) finishTOTPChange(ctx context.Context, actorToken, token, code string, policy FactorPolicy) (*FactorChangeResult, error) {
 	if len(code) != 6 {
 		return nil, ErrFactorChange
 	}
 
 	return s.finish(ctx, actorToken, token, FactorTOTP, nil, code, policy)
 }
-func (s *FactorService) Remove(ctx context.Context, token string, target FactorSelection, policy FactorPolicy) (*FactorChangeResult, error) {
+func (s *FactorService) remove(ctx context.Context, token string, target FactorSelection, policy FactorPolicy) (*FactorChangeResult, error) {
 	policy = s.policy(policy)
 
 	if target.Check() != nil {

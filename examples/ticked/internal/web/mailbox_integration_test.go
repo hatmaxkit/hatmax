@@ -111,7 +111,7 @@ func mailboxHTTPDatabase(t *testing.T) (*sql.DB, *authfeat.Queries, *core.Servic
 	if err != nil {
 		t.Fatal(err)
 	}
-	base, err := core.NewService(queries, cfg, authfeat.NewPasswordChecker(), webCredentialAdmission(t, queries, cfg.CredentialAdmission), log.NewTestLogger("error"))
+	base, err := core.NewService(queries, cfg, authfeat.NewPasswordChecker(), webCredentialAdmission(t, queries, cfg.CredentialAdmission), webSecurityObservations(t), log.NewTestLogger("error"))
 	if err != nil {
 		t.Fatal(err)
 	}

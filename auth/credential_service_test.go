@@ -35,7 +35,7 @@ func TestCredentialServiceConfig(t *testing.T) {
 				tc.change(cfg)
 			}
 
-			svc, err := NewService(newMockQueries(), cfg, tc.checker, newAdmissionForTest(t), log.NewTestLogger("error"))
+			svc, err := NewService(newMockQueries(), cfg, tc.checker, newAdmissionForTest(t), securityObservationsForTest(t), log.NewTestLogger("error"))
 			if err == nil || svc != nil {
 				t.Fatal("invalid credential setup was accepted")
 			}
@@ -73,7 +73,7 @@ func TestCredentialServicePolicy(t *testing.T) {
 			})
 			q := newMockQueries()
 
-			svc, err := NewService(q, cfg, checker, newAdmissionForTest(t), log.NewTestLogger("error"))
+			svc, err := NewService(q, cfg, checker, newAdmissionForTest(t), securityObservationsForTest(t), log.NewTestLogger("error"))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -164,7 +164,7 @@ func TestCredentialAdmissionRequired(t *testing.T) {
 		{"missing", nil}, {"uninitialized", &CredentialAdmission{}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			svc, err := NewService(newMockQueries(), config.New(), passwordCheckerFunc(func(context.Context, string) (bool, error) { return false, nil }), tc.admission, log.NewTestLogger("error"))
+			svc, err := NewService(newMockQueries(), config.New(), passwordCheckerFunc(func(context.Context, string) (bool, error) { return false, nil }), tc.admission, securityObservationsForTest(t), log.NewTestLogger("error"))
 			if err == nil || svc != nil {
 				t.Fatal("unguarded construction accepted")
 			}

@@ -165,7 +165,7 @@ func testPasswordChangeKDF(t *testing.T) {
 		case <-ctx.Done():
 			return false, ctx.Err()
 		}
-	}}, credentialAdmissionForTest(t, q, cfg.CredentialAdmission), log.NewTestLogger("error"))
+	}}, credentialAdmissionForTest(t, q, cfg.CredentialAdmission), securityObservationsForTest(t), log.NewTestLogger("error"))
 	if err != nil {
 		t.Fatal(err)
 	}

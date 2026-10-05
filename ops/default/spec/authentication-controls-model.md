@@ -247,3 +247,40 @@ outcomes navigate to normal sign-in without a cookie. Public password denial
 uses one fixed response policy without raw identities/errors or identity retry
 time. Registration operating failures use a uniform non-authorizing unavailable
 response at the same target; shutdown cancellation also returns unavailable. `ErrUserInactive` supplies the missing stable core classification.
+
+## Slice 4 Settled Representations
+
+`config.SecurityObservationConfig` and `SecurityObservationSettings` resolve
+`security_observation.timeout` (default 100ms, 1–100ms) and `concurrency`
+(default 2, 1–16). `NewSecurityObservations(observer, cfg)` requires a caller-owned
+`SecurityObserver`; `DiscardSecurityObserver` is an explicit no-audit adapter.
+`NewService(queries, cfg, checker, admission, observations, logger)` requires one
+initialized observation instance, inherited by enrollment, WebAuthn, fallback,
+factor and recovery services. Ticked supplies one application logger adapter.
+
+`SecurityEvent` has closed string operation/outcome types, an independent UUID,
+UTC occurrence time, optional subject/record IDs and optional `ProofMethod`.
+Event-only IDs accept ASCII letters, digits, underscore and hyphen up to 128
+bytes; invalid trusted references are omitted. Checked JSON is at most 1024
+bytes. Outcomes separate committed mutation, completed session authentication,
+pending issuance/enrollment/proof, denial reasons and operating/unknown results.
+Existing neutral error identities remain intact; private operation facts preserve
+more precise classifications when a public error intentionally merges causes.
+No reference is copied from a bearer or request-selected target.
+
+Public entrypoints wrap private synchronous implementations. Package-private
+attempt facts capture only trusted loaded/reserved state and actual verifier
+results. The wrapper observes after all operation defers, leases and callback
+slots are released, using the original caller context. Internal helpers never
+observe. Session lookup, listing, cleanup, page GET and transport rejections
+before a core entrypoint do not generate core mutation events.
+
+`SecurityObservations` owns a finite non-waiting channel and fixed atomic counters
+for delivered, saturated, rejected, canceled, deadline and operating delivery.
+It invokes the observer synchronously with the lesser configured timeout or a
+deadline strictly before the caller's deadline. No worker, queue or retry is
+started. Success is checked again against cancellation/deadline after callback
+return; panic and arbitrary adapter errors become bounded operating diagnostics.
+Callback re-entry can consume remaining slots but cannot wait for a slot.
+Consumer cancellation cooperation remains mandatory. Recovery notification
+transactions and authentication return values remain independent of delivery.

@@ -57,7 +57,7 @@ func TestPasswordChangeAdmission(t *testing.T) {
 		case <-ctx.Done():
 			return false, ctx.Err()
 		}
-	}), newAdmissionForTest(t), log.NewTestLogger("error"))
+	}), newAdmissionForTest(t), securityObservationsForTest(t), log.NewTestLogger("error"))
 	if err != nil {
 		t.Fatal(err)
 	}

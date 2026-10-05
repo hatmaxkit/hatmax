@@ -41,8 +41,8 @@ Active tasks: T4.1, T4.2
 | T2.2 | completed | `test(auth): verify shared password entry budgets` | `59ddb46fc792` |
 | T3.1 | completed | `feat(auth): bound public authentication ingress` | `24b86323236e` |
 | T3.2 | completed | `test(auth): verify neutral public authentication` | `fd0c0a41e80e` |
-| T4.1 | active | `feat(auth): observe bounded security outcomes` | pending |
-| T4.2 | pending | `test(auth): verify security observation boundaries` | pending |
+| T4.1 | completed | `feat(auth): observe bounded security outcomes` | pending |
+| T4.2 | active | `test(auth): verify security observation boundaries` | pending |
 | T5.1 | pending | `test(auth): exercise authentication controls journeys` | pending |
 | T5.2 | pending | `test(auth): close authentication controls evidence` | pending |
 
@@ -148,5 +148,19 @@ remains after all five canonical merges.
 Slice 3 PR #109 is canonically merged into dev at `26613b55a897`; its report
 is delivered. Slice 4 is active under the approved continuation map. Both task commits and focused
 checks are recorded; its PR links immutable report introduction `4ab28ddd0bc4`.
-After verified merge, close Slice 3 on dev and immediately execute recorded
-Slice 4. No additional scope, main alignment or release is authorized.
+Slice 3 is closed on dev; recorded Slice 4 is executing. No additional scope, main alignment or release is authorized.
+
+## Slice 4 Implementation Evidence
+
+T4.1 implements one required typed observer shared by all actual authentication
+services, closed bounded events, trusted private operation facts and post-defers
+synchronous delivery. Finite non-waiting callback slots, caller-shorter deadlines,
+fixed atomic diagnostics, late-success rejection and re-entry preserve authority.
+The application supplies its observer; discard is explicit and has no audit
+assurance. Actual adapter/browser consumer construction compiles.
+
+Go 1.27.1 six-package race, source licensing, vet, strict lint and documentation
+checks passed. Configuration bounds, callback saturation/re-entry/cancellation
+and finite shape fuzz seeds passed. Actual PostgreSQL provenance and retained
+security authority remain the recorded T4.2 task. Full integrated validation
+remains after five canonical merges.

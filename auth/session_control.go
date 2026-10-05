@@ -103,9 +103,7 @@ func SessionCursor(id string) (string, error) {
 	return base64.RawURLEncoding.EncodeToString([]byte(id)), nil
 }
 
-// Reauthenticate repeats actual password verification and atomically rotates a
-// live session. Current proof may be old, but current policy and expiry still hold.
-func (s *Service) Reauthenticate(ctx context.Context, token, password string, requirement AccessRequirement) (*AuthenticationResult, error) {
+func (s *Service) reauthenticate(ctx context.Context, token, password string, requirement AccessRequirement) (*AuthenticationResult, error) {
 	err := requirement.Check(s.sessions.TTL)
 	if err != nil {
 		return nil, err
@@ -121,6 +119,9 @@ func (s *Service) Reauthenticate(ctx context.Context, token, password string, re
 	if err != nil {
 		return nil, err
 	}
+
+	securitySubject(workCtx, current.User.ID)
+	securityRecord(workCtx, current.Session.ID)
 
 	if requirement.Proof != RequirePassword {
 		return unmetRequirement(current.User, requirement.Proof), nil
@@ -143,6 +144,8 @@ func (s *Service) Reauthenticate(ctx context.Context, token, password string, re
 	if err != nil {
 		return nil, fmt.Errorf("cannot verify password: %w", err)
 	}
+
+	securityProof(workCtx, PasswordProof)
 
 	now := time.Now().UTC().Truncate(time.Microsecond)
 
@@ -227,8 +230,7 @@ func (s *Service) ListSessions(ctx context.Context, token string, requirement Ac
 	return page, nil
 }
 
-// RevokeSessions atomically revalidates the actor and deletes only its selected sessions.
-func (s *Service) RevokeSessions(ctx context.Context, token string, requirement AccessRequirement, selection SessionSelection) (int64, error) {
+func (s *Service) revokeSessions(ctx context.Context, token string, requirement AccessRequirement, selection SessionSelection) (int64, error) {
 	requirement, err := s.managementRequirement(requirement)
 	if err != nil {
 		return 0, err

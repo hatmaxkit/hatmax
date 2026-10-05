@@ -460,7 +460,7 @@ func TestPublicAuthenticationTransactions(t *testing.T) {
 	cfg.AuthenticationIngress.PeerRequests = 1000
 	capture := &ingressLog{}
 
-	base, err := core.NewService(queries, cfg, authfeat.NewPasswordChecker(), webCredentialAdmission(t, queries, cfg.CredentialAdmission), capture)
+	base, err := core.NewService(queries, cfg, authfeat.NewPasswordChecker(), webCredentialAdmission(t, queries, cfg.CredentialAdmission), webSecurityObservations(t), capture)
 	if err != nil {
 		t.Fatal(err)
 	}

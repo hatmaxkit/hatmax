@@ -17,15 +17,11 @@ type PasswordReset struct {
 	ResetAt time.Time `json:"resetAt"`
 }
 
-// RequestPasswordReset returns a transient token only to trusted application mail
-// dispatch, after issuance commits against the previously verified current mailbox.
-func (s *RecoveryService) RequestPasswordReset(ctx context.Context, mailbox string) (*MailboxIssue, error) {
+func (s *RecoveryService) requestPasswordReset(ctx context.Context, mailbox string) (*MailboxIssue, error) {
 	return s.requestMailbox(ctx, mailbox, ResetPassword)
 }
 
-// ResetPassword proves the actual one-use mailbox secret before candidate work.
-// It cannot activate an account, change MFA or issue an authentication session.
-func (s *RecoveryService) ResetPassword(ctx context.Context, bearer, password string) (*PasswordReset, error) {
+func (s *RecoveryService) resetPassword(ctx context.Context, bearer, password string) (*PasswordReset, error) {
 	if len(password) > s.base.policy.config.MaxBytes {
 		return nil, ErrPasswordTooLong
 	}
@@ -55,6 +51,9 @@ func (s *RecoveryService) ResetPassword(ctx context.Context, bearer, password st
 		return nil, ErrRecoveryUnavailable
 	}
 
+	securitySubject(work, pending.State.UserID)
+	securityRecord(work, pending.ID)
+
 	passwordWork, passwordCancel := context.WithTimeout(work, s.base.passwordTimeout)
 	defer passwordCancel()
 
@@ -74,7 +73,13 @@ func (s *RecoveryService) ResetPassword(ctx context.Context, bearer, password st
 	}
 
 	if result == nil || result.Subject != pending.State.UserID || result.ResetAt.IsZero() {
+		securityClassification(work, SecurityOperatingUnknown)
+
 		return nil, ErrRecoveryUnavailable
+	}
+
+	if work.Err() != nil {
+		return nil, work.Err()
 	}
 
 	return result, nil

@@ -339,3 +339,19 @@ acknowledgment target. It closes admissions and cancels request contexts before
 infrastructure shutdown. Canceled acknowledgment waits release active capacity.
 Syntax/body, peer/active capacity and origin errors may differ before account
 lookup; public password failures carry no account-specific retry information.
+
+## Security observation
+
+`security_observation` supplies `SecurityObservationConfig` to
+`NewSecurityObservations`. Invalid values fail construction and `Config.Validate`.
+
+| Field | Default | Bound |
+| --- | --- | --- |
+| `timeout` | `100ms` | `1ms`–`100ms`, bounded by the caller deadline |
+| `concurrency` | 2 | 1–16 callbacks, non-waiting admission |
+
+Zero optional fields select defaults. The application supplies one cooperative,
+concurrency-safe observer shared by authentication services. Neither constructor
+starts a worker. Saturation skips callback invocation and increments a fixed
+diagnostic counter; callback failure cannot change authentication authority.
+See the [security observation contract](../authentication/README.md#security-observations).

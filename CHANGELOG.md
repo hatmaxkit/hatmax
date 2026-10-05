@@ -25,7 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Its authentication routes also bound peers, active requests and body reads.
   Registration directs new and duplicate addresses to normal sign-in without
   automatically signing in; public password failures share one response and
-  acknowledgment target.
+  acknowledgment target. Applications can also observe classified authentication
+  outcomes through a shared bounded callback that excludes credentials and raw
+  identities; delivery failures leave authentication results unchanged.
 
 - Users with a verified current mailbox can reset a forgotten password through
   a bounded one-use email link. Reset signs out every session while preserving

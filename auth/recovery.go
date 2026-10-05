@@ -54,9 +54,7 @@ func NewRecoveryService(base *Service, queries RecoveryQueries, cfg config.Recov
 	return &RecoveryService{base: base, queries: queries, settings: settings, policyRevision: policyRevision}, nil
 }
 
-// RequestMailboxVerification resolves only the caller's canonical current address.
-// Applications map unavailable/budget outcomes to the same public acknowledgment.
-func (s *RecoveryService) RequestMailboxVerification(ctx context.Context, mailbox string) (*MailboxIssue, error) {
+func (s *RecoveryService) requestMailboxVerification(ctx context.Context, mailbox string) (*MailboxIssue, error) {
 	return s.requestMailbox(ctx, mailbox, VerifyMailbox)
 }
 
@@ -70,6 +68,8 @@ func (s *RecoveryService) requestMailbox(ctx context.Context, mailbox string, pu
 
 	user, err := s.base.queries.GetUserByEmail(work, mailbox)
 	if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrUserNotFound) {
+		securityClassification(work, SecurityMissing)
+
 		return nil, ErrRecoveryUnavailable
 	}
 
@@ -78,8 +78,19 @@ func (s *RecoveryService) requestMailbox(ctx context.Context, mailbox string, pu
 	}
 
 	if user == nil || !user.Active || user.Email != mailbox || purpose == ResetPassword && (user.MailboxVerifiedAt == nil || user.MailboxVerifiedAt.IsZero() || user.MailboxVerifiedAt.After(time.Now().UTC())) {
+		outcome := SecurityPolicyRejected
+		if user == nil || user.Email != mailbox {
+			outcome = SecurityOperatingUnknown
+		} else if !user.Active {
+			outcome = SecurityInactive
+		}
+
+		securityClassification(work, outcome)
+
 		return nil, ErrRecoveryUnavailable
 	}
+
+	securitySubject(work, user.ID)
 
 	token, err := newRecoveryToken()
 	if err != nil {
@@ -114,11 +125,12 @@ func (s *RecoveryService) requestMailbox(ctx context.Context, mailbox string, pu
 		return nil, work.Err()
 	}
 
+	securityRecord(work, record.ID)
+
 	return &MailboxIssue{Token: token, Target: record.Target, ExpiresAt: record.ExpiresAt}, nil
 }
 
-// ConfirmMailboxVerification never creates a session or authorizes factor management.
-func (s *RecoveryService) ConfirmMailboxVerification(ctx context.Context, bearer string) (*MailboxVerification, error) {
+func (s *RecoveryService) confirmMailboxVerification(ctx context.Context, bearer string) (*MailboxVerification, error) {
 	token, err := ParseRecoveryToken(bearer)
 	if err != nil {
 		return nil, err
@@ -145,13 +157,22 @@ func (s *RecoveryService) ConfirmMailboxVerification(ctx context.Context, bearer
 		return nil, ErrRecoveryUnavailable
 	}
 
+	securitySubject(work, pending.State.UserID)
+	securityRecord(work, pending.ID)
+
 	result, err := s.queries.ConfirmMailbox(work, *pending, s.policyRevision, s.settings)
 	if err != nil {
 		return nil, err
 	}
 
 	if result == nil || result.Subject != pending.State.UserID || result.VerifiedAt.IsZero() {
+		securityClassification(work, SecurityOperatingUnknown)
+
 		return nil, ErrRecoveryUnavailable
+	}
+
+	if work.Err() != nil {
+		return nil, work.Err()
 	}
 
 	return result, nil

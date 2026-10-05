@@ -61,6 +61,12 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	observations, err := auth.NewSecurityObservations(authfeat.SecurityLogger{Logger: logger}, cfg.SecurityObservation)
+	if err != nil {
+		logger.Errorf("Cannot initialize security observations")
+		os.Exit(1)
+	}
+
 	ingress, err := tickedweb.NewAuthenticationIngress(cfg)
 	if err != nil {
 		logger.Errorf("Cannot initialize authentication ingress")
@@ -112,7 +118,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	baseAuthSvc, err := auth.NewService(authQueries, cfg, authfeat.NewPasswordChecker(), admission, logger)
+	baseAuthSvc, err := auth.NewService(authQueries, cfg, authfeat.NewPasswordChecker(), admission, observations, logger)
 	if err != nil {
 		logger.Errorf("Cannot initialize authentication: %v", err)
 		os.Exit(1)

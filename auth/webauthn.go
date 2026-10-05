@@ -10,6 +10,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -214,8 +215,7 @@ func assertionCredentials(factors []WebAuthnFactor) ([]webauthn.Credential, erro
 	return result, nil
 }
 
-// BeginWebAuthnAuthentication is subject-first and does not grant access.
-func (s *WebAuthnService) BeginWebAuthnAuthentication(ctx context.Context, email string, required AccessRequirement) (*AssertionChallenge, error) {
+func (s *WebAuthnService) beginWebAuthnAuthentication(ctx context.Context, email string, required AccessRequirement) (*AssertionChallenge, error) {
 	if len(email) == 0 || len(email) > 254 {
 		return nil, ErrWebAuthn
 	}
@@ -225,18 +225,34 @@ func (s *WebAuthnService) BeginWebAuthnAuthentication(ctx context.Context, email
 
 	user, err := s.queries.GetUserByEmail(work, email)
 	if err != nil {
+		outcome := SecurityOperatingUnknown
+		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrUserNotFound) {
+			outcome = SecurityMissing
+		}
+
+		securityClassification(work, outcome)
+
 		return nil, ErrWebAuthn
 	}
 
+	if user == nil {
+		securityClassification(work, SecurityOperatingUnknown)
+
+		return nil, ErrWebAuthn
+	}
+
+	securitySubject(work, user.ID)
+
 	if !user.Active {
+		securityClassification(work, SecurityInactive)
+
 		return nil, ErrWebAuthn
 	}
 
 	return s.beginAssertion(work, CredentialState{UserID: user.ID, Version: user.AuthVersion}, nil, SessionDigest{}, required)
 }
 
-// BeginWebAuthnStepUp binds the current live actor's digest and generation.
-func (s *WebAuthnService) BeginWebAuthnStepUp(ctx context.Context, token string, required AccessRequirement) (*AssertionChallenge, error) {
+func (s *WebAuthnService) beginWebAuthnStepUp(ctx context.Context, token string, required AccessRequirement) (*AssertionChallenge, error) {
 	work, cancel := context.WithTimeout(ctx, s.settings.Timeout)
 	defer cancel()
 
@@ -248,6 +264,8 @@ func (s *WebAuthnService) BeginWebAuthnStepUp(ctx context.Context, token string,
 	if err != nil {
 		return nil, err
 	}
+
+	securityActor(work, actor.Session)
 
 	digest, err := ParseSessionToken(token)
 	if err != nil {
@@ -330,9 +348,7 @@ func ValidAssertionCounter(previous, current uint32) bool {
 	return previous == 0 && current == 0 || current > previous
 }
 
-// FinishWebAuthn verifies an actual signed assertion after durable admission.
-// No issued bearer leaves core before the final storage commit succeeds.
-func (s *WebAuthnService) FinishWebAuthn(ctx context.Context, token string, body []byte, required AccessRequirement) (*IssuedSession, error) {
+func (s *WebAuthnService) finishWebAuthn(ctx context.Context, token string, body []byte, required AccessRequirement) (*IssuedSession, error) {
 	if len(body) == 0 || len(body) > MaxEnrollmentBody {
 		return nil, ErrWebAuthn
 	}
@@ -372,6 +388,8 @@ func (s *WebAuthnService) FinishWebAuthn(ctx context.Context, token string, body
 		return nil, err
 	}
 
+	securitySubject(work, p.State.UserID)
+
 	parsed, err := parseAssertionResponse(body)
 	if err != nil || !slices.Contains(s.settings.Origins, parsed.Response.CollectedClientData.Origin) {
 		return nil, ErrWebAuthn
@@ -391,6 +409,8 @@ func (s *WebAuthnService) FinishWebAuthn(ctx context.Context, token string, body
 
 	credential, err := s.protocol.ValidateLogin(assertionUser{handle: p.Handle, credentials: credentials}, ceremony, parsed)
 	if err != nil || !parsed.Response.AuthenticatorData.Flags.UserPresent() || !parsed.Response.AuthenticatorData.Flags.UserVerified() {
+		securityClassification(work, SecurityInvalidProof)
+
 		return nil, ErrWebAuthn
 	}
 
@@ -407,6 +427,8 @@ func (s *WebAuthnService) FinishWebAuthn(ctx context.Context, token string, body
 	if selected == nil || !slices.Contains(p.Factors, selected.FactorBinding) || !ValidAssertionCounter(selected.Counter, parsed.Response.AuthenticatorData.Counter) || credential.Flags.BackupEligible != selected.BackupEligible || credential.Flags.BackupState && !credential.Flags.BackupEligible {
 		return nil, ErrWebAuthn
 	}
+
+	securityProof(work, WebAuthnProof)
 
 	data, err := json.Marshal(credential)
 	if err != nil || len(data) > 65536 {

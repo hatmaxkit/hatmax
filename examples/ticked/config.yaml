@@ -59,3 +59,8 @@ authenticator:
   subject_attempts: 10
   max_concurrent: 2
   cleanup_batch: 1000
+
+# Best-effort security event delivery; the application owns its logging sink.
+security_observation:
+  timeout: 100ms
+  concurrency: 2

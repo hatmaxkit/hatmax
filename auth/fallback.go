@@ -233,6 +233,8 @@ func (s *FallbackService) verifyPassword(ctx context.Context, email, password st
 		return nil, time.Time{}, ErrCredentialAdmissionState
 	}
 
+	securitySubject(ctx, user.ID)
+
 	if !user.Active {
 		return nil, time.Time{}, errors.Join(ErrFallback, ErrUserInactive)
 	}
@@ -245,6 +247,8 @@ func (s *FallbackService) verifyPassword(ctx context.Context, email, password st
 	if err != nil {
 		return nil, time.Time{}, err
 	}
+
+	securityProof(ctx, PasswordProof)
 
 	return user, time.Now().UTC().Truncate(time.Microsecond), nil
 }
@@ -265,9 +269,7 @@ func (s *FallbackService) makePending(state CredentialState, at time.Time, purpo
 	return FallbackPending{Digest: digest, Purpose: purpose, State: state, Requirement: required, Material: material, PasswordAt: at, CreatedAt: now, ExpiresAt: now.Add(s.settings.PendingTTL)}, token, err
 }
 
-// BeginTOTPSetup supports only password-authorized initial setup. Confirmation
-// verifies a real code, consumes that step and invalidates sessions; no access is issued.
-func (s *FallbackService) BeginTOTPSetup(ctx context.Context, email, password string, required AccessRequirement) (*TOTPSetup, error) {
+func (s *FallbackService) beginTOTPSetup(ctx context.Context, email, password string, required AccessRequirement) (*TOTPSetup, error) {
 	if required.Proof != RequireMFA && required.Proof != RequirePassword {
 		return nil, ErrSessionProof
 	}
@@ -310,12 +312,10 @@ func (s *FallbackService) BeginTOTPSetup(ctx context.Context, email, password st
 	return &TOTPSetup{Token: token, URL: key.URL()}, nil
 }
 
-// BeginFallbackAuthentication verifies an actual password before capturing one
-// owned current factor/set. Method and requirement must be selected by server code.
-func (s *FallbackService) BeginFallbackAuthentication(ctx context.Context, email, password string, method FallbackMethod, required AccessRequirement) (*FallbackChallenge, error) {
+func (s *FallbackService) beginFallbackAuthentication(ctx context.Context, email, password string, method FallbackMethod, required AccessRequirement) (*FallbackChallenge, error) {
 	return s.begin(ctx, email, password, "", method, required)
 }
-func (s *FallbackService) BeginFallbackStepUp(ctx context.Context, token, password string, method FallbackMethod, required AccessRequirement) (*FallbackChallenge, error) {
+func (s *FallbackService) beginFallbackStepUp(ctx context.Context, token, password string, method FallbackMethod, required AccessRequirement) (*FallbackChallenge, error) {
 	work, cancel := context.WithTimeout(ctx, min(s.settings.Timeout, s.credentials.passwordTimeout))
 	defer cancel()
 
@@ -442,6 +442,13 @@ func (s *FallbackService) verify(ctx context.Context, r FallbackReservation, cod
 
 	step, err := crypto.MatchTOTPCode(secret, code, time.Now().UTC(), s.settings.Skew)
 	if err != nil || step <= factor.AcceptedStep {
+		outcome := SecurityInvalidProof
+		if err == nil {
+			outcome = SecurityUnavailableState
+		}
+
+		securityClassification(ctx, outcome)
+
 		return 0, ErrFallback
 	}
 
@@ -455,7 +462,7 @@ func (s *FallbackService) acquire() error {
 		return ErrEnrollmentBusy
 	}
 }
-func (s *FallbackService) ConfirmTOTPSetup(ctx context.Context, token, code string, required AccessRequirement) error {
+func (s *FallbackService) confirmTOTPSetup(ctx context.Context, token, code string, required AccessRequirement) error {
 	_, purpose, err := ParseFallbackToken(token)
 	if err != nil || purpose != FallbackSetup {
 		return ErrFallback
@@ -476,6 +483,8 @@ func (s *FallbackService) ConfirmTOTPSetup(ctx context.Context, token, code stri
 		return err
 	}
 
+	securitySubject(work, r.Pending.State.UserID)
+
 	defer func() { _ = s.queries.ReleaseFallback(work, r.Pending.Digest, r.Pending.Revision) }()
 
 	step, err := s.verify(work, *r, code)
@@ -483,9 +492,14 @@ func (s *FallbackService) ConfirmTOTPSetup(ctx context.Context, token, code stri
 		return err
 	}
 
-	return s.queries.CompleteTOTPSetup(work, *r, step, required, s.settings)
+	err = s.queries.CompleteTOTPSetup(work, *r, step, required, s.settings)
+	if err == nil {
+		err = work.Err()
+	}
+
+	return err
 }
-func (s *FallbackService) FinishFallback(ctx context.Context, token, code string, required AccessRequirement) (*IssuedSession, error) {
+func (s *FallbackService) finishFallback(ctx context.Context, token, code string, required AccessRequirement) (*IssuedSession, error) {
 	_, purpose, err := ParseFallbackToken(token)
 	if err != nil || purpose == FallbackSetup {
 		return nil, ErrFallback
@@ -505,6 +519,8 @@ func (s *FallbackService) FinishFallback(ctx context.Context, token, code string
 	if err != nil {
 		return nil, err
 	}
+
+	securitySubject(work, r.Pending.State.UserID)
 
 	defer func() { _ = s.queries.ReleaseFallback(work, r.Pending.Digest, r.Pending.Revision) }()
 
@@ -530,6 +546,8 @@ func (s *FallbackService) FinishFallback(ctx context.Context, token, code string
 	if p.Material.Method == FallbackBackup {
 		method = PasswordBackupProof
 	}
+
+	securityProof(work, method)
 
 	session.PolicyRevision = required.Revision
 	session.Proof = VerifiedProof{Method: method, VerifiedAt: p.PasswordAt, FactorAt: now, FactorID: p.Material.Factor.ID, FactorRevision: p.Material.Factor.Revision}
@@ -603,10 +621,7 @@ func (c FallbackCompletion) Check(r FallbackReservation, now time.Time, required
 	return required.Evaluate(s.Session, now)
 }
 
-// IssueBackupCodes requires current recent management authority. Default policy
-// is phishing-resistant MFA; an explicit server policy may allow actual MFA.
-// The old set is replaced and the actor rotated atomically; plaintexts return once.
-func (s *FallbackService) IssueBackupCodes(ctx context.Context, token string, required AccessRequirement) ([]string, *IssuedSession, error) {
+func (s *FallbackService) issueBackupCodes(ctx context.Context, token string, required AccessRequirement) ([]string, *IssuedSession, error) {
 	if required.Proof != RequireMFA && required.Proof != RequirePhishingResistantMFA || required.MaxAge == 0 || required.MaxAge > s.settings.RecentProofAge {
 		return nil, nil, ErrSessionProof
 	}
@@ -635,6 +650,8 @@ func (s *FallbackService) IssueBackupCodes(ctx context.Context, token string, re
 	if err != nil {
 		return nil, nil, err
 	}
+
+	securityActor(work, r.Actor)
 
 	set := BackupSet{ID: model.NewID()}
 

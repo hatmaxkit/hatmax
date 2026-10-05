@@ -174,9 +174,7 @@ func (u registrationUser) WebAuthnName() string                       { return u
 func (u registrationUser) WebAuthnDisplayName() string                { return u.name }
 func (u registrationUser) WebAuthnCredentials() []webauthn.Credential { return nil }
 
-// BeginWebAuthnEnrollment verifies an actual fresh password for initial setup.
-// Established factors cannot be replaced using this restricted operation.
-func (s *AuthenticatorService) BeginWebAuthnEnrollment(ctx context.Context, email, password string, requirement AccessRequirement) (*EnrollmentChallenge, error) {
+func (s *AuthenticatorService) beginWebAuthnEnrollment(ctx context.Context, email, password string, requirement AccessRequirement) (*EnrollmentChallenge, error) {
 	err := requirement.Check(s.settings.PendingTTL)
 	if err != nil {
 		return nil, err
@@ -199,11 +197,15 @@ func (s *AuthenticatorService) BeginWebAuthnEnrollment(ctx context.Context, emai
 		return nil, err
 	}
 
+	securitySubject(work, user.ID)
+
 	if !user.Active {
 		return nil, errors.Join(ErrEnrollment, ErrUserInactive)
 	}
 
 	if user.TOTPEnabled {
+		securityClassification(work, SecurityPolicyRejected)
+
 		return nil, ErrEnrollment
 	}
 
@@ -217,6 +219,8 @@ func (s *AuthenticatorService) BeginWebAuthnEnrollment(ctx context.Context, emai
 	if err != nil {
 		return nil, err
 	}
+
+	securityProof(work, PasswordProof)
 
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	handle := make([]byte, 32)
@@ -258,9 +262,7 @@ func (s *AuthenticatorService) BeginWebAuthnEnrollment(ctx context.Context, emai
 	return &EnrollmentChallenge{Token: token, Options: options}, nil
 }
 
-// FinishWebAuthnEnrollment verifies bounded browser registration data after a
-// durable reservation. Registration never issues a strong or ordinary session.
-func (s *AuthenticatorService) FinishWebAuthnEnrollment(ctx context.Context, token string, body []byte, requirement AccessRequirement) (*Authenticator, error) {
+func (s *AuthenticatorService) finishWebAuthnEnrollment(ctx context.Context, token string, body []byte, requirement AccessRequirement) (*Authenticator, error) {
 	if len(body) == 0 || len(body) > MaxEnrollmentBody {
 		return nil, ErrEnrollment
 	}
@@ -298,12 +300,21 @@ func (s *AuthenticatorService) FinishWebAuthnEnrollment(ctx context.Context, tok
 		return nil, err
 	}
 
+	securitySubject(work, pending.State.UserID)
+
 	record, err := s.registration(*pending, body)
 	if err != nil {
+		securityClassification(work, SecurityInvalidProof)
+
 		return nil, err
 	}
 
-	return s.queries.ConfirmEnrollment(work, *pending, *record, requirement, s.settings)
+	result, err := s.queries.ConfirmEnrollment(work, *pending, *record, requirement, s.settings)
+	if err == nil && work.Err() != nil {
+		return nil, work.Err()
+	}
+
+	return result, err
 }
 
 // CleanupEnrollments removes at most the configured expired-row batch. No owned

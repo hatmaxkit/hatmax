@@ -380,3 +380,21 @@ the forms, required-MFA re-entry, notifications and a lost committed response.
 Your application remains responsible for actual provider delivery, trusted proxy
 and deployment-wide anti-automation controls, bounded cleanup/retry scheduling
 and a separate procedure for all-factor loss.
+
+## Observe Authentication Outcomes
+
+Create one `SecurityObservations` instance with an application-owned, cooperative
+`SecurityObserver`, then pass it to authentication construction. Child services
+share its callback budget. Ticked records checked events through its logger.
+Use the [observation settings](../../reference/configuration/README.md#security-observation)
+to choose a timeout and concurrency bound, and configure a sink that returns
+within that deadline. Keep destination access and retention under application
+policy.
+
+Events distinguish pending work, completed authentication, committed changes and
+classified failures without credentials or raw account identities. Observer
+errors, saturation and late callbacks only update delivery counters; they cannot
+change a session or retry the mutation. Lookups, lists and GET do not add mutation
+events. An explicit discard observer is available for applications that choose
+no delivery. A timely log callback is best-effort evidence; durable mandatory
+audit needs its own reviewed persistence contract.

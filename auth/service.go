@@ -60,6 +60,7 @@ type Queries interface {
 type Service struct {
 	queries         Queries
 	admission       *CredentialAdmission
+	observations    *SecurityObservations
 	cfg             *config.Config
 	log             log.Logger
 	policy          *PasswordPolicy
@@ -70,11 +71,11 @@ type Service struct {
 }
 
 // NewService validates credentials and requires a bounded checker and shared
-// durable admission. Every password entrypoint uses that mandatory dependency.
+// durable admission and security observations. Child services share both.
 // The current service permits password-only access and always uses a minimum of
 // 15 code points. This constructor does not implement an always-MFA flow.
-func NewService(queries Queries, cfg *config.Config, checker PasswordChecker, admission *CredentialAdmission, logger log.Logger) (*Service, error) {
-	if queries == nil || cfg == nil || logger == nil || admission == nil || admission.queries == nil {
+func NewService(queries Queries, cfg *config.Config, checker PasswordChecker, admission *CredentialAdmission, observations *SecurityObservations, logger log.Logger) (*Service, error) {
+	if queries == nil || cfg == nil || logger == nil || admission == nil || admission.queries == nil || observations == nil || observations.observer == nil || observations.slots == nil {
 		return nil, errors.New("auth service dependencies are required")
 	}
 
@@ -98,7 +99,7 @@ func NewService(queries Queries, cfg *config.Config, checker PasswordChecker, ad
 		return nil, err
 	}
 
-	return &Service{queries: queries, admission: admission, cfg: cfg, log: logger, policy: policy, verifier: verifier, passwordTimeout: settings.Timeout, sessions: sessionSettings, sessionToken: newSessionToken}, nil
+	return &Service{queries: queries, admission: admission, observations: observations, cfg: cfg, log: logger, policy: policy, verifier: verifier, passwordTimeout: settings.Timeout, sessions: sessionSettings, sessionToken: newSessionToken}, nil
 }
 
 // admitCredential checks raw structure without running policy or credential work.
@@ -119,9 +120,7 @@ func (s *Service) admitCredential(ctx context.Context, identity, password string
 	return s.admission.Admit(ctx, identity, purpose)
 }
 
-// Signup applies candidate policy and creates a salted, encoded credential.
-// The storage write enforces uniqueness even for simultaneous signup requests.
-func (s *Service) Signup(ctx context.Context, email, password string) (*User, error) {
+func (s *Service) signup(ctx context.Context, email, password string) (*User, error) {
 	if email == "" {
 		return nil, ErrInvalidEmail
 	}
@@ -156,9 +155,7 @@ func (s *Service) Signup(ctx context.Context, email, password string) (*User, er
 	return user, nil
 }
 
-// Signin verifies a password and applies trusted policy before issuance.
-// Unmet requirements return non-authorizing outcomes with no secret or row.
-func (s *Service) Signin(ctx context.Context, email, password string, requirement AccessRequirement) (*AuthenticationResult, error) {
+func (s *Service) signin(ctx context.Context, email, password string, requirement AccessRequirement) (*AuthenticationResult, error) {
 	err := requirement.Check(s.sessions.TTL)
 	if err != nil {
 		return nil, err
@@ -181,6 +178,8 @@ func (s *Service) Signin(ctx context.Context, email, password string, requiremen
 		return nil, fmt.Errorf("cannot get user: %w", err)
 	}
 
+	securitySubject(workCtx, user.ID)
+
 	if !user.Active {
 		return nil, ErrUserInactive
 	}
@@ -197,6 +196,8 @@ func (s *Service) Signin(ctx context.Context, email, password string, requiremen
 	if err != nil {
 		return nil, fmt.Errorf("cannot verify password: %w", err)
 	}
+
+	securityProof(workCtx, PasswordProof)
 
 	if requirement.Proof != RequirePassword {
 		return unmetRequirement(user, requirement.Proof), nil
@@ -229,8 +230,7 @@ func (s *Service) Signin(ctx context.Context, email, password string, requiremen
 	return &AuthenticationResult{Outcome: AuthenticationCompleted, Reason: AuthenticationSatisfied, Issued: &IssuedSession{Session: *session, Token: token}}, nil
 }
 
-// Signout destroys a session.
-func (s *Service) Signout(ctx context.Context, token string) error {
+func (s *Service) signout(ctx context.Context, token string) error {
 	digest, err := ParseSessionToken(token)
 	if err != nil {
 		return err

@@ -22,7 +22,7 @@ func newServiceForTest(t *testing.T, q Queries, cfg *config.Config, logger log.L
 	cfg.Auth.ArgonIterations = 2
 	cfg.Auth.ArgonParallelism = 1
 
-	svc, err := NewService(q, cfg, passwordCheckerFunc(func(context.Context, string) (bool, error) { return false, nil }), newAdmissionForTest(t), logger)
+	svc, err := NewService(q, cfg, passwordCheckerFunc(func(context.Context, string) (bool, error) { return false, nil }), newAdmissionForTest(t), securityObservationsForTest(t), logger)
 	if err != nil {
 		t.Fatal(err)
 	}

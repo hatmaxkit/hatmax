@@ -11,8 +11,8 @@ This file is part of Hatmax. See LICENSE for license terms.
 implementation. The implementation note is
 [auth/readme.md](../../../auth/readme.md).
 
-`NewService(queries, cfg, checker, admission, logger)` returns a service or a construction
-error. It requires a caller-owned checker and shared durable admission, validates
+`NewService(queries, cfg, checker, admission, observations, logger)` returns a service or a construction
+error. It requires a caller-owned checker, shared durable admission and initialized security observations, validates
 credential settings and
 owns one shared policy/verifier. Signup checks complete normalized candidates;
 sign-in verifies PHC Argon2id records and rechecks current persistent state.
@@ -1138,3 +1138,54 @@ Applications composing these handlers must install the common boundary after
 trusted-proxy resolution, retain active capacity through acknowledgment, use
 finite server read/write deadlines and call `Close()` before stopping dependent
 services. See [configuration](../configuration/README.md#authentication-http-ingress).
+
+## Security observations
+
+`NewSecurityObservations(observer, cfg.SecurityObservation)` constructs finite
+synchronous best-effort delivery. Supply one initialized instance to `NewService`;
+all its enrollment, WebAuthn, fallback, factor and recovery services inherit it.
+The required `SecurityObserver.Observe(ctx, event)` must honor cancellation and
+support concurrent calls. `DiscardSecurityObserver` explicitly discards events
+and establishes no audit assurance.
+
+Each public mutation/proof entrypoint attempts one terminal event after its
+private operation returns and all database transactions, reservation releases
+and verifier slots have finished. Password admission is already committed.
+Internal helpers, session lookup/listing, cleanup and GET produce no additional
+core events. Transport refusal before a core call produces no core event.
+
+`SecurityEvent` has an independent event ID, UTC time, closed operation/outcome,
+optional subject/record IDs and actual verified `ProofMethod`. IDs come from
+trusted loaded/reserved/committed state; invalid IDs are omitted. Allowed reference
+bytes are ASCII letters, digits, underscore and hyphen, at most 128 bytes each.
+`Check()` validates the closed shape and its maximum 1024-byte JSON envelope.
+There are no identities, IPs, user agents, credentials, bearer/digest material,
+TOTP/backup values, links, arbitrary maps or error strings. Events supply no
+authentication authority.
+
+Outcomes distinguish committed mutation, completed session authentication,
+pending issuance, pending enrollment/proof and classified denial. Only actual
+verifier results or checked trusted actor proof supply methods; requested policy
+and enrollment do not become completed MFA. Missing/inactive, invalid proof,
+expired/replayed state, policy, exhausted attempts, capacity and stale state are
+closed internal denials. Ambiguous storage outcomes are `operating_unknown`;
+there is no rollback or success assertion without a confirmed result.
+
+Callbacks acquire a non-waiting bounded slot and receive at most the configured
+1–100ms timeout (default 100ms), strictly before a caller deadline. Concurrency
+is 1–16 (default 2). No detached worker, queue or retry is created. Re-entry may
+use remaining slots but cannot wait for capacity. `Diagnostics()` returns fixed
+atomic delivery counters: delivered, saturated, rejected, canceled, deadline
+and operating. `ErrSecurityObservationRejected` classifies consumer rejection;
+other callback errors and panics produce redacted operating counters. Late nil
+return after cancellation/deadline cannot count as delivered.
+
+Cancellation is cooperative. A callback or logging sink that blocks beyond its
+context violates the adapter contract; core cannot forcibly terminate it.
+Delivery failure never replaces the authentication result, rolls back a mutation
+or retries it. Timely callback success is not durable audit evidence. Consumer
+retention, personal-data policy, delivery destinations and mandatory audit
+persistence remain application obligations. Existing durable recovery
+notification intents retain their independent atomic mutation contract. Ticked
+uses its application-owned logger for checked events; configure a cooperative
+sink and an appropriate retention policy.
