@@ -12,7 +12,7 @@ Delivery set: authentication-controls
 Plan: `ops/default/plan/authentication-controls.md`
 Tracker: `ops/default/tracker/authentication-controls.md`
 Branch: `feat/guarded-password-entry`
-PR: pending
+PR: `#108`
 
 ## Purpose
 

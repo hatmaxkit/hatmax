@@ -26,7 +26,7 @@ Active tasks: None; Slice 2 review
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Durable credential admission | delivered | `feat/credential-admission` | `feat(slice-1): add shared credential admission` | `#107` | `ops/default/report/slices/authentication-controls/slice-1-credential-admission.md` |
-| Slice 2 | Guarded password entry | reviewing | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | pending | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
+| Slice 2 | Guarded password entry | reviewing | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | `#108` | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
 | Slice 3 | Finite public authentication | pending | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | pending | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
 | Slice 4 | Security observations | pending | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | pending | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
 | Slice 5 | Controls acceptance | pending | `test/authentication-controls-acceptance` | `test(slice-5): verify authentication controls integration` | pending | `ops/default/report/slices/authentication-controls/slice-5-controls-acceptance.md` |
@@ -114,3 +114,6 @@ selector names/commands are in the plan and Slice 2 report. AC-01/AC-02/AC-03 ha
 password-entry evidence; neutral transport, observation and actual browser
 acceptance remain in Slices 3–5. Full integrated validation remains after all
 five canonical merges.
+
+Slice 2 review PR: #108 to dev. Canonical report is reviewing; both task commits
+and focused evidence are recorded. Maintainer merge is the next state transition.
