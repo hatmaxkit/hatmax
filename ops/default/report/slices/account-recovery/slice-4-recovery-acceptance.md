@@ -7,12 +7,12 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 4: Recovery Acceptance
 
-Status: drafting
+Status: reviewing
 Delivery set: account-recovery
 Plan: `ops/default/plan/account-recovery.md`
 Tracker: `ops/default/tracker/account-recovery.md`
 Branch: `test/account-recovery-acceptance`
-PR: pending
+PR: `#106`
 
 ## Purpose
 
