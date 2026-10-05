@@ -19,7 +19,7 @@ Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
 Active slice: Slice 5 — Controls acceptance
 Execution gate: Open
 Plan: [Delivery plan](../plan/authentication-controls.md)
-Active tasks: T5.1, T5.2
+Active tasks: None; both Slice 5 tasks completed, maintainer review pending
 
 ## Slice Status
 
@@ -29,7 +29,7 @@ Active tasks: T5.1, T5.2
 | Slice 2 | Guarded password entry | delivered | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | `#108` | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
 | Slice 3 | Finite public authentication | delivered | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | `#109` | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
 | Slice 4 | Security observations | delivered | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | `#110` | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
-| Slice 5 | Controls acceptance | active | `test/authentication-controls-acceptance` | `test(slice-5): verify authentication controls integration` | pending | `ops/default/report/slices/authentication-controls/slice-5-controls-acceptance.md` |
+| Slice 5 | Controls acceptance | reviewing | `test/authentication-controls-acceptance` | `test(slice-5): verify authentication controls integration` | pending | `ops/default/report/slices/authentication-controls/slice-5-controls-acceptance.md` |
 
 ## Tasks
 
@@ -43,8 +43,8 @@ Active tasks: T5.1, T5.2
 | T3.2 | completed | `test(auth): verify neutral public authentication` | `fd0c0a41e80e` |
 | T4.1 | completed | `feat(auth): observe bounded security outcomes` | `466894a7ba57` |
 | T4.2 | completed | `test(auth): verify security observation boundaries` | `10d48427296d` |
-| T5.1 | active | `test(auth): exercise authentication controls journeys` | pending |
-| T5.2 | pending | `test(auth): close authentication controls evidence` | pending |
+| T5.1 | completed | `test(auth): exercise authentication controls journeys` | `85e88174f0c8` |
+| T5.2 | completed | `test(auth): close authentication controls evidence` | pending |
 
 ## Completion Gates
 
@@ -57,7 +57,7 @@ Active tasks: T5.1, T5.2
 - [ ] Slice 5 merged and report delivered; actual browser/affected regression.
 - [ ] All ten task/commit/PR mappings and AC-01 through AC-08 recorded.
 - [ ] Exact immutable integrated candidate passes `make check`.
-- [ ] Supported AUTH-07 and remaining lifecycle/consumer boundaries recorded.
+- [x] Supported AUTH-07 and remaining lifecycle/consumer boundaries recorded.
 
 ## Slice 1 Recorded Validation
 
@@ -191,3 +191,62 @@ report is delivered. Both task mappings and focused checks are recorded.
 Slice 5 is active under the approved continuation map; actual browser journeys
 and final affected evidence precede its maintainer merge. The full immutable
 integrated gate remains after all five canonical merges.
+
+## Slice 5 Focused Evidence
+
+Both recorded actual Chromium 151.0.7922.173/Node v26.8.1/PostgreSQL 18.6 browser
+journeys passed with Go 1.27.1 and race detection in 152.503s. Registration races,
+no automatic session, safe candidate feedback, malformed ingress, two-slot active
+capacity, final shared password charge, equal neutral replies and retained actual
+MFA/recovery passed. The authenticator/recovery journeys checked respectively
+44 and 80 unique terminal observations and timely delivery. Fixture setup used
+actual failed password operations, never manufactured authentication.
+
+The recorded actual adapter selector passed in 122.724s and actual HTTP selector
+in 117.721s. Six-package race, required source-license/vet/lint/docs checks and
+tagged browser lint passed. These are finite affected checks, not the full gate.
+The final slice report owns the exact selectors, public documentation agreement,
+AC mapping and immutable-candidate preparation.
+
+## Requirement Evidence
+
+| ID | Evidence | Remaining boundary |
+| --- | --- | --- |
+| AC-01 | `Service.Signin`, `Service.Reauthenticate`, `AuthenticatorService.BeginWebAuthnEnrollment`, `FallbackService.BeginTOTPSetup`/`BeginFallbackAuthentication`/`BeginFallbackStepUp` all reach one shared admission before actual password verification; `TestPasswordEntryBudgets`, credential/fallback/authority selectors | Application canonical identity and alias convergence; signup and recovery/factor purposes remain distinct |
+| AC-02 | `TestCredentialAdmissionTransactions` and `TestPasswordEntryBudgets`: actual shared instances, last admission, capacity, restart/key binding, no refunds/resets and captured policy; browser final charge | Exact boundary helper evidence is deterministic; distributed transactions use real SQL |
+| AC-03 | Admission/password-entry selectors: unknown/inactive identities, malformed input, canceled/ambiguous storage, stale state, policy tightening, capacity, cleanup renewal/rollback and held locks; browser malformed form and exhaustion | Application stable private namespace/key and cleanup scheduling |
+| AC-04 | Rate-limit/ingress unit/race plus `TestAuthenticationIngressTransactions`: canonical/trusted peers, bounded maps/active work, cleanup, caller/server cancellation and close ownership; browser two admitted waits and third refusal | Common ingress is process-local; deployment-wide anti-automation is consumer-owned |
+| AC-05 | `TestCredentialTransactions`, `TestPublicAuthenticationTransactions`, `TestAuthenticationObservationTransactions` and both browser journeys: one winner/conflict, equal neutral navigation, no automatic session/cookie, candidate-only feedback and redaction | Local fixture timing is not production side-channel assurance |
+| AC-06 | Password-entry and actual HTTP selectors: missing/inactive/wrong/throttled/operating neutral policy, accepted cookie/challenges, caller cancellation/capacity; browser missing/wrong/exhausted replies and real MFA | Setup flags grant no proof; consumers select current trusted access policy |
+| AC-07 | `TestSecurityObservationTransactions`, actual HTTP logger and both browser journeys: committed/pending/denied/unknown provenance, actual methods, no lock-held callbacks, saturation, late/failing delivery and real re-entry; valid unique redacted capture | Best-effort cooperative observation is not durable audit delivery |
+| AC-08 | Recorded adapter/HTTP/race/browser selectors retain invalidation, token/replay/backup consumption and actual proof; core/config/example/User Guide and docs checks agree | Exact immutable integrated dev `make check` remains after final maintainer merge |
+
+## Password Verification Inventory
+
+The four actual password-verifier call sites are `auth/service.go` (sign-in),
+`auth/session_control.go` (reauthentication), `auth/enrollment.go` (initial
+WebAuthn enrollment) and `auth/fallback.go` (shared password helper for TOTP setup,
+fallback authentication and actor step-up). Each commits `CredentialPasswordProof`
+before its password verifier; public identity paths do so before account lookup,
+while reauthentication resolves the owned actor first. Helper invocations charge
+once. The separate fallback backup-record verifier spends its factor budget;
+signup hashes under registration admission. New-password checking/hash in
+change/reset remains under the delivered recovery authority and budgets.
+
+## Integrated Candidate Preparation
+
+After the verified maintainer merge of Slice 5, close its delivered report/task/PR
+mapping on dev and finalize one documentary candidate commit. Record its full
+immutable hash and verify clean local dev equals origin/dev before `make check`.
+Run the single full gate against that exact commit with mandatory actual
+PostgreSQL and bounded scratch. Formatting must leave tracked files unchanged;
+record the exact candidate, coverage threshold/result and checks. Documentation
+that only records the result does not define another runtime gate candidate.
+
+A required repository correction follows the approved
+`fix/authentication-controls-validation` branch and one focused dev PR; run the
+full gate on the corrected integrated candidate after its verified merge. A green
+candidate needs no correction branch. Supported AUTH-07 resource admission,
+neutral errors and observation do not implement cumulative authenticator
+disabling/rebinding, all-factor-loss identity proofing or consumer audit/deployment
+assurance. The parent remains Partial.

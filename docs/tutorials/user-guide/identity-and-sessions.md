@@ -79,6 +79,12 @@ origin and overall admission errors can be rejected before account lookup.
 See [HTTP ingress configuration](../../reference/configuration/README.md#authentication-http-ingress)
 for finite limits and trusted-proxy requirements.
 
+Use the [browser acceptance command](../../reference/authentication/README.md#authentication-controls-browser-acceptance)
+when checking an application composition against real PostgreSQL and Chromium.
+It verifies neutral registration and password replies, active-request capacity,
+redacted observations and retained MFA/recovery without granting access through
+fixture controls. Local browser evidence does not establish deployment assurance.
+
 ## Carry the Session in a Secure Cookie
 
 Sign-in requires current server policy and returns an authentication outcome.

@@ -325,7 +325,8 @@ This complements durable per-identity admission; it does not replace it.
 Whole work is the largest configured credential, factor or recovery timeout,
 with a `5s` floor for existing recovery transport work. Raising those timeouts
 requires a matching acknowledgment target. The margin reserves `100ms` for
-observation and `100ms` for response scheduling; observation wiring is separate.
+observation and `100ms` for response scheduling. Ticked shares one initialized
+security observation instance across its authentication services.
 
 Construction starts no worker or ticker. Unknown peers are refused when the
 finite table is full; live counters are never evicted. Ports, IPv4-mapped values

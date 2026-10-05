@@ -757,11 +757,11 @@ export CHROMIUM_BIN=/usr/sbin/chromium NODE_BIN=/usr/sbin/node
 export DB_HOST=/path/to/owned/postgresql/socket DB_PORT=5432
 export DB_USER=postgres DB_NAME=postgres DB_PASSWORD=''
 go test -race -tags=browser ./examples/ticked/internal/web \
-  -run '^TestAuthenticatorBrowser$' -count=1 -timeout=180s -v
+  -run '^TestAuthenticatorBrowser$' -count=1 -timeout=240s -v
 ```
 
 Replace database settings with the owned fixture's actual values. The test creates
-a random schema, applies migrations 001 and 004 through 008, and removes that
+a random schema, applies migrations 001 and 004 through 009, and removes that
 schema on cleanup. It starts production Ticked handlers/core services on an
 explicit localhost development origin. Password-only, recent MFA and recent
 phishing-resistant routes share the application's trusted policy revision;
@@ -1040,10 +1040,10 @@ ceremonies. Supply the same mandatory executable/database settings as the
 
 ```sh
 go test -tags=browser -race -run '^TestAccountRecoveryBrowser$' \
-  -count=1 -timeout=300s ./examples/ticked/internal/web
+  -count=1 -timeout=360s ./examples/ticked/internal/web
 ```
 
-The browser child has a 240-second deadline. The composite fixture explicitly
+The recovery browser child has a 300-second deadline. The composite fixture explicitly
 sets a finite 40-attempt authenticator subject window because its combined
 positive/negative ceremonies exceed the default ten attempts; production defaults
 remain unchanged. The journey respects the real one-minute ingress window before
@@ -1063,6 +1063,45 @@ within the owned fixture. They never approve proof, mint tokens or mutate factor
 This proves browser/library/adapter integration, not external mail delivery,
 hardware/attestation assurance, distributed anti-automation or all-factor-loss
 identity recovery.
+
+### Authentication controls browser acceptance
+
+Both browser tests first exercise registration, password admission, shared ingress
+and the actual Ticked `SecurityLogger`. Run the finite combined selector with the
+same mandatory executable/database settings:
+
+```sh
+go test -tags=browser -race -v \
+  -run '^(TestAuthenticatorBrowser|TestAccountRecoveryBrowser)$' \
+  -count=1 -timeout=600s ./examples/ticked/internal/web
+```
+
+Two concurrent registration requests for one address receive equal sign-in
+navigation and no session; observations distinguish the committed write from the
+classified uniqueness refusal. Candidate-only password feedback and malformed,
+ambiguous or oversized forms do not disclose submitted identities. Missing,
+incorrect and exhausted password requests share the six-second fixture response
+and cannot issue cookies. A final allowed wrong-password operation spends the
+remaining durable charge; the following correct password is refused.
+
+The fixture sets two active requests and a finite 1000-request peer window to
+exercise common capacity separately from narrower recovery limits. Two admitted
+requests retain slots through acknowledgment; a third receives `429` before core
+work or a core event. Completed replies release both slots. Fixture getters read
+only active count or redacted events and grant no authority.
+
+The schema-local fixture uses 20 password-proof attempts and ten registrations;
+a dedicated account's nearly spent window is prepared through actual failed
+password operations. The authenticator child has a 210-second deadline; recovery
+has 300 seconds. Server header/read/write/idle deadlines, CDP calls, owned profiles
+and log capture are finite. Production defaults are unchanged.
+
+The shared observer remains installed through actual WebAuthn, TOTP, backup,
+factor and recovery journeys. Acceptance checks unique valid event identifiers,
+committed mutation/proof provenance, all four actual proof methods, redacted
+application logs and complete timely delivery within the fixture. This confirms
+the consumer boundary exercised here; durable audit retention and deployment
+side-channel or anti-automation assurance require separate evidence.
 
 ## Standalone credential admission
 

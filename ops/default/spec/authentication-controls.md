@@ -270,10 +270,17 @@ assurance boundaries are not closed by scope approval.
 
 ## Implementation Coverage
 
-Slices 1–2 implement typed admission, validated settings, actual PostgreSQL
-private-key capacity/window transactions and mandatory registration/password
-entry wiring. Cross-path admission, current proof/session/factor authority and
-affected recovery/HTTP regressions passed on actual adapters with race detection.
-Finite public ingress, neutral transport, security observations and browser/
-integrated acceptance remain in the approved map. This partial coverage does
-not close AUTH-07 or the parent authentication foundation.
+Slices 1–4 are merged and delivered: mandatory shared durable admission, guarded
+password entry, finite public ingress, neutral transport and typed best-effort
+security observations. Slice 5 supplies actual Chromium/PostgreSQL journeys and
+finite affected adapter/HTTP/race regression. Registration races retain one user
+and equal public navigation without a session. Shared final proof admission,
+capacity refusals, classified redacted events and retained actual MFA/recovery
+passed. The [tracker](../tracker/authentication-controls.md#requirement-evidence)
+maps AC-01 through AC-08 to exact evidence and remaining obligations.
+
+Acceptance is reviewing; its maintainer merge and the single exact integrated
+`make check` remain pending. Implementation stays Partial until that gate. The
+supported AUTH-07 mechanisms do not close cumulative authenticator disabling/
+rebinding, all-factor-loss identity proofing, durable external audit delivery or
+consumer/deployment assurance. The parent foundation remains Partial.

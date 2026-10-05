@@ -10,7 +10,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 Date: 2026-10-02
 Status: Approved
 Approved: 2026-10-02
-Revised: 2026-10-04
+Revised: 2026-10-05
 Implementation status: Partial
 Inspected baseline: `dev`, `67023146f984b984509d32f176ea8522ddf9a301`
 Model: [Authentication security model](authentication-security-model.md)
@@ -84,7 +84,11 @@ supported AUTH-06 delivery and the remaining consumer/assurance boundaries.
 The [approved authentication controls concern](authentication-controls.md) and
 its [model](authentication-controls-model.md) refine the remaining AUTH-07
 credential admission, public outcome, finite ingress and event boundaries.
-Their five-slice implementation scope is approved; delivery remains pending.
+Four runtime slices are delivered; actual browser/affected controls acceptance
+is reviewing. Their [requirement evidence](../tracker/authentication-controls.md#requirement-evidence)
+records supported AUTH-07 mechanisms and the pending final merge/integrated gate.
+Cumulative authenticator disabling/rebinding, all-factor-loss proofing and consumer
+audit/deployment assurance remain separate obligations.
 The complete foundation is not yet delivered.
 
 ## Inspected Gaps

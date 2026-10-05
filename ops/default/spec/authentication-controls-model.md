@@ -20,10 +20,10 @@ Core supplies closed operation/outcome values, immutable validated settings and
 typed admission/observer contracts. Applications own identity normalization,
 namespace/key provisioning, SQL tables/queries, trusted time and delivery adapters.
 Extend the existing Ticked `internal/feat/auth`, migration and generated-query
-layout. The fields below are logical contracts; settle exact Go/SQL/config names
-together during approved implementation planning. Slice 1 now supplies typed
-durable admission; password-path, ingress and observation integration remain
-recorded later increments.
+layout. The logical contracts below match the settled Go/SQL/config representations
+recorded for Slices 1–4. Those runtime slices are merged and delivered; actual
+browser/affected acceptance is reviewing in Slice 5. Its maintainer merge and
+the exact integrated gate remain pending.
 
 ## Credential Admission Record
 
@@ -188,10 +188,11 @@ implemented admission methods to every actual password entrypoint.
 
 ## Slice 2 Settled Representations
 
-`NewService(queries, cfg, checker, admission, logger)` requires a non-nil
+At Slice 2, `NewService(queries, cfg, checker, admission, logger)` requires a non-nil
 `*CredentialAdmission`; optional construction and process-local fallback are
 not supported. Enrollment and fallback reuse this credentials service and its
-same admission instance. A package-local structural helper checks bounded UTF-8
+same admission instance. Slice 4 adds the required observation parameter to
+this constructor, as recorded below. A package-local structural helper checks bounded UTF-8
 password input before committing the selected purpose, without calling the
 new-password checker. Public entrypoints charge before account lookup; session
 reauthentication charges the validated subject email before actual verification.
@@ -284,3 +285,13 @@ return; panic and arbitrary adapter errors become bounded operating diagnostics.
 Callback re-entry can consume remaining slots but cannot wait for a slot.
 Consumer cancellation cooperation remains mandatory. Recovery notification
 transactions and authentication return values remain independent of delivery.
+
+## Slice 5 Acceptance Representations
+
+The browser fixtures share the actual Ticked logger observer across the existing
+service graph and isolated PostgreSQL schema. Finite test-only getters expose
+active request count and closed redacted event values, never proof or secret
+material. A bounded 512-line/2048-byte capture validates unique event IDs, actual
+methods and timely delivery; fixture setup observations are accounted separately.
+No product contract, table, migration, configuration default or authority changes
+are introduced by acceptance. The exact integrated gate remains post-merge.
