@@ -19,7 +19,7 @@ Planning base: `9070714609a4dc323d1a1b5991ed7cb806c11677`
 Active slice: Slice 1 — Durable credential admission
 Execution gate: Open
 Plan: [Delivery plan](../plan/authentication-controls.md)
-Active tasks: T1.1, T1.2
+Active tasks: T1.2
 
 ## Slice Status
 
@@ -35,8 +35,8 @@ Active tasks: T1.1, T1.2
 
 | Task | Status | Expected commit | Commit |
 | --- | --- | --- | --- |
-| T1.1 | pending | `feat(auth): add shared credential admission` | pending |
-| T1.2 | pending | `test(auth): verify credential admission transactions` | pending |
+| T1.1 | completed | `feat(auth): add shared credential admission` | pending |
+| T1.2 | active | `test(auth): verify credential admission transactions` | pending |
 | T2.1 | pending | `feat(auth): guard password authentication paths` | pending |
 | T2.2 | pending | `test(auth): verify shared password entry budgets` | pending |
 | T3.1 | pending | `feat(auth): bound public authentication ingress` | pending |
@@ -49,7 +49,7 @@ Active tasks: T1.1, T1.2
 ## Completion Gates
 
 - [x] Scope/model and internal slice map approved.
-- [ ] Planning state committed and Slice 1 canonical worktree activated.
+- [x] Planning state committed and Slice 1 canonical worktree activated.
 - [ ] Slice 1 merged and report delivered; actual durable admission evidence.
 - [ ] Slice 2 merged and report delivered; actual shared password-entry budgets.
 - [ ] Slice 3 merged and report delivered; finite ingress/neutral transport.
@@ -72,3 +72,10 @@ bounded fake only for orchestration, never for distributed semantics.
 The remaining slices use their recorded task scope. No new slice is inferred
 from an implementation finding; maintain plan/model/tracker consistency first.
 The full integrated gate remains after five verified canonical merges.
+
+## Slice 1 Activation
+
+Planning commit `989c4bbca7b0` is clean and pushed on dev. The recorded
+`feat/credential-admission` branch is active in its canonical worktree. Matching
+config/Go/SQL representations were settled in the approved companion model
+before runtime edits; private key/namespace have no outer-product justification.

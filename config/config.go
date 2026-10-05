@@ -21,17 +21,18 @@ import (
 
 // Config holds the application configuration.
 type Config struct {
-	Log           LogConfig           `koanf:"log"`
-	Server        ServerConfig        `koanf:"server"`
-	Database      DatabaseConfig      `koanf:"database"`
-	Auth          AuthConfig          `koanf:"auth"`
-	Authenticator AuthenticatorConfig `koanf:"authenticator"`
-	Recovery      RecoveryConfig      `koanf:"recovery"`
-	Contact       ContactConfig       `koanf:"contact"`
-	Property      PropertyConfig      `koanf:"property"`
-	PubSub        PubSubConfig        `koanf:"pubsub"`
-	Scheduler     SchedulerConfig     `koanf:"scheduler"`
-	Mailer        MailerConfig        `koanf:"mailer"`
+	Log                 LogConfig                 `koanf:"log"`
+	Server              ServerConfig              `koanf:"server"`
+	Database            DatabaseConfig            `koanf:"database"`
+	Auth                AuthConfig                `koanf:"auth"`
+	Authenticator       AuthenticatorConfig       `koanf:"authenticator"`
+	Recovery            RecoveryConfig            `koanf:"recovery"`
+	CredentialAdmission CredentialAdmissionConfig `koanf:"credential_admission"`
+	Contact             ContactConfig             `koanf:"contact"`
+	Property            PropertyConfig            `koanf:"property"`
+	PubSub              PubSubConfig              `koanf:"pubsub"`
+	Scheduler           SchedulerConfig           `koanf:"scheduler"`
+	Mailer              MailerConfig              `koanf:"mailer"`
 }
 
 // LogConfig holds logging configuration.
@@ -323,6 +324,15 @@ func Load(path, envPrefix string, args []string) (*Config, error) {
 	fs.Int("recovery.issuance_attempts", 3, "Recovery issues per subject and purpose per fifteen minutes")
 	fs.Int("recovery.completion_attempts", 10, "Recovery completions per subject per fifteen minutes")
 	fs.Int("recovery.cleanup_batch", 1000, "Maximum retained tokens removed per cleanup call")
+	fs.Int("credential_admission.password_attempts", 10, "Credential proof operations per identity window")
+	fs.Int("credential_admission.registration_attempts", 3, "Registration operations per identity window")
+	fs.Int("credential_admission.max_identities", 10000, "Maximum shared credential admission records")
+	fs.Int("credential_admission.cleanup_batch", 1000, "Maximum retired credential records removed per call")
+	fs.String("credential_admission.password_window", "10m", "Credential proof admission window")
+	fs.String("credential_admission.password_cooldown", "10m", "Credential proof admission cooldown")
+	fs.String("credential_admission.registration_window", "1h", "Registration admission window")
+	fs.String("credential_admission.registration_cooldown", "1h", "Registration admission cooldown")
+	fs.String("credential_admission.timeout", "1s", "Shared credential admission operation timeout")
 	fs.Bool("pubsub.enabled", false, "Enable pub/sub")
 	fs.String("pubsub.poll_interval", "100ms", "Pub/sub poll interval")
 	fs.Int("pubsub.batch_size", 100, "Pub/sub batch size")

@@ -23,6 +23,7 @@ path = [
   "assets/img/docs/gallery/todolist-light.png",
   "db/testdata/migration/postgres/20251231000000-create-test-table.sql",
   "examples/ticked/internal/dal/assertions.sql.go",
+  "examples/ticked/internal/dal/credential_admission.sql.go",
   "examples/ticked/internal/dal/db.go",
   "examples/ticked/internal/dal/enrollment.sql.go",
   "examples/ticked/internal/dal/fallback.sql.go",

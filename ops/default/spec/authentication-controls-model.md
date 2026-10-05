@@ -12,7 +12,7 @@ Approved: 2026-10-05
 Status: Approved
 Behavior: [Authentication attempts, errors and security events](authentication-controls.md)
 Parent model: [Authentication security model](authentication-security-model.md)
-Implementation status: Pending
+Implementation status: Partial
 
 ## Ownership and Representations
 
@@ -21,7 +21,9 @@ typed admission/observer contracts. Applications own identity normalization,
 namespace/key provisioning, SQL tables/queries, trusted time and delivery adapters.
 Extend the existing Ticked `internal/feat/auth`, migration and generated-query
 layout. The fields below are logical contracts; settle exact Go/SQL/config names
-together during approved implementation planning. No new public API exists yet.
+together during approved implementation planning. Slice 1 now supplies typed
+durable admission; password-path, ingress and observation integration remain
+recorded later increments.
 
 ## Credential Admission Record
 
@@ -159,3 +161,27 @@ cooperative contract and is not forcibly terminated by another goroutine.
 Durable mandatory audit delivery, destination retention and event retry are
 consumer obligations. Delivered recovery notification intents remain atomic with
 their mutations and independent of this best-effort observer.
+
+## Slice 1 Settled Representations
+
+`config.CredentialAdmissionConfig` / `CredentialAdmissionSettings` capture
+`password_*`, `registration_*`, `max_identities`, `timeout` and `cleanup_batch`
+under `credential_admission`. `CredentialAdmissionPurpose` closes
+`CredentialRegistration` and `CredentialPasswordProof`.
+`NewCredentialAdmission`, `Admit` and `Cleanup` orchestrate validated identity,
+caller deadlines and the typed `CredentialAdmissionQueries` boundary.
+
+Ticked's `CredentialAdmissionStore` captures an immutable namespace and a copied
+32–64-byte application key. `credential_admission_capacity` stores namespace,
+private HMAC key binding, finite row count and configured maximum. A different
+key for an existing namespace is operating failure, never a new budget.
+`credential_admissions` stores namespace/purpose/private identity key, captured
+window start/end, cooldown microseconds, captured attempt limit/count and optional
+cooldown end. Primary key is namespace/purpose/key; retirement index uses
+`GREATEST(window_end, COALESCE(cooldown_until, window_end))`.
+Migration `009-credential-admission.sql` and matching sqlc queries own storage.
+Capacity precedes row locks; trusted time is read after locks. Existing records
+may continue at a lowered capacity; new identities wait until occupancy permits
+insertion. Cleanup locks/rechecks retired rows and decrements capacity atomically.
+No subject/session/factor/recovery table is touched. Slice 2 connects these
+implemented admission methods to every actual password entrypoint.
