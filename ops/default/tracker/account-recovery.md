@@ -41,7 +41,7 @@ Execution gate: Open
 | T3.1 | completed | `feat(auth): add one-use mailbox password reset` | `cd3fbcb6f893` | Previously verified target, one-use token, credential/revocation/notice and no MFA bypass |
 | T3.2 | completed | `test(auth): verify password reset isolation and MFA` | `8c3f9cb54565` | Token and reset/change races, rollback, invalidation and real retained MFA/replay state |
 | T4.1 | completed | `test(auth): exercise account recovery browser journeys` | `b599c7722b43` | Actual production browser/PostgreSQL lifecycle and current-proof re-entry |
-| T4.2 | completed | `test(auth): close account recovery integration evidence` | pending | Complete supported documentation, finite failure regression and acceptance mapping |
+| T4.2 | completed | `test(auth): close account recovery integration evidence` | `52096c68eef6` | Complete supported documentation, finite failure regression and acceptance mapping |
 
 ## Dependencies and Execution Gate
 
