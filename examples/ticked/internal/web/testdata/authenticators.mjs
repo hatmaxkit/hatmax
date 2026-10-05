@@ -4,11 +4,12 @@
 // This file is part of Hatmax. See LICENSE for license terms.
 
 import assert from 'node:assert/strict';
+import {runRecovery} from './recovery.mjs';
 import {spawn} from 'node:child_process';
 import {mkdtemp, readFile, rm} from 'node:fs/promises';
 import {setTimeout as delay} from 'node:timers/promises';
 
-const [binary, origin, profile] = process.argv.slice(2);
+const [binary, origin, profile, concern] = process.argv.slice(2);
 assert(binary && origin && profile, 'mandatory browser arguments');
 const socketScratch = await mkdtemp('/tmp/hatmax-browser-');
 const browser = spawn(binary, [
@@ -131,10 +132,10 @@ try {
     window.flow = {check, request, ok, denied, password, create, get, signin, otp, tamper};
     return isSecureContext && !!navigator.credentials;
   })()`);
-  async function navigate(path) {
+  async function navigate(path, expected = origin + path) {
     await page('Page.navigate', {url: origin + path});
     await waitFor(async () => {
-      try { return await evaluate(`location.href === ${JSON.stringify(origin + path)} && document.readyState === 'complete'`); }
+      try { return await evaluate(`location.href === ${JSON.stringify(expected)} && document.readyState === 'complete'`); }
       catch { return false; }
     }, 'navigation');
     assert(await install(), 'localhost secure context and credentials API');
@@ -248,6 +249,9 @@ try {
     })()`);
     assert((await cookie()) !== passwordActor, 'TOTP completion issues a distinct bearer');
     stage(`actual TOTP ${stepUp ? 'step-up' : 'sign-in'}, replay and strong-policy denial`);
+  }
+  if (concern === 'account-recovery') {
+    await runRecovery({origin, page, evaluate, navigate, cookie, cookies, replaceCookie, stage});
   }
   const credentials = await page('WebAuthn.getCredentials', {authenticatorId});
   const secondCredentials = await page('WebAuthn.getCredentials', {authenticatorId:secondDevice.authenticatorId});

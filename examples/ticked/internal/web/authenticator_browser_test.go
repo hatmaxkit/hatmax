@@ -124,6 +124,11 @@ func browserQueries(t *testing.T) (*featureauth.Queries, *config.Config) {
 // Actual Chromium navigator operations must pass the production handlers, real
 // verifier and PostgreSQL before a strong cookie or factor change is accepted.
 func TestAuthenticatorBrowser(t *testing.T) {
+	runAuthenticatorBrowser(t, false)
+}
+
+func runAuthenticatorBrowser(t *testing.T, recovery bool) {
+	t.Helper()
 	node := browserEnvironment(t, "NODE_BIN", false)
 
 	chromium := browserEnvironment(t, "CHROMIUM_BIN", false)
@@ -150,10 +155,23 @@ func TestAuthenticatorBrowser(t *testing.T) {
 	}
 
 	router := chi.NewRouter()
+
+	var recoveryFixture *recoveryBrowserFixture
+	if recovery {
+		recoveryFixture = newRecoveryBrowserFixture()
+		router.Use(recoveryFixture.loseResponse)
+	}
+
 	server := httptest.NewUnstartedServer(router)
 	t.Cleanup(server.Close)
 	origin := "http://" + strings.Replace(server.Listener.Addr().String(), "127.0.0.1", "localhost", 1)
+
 	limits := config.AuthenticatorConfig{RPID: "localhost", RPName: "Ticked browser acceptance", Origins: []string{origin}, LocalhostDevelopment: true}
+	if recovery {
+		// This composite journey deliberately performs more ceremonies than the
+		// default shared ten-attempt window. Keep a finite explicit fixture budget.
+		limits.SubjectAttempts = 40
+	}
 
 	webAuthn, err := auth.NewWebAuthnService(base, q, limits)
 	if err != nil {
@@ -194,6 +212,10 @@ func TestAuthenticatorBrowser(t *testing.T) {
 	control, err := NewFactorHandler(factors, auth.FactorPolicy{Management: strong, Access: auth.RequirePhishingResistantMFA}, true)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if recovery {
+		recoveryFixture.register(t, router, base, q, origin, strong)
 	}
 
 	enrollment.RegisterRoutes(router)
@@ -244,10 +266,20 @@ func TestAuthenticatorBrowser(t *testing.T) {
 	})
 	server.Start()
 
-	ctx, cancel := context.WithTimeout(t.Context(), 150*time.Second)
+	timeout := 150 * time.Second
+	if recovery {
+		timeout = 240 * time.Second
+	}
+
+	ctx, cancel := context.WithTimeout(t.Context(), timeout)
 	defer cancel()
 
-	command := exec.CommandContext(ctx, node, "testdata/authenticators.mjs", chromium, origin, t.TempDir())
+	args := []string{"testdata/authenticators.mjs", chromium, origin, t.TempDir()}
+	if recovery {
+		args = append(args, "account-recovery")
+	}
+
+	command := exec.CommandContext(ctx, node, args...)
 
 	output, err := command.CombinedOutput()
 	if err != nil {

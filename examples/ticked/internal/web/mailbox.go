@@ -66,7 +66,7 @@ func (h *MailboxHandler) RegisterRoutes(router chi.Router) {
 
 func mailboxPage(w http.ResponseWriter, page string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, _ = w.Write([]byte(page))
+	_, _ = w.Write([]byte(page + recoveryFormScript))
 }
 
 func (h *MailboxHandler) admit(r *http.Request) bool {
@@ -193,3 +193,12 @@ const mailboxRequestPage = `<!doctype html><html lang="en"><meta charset="utf-8"
 // A fragment keeps the bearer out of request URLs and access logs. GET only
 // presents an explicit form; navigation removes the fragment before submission.
 const mailboxConfirmPage = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="referrer" content="no-referrer"><title>Verify mailbox</title><h1>Verify mailbox</h1><form method="post" action="/account/mailbox/confirm"><label>Verification token <input id="token" name="token" maxlength="80" autocomplete="off" required></label><button>Verify mailbox</button></form><script>const value=new URLSearchParams(location.hash.slice(1)).get('token');history.replaceState(null,'',location.pathname);if(value)document.getElementById('token').value=value;</script></html>`
+
+// Native no-referrer form navigation can carry an opaque Origin. A same-origin
+// fetch preserves browser source validation and the exact supported wire format.
+const recoveryFormScript = `<script>document.querySelector('form').addEventListener('submit',async event=>{
+ event.preventDefault();const form=event.currentTarget,button=form.querySelector('button');button.disabled=true;
+ try{const response=await fetch(form.action,{method:'POST',mode:'same-origin',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(new FormData(form)),signal:AbortSignal.timeout(10000)});
+ const text=await response.text();document.body.replaceChildren(document.createTextNode(text));}
+ catch{document.body.replaceChildren(document.createTextNode('Request unavailable. Check normal sign-in before requesting another link.'));}
+});</script>`

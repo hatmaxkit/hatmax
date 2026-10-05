@@ -18,7 +18,7 @@ Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `cd9647584a004d2dd0563fe915654ffd316abb8e`
 Active slice: Slice 4 — Recovery acceptance
-Active tasks: T4.1
+Active tasks: T4.2
 Execution gate: Open
 
 ## Slice Status
@@ -40,8 +40,8 @@ Execution gate: Open
 | T2.2 | completed | `test(auth): verify password change authority` | `ecf129548459` | Current actor/factor/policy/time rejection, concurrency and full rollback |
 | T3.1 | completed | `feat(auth): add one-use mailbox password reset` | `cd3fbcb6f893` | Previously verified target, one-use token, credential/revocation/notice and no MFA bypass |
 | T3.2 | completed | `test(auth): verify password reset isolation and MFA` | `8c3f9cb54565` | Token and reset/change races, rollback, invalidation and real retained MFA/replay state |
-| T4.1 | active | `test(auth): exercise account recovery browser journeys` | pending | Actual production browser/PostgreSQL lifecycle and current-proof re-entry |
-| T4.2 | pending | `test(auth): close account recovery integration evidence` | pending | Complete supported documentation, finite failure regression and acceptance mapping |
+| T4.1 | completed | `test(auth): exercise account recovery browser journeys` | pending | Actual production browser/PostgreSQL lifecycle and current-proof re-entry |
+| T4.2 | active | `test(auth): close account recovery integration evidence` | pending | Complete supported documentation, finite failure regression and acceptance mapping |
 
 ## Dependencies and Execution Gate
 
@@ -188,3 +188,28 @@ recovery journeys, final finite regressions and AR-01 through AR-10 mapping.
 - `go test -run '^$' -fuzz '^FuzzRecoveryToken$' -fuzztime=20s -parallel=2 -timeout=60s ./auth`
 - `go test -race ./auth ./config ./model ./middleware ./examples/ticked/internal/feat/auth ./examples/ticked/internal/web`
 - The single full integrated `make check` remains after all four verified merges.
+
+
+### Slice 4 Boundary Regression Selector
+
+Before T4.2, extend the finite adapter selector with `TestRecoveryBoundaries`:
+`go test -tags=integration -race -run '^(TestRecoveryBoundaries|TestPasswordResetTransactions|TestPasswordChangeTransactions|TestMailboxTransactions|TestMailboxDeliveryTransactions|TestCredentialTransactions|TestSessionTransactions|TestWebAuthnTransactions|TestFallbackTransactions|TestFactorAuthority)$' -count=1 -timeout=180s ./examples/ticked/internal/feat/auth`.
+This covers an earlier caller deadline while the subject lock is held, exact
+owned-revision lease release and finite cross-purpose cleanup after retention,
+without fabricated authentication or refunded admission.
+
+
+## Slice 4 Browser Evidence
+
+T4.1 passed the recorded actual Chromium/PostgreSQL browser selector in 75.007s.
+The composite fixture uses explicit finite authenticator subject admission of 40;
+recovery budgets and ingress defaults remain intact. The journey waits the real
+one-minute ingress window before final lost-response/replay checks. Actual forms,
+foreign-origin submission, namespace isolation, required-MFA re-entry, retained
+backup consumption, operator proof/role and failed dispatch/notice retry passed.
+
+The browser exposed native no-referrer navigation carrying `Origin: null`.
+Recovery forms now submit an explicit same-origin fetch with the supported media
+type, a ten-second client deadline and no automatic replay. Existing middleware
+still rejects opaque/foreign sources. A dropped committed response retains an
+invalid old cookie; a consumed token cannot repeat the mutation.
