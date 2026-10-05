@@ -233,8 +233,8 @@ one exact backup code to the shared finish route. Do not alter spaces, case or
 encoding. The code is consumed only with successful access completion. Backup
 proof satisfies MFA, and cannot regenerate its own set. See the
 [fallback reference](../../reference/authentication/README.md#totp-and-backup-proof)
-for bounds, freshness and storage requirements. Additional-factor/removal journeys
-and browser acceptance remain later delivery work.
+for bounds, freshness and storage requirements. The management and browser
+sections below cover additional-factor/removal journeys.
 
 After actual recent stronger sign-in or step-up, Ticked's
 `/authenticators/manage` page can add, replace or remove your own authenticators.
@@ -274,7 +274,8 @@ configuration. These routes stay disabled without active delivery.
 
 Open `/account/mailbox`, enter your current account email and request a message.
 The response does not reveal whether that account exists or can receive a token.
-Open the link from the message and submit the verification form. Opening the
+Keep JavaScript enabled for the protected forms. Open the link from the message
+and submit the verification form. Opening the
 link alone cannot verify the address. The secret stays in the URL fragment until
 the form removes it and submits it in a protected POST.
 
@@ -323,6 +324,17 @@ required authenticators needs a separate identity-recovery procedure.
 An authorized Ticked operator can request this same mailed flow at
 `/admin/password-reset` after recent phishing-resistant authentication. The
 operator cannot choose your new password, receive your link or sign you in.
-A failed notification does not undo a successful reset. See the
+A failed notification does not undo a successful reset. If the browser loses the
+completion response, check normal sign-in with the new password before requesting
+another link; replaying a consumed link cannot repeat the reset. See the
 [reset reference](../../reference/authentication/README.md#mailbox-password-reset)
 for retry, timing and deployment boundaries.
+
+
+After wiring recovery routes, run the
+[recovery browser acceptance check](../../reference/authentication/README.md#recovery-browser-acceptance)
+with the owned database, Chromium, Node and captured mail fixture. It exercises
+the forms, required-MFA re-entry, notifications and a lost committed response.
+Your application remains responsible for actual provider delivery, trusted proxy
+and deployment-wide anti-automation controls, bounded cleanup/retry scheduling
+and a separate procedure for all-factor loss.

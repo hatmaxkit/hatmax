@@ -13,7 +13,7 @@ Approved: 2026-10-04
 Behavior: [Account lifecycle and password recovery](account-recovery.md)
 Parent model: [Authentication security model](authentication-security-model.md)
 Prerequisite models: [Sessions](authentication-sessions-model.md), [Authenticators](authenticators-model.md)
-Implementation status: Pending
+Implementation status: Partial
 
 ## Ownership and Representation
 
@@ -21,7 +21,8 @@ Core defines logical values and typed operation guarantees. Applications own
 tables, queries, canonical mailbox policy and mail/notification persistence.
 Use the existing subject, `CredentialState`, `AuthVersion`, session generations,
 factor bindings and versioned password record. Names below are logical contracts;
-they do not assert that Go types or columns already exist.
+the settled delivery representations below identify the implemented Go/SQL/wire
+contracts. Final acceptance delivery and the integrated gate remain pending.
 
 ## Current Mailbox and Credential State
 

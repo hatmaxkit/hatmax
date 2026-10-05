@@ -18,7 +18,7 @@ Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `cd9647584a004d2dd0563fe915654ffd316abb8e`
 Active slice: Slice 4 — Recovery acceptance
-Active tasks: T4.2
+Active tasks: None
 Execution gate: Open
 
 ## Slice Status
@@ -40,8 +40,8 @@ Execution gate: Open
 | T2.2 | completed | `test(auth): verify password change authority` | `ecf129548459` | Current actor/factor/policy/time rejection, concurrency and full rollback |
 | T3.1 | completed | `feat(auth): add one-use mailbox password reset` | `cd3fbcb6f893` | Previously verified target, one-use token, credential/revocation/notice and no MFA bypass |
 | T3.2 | completed | `test(auth): verify password reset isolation and MFA` | `8c3f9cb54565` | Token and reset/change races, rollback, invalidation and real retained MFA/replay state |
-| T4.1 | completed | `test(auth): exercise account recovery browser journeys` | pending | Actual production browser/PostgreSQL lifecycle and current-proof re-entry |
-| T4.2 | active | `test(auth): close account recovery integration evidence` | pending | Complete supported documentation, finite failure regression and acceptance mapping |
+| T4.1 | completed | `test(auth): exercise account recovery browser journeys` | `b599c7722b43` | Actual production browser/PostgreSQL lifecycle and current-proof re-entry |
+| T4.2 | completed | `test(auth): close account recovery integration evidence` | pending | Complete supported documentation, finite failure regression and acceptance mapping |
 
 ## Dependencies and Execution Gate
 
@@ -63,7 +63,7 @@ establish transaction semantics or production non-enumeration.
 - [x] Slice 2 merged and report delivered; recent-proof credential change evidence recorded.
 - [x] Slice 3 merged and report delivered; one-use reset/MFA preservation evidence recorded.
 - [ ] Slice 4 merged and report delivered; actual browser acceptance and supported guidance recorded.
-- [ ] AR-01 through AR-10 mapped to exact evidence.
+- [x] AR-01 through AR-10 mapped to exact evidence, with integrated AR-10 gate explicitly pending.
 - [ ] Exact immutable integrated dev candidate passes `make check`.
 - [ ] Supported AUTH-06 coverage and remaining lifecycle/AUTH-07/consumer obligations recorded.
 
@@ -213,3 +213,40 @@ Recovery forms now submit an explicit same-origin fetch with the supported media
 type, a ten-second client deadline and no automatic replay. Existing middleware
 still rejects opaque/foreign sources. A dropped committed response retains an
 invalid old cookie; a consumed token cannot repeat the mutation.
+
+
+## Acceptance Evidence Map
+
+| Criterion | Exact focused evidence | Remaining boundary |
+| --- | --- | --- |
+| AR-01 | `TestRecoveryToken`, `TestMailboxRecord`, `TestResetTokenPurpose`, `FuzzRecoveryToken`; `TestPasswordResetTransactions/admission`; purpose/domain/subject snapshot cases | No public bearer; transient mail fixture remains private |
+| AR-02 | `TestMailboxTransactions/complete_invalidation` and `preserves_actual_MFA`; `TestMailboxTransportTransactions`; `TestAccountRecoveryBrowser` verification journey | No sign-in/activation authority from mailbox proof |
+| AR-03 | `TestPasswordChangeTransactions` current actor/proof/factor/generation/post-lock cases; `TestAccountRecoveryBrowser` actual MFA change/weak-proof denial | Trusted application policy determines acceptable management proof |
+| AR-04 | `TestPasswordChangeTransactions` policy/checker/cancellation/shared KDF cases; `TestPasswordResetTransactions/admission`, `durable_budgets`, `failures`; shared verifier unit/race tests | Finite KDF admission is instance-local |
+| AR-05 | `TestPasswordResetTransactions/preserved_MFA` actual WebAuthn/TOTP/backup authentication; `TestAccountRecoveryBrowser` post-reset password/MFA and spent/unused backup journeys | All-factor-loss identity proofing remains separate |
+| AR-06 | `TestMailboxTransactions` races/rollback; `TestPasswordChangeTransactions`; `TestPasswordResetTransactions/races`, `failures`, `final_checks` | Ambiguous commit errors require operating review |
+| AR-07 | `TestMailboxRecord` expiry equality; tagged mailbox/reset budget/expiry cases; `TestRecoveryBoundaries` deadline/owned release/retained cleanup; ingress unit/HTTP/browser cases | Applications invoke cleanup and deployment-wide admission |
+| AR-08 | `TestMailboxTransportTransactions`, `TestPasswordChangeTransportTransactions`, `TestPasswordResetTransportTransactions`; `TestAccountRecoveryBrowser` actual forms, fragment/GET, foreign origin and namespace isolation | Timing policy is not a production side-channel audit |
+| AR-09 | `TestMailboxDeliveryTransactions`; change/reset failure/notice cases; actual reset operator HTTP role/proof/version tests; browser dispatch/retry/operator/lost-response journey | Captured mail is not external delivery; retry may duplicate notices |
+| AR-10 | `make docs-check`, source licensing, vet, strict lint, example compilation, public/core/config/User Guide contracts; all focused selectors above | The exact immutable integrated dev `make check` remains after Slice 4 merge |
+
+The map records all ten criteria while distinguishing focused evidence from the
+pending integrated gate. Final delivery requires the fourth verified merge and
+that one exact-candidate full check; this table does not close the set early.
+
+
+## Slice 4 Focused Closure
+
+Both Slice 4 tasks are implemented and the recorded finite selectors passed.
+Actual browser and HTTP evidence include the production form correction;
+parser fuzzing, caller-deadline/owned-lease/retained-cleanup and affected
+credential/session/authenticator regressions passed. Supported API/configuration,
+example and User Guide contracts identify the same guarantees and application
+obligations. The acceptance map above covers AR-01 through AR-10 and explicitly
+retains the integrated gate as pending.
+
+After the fourth verified merge, mark its report delivered and finalize one
+immutable integrated dev candidate before `make check`. Do not run that full gate
+on this unmerged slice or close AUTH-06/the delivery set early. If it fails and a
+repository correction is required, use the already recorded correction branch
+and merge procedure; a green candidate needs no correction branch.

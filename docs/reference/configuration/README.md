@@ -267,7 +267,7 @@ these defaults; malformed or out-of-range nonzero values fail.
 | Key | Default | Bound |
 | --- | --- | --- |
 | `recovery.verification_ttl` | `24h` | `1m`–`24h` |
-| `recovery.reset_ttl` | `1h` | `1m`–`1h`; reset flow remains unavailable |
+| `recovery.reset_ttl` | `1h` | `1m`–`1h` |
 | `recovery.timeout` | `5s` | `1s`–`30s` |
 | `recovery.lease` | `5s` | `1s`–`30s`, at least the operation timeout |
 | `recovery.token_attempts` | `5` | 1–10 |
@@ -277,4 +277,5 @@ these defaults; malformed or out-of-range nonzero values fail.
 
 Durations must use microsecond precision. Terminal token retention is fixed at
 24h. Notification retention and dispatch bounds belong to the application
-adapter. See the [mailbox reference](../authentication/README.md#mailbox-verification).
+adapter. See the [mailbox reference](../authentication/README.md#mailbox-verification)
+and [password reset contract](../authentication/README.md#mailbox-password-reset).

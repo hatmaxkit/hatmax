@@ -283,3 +283,10 @@ initiate the same verified-mailbox flow only: no chosen password, returned link 
 authentication grant. See the
 [reset reference](../../docs/reference/authentication/README.md#mailbox-password-reset)
 for storage, transport, timing and delivery limits.
+
+
+Run the explicit [recovery browser check](../../docs/reference/authentication/README.md#recovery-browser-acceptance)
+to verify these forms with real PostgreSQL, actual navigator MFA and captured mail.
+Default package tests do not run that tagged acceptance fixture. Applications
+must arrange bounded token cleanup and notice retry, active provider delivery,
+trusted-proxy/deployment-wide admission and separate all-factor-loss proofing.

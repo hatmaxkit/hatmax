@@ -545,8 +545,8 @@ const response = await fetch("/authenticators/enrollment/finish", {
 
 This delivery exposes initial-registration APIs. Registration alone supplies no
 strong sign-in. The separate assertion APIs below complete authentication;
-additional-factor management, browser acceptance remain pending. Existing password-only
-routes keep their explicit password policy; enrolling a key does not make those
+additional-factor management and browser acceptance are described below. Existing
+password-only routes keep their explicit password policy; enrolling a key does not make those
 routes enforce MFA automatically.
 
 ## WebAuthn Authentication and Step-up
@@ -611,8 +611,8 @@ same-origin JSON endpoints under server-owned phishing-resistant policy:
 Responses are `no-store`. Errors preserve an existing cookie and issue no bearer;
 begin and finish purposes cannot cross endpoints. Ticked's ordinary routes keep
 their explicit password-or-better minimum. Enrolling a factor alone does not
-change application policy. Established factor management and
-browser acceptance remain later delivery work. Synced/backup flags do not prove
+change application policy. Established factor management and browser acceptance
+are described below. Synced/backup flags do not prove
 hardware storage, non-exportability or an assurance certification.
 
 ## TOTP and Backup Proof
@@ -757,7 +757,7 @@ go test -race -tags=browser ./examples/ticked/internal/web \
 ```
 
 Replace database settings with the owned fixture's actual values. The test creates
-a random schema, applies migrations 001 and 004 through 007, and removes that
+a random schema, applies migrations 001 and 004 through 008, and removes that
 schema on cleanup. It starts production Ticked handlers/core services on an
 explicit localhost development origin. Password-only, recent MFA and recent
 phishing-resistant routes share the application's trusted policy revision;
@@ -849,7 +849,12 @@ GET renders a form only. Mail carries the bearer in a URL fragment; the form
 removes the fragment from navigation history and submits the token only through
 an explicit POST. POST requires same-origin protection, exactly one URL-encoded
 field (`email` or `token`), no query fields, and a body of at most 16 KiB.
-Responses use `no-store` and `no-referrer`. Successful verification clears the
+Responses use `no-store` and `no-referrer`. Recovery forms require JavaScript:
+explicit submission uses a same-origin fetch with the supported form media type.
+This preserves source validation when native no-referrer navigation would send
+an opaque origin. Middleware continues to reject foreign/opaque sources. The
+request has a ten-second client deadline and never retries automatically.
+Successful verification clears the
 current session cookie and requires ordinary sign-in again.
 
 Ingress runs before account lookup: at most 12 requests per socket IP per minute,
@@ -1016,5 +1021,41 @@ notification dispatch. Kind-3 notices contain no password, verifier, bearer or
 recovery link. Provider failure leaves reset successful and retains notification
 intent for explicit `DispatchMailboxNotices` retry (1–20 intents, five attempts,
 seven-day retention, five-second call deadline). It starts no retry worker.
-Captured-mail PostgreSQL/HTTP tests establish this boundary; browser journeys,
-external provider delivery and deployment protection require their own evidence.
+Captured-mail PostgreSQL/HTTP tests establish this boundary. The bounded
+[recovery browser check](#recovery-browser-acceptance) establishes actual form and
+navigator integration; external provider delivery and deployment protection
+require separate evidence.
+
+### Recovery browser acceptance
+
+The `browser` build tag also provides `TestAccountRecoveryBrowser`. It extends
+the authenticator harness through production mailbox/change/reset forms with
+actual PostgreSQL, captured mail, virtual WebAuthn and existing TOTP/backup
+ceremonies. Supply the same mandatory executable/database settings as the
+[browser check](#browser-acceptance), then run:
+
+```sh
+go test -tags=browser -race -run '^TestAccountRecoveryBrowser$' \
+  -count=1 -timeout=300s ./examples/ticked/internal/web
+```
+
+The browser child has a 240-second deadline. The composite fixture explicitly
+sets a finite 40-attempt authenticator subject window because its combined
+positive/negative ceremonies exceed the default ten attempts; production defaults
+remain unchanged. The journey respects the real one-minute ingress window before
+its lost-response/replay checks; ingress limits are not bypassed. The recovery token/issuance/completion budgets use their defaults.
+
+Acceptance covers neutral initiation, mailed fragments removed before explicit
+POST, GET safety, a real foreign-origin submission, token/session isolation,
+recent actual MFA for password change, Unicode replacement and retained factors,
+spent/unused backup-code behavior, current role/MFA operator initiation, dispatch
+and notification failure, explicit retry and a dropped committed reset response.
+The lost-response fixture closes only its owned client connection after the
+production handler commits. Replay cannot repeat the mutation; ordinary sign-in
+with the new password still requires actual MFA at the strong route.
+
+Test-only endpoints expose captured mail or control provider/transport failure
+within the owned fixture. They never approve proof, mint tokens or mutate factors.
+This proves browser/library/adapter integration, not external mail delivery,
+hardware/attestation assurance, distributed anti-automation or all-factor-loss
+identity recovery.
