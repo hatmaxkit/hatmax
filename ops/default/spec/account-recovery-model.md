@@ -22,7 +22,7 @@ tables, queries, canonical mailbox policy and mail/notification persistence.
 Use the existing subject, `CredentialState`, `AuthVersion`, session generations,
 factor bindings and versioned password record. Names below are logical contracts;
 the settled delivery representations below identify the implemented Go/SQL/wire
-contracts. Final acceptance delivery and the integrated gate remain pending.
+contracts. All four slices are delivered; the integrated gate remains pending.
 
 ## Current Mailbox and Credential State
 

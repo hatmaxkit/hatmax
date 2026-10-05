@@ -17,7 +17,7 @@ Model: [Account recovery model](../spec/account-recovery-model.md)
 Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `cd9647584a004d2dd0563fe915654ffd316abb8e`
-Active slice: Slice 4 — Recovery acceptance
+Active slice: None
 Active tasks: None
 Execution gate: Open
 
@@ -28,7 +28,7 @@ Execution gate: Open
 | Slice 1 | Mailbox verification | delivered | `feat/account-mailbox-verification` | `feat(slice-1): add bounded mailbox verification` | `#103` | `ops/default/report/slices/account-recovery/slice-1-mailbox-verification.md` |
 | Slice 2 | Protected password change | delivered | `feat/account-password-change` | `feat(slice-2): enforce recent-proof password changes` | `#104` | `ops/default/report/slices/account-recovery/slice-2-password-change.md` |
 | Slice 3 | Mailbox password reset | delivered | `feat/account-password-reset` | `feat(slice-3): add one-use mailbox password reset` | `#105` | `ops/default/report/slices/account-recovery/slice-3-password-reset.md` |
-| Slice 4 | Recovery acceptance | reviewing | `test/account-recovery-acceptance` | `test(slice-4): verify account recovery integration` | `#106` | `ops/default/report/slices/account-recovery/slice-4-recovery-acceptance.md` |
+| Slice 4 | Recovery acceptance | delivered | `test/account-recovery-acceptance` | `test(slice-4): verify account recovery integration` | `#106` | `ops/default/report/slices/account-recovery/slice-4-recovery-acceptance.md` |
 
 ## Tasks
 
@@ -62,7 +62,7 @@ establish transaction semantics or production non-enumeration.
 - [x] Slice 1 merged and report delivered; mailbox/token transaction evidence recorded.
 - [x] Slice 2 merged and report delivered; recent-proof credential change evidence recorded.
 - [x] Slice 3 merged and report delivered; one-use reset/MFA preservation evidence recorded.
-- [ ] Slice 4 merged and report delivered; actual browser acceptance and supported guidance recorded.
+- [x] Slice 4 merged and report delivered; actual browser acceptance and supported guidance recorded.
 - [x] AR-01 through AR-10 mapped to exact evidence, with integrated AR-10 gate explicitly pending.
 - [ ] Exact immutable integrated dev candidate passes `make check`.
 - [ ] Supported AUTH-06 coverage and remaining lifecycle/AUTH-07/consumer obligations recorded.
@@ -150,7 +150,6 @@ previously verified current mailbox and complete MFA/replay preservation.
   production protected transports are required. Full browser acceptance and
   the one integrated gate remain the final approved slice/set boundaries.
 
-
 ## Slice 3 Focused Evidence
 
 T3.1 and T3.2 are implemented. Actual PostgreSQL races and failures establish
@@ -166,7 +165,6 @@ The finite affected authentication regression passed in 94.370s and production
 HTTP evidence passed in 43.693s. Supported core/reference/example/User Guide
 contracts now include reset. The full integrated gate and browser acceptance
 remain the final approved boundaries; external provider delivery is unproven.
-
 
 ## Slice 3 Merge and Slice 4 Activation
 
@@ -198,7 +196,6 @@ This covers an earlier caller deadline while the subject lock is held, exact
 owned-revision lease release and finite cross-purpose cleanup after retention,
 without fabricated authentication or refunded admission.
 
-
 ## Slice 4 Browser Evidence
 
 T4.1 passed the recorded actual Chromium/PostgreSQL browser selector in 75.007s.
@@ -213,7 +210,6 @@ Recovery forms now submit an explicit same-origin fetch with the supported media
 type, a ten-second client deadline and no automatic replay. Existing middleware
 still rejects opaque/foreign sources. A dropped committed response retains an
 invalid old cookie; a consumed token cannot repeat the mutation.
-
 
 ## Acceptance Evidence Map
 
@@ -234,7 +230,6 @@ The map records all ten criteria while distinguishing focused evidence from the
 pending integrated gate. Final delivery requires the fourth verified merge and
 that one exact-candidate full check; this table does not close the set early.
 
-
 ## Slice 4 Focused Closure
 
 Both Slice 4 tasks are implemented and the recorded finite selectors passed.
@@ -250,3 +245,12 @@ immutable integrated dev candidate before `make check`. Do not run that full gat
 on this unmerged slice or close AUTH-06/the delivery set early. If it fails and a
 repository correction is required, use the already recorded correction branch
 and merge procedure; a green candidate needs no correction branch.
+
+## Slice 4 Merge and Integrated Candidate Preparation
+
+PR `#106` is canonically merged at `5e4b1be9723c2b35621cb107acd62e0275188bb1`.
+All four reports are delivered and all eight implementation tasks are completed.
+The documentary preparation commit finalizes the immutable integrated candidate.
+Run the approved full `make check` once with the owned database and bounded build
+scratch; record exact identity/result before marking this delivery set complete.
+The approved correction procedure applies only if a repository change is needed.

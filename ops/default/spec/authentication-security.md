@@ -77,9 +77,8 @@ hardware/attestation assurance and administrative authorization remain consumer
 obligations. AUTH-06/AUTH-07 retain their broader recovery/lifecycle and
 attempt-control scope. The [approved account recovery concern](account-recovery.md) refines
 mailbox verification and password change/reset with the bounds needed for those
-operations. Its [model](account-recovery-model.md) accompanies three delivered
-behavior slices; final recovery acceptance review and the integrated gate remain
-pending.
+operations. Its [model](account-recovery-model.md) accompanies four delivered
+recovery slices; the exact integrated gate remains pending.
 The complete foundation is not yet delivered.
 
 ## Inspected Gaps

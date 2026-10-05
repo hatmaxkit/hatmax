@@ -20,7 +20,7 @@ Tracker: [Delivery tracker](../tracker/account-recovery.md)
 Parent: [Authentication security](../spec/authentication-security.md)
 Base branch: `dev`
 Planning base: `cd9647584a004d2dd0563fe915654ffd316abb8e`
-Active slice: Slice 4 — Recovery acceptance
+Active slice: None
 Execution gate: Open
 Go baseline: 1.27.1
 
@@ -134,3 +134,12 @@ corrected integrated gate after merge. No correction branch for a green candidat
 Close only with four delivered reports, all eight task/commit/PR mappings,
 AR-01 through AR-10 and the exact integrated gate. Mark only supported AUTH-06
 coverage delivered; all-factor-loss and remaining AUTH-07 obligations remain open.
+
+## Integrated Candidate Preparation
+
+All four canonical slice PRs are merged and their reports are delivered. PR
+`#106` merged at `5e4b1be9723c2b35621cb107acd62e0275188bb1`. All eight tasks
+are completed. The remaining authorized step is one full `make check` for the
+immutable integrated dev candidate finalized by this documentary preparation.
+Record its exact commit and result before closing the set; do not broaden scope
+or repeat completed focused browser/database/parser checks without a new cause.

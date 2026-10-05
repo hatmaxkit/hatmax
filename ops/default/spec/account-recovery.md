@@ -43,8 +43,8 @@ their own threat review; these password operations cannot authorize them.
 The linked prerequisite concerns and their delivery sets are complete. Mailbox
 verification, protected password change and one-use mailbox reset are delivered.
 Final browser acceptance and finite focused regression are implemented and
-validated in Slice 4. Its review/merge and the exact integrated delivery gate
-remain pending; the [tracker](../tracker/account-recovery.md#acceptance-evidence-map)
+validated in delivered Slice 4. The exact integrated delivery gate remains
+pending; the [tracker](../tracker/account-recovery.md#acceptance-evidence-map)
 maps the supported criteria and remaining assurance boundaries.
 
 - `auth.Service` owns the validated password policy and shared bounded verifier.
