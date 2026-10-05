@@ -195,6 +195,25 @@ explicitly; background polling must use `NoActivity`. Configuration validates
 24-hour absolute and 30-minute inactivity defaults at startup. See the
 [authentication storage reference](../../docs/reference/authentication/README.md#queries).
 
+### Public authentication ingress
+
+Registration acknowledges new and duplicate addresses identically and navigates
+to `/signin`, without signing in or setting a cookie. Public password failures
+use one response at a six-second acknowledgment target. The shared authentication
+POST boundary defaults to 12 accepted requests per canonical peer per minute,
+1024 peers and 32 active requests. Waiting responses retain active capacity;
+cancellation releases it. Construction starts no worker. Shutdown closes
+admissions and cancels request contexts before stopping storage.
+
+Sign-in/signup forms are limited to 16 KiB and exact expected fields. Syntax,
+body bounds and same-origin checks precede account work. Header/body reads and
+response writes have finite deadlines. Trusted proxies require explicit
+`ProxyHeaders` policy before the ingress boundary. See
+[configuration](../../docs/reference/configuration/README.md#authentication-http-ingress)
+for validated settings and acknowledgment/work deadlines.
+Authentication URLs are omitted from ordinary request logging, including GET
+queries; unrelated request logging remains enabled.
+
 ### Session Control
 
 Open **Sessions** from the list page. Reauthenticate with the current password

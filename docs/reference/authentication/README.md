@@ -334,6 +334,7 @@ construction. Later configuration mutation cannot weaken credential settings.
 | `ErrPasswordTooShort` | The candidate has fewer normalized code points than the configured minimum. |
 | `ErrEmailTaken` | Persistent creation finds a duplicate email. |
 | `ErrUserNotFound` | Sign-in or `GetUserByID` finds no row. |
+| `ErrUserInactive` | Password entry finds an inactive account before proof. |
 | `ErrInvalidPassword` | A supported stored credential does not match. |
 | `ErrCredentialChanged` | Persistent state is stale, inactive or missing during creation/validation. |
 | `ErrSessionNotFound` | Validation or sign-out finds no session. |
@@ -343,8 +344,10 @@ construction. Later configuration mutation cannot weaken credential settings.
 | `ErrSessionSelection` | Scope/selected ID is invalid. |
 | `ErrSessionCursor` | Cursor is oversized, malformed or noncanonical. |
 
-An inactive user on sign-in returns the error text
-`user is not active`. That value is not one of the sentinels above.
+Initial enrollment and fallback retain their existing operation classification
+while joining `ErrUserInactive`; unknown fallback identities join `ErrUserNotFound`.
+Operating lookup failures remain distinct internally. Public handlers must not
+expose these classifications or raw database errors.
 
 `Signup` returns the created user after candidate checking, salted Argon2id
 hashing and a uniqueness-enforcing write. Policy and verifier errors remain
@@ -1108,3 +1111,30 @@ deadline includes admission. Current factor/recovery budgets, shared KDF limits
 and proof authority remain unchanged.
 Fixed-window admission does not implement cumulative authenticator disabling
 or establish an authentication assurance level.
+
+## Neutral public password transport
+
+Ticked requires common authentication HTTP ingress before public credential work.
+Sign-in, initial enrollment, TOTP setup and password-based fallback starts use
+its captured whole-work deadline. Missing/inactive accounts, wrong passwords,
+exhausted durable proof admission and operating failures share `403` with
+`Authentication unavailable`, no cookie or identity-specific retry header, and
+the configured acknowledgment target measured from HTTP admission. Successful
+restricted challenges retain their dedicated payload and grant no session.
+
+Signup accepts one bounded URL-encoded email/password/confirmation command.
+Valid new, duplicate and throttled commands receive the same
+neutral `303` navigation to `/signin` after acknowledgment. The response makes
+no account-creation claim; normal sign-in establishes whether authentication
+succeeded. Uniform operating failure receives `503` with `Registration unavailable`
+at the same target, without a cookie, backend details or account references. Signup never calls sign-in or creates a cookie/session. Feedback for
+an unsuitable password depends only on the submitted candidate. Syntax/body
+and same-origin rejection occurs before account work; raw SQL errors and request
+identities are never rendered or logged by these public transports.
+Authentication URLs are omitted from ordinary request logging, including GET
+queries; unrelated request logging remains enabled.
+
+Applications composing these handlers must install the common boundary after
+trusted-proxy resolution, retain active capacity through acknowledgment, use
+finite server read/write deadlines and call `Close()` before stopping dependent
+services. See [configuration](../configuration/README.md#authentication-http-ingress).

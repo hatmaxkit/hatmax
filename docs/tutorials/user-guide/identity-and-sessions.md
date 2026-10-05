@@ -62,6 +62,23 @@ explicitly. See [configuration](../../reference/configuration/README.md#credenti
 for validated limits and [authentication](../../reference/authentication/README.md#standalone-credential-admission)
 for the storage contract. Public response/timing policy remains application-owned.
 
+## Use Neutral Registration and Password Responses
+
+Ticked registration processes one bounded form, then directs you to normal
+sign-in. New and duplicate addresses receive the same acknowledgment; registration
+does not sign you in or set a session cookie. Acknowledgment does not confirm
+that an account was created. Password-policy feedback can ask you to choose a
+longer or different candidate without disclosing account state.
+
+Public sign-in, initial enrollment and fallback password failures use one message
+and acknowledgment target. Missing or inactive accounts, wrong passwords and
+exhausted proof budgets do not receive account-specific retry information. The
+common ingress defaults to twelve requests per peer per minute and 32 active
+requests; waits occupy that capacity and canceled requests release it. Syntax,
+origin and overall admission errors can be rejected before account lookup.
+See [HTTP ingress configuration](../../reference/configuration/README.md#authentication-http-ingress)
+for finite limits and trusted-proxy requirements.
+
 ## Carry the Session in a Secure Cookie
 
 Sign-in requires current server policy and returns an authentication outcome.

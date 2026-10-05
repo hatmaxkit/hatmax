@@ -304,3 +304,38 @@ service supplied to authentication construction. Ticked requires
 32–64 decoded bytes). All replicas must use stable application-owned material
 and consistent settings. Missing or invalid material fails startup; do not put
 the key in source, public examples or logs.
+
+## Authentication HTTP ingress
+
+`authentication_ingress` supplies process-local HTTP admission settings. The
+Ticked example installs one `AuthenticationIngress` for all authentication POST
+routes after the trusted-proxy middleware and before body parsing/account work.
+This complements durable per-identity admission; it does not replace it.
+`Config.AuthenticationIngressSettings()` validates and snapshots these values.
+
+| Field | Default | Bound |
+| --- | --- | --- |
+| `peer_requests` | 12 | 1–1000 accepted requests per fixed window |
+| `peer_window` | `1m` | `1s`–`1h` |
+| `max_peers` | 1024 | 1–10000 live peer counters |
+| `max_active` | 32 | 1–128 requests, including acknowledgment waits |
+| `cleanup_batch` | 128 | 1–1000 counters inspected per admission/cleanup |
+| `acknowledgment` | `6s` | At least whole work + `200ms`; at most `31s` |
+
+Whole work is the largest configured credential, factor or recovery timeout,
+with a `5s` floor for existing recovery transport work. Raising those timeouts
+requires a matching acknowledgment target. The margin reserves `100ms` for
+observation and `100ms` for response scheduling; observation wiring is separate.
+
+Construction starts no worker or ticker. Unknown peers are refused when the
+finite table is full; live counters are never evicted. Ports, IPv4-mapped values
+and equivalent IPv6 spellings share canonical buckets. Untrusted forwarded
+headers cannot change the connection peer. Install explicit `ProxyHeaders`
+trust policy before ingress when using a trusted reverse proxy.
+
+Ticked binds body reads to the captured whole-work deadline. Its HTTP server
+sets finite header/read timeouts and a write timeout one second longer than the
+acknowledgment target. It closes admissions and cancels request contexts before
+infrastructure shutdown. Canceled acknowledgment waits release active capacity.
+Syntax/body, peer/active capacity and origin errors may differ before account
+lookup; public password failures carry no account-specific retry information.

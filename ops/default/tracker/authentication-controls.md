@@ -39,8 +39,8 @@ Active tasks: T3.1, T3.2
 | T1.2 | completed | `test(auth): verify credential admission transactions` | `c1ed78985aba` |
 | T2.1 | completed | `feat(auth): guard password authentication paths` | `dd425e7a244d` |
 | T2.2 | completed | `test(auth): verify shared password entry budgets` | `59ddb46fc792` |
-| T3.1 | active | `feat(auth): bound public authentication ingress` | pending |
-| T3.2 | pending | `test(auth): verify neutral public authentication` | pending |
+| T3.1 | completed | `feat(auth): bound public authentication ingress` | `24b86323236e` |
+| T3.2 | completed | `test(auth): verify neutral public authentication` | pending |
 | T4.1 | pending | `feat(auth): observe bounded security outcomes` | pending |
 | T4.2 | pending | `test(auth): verify security observation boundaries` | pending |
 | T5.1 | pending | `test(auth): exercise authentication controls journeys` | pending |
@@ -118,3 +118,29 @@ five canonical merges.
 Slice 2 PR #108 is canonically merged into dev at `1ae69f0ddb49`; its report
 is delivered. Both task commits and focused evidence are recorded. Slice 3
 is active under the approved continuation map.
+
+## Slice 3 Focused Evidence
+
+The recorded actual HTTP/PostgreSQL selector passed with race detection in
+98.956s; the affected credential/password-entry adapter selector passed in
+3.937s. Actual requests retained active capacity through acknowledgment,
+rejected malformed/oversized/ambiguous forms before account work, shared
+canonical trusted peer limits across routes, denied unknown peers at capacity,
+bounded a stalled body and released waits on caller/server cancellation. Close
+rejected admissions before infrastructure cancellation.
+
+Two concurrent registration commands produced one user and one classified
+uniqueness conflict, identical neutral navigation and no session or cookie.
+Missing/inactive/wrong/throttled and operating password failures shared one
+six-second response target. Successful sign-in retained a committed secure
+cookie; restricted enrollment/setup retained their challenge contracts. Safe
+candidate feedback, database-error redaction and authentication URI log isolation
+passed. Six-package race, the 20s two-worker peer parser fuzz run, browser
+construction compilation and required repository checks passed.
+
+AC-04/AC-05/AC-06 have focused ingress/transport evidence; AC-05 browser
+evidence remains for Slice 5. Slice 4 owns terminal typed
+observations; Slice 5 owns real browser journeys, final evidence mapping and
+post-merge integrated validation. Timing describes the bounded fixture and
+response policy, not production constant-time assurance. Full `make check`
+remains after all five canonical merges.

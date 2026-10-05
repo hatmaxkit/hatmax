@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   registration uses a separate budget. Successful and failed admitted work
   spends its charge, and restart cannot reset a live window. Ticked requires
   a stable `TICKED_CREDENTIAL_NAMESPACE` and `TICKED_CREDENTIAL_KEY` at startup.
+  Its authentication routes also bound peers, active requests and body reads.
+  Registration directs new and duplicate addresses to normal sign-in without
+  automatically signing in; public password failures share one response and
+  acknowledgment target.
 
 - Users with a verified current mailbox can reset a forgotten password through
   a bounded one-use email link. Reset signs out every session while preserving
