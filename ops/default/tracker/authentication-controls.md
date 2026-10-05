@@ -25,7 +25,7 @@ Active tasks: None; Slice 1 review
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Durable credential admission | reviewing | `feat/credential-admission` | `feat(slice-1): add shared credential admission` | pending | `ops/default/report/slices/authentication-controls/slice-1-credential-admission.md` |
+| Slice 1 | Durable credential admission | reviewing | `feat/credential-admission` | `feat(slice-1): add shared credential admission` | `#107` | `ops/default/report/slices/authentication-controls/slice-1-credential-admission.md` |
 | Slice 2 | Guarded password entry | pending | `feat/guarded-password-entry` | `feat(slice-2): guard password authentication paths` | pending | `ops/default/report/slices/authentication-controls/slice-2-password-entry.md` |
 | Slice 3 | Finite public authentication | pending | `feat/authentication-ingress` | `feat(slice-3): bound public authentication ingress` | pending | `ops/default/report/slices/authentication-controls/slice-3-public-authentication.md` |
 | Slice 4 | Security observations | pending | `feat/authentication-events` | `feat(slice-4): observe bounded authentication outcomes` | pending | `ops/default/report/slices/authentication-controls/slice-4-security-events.md` |
@@ -93,3 +93,6 @@ entry and transport boundaries remain for later recorded slices.
 
 Licensing, vet, strict lint and documentation checks passed. The full integrated
 `make check` gate remains after five canonical merges.
+
+Slice 1 review PR: #107 to dev. Canonical report is reviewing; both task commits
+and focused evidence are recorded. Maintainer merge is the next state transition.
