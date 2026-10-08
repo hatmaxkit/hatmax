@@ -24,7 +24,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Coverage and validation | implementing | `docs/hatmax-documentation-coverage` | `docs(slice-1): inventory Hatmax documentation coverage` | pending | `ops/default/report/slices/documentation-conformance/slice-1-coverage-and-validation.md` |
+| Slice 1 | Coverage and validation | reviewing | `docs/hatmax-documentation-coverage` | `docs(slice-1): inventory Hatmax documentation coverage` | pending | `ops/default/report/slices/documentation-conformance/slice-1-coverage-and-validation.md` |
 | Slice 2 | Runtime and presentation | pending | `docs/hatmax-runtime-presentation` | `docs(slice-2): reconcile runtime and presentation guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-2-runtime-and-presentation.md` |
 | Slice 3 | Data and configuration | pending | `docs/hatmax-data-configuration` | `docs(slice-3): reconcile data and configuration guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-3-data-and-configuration.md` |
 | Slice 4 | Identity and recovery | pending | `docs/hatmax-identity-recovery` | `docs(slice-4): verify identity and recovery documentation` | pending | `ops/default/report/slices/documentation-conformance/slice-4-identity-and-recovery.md` |
@@ -36,8 +36,8 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 
 | Task | Status | Expected commit | Commit |
 | --- | --- | --- | --- |
-| T1.1 | completed | `docs: inventory Hatmax documentation surfaces` | pending |
-| T1.2 | pending | `test(docs): establish Hatmax conformance checks` | pending |
+| T1.1 | completed | `docs: inventory Hatmax documentation surfaces` | `596cde4204b7596309760b3ffe8f819aff5b34be` |
+| T1.2 | completed | `test(docs): establish Hatmax conformance checks` | pending |
 | T2.1 | pending | `docs: reconcile runtime and presentation guidance` | pending |
 | T2.2 | pending | `test(docs): verify runtime and presentation examples` | pending |
 | T3.1 | pending | `docs: reconcile data and configuration guidance` | pending |
@@ -71,8 +71,8 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 
 | Criterion | Evidence status | Reference |
 | --- | --- | --- |
-| DC01 | pending | pending |
-| DC02 | pending | pending |
+| DC01 | inventory established; integrated acceptance pending | `ops/default/report/documentation-conformance-coverage.md` |
+| DC02 | focused anchors/navigation passed; integrated acceptance pending | `ops/default/report/slices/documentation-conformance/slice-1-coverage-and-validation.md` |
 | DC03 | pending | pending |
 | DC04 | pending | pending |
 | DC05 | pending | pending |
@@ -102,8 +102,11 @@ Content digests account for package tests, example assets/migrations/browser
 fixtures, both embedded Book releases and dependency inputs. All behavioral
 receipts remain pending for their owning slices. Focused source reconciliation
 and four-quadrant navigation checks passed. T1.2 establishes the slice gate and
-negative controls. The plan owns fixture isolation, exact command prefixes,
-acceptance and the correction route.
+negative controls. Focused checker tests, shell syntax and strict lint passed.
+The required slice command and whitespace checks will be recorded through the
+controller against the final clean pushed head after the PR-reference commit.
+The plan owns fixture isolation, exact command prefixes, acceptance and the
+correction route.
 
 Execution remains repository-local. A completed source/page inventory or links
 check alone cannot close the set. Record runtime defects or missing prerequisites
