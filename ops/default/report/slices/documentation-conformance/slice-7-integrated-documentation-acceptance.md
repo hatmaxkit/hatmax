@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 7: Integrated Documentation Acceptance
 
-Status: reviewing
+Status: delivered
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
@@ -78,21 +78,29 @@ evidence assertion for an expected failure cannot establish a successful journey
 ## Validation
 
 Focused T7.1 repository documentation, licensing, strict lint and independent
-451-identity/navigation reconciliation passed during implementation. Required
-Slice 7 and exact clean-head whitespace evidence will be recorded through the
-controller after task commits and canonical PR-reference follow-up.
+451-identity/navigation reconciliation passed during implementation. The controller
+recorded required Slice 7 and exact clean-head whitespace evidence after task
+commits and canonical PR-reference follow-up.
 
 T7.2 control tests reject unresolved closure, unbound examples/pages, inherited
 lookup directories, automatic toolchain selection, missing executables and
 changed images. Focused native execution checks passed the Go link extractor
 and all four generator tests, including the exact root command workflow; owned
 PostgreSQL stopped. Required documentation, licensing, strict lint and uncached
-checker controls passed. Their exact clean-head cumulative results remain
-pending until final controller validation. The default integrated gate belongs
-to the controller after canonical Slice 7 integration:
+checker controls passed. The controller passed the following ordered commands
+on clean pushed head `1f3717e99e65c4d902a1726258d3918afb00beb8`:
 
 - `GOWORK=off scripts/check-documentation-conformance.sh slice 7`
 - `git diff --check`
+
+Canonical PR #118 merged that head into dev through Rebase + Fast-forward;
+Forgejo and Acta confirm integration. Evidence reconciles 451 identities,
+16 entrypoint bindings and all five preceding groups under the required native
+toolchain. Owned fixtures stopped. Three blocked generator outcomes remain
+unresolved. The default integrated command
+`GOWORK=off scripts/check-documentation-conformance.sh` belongs to the
+controller after prerequisite preparation; its result and set closure remain
+pending.
 
 ## Risks and Follow-ups
 

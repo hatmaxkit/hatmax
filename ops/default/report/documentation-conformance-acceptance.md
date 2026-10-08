@@ -13,7 +13,7 @@ Specification: [Documentation conformance](../spec/documentation-conformance.md)
 Plan: [Delivery plan](../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../tracker/documentation-conformance.md)
 Coverage: [Source-bound inventory](documentation-conformance-coverage.md)
-Integrated candidate: pending canonical Slice 7 integration
+Integrated candidate: pending controller capture of clean prepared canonical dev
 Integrated command: `GOWORK=off scripts/check-documentation-conformance.sh`
 Integrated result: pending controller execution; closure blocked by recorded rows
 

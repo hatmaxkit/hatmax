@@ -15,10 +15,10 @@ Concern: [Documentation conformance](../spec/documentation-conformance.md)
 Plan: [Delivery plan](../plan/documentation-conformance.md)
 Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
-Active slice: Slice 7
-Next slice: Slice 7
-Active tasks: None — Slice 7 PR awaiting controller validation and integration
-Execution gate: Open — independent slice-loop execution authorized on 2026-10-08
+Active slice: None — all 7 slice PRs integrated
+Next slice: None — integrated validation pending
+Active tasks: None — all 14 mapped tasks integrated
+Execution gate: Open — controller-owned integrated validation pending
 
 ## Slice Status
 
@@ -30,7 +30,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | Slice 4 | Identity and recovery | delivered | `docs/hatmax-identity-recovery` | `docs(slice-4): verify identity and recovery documentation` | `#115` | `ops/default/report/slices/documentation-conformance/slice-4-identity-and-recovery.md` |
 | Slice 5 | Infrastructure and helpers | delivered | `docs/hatmax-infrastructure-helpers` | `docs(slice-5): reconcile infrastructure and helper guidance` | `#116` | `ops/default/report/slices/documentation-conformance/slice-5-infrastructure-and-helpers.md` |
 | Slice 6 | Generator and assisted workflows | delivered | `docs/hatmax-generator-guidance` | `docs(slice-6): reconcile generator and assisted workflow guidance` | `#117` | `ops/default/report/slices/documentation-conformance/slice-6-generator-and-assisted-workflows.md` |
-| Slice 7 | Integrated documentation acceptance | reviewing | `docs/hatmax-documentation-acceptance` | `docs(slice-7): establish complete documentation acceptance` | `#118` | `ops/default/report/slices/documentation-conformance/slice-7-integrated-documentation-acceptance.md` |
+| Slice 7 | Integrated documentation acceptance | delivered | `docs/hatmax-documentation-acceptance` | `docs(slice-7): establish complete documentation acceptance` | `#118` | `ops/default/report/slices/documentation-conformance/slice-7-integrated-documentation-acceptance.md` |
 
 ## Tasks
 
@@ -61,8 +61,8 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 - [x] Actual activation base, clean canonical dev/PR/worktree state and toolchain verified.
 - [x] Fresh independent loop configuration/run/view identities frozen and reported.
 - [x] Complete source/page inventory and example identities recorded.
-- [ ] All mapped tasks integrated with actual immutable commit evidence.
-- [ ] All canonical slice PRs integrated and reports delivered.
+- [x] All mapped tasks integrated with actual immutable commit evidence.
+- [x] All canonical slice PRs integrated and reports delivered.
 - [ ] All acceptance criteria passed with source-bound example/walkthrough evidence.
 - [ ] Exact clean immutable dev candidate passed the full documentation gate.
 - [ ] Frozen operational closure paths updated without changing tested documentation.
@@ -304,3 +304,19 @@ records `GOWORK=off scripts/check-documentation-conformance.sh slice 7` followed
 by `git diff --check` on the clean pushed head after this reference commit.
 The primary checkout remains dev; integration and the final default gate
 remain controller-owned. Three generator coverage rows remain blocked.
+
+Slice 7 of 7 completed: canonical PR #118 merged through Rebase + Fast-forward
+at `1f3717e99e65c4d902a1726258d3918afb00beb8`. Forgejo and Acta confirm
+integration. The controller passed the exact clean-head ordered Slice 7 command
+and whitespace check: 451 identities, 16 entrypoint bindings and five cumulative
+workflow groups reconciled with 72 native executable identities. Owned fixtures
+stopped. All seven slice reports are delivered and all 14 mapped task subjects
+and commit ancestry are verified.
+
+Full-gate preparation preserves the generic native-tooling closure requirement.
+Required native binaries are available, including resolved Go 1.27.1, matching
+formatter, SQLC 1.30.0, PostgreSQL, lint, Chromium and the product command backend.
+The runner will create and stop fresh invocation-owned storage, listeners and
+browser contexts when the controller executes its default command. No full gate
+was run during preparation. Three generator rows remain blocked; integrated
+acceptance and delivery-set completion remain pending.
