@@ -19,7 +19,10 @@ type Queries interface {
 	CreateUser(context.Context, string, string, string, time.Time, time.Time) (*User, error)
 	GetUserByEmail(context.Context, string) (*User, error)
 	GetUserByID(context.Context, string) (*User, error)
-	CreateSession(context.Context, CredentialState, SessionRecord, AccessRequirement) (*Session, error)
+	CreateSession(context.Context, CredentialState, SessionRecord, AccessRequirement, int) (*Session, error)
+	RotateSession(context.Context, CredentialState, SessionDigest, int64, SessionRecord, AccessRequirement) (*Session, error)
+	ListSessions(context.Context, SessionDigest, AccessRequirement, int, string) (*SessionPage, error)
+	RevokeSessions(context.Context, SessionDigest, AccessRequirement, SessionSelection) (int64, error)
 	ReplacePassword(context.Context, CredentialState, string, time.Time) (*User, error)
 	ValidateSession(context.Context, SessionDigest, AccessRequirement, SessionActivity, time.Duration) (*ValidatedSession, error)
 	DeleteSession(context.Context, SessionDigest) error
@@ -101,3 +104,8 @@ an explicit self-service selection; neither accepts a target subject. Management
 revalidates recent proof atomically. Clear the cookie after all/current revocation.
 Configure the retained-session cap, page size and recent-proof age within the
 [documented bounds](../../reference/authentication/README.md#reauthentication-and-control).
+
+Use actual WebAuthn or password-plus-factor step-up when the operation requires
+MFA. Password reauthentication cannot produce stronger proof or downgrade an
+MFA-bound actor. For established passkey, app and backup-code changes, follow
+[Manage Authenticators](../manage-authenticators/README.md).

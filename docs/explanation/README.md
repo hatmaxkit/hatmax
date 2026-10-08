@@ -17,6 +17,7 @@ API contracts.
 - [Interfaces and Adapter Ownership](interfaces-and-adapters/README.md)
 - [Server-Rendered HTML with HTMX](server-rendered-htmx/README.md)
 - [Failure and Security Boundaries](failure-and-security-boundaries/README.md)
+- [Authentication Proof and Recovery](authentication-proof-and-recovery/README.md)
 
 For procedures, use the [How-to Guides](../how-to/README.md). For exact
 behavior, use the [Reference](../reference/README.md).

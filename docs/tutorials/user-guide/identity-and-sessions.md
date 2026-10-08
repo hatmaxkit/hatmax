@@ -196,12 +196,6 @@ For exact contracts, see
 [authentication how-to](../../how-to/add-authentication/README.md) covers the
 integration procedure.
 
----
-
-[Previous: Models and Data Flow](models-and-data-flow.md) ·
-[User Guide](README.md) ·
-[Next: Configuration and Runtime Settings](configuration-and-runtime-settings.md)
-
 ## Initial Authenticator Enrollment
 
 Construct `auth.NewAuthenticatorService` with the existing credential service,
@@ -214,8 +208,8 @@ to `FinishWebAuthnEnrollment` using the same trusted access requirement.
 A confirmed key advances account version and invalidates previous sessions and
 pending setup. Do not set a new authentication cookie from the safe factor result:
 registration is not a completed strong sign-in. Initial setup rejects accounts
-with established factors. Assertion completion and authorized factor changes are
-not available in this delivery yet. Ticked demonstrates the JSON begin/finish
+with established factors; those accounts use authorized factor management.
+Ticked demonstrates the JSON begin/finish
 endpoints; see the [enrollment reference](../../reference/authentication/README.md#restricted-webauthn-enrollment)
 for the browser call and finite storage/input requirements.
 
@@ -244,8 +238,8 @@ Routine counter updates preserve other valid sessions, while removal/security
 revision changes invalidate bound proof. Migration 005 adds the required session
 and assertion representation after migration 004. See the
 [WebAuthn reference](../../reference/authentication/README.md#webauthn-authentication-and-step-up)
-for the exact contracts and response bounds. Browser acceptance
-and established-factor management are separate remaining delivery boundaries.
+for the exact contracts and response bounds. Continue with the management
+journey below after completing a real assertion.
 
 ## Sign In with TOTP or a Backup Code
 
@@ -404,3 +398,41 @@ change a session or retry the mutation. Lookups, lists and GET do not add mutati
 events. An explicit discard observer is available for applications that choose
 no delivery. A timely log callback is best-effort evidence; durable mandatory
 audit needs its own reviewed persistence contract.
+
+## Follow the Completed Identity Journey
+
+Use a test account in the configured Ticked example to connect these boundaries.
+The example's [setup instructions](../../../examples/ticked/README.md) own
+database and runtime preparation. Enable the explicit RP/origin, fallback keys
+and active-mail settings before following their corresponding steps.
+
+1. Register and sign in. Registration alone creates no session. Inspect the
+   ordinary account page after actual password verification.
+2. Enroll an initial passkey, then perform a separate passkey sign-in. The
+   registration result is a factor, while assertion completion is access.
+3. Open `/authenticators/manage` after recent passkey proof. Add a second
+   passkey, then remove that second key. Confirm that the original usable key
+   remains and that security changes retire other sessions. Follow
+   [Manage Authenticators](../../how-to/manage-authenticators/README.md) for
+   replacement, app and backup-code procedures.
+4. With fallback keys configured, issue backup codes and store them privately.
+   Sign out and use the actual password-plus-code flow. This session can enter
+   `/authenticators/mfa`, but cannot enter `/authenticators/proof`. Return to
+   passkey sign-in before attempting sensitive factor changes.
+5. Verify the mailbox, then change or reset the password using the
+   [recovery procedures](../../how-to/recover-account/README.md).
+   Check that old sessions are rejected and required factors still work with
+   the new password. A mailed link alone never creates a session.
+
+You have now followed account creation, enrollment, actual proof, security
+changes and recovery as distinct operations. The
+[proof and recovery explanation](../../explanation/authentication-proof-and-recovery/README.md)
+connects those observations to application policy. The
+[authentication reference](../../reference/authentication/README.md#contract-map)
+maps each operation to its exact service and storage contract.
+
+---
+
+[Previous: Models and Data Flow](models-and-data-flow.md) ·
+[User Guide](README.md) ·
+[Next: Configuration and Runtime Settings](configuration-and-runtime-settings.md)

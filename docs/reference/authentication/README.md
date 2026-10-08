@@ -18,6 +18,24 @@ owns one shared policy/verifier. Signup checks complete normalized candidates;
 sign-in verifies PHC Argon2id records and rechecks current persistent state.
 Session record IDs use `model.NewID`; bearer secrets use 32 random bytes.
 
+## Contract Map
+
+| Concern | Public boundary | Contract |
+| --- | --- | --- |
+| Password and ordinary access | `Service` | [Policy](#password-policy), [service](#service), [shared admission](#standalone-credential-admission) |
+| Session lifetime and withdrawal | `Service`, `Queries` | [Lifecycle](#session-lifecycle), [reauthentication and control](#reauthentication-and-control) |
+| Initial passkey setup | `AuthenticatorService`, `AuthenticatorQueries` | [Restricted enrollment](#restricted-webauthn-enrollment) |
+| Passkey sign-in and actor step-up | `WebAuthnService`, `WebAuthnQueries` | [Assertion completion](#webauthn-authentication-and-step-up) |
+| Password plus app or backup proof | `FallbackService`, `FallbackQueries`, `SeedKeys` | [Fallback proof](#totp-and-backup-proof) |
+| Established factor changes | `FactorService`, `FactorQueries`, `FactorPolicy` | [Addition, replacement and removal](#established-authenticator-changes) |
+| Mailbox and password recovery | `RecoveryService`, `RecoveryQueries` | [Mailbox](#mailbox-verification), [change](#recent-proof-password-change), [reset](#mailbox-password-reset) |
+| Redacted outcomes | `SecurityObservations`, `SecurityObserver` | [Observation contract](#security-observations) |
+
+For a learning path, read [Identity and Sessions](../../tutorials/user-guide/identity-and-sessions.md).
+For a specific task, use [Manage Authenticators](../../how-to/manage-authenticators/README.md)
+or [Verify a Mailbox and Recover a Password](../../how-to/recover-account/README.md).
+For rationale, read [Authentication Proof and Recovery](../../explanation/authentication-proof-and-recovery/README.md).
+
 ## Password policy
 
 `NewPasswordPolicy(cfg, checker)` constructs an immutable credential policy.

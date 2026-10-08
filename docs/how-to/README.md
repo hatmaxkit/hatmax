@@ -14,6 +14,8 @@ minimum prerequisites, gives direct steps, and ends with a verification.
 - [Connect to Postgres](connect-postgres/README.md)
 - [Apply Database Migrations](apply-migrations/README.md)
 - [Add Authentication](add-authentication/README.md)
+- [Manage Authenticators](manage-authenticators/README.md)
+- [Verify a Mailbox and Recover a Password](recover-account/README.md)
 - [Configure Mail Delivery](configure-mailer/README.md)
 - [Run Background Jobs](run-background-jobs/README.md)
 - [Publish and Subscribe to Events](use-pubsub/README.md)
