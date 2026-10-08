@@ -24,14 +24,17 @@ headless CLI.
 
 ## Prepare Hatmax
 
-Install `hm` and authenticate the Codex CLI as described in the
+From a Go 1.27.1 `dev` source checkout of Hatmax, install the current command
+and authenticate the Codex CLI as described in the
 [official Codex CLI documentation](https://learn.chatgpt.com/docs/codex/cli):
 
 ```sh
-go install hatmax.adrianpk.com/cmd/hm@latest
+go install ./cmd/hm
 ```
 
-The Codex CLI and its resident App Server must have compatible versions.
+Add Go's binary directory to `PATH`. The published v0.5.0 tag has no `cmd/hm`;
+this chapter uses the current source command. The Codex CLI and its resident App
+Server must have compatible versions.
 Hatmax reuses that resident process across conversation turns. It does not
 start a separate Codex process for every message.
 
@@ -41,7 +44,8 @@ To create an application, start Hatmax from the directory that will contain
 the new project:
 
 ```sh
-cd ~/Projects
+mkdir -p workspace
+cd workspace
 hm
 ```
 
@@ -50,8 +54,9 @@ until a request becomes an admitted Hatmax operation, you review its plan, and
 you approve it.
 
 Starting `hm` from an existing compatible Hatmax project opens that project's
-conversation instead. Starting it from an incompatible project still permits
-ordinary conversation, but Hatmax rejects project mutations there.
+conversation instead. An inspectable incompatible project permits ordinary
+dialogue, while incompatible mutations are rejected. An inspection error can
+prevent a turn from reaching the interpreter.
 
 ## Talk to Hatmax
 
@@ -139,7 +144,7 @@ After successful application creation, Hatmax associates the conversation
 with the created project. Continue from the project directory:
 
 ```sh
-cd ~/Projects/ledger
+cd ledger
 hm
 ```
 
@@ -175,6 +180,8 @@ does not require `hm` or Codex at runtime.
 
 Conversation state is local user state outside the application repository.
 Opening `hm` in the same scope resumes its active compatible conversation.
+Scope follows the canonical directory, not just the display name. Message text
+is retained locally without general secret redaction.
 
 Use the conversation commands when you need explicit selection:
 

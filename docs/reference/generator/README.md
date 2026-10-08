@@ -20,13 +20,16 @@ conformance, and validation.
 
 ## Installation Requirements
 
-Install the canonical command:
+Build the current command from a `dev` source checkout using Go 1.27.1.
+Run from the Hatmax checkout root:
 
 ```sh
-go install hatmax.adrianpk.com/cmd/hm@latest
+go install ./cmd/hm
 ```
 
-The command also requires:
+Add the resulting Go binary directory to `PATH`. Published `v0.5.0` contains
+`cmd/hatmax`, but does not contain `cmd/hm`; `hm@latest` cannot install this
+source command from that release. The command also requires:
 
 - a compatible, authenticated `codex` executable on `PATH`; installation and
   authentication are covered by the
@@ -60,7 +63,10 @@ The headless generator accepts exactly one non-empty request argument:
 hm generate "Create an invoice feature with a required number."
 ```
 
-Any other `generate` shape prints usage and exits with status `2`.
+Any other `generate` shape prints usage and exits with status `2`. Unknown
+arguments, including `--help`, also print this usage and return `2`; interactive
+key help belongs to the TUI. Conversation selection commands use local state
+without making an inference request.
 
 ## TUI Controls
 
@@ -106,8 +112,13 @@ current `hm`, prepare its local generation tools, and open the TUI with:
 make generator-playground
 ```
 
-Each invocation creates a new timestamped directory under
-`~/Projects/playground/hatmax`; it never resumes an earlier test conversation.
+Each invocation creates a timestamped directory under
+`~/Projects/playground/hatmax`, or `HATMAX_PLAYGROUND_BASE` when set. It builds
+the current source command and copies a discovered SQLC executable; otherwise
+it installs SQLC v1.31.1 into the ignored tool cache. Go, Codex and
+golangci-lint must already be available. `HATMAX_PLAYGROUND_NO_RUN=1` prepares
+the directory without opening the TUI. Existing playgrounds are not resumed
+automatically.
 
 ## Supported Operations
 
@@ -123,7 +134,8 @@ Application creation requires a display name and Go module path. Hatmax
 normalizes the project slug and directory, can use compatible remote evidence
 for the module path, and asks only for required information it cannot derive.
 Description, niche, and initial features are optional. Initial features appear
-as dependent units in the same visible application plan.
+as dependent units in the same visible application plan, with at most eight
+initial features.
 
 Feature operations use the server-rendered CRUD archetype and Book-owned
 capabilities for Postgres persistence, Hatmax validation, and HTMX forms.
@@ -135,6 +147,39 @@ Documentation changes require explicit documentation intent. A
 documentation-only request may affect only documentation. A combined request
 may document the admitted implementation. Generated pages use the selected
 Diataxis quadrant and preserve text outside Hatmax-managed sections.
+
+### Book and Project Contracts
+
+Existing-project operations use embedded Book release 1, which admits declared
+Hatmax versions from v0.4.0 up to, but excluding, v0.6.0. Application creation
+uses release 2 and selects published v0.5.0; release 2 adds application rules
+while inheriting shared feature rules. Dependency declarations and replacements,
+canonical feature layout, project rules, protected paths and discovered
+generation/formatting/validation commands form the inspected project context.
+Compatibility with the version interval alone does not admit an arbitrary
+project layout or mutation.
+
+Book selection expands required capabilities and their dependencies, then
+collects the applicable rules and obligations. Typed intent validation rejects
+unavailable operations, incompatible capabilities, ambiguous targets and
+unsupported exceptions before a plan can authorize edits. Book examples are
+contract illustrations; negative examples identify prohibited forms.
+
+### Managed Documentation
+
+An explicit documentation intent selects one to four targets, each with a
+quadrant, lower-snake-case subject and reader goal. Hatmax derives
+`docs/<quadrant>/<subject>/README.md`, the quadrant index and `docs/README.md`.
+Targets document inspected existing feature evidence or the admitted planned
+change; they do not establish arbitrary application behavior.
+
+Generated sections use balanced `<!-- hatmax:generated:start -->` and
+`<!-- hatmax:generated:end -->` markers. An existing unmanaged target or invalid
+markers block mutation. Repeated generation replaces managed text and preserves
+outside bytes. Conformance checks the canonical headings, feature evidence,
+local file links and root-to-quadrant-to-subject navigation. Its local link check
+does not verify heading fragments or external websites. A discovered
+documentation validation command supplies additional project checks.
 
 ### Scaffold Dependency Baseline
 
@@ -182,18 +227,28 @@ Conversation snapshots are user-local state, not project files:
   otherwise `~/.local/state/hatmax`.
 
 Hatmax stores bounded turns, proposal summaries, diagnostics, Book identity,
-and an optional backend thread reference. It does not store credentials,
-environment variables, arbitrary repository contents, hidden reasoning, raw
-App Server streams, or approval authority. If persistence fails, the current
+and an optional backend thread reference. Automatic capture excludes credentials,
+environment variables and arbitrary repository files. User-authored messages
+and visible summaries are retained without general secret redaction. Hidden
+reasoning, raw App Server streams and approval authority are excluded.
+Retention permits at most 200 turns, 50 operation summaries, 8 MiB of turn text
+and nine archived conversations per scope. Backend replay is bounded to
+32 turns and 128 KiB. Reset changes conversation selection, preserving project
+source. If persistence fails, the current
 TUI session may continue in memory and reports that recovery boundary.
 
 ## Codex Runtime
 
-Hatmax locates `codex` on `PATH`, checks the CLI and managed App Server
-versions, and reuses a compatible resident daemon. It starts the daemon only
+Hatmax locates `codex` on `PATH`, checks that CLI and managed App Server versions
+share their major and minor components, and reuses a compatible resident daemon.
+It starts the daemon only
 when none is available and never stops or restarts it. Each Hatmax process
 opens a short-lived proxy. Backend threads are isolated by Hatmax scope and
 cleared when a pre-project conversation is rebound to a created project.
+Interpretation uses an isolated context directory, a read-only sandbox,
+disabled tool features and no configured MCP servers. Client activity requests
+and forbidden tool notifications fail the adapter. An empty model setting
+delegates selection to the backend; this command exposes no model flag.
 
 ## Outcomes and Validation
 
@@ -203,6 +258,11 @@ validation, and completion. A compiling scaffold may complete with validation
 incomplete only when a declared external test prerequisite is unavailable.
 An observed generated-code test failure remains an execution failure. Hatmax
 never reports a failed check as passed.
+
+Validation follows mutation. A validation failure can therefore leave the
+declared generated changes in place; inspect the result's retained-change
+evidence. A successful transaction rollback and a post-commit validation failure
+have different resource and source outcomes.
 
 Headless exit statuses are stable:
 
