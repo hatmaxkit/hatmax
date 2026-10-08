@@ -38,8 +38,8 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | --- | --- | --- | --- |
 | T1.1 | completed | `docs: inventory Hatmax documentation surfaces` | `596cde4204b7596309760b3ffe8f819aff5b34be` |
 | T1.2 | completed | `test(docs): establish Hatmax conformance checks` | `1fe3c2e40d7d58a476dd20e0e3adf64a6ac7bc3f` |
-| T2.1 | completed | `docs: reconcile runtime and presentation guidance` | pending |
-| T2.2 | pending | `test(docs): verify runtime and presentation examples` | pending |
+| T2.1 | completed | `docs: reconcile runtime and presentation guidance` | `8d1866f51cbb032758e1ce244e77daaa505072c9` |
+| T2.2 | completed | `test(docs): verify runtime and presentation examples` | pending |
 | T3.1 | pending | `docs: reconcile data and configuration guidance` | pending |
 | T3.2 | pending | `test(docs): verify data and configuration examples` | pending |
 | T4.1 | pending | `docs: reconcile identity and recovery guidance` | pending |
@@ -140,6 +140,7 @@ because published `v0.5.0` has the older server API, and resolves dependencies
 after `main.go` exists. Its exact Go program built in an isolated source-bound
 module; nine published HTML fragments parsed and executed in typed view context.
 The repository docs/example-compilation check, strict lint and whitespace passed.
-T2.2 remains pending: durable snippet/composition fixtures, real local HTTP
-execution, source-bound receipts, refreshed inventory and the Slice 2 gate must
-complete before the canonical PR is ready.
+T2.2 now supplies durable source-bound contextual compilation, actual bootstrap
+and Guide HTTP/process execution, classified receipts and the Slice 2 gate.
+The canonical PR and final clean-head controller evidence are prepared after
+this task commit; Slice 2 remains active until canonical merge verification.

@@ -20,23 +20,23 @@ lifecycle. `localesFS` is an embedded filesystem with YAML under `locales`.
 
 ```go
 // Base functions only
-tmpl := template.New("").Funcs(render.FuncMap())
+baseTemplate := template.New("").Funcs(render.FuncMap())
 
 // With HTMX helpers
-tmpl := template.New("").Funcs(render.FuncMapWithHTMX())
+htmxTemplate := template.New("").Funcs(render.FuncMapWithHTMX())
 
 // Full UI kit (recommended)
-tmpl := template.New("").Funcs(ui.FuncMap())
+uiTemplate := template.New("").Funcs(ui.FuncMap())
 
 // Merge with your own
-funcs := render.MergeFuncMaps(render.FuncMap(), myFuncMap)
+customFuncs := render.MergeFuncMaps(render.FuncMap(), myFuncMap)
 
 // With i18n support
 translator := i18n.New()
 if err := translator.LoadFromFS(localesFS, "locales"); err != nil {
     return err
 }
-funcs := render.MergeFuncMaps(render.FuncMap(), render.I18nFuncMap(translator))
+localizedFuncs := render.MergeFuncMaps(render.FuncMap(), render.I18nFuncMap(translator))
 ```
 
 The base `t` function returns its key unchanged. Load translations and merge

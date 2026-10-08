@@ -53,8 +53,16 @@ func main() {
 }
 
 func run(args []string) error {
+	if len(args) == 2 && args[0] == "runtime" {
+		return runRuntime(args[1])
+	}
+
+	if len(args) == 2 && args[0] == "evidence" {
+		return checkEvidence(args[1])
+	}
+
 	if len(args) != 1 || (args[0] != "inventory" && args[0] != "check") {
-		return fmt.Errorf("usage: documentation-conformance inventory|check")
+		return fmt.Errorf("usage: documentation-conformance inventory|check|runtime FIXTURE|evidence RECEIPT")
 	}
 
 	discovered, err := discover()
@@ -184,7 +192,17 @@ func discover() (inventory, error) {
 				source := fmt.Sprintf("%s#block-%d", file, index+1)
 				method := blockMethod(block)
 				result.add("example:"+source, source, nil, pageOwner(file), file, "Validate "+method+" in the page's stated composition", method)
+
 				result.rows[len(result.rows)-1].digest = digest(block)
+				if file == "examples/guide/README.md" && strings.Contains(block, "GUIDE_DATABASE_ENABLED=true") {
+					result.rows[len(result.rows)-1].owner = "db"
+					result.rows[len(result.rows)-1].slice = 3
+				}
+
+				if strings.HasPrefix(block, "```sql") && pageOwner(file) == "app" {
+					result.rows[len(result.rows)-1].owner = "db"
+					result.rows[len(result.rows)-1].slice = 3
+				}
 			}
 
 			if strings.HasPrefix(file, "docs/how-to/") || (strings.HasPrefix(file, "docs/tutorials/user-guide/") && !strings.HasSuffix(file, "/README.md")) {
@@ -232,7 +250,7 @@ func discover() (inventory, error) {
 	}
 
 	for directory, sources := range examples {
-		result.add("example-composition:"+directory, directory, sources, "app", directory+"/README.md", "Run the complete companion with its assets, migrations, settings and tests", "real example composition; later slices verify each workflow")
+		result.add("example-composition:"+directory, directory, sources, exampleOwner(directory), directory+"/README.md", "Run the companion in the owning slice mode; later slices verify remaining workflows", "real example composition; later slices verify each workflow")
 	}
 
 	for _, source := range []string{"config/config.go", "scheduler/config.go", "settings/setting.go"} {
@@ -296,6 +314,8 @@ func ownerSlice(owner string) int {
 
 func exampleOwner(directory string) string {
 	switch {
+	case directory == "examples/ticked":
+		return "auth"
 	case strings.Contains(directory, "/auth"), strings.Contains(directory, "/audit"), strings.Contains(directory, "/web"):
 		return "auth"
 	case strings.Contains(directory, "/dal"), strings.Contains(directory, "/list"):
@@ -477,8 +497,10 @@ func reconcile(discovered, recorded []row) error {
 			return fmt.Errorf("invalid inspected revision: %s", r.id)
 		}
 
-		if r.status != "inventoried" || r.receipt != "pending" {
-			return fmt.Errorf("Slice 1 supports inventoried rows with pending receipts only: %s", r.id)
+		if (r.status != "inventoried" || r.receipt != "pending") &&
+			(r.slice != 2 || r.receipt != "slice-2/runtime-receipts.json" ||
+				!slices.Contains([]string{"source-inspected", "compiled", "rendered", "executed", "package-tests"}, r.status)) {
+			return fmt.Errorf("unsupported status or receipt; future rows require pending receipts only: %s", r.id)
 		}
 
 		known[r.id] = r
@@ -492,6 +514,10 @@ func reconcile(discovered, recorded []row) error {
 
 		if previous.source != current.source || previous.digest != current.digest {
 			return fmt.Errorf("source drift: %s", current.id)
+		}
+
+		if previous.owner != current.owner || previous.slice != current.slice {
+			return fmt.Errorf("source ownership drift: %s", current.id)
 		}
 
 		if previous.page != "missing" {

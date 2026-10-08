@@ -6,8 +6,8 @@
 
 set -euo pipefail
 
-if [[ $# != 2 || "$1" != slice || "$2" != 1 ]]; then
-  echo 'Only slice 1 is implemented; integrated acceptance is not yet available.' >&2
+if [[ $# != 2 || "$1" != slice || ("$2" != 1 && "$2" != 2) ]]; then
+  echo 'Only slices 1 and 2 are implemented; integrated acceptance is not yet available.' >&2
   exit 2
 fi
 
@@ -27,7 +27,8 @@ if [[ $("$go_tool" version) != 'go version go1.27.1 '* ]]; then
 fi
 
 mkdir -p .tmp/documentation-conformance
-fixture=$(mktemp -d "$repo_root/.tmp/documentation-conformance/slice-1.XXXXXXXX")
+slice_number=$2
+fixture=$(mktemp -d "$repo_root/.tmp/documentation-conformance/slice-$slice_number.XXXXXXXX")
 if ! git check-ignore -q "$fixture/receipt.txt"; then
   echo 'Documentation fixture storage must be ignored by Git.' >&2
   exit 1
@@ -45,7 +46,7 @@ export GOCACHE="$repo_root/.tmp/documentation-conformance/gocache"
 
 receipt="$fixture/receipt.txt"
 {
-  printf 'slice: 1\nhead: %s\n' "$(git rev-parse HEAD)"
+  printf 'slice: %s\nhead: %s\n' "$slice_number" "$(git rev-parse HEAD)"
   go version
   golangci-lint version
   printf 'GOFLAGS: %s\nGOWORK: off\n' "$GOFLAGS"
@@ -58,7 +59,11 @@ run_check() {
   shift
   check_number=$((check_number + 1))
   printf 'Running %s\n' "$label"
-  printf 'command: %s\nexpected: exit 0\n' "$label" >> "$receipt"
+  {
+    printf 'label: %s\ncommand:' "$label"
+    printf ' %q' "$@"
+    printf '\nexpected: exit 0\n'
+  } >> "$receipt"
   local result=0
   "$@" > "$fixture/check-$check_number.log" 2>&1 || result=$?
   cat "$fixture/check-$check_number.log"
@@ -74,4 +79,8 @@ run_check 'make source-license-check' make source-license-check
 run_check 'make lint-strict' make lint-strict
 run_check 'go run ./scripts/documentation-conformance check' go run ./scripts/documentation-conformance check
 run_check 'go test -count=1 -timeout=2m ./scripts/documentation-conformance' go test -count=1 -timeout=2m ./scripts/documentation-conformance
-printf 'Slice 1 documentation conformance passed. Safe diagnostics retained in ignored fixture storage.\n'
+if [[ $slice_number == 2 ]]; then
+  run_check 'go run ./scripts/documentation-conformance runtime <owned-fixture>' go run ./scripts/documentation-conformance runtime "$fixture"
+  run_check 'go run ./scripts/documentation-conformance evidence <owned-fixture>/runtime-receipts.json' go run ./scripts/documentation-conformance evidence "$fixture/runtime-receipts.json"
+fi
+printf 'Slice %s documentation conformance passed. Safe diagnostics retained in ignored fixture storage.\n' "$slice_number"
