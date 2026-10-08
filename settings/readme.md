@@ -11,9 +11,14 @@ Runtime key-value configuration with schema validation.
 
 ## Usage
 
+These fragments belong in the bootstrap composition root. Supply `ctx` and
+an application-owned `settings.Store`, such as the Guide's memory adapter.
+No PostgreSQL store or settings administration UI is supplied by this package.
+
 ```go
 // Define schemas
 reg := settings.NewRegistry()
+minItems, maxItems := 1, 100
 reg.Register(settings.Schema{
     Key:         "site.name",
     Type:        settings.String,
@@ -29,8 +34,8 @@ reg.Register(settings.Schema{
     Default:     "20",
     Label:       "Items Per Page",
     Description: "Number of items to show in listings",
-    Min:         ptr(1),
-    Max:         ptr(100),
+    Min:         &minItems,
+    Max:         &maxItems,
 })
 reg.Register(settings.Schema{
     Key:         "site.theme",
@@ -51,7 +56,7 @@ reg.Register(settings.Schema{
 })
 
 // Create service
-svc := settings.NewService(reg, postgresStore)
+svc := settings.NewService(reg, settingStore)
 
 // Read (only ErrNotFound selects a default)
 name, err := svc.GetString(ctx, "site.name")
@@ -70,7 +75,10 @@ if err != nil {
 }
 
 // Write (validates against schema)
-svc.Set(ctx, "site.name", "New Name")
+err = svc.Set(ctx, "site.name", "New Name")
+if err != nil {
+    return err
+}
 ```
 
 ## Schema Fields
@@ -140,10 +148,15 @@ b, err := settings.ParseBool("true")
 n, err := settings.ParseInt("42")
 
 // Format to string
-s := settings.FormatBool(true)
-s := settings.FormatInt(42)
+boolText := settings.FormatBool(true)
+intText := settings.FormatInt(42)
 ```
 
 ## Notes
 
-Complements `config/`: config is static (YAML, env vars, flags at startup), settings is dynamic (DB, editable at runtime via admin UI).
+Complements `config/`: startup configuration uses YAML, environment and flags.
+Settings change through an application-owned store and workflow. Schemas and
+reads do not authorize a caller or protect secrets. `Secret` is UI metadata;
+`MaxLength` counts bytes. Defaults and stored values are parsed on reads but
+their schema bounds are not revalidated. See the
+[Configuration Reference](../docs/reference/configuration/README.md#settings).

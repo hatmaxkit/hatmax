@@ -30,9 +30,9 @@ of each validator.
 
 ## Whole values
 
-`ValidateEmail` rejects more than 254 characters, a local part longer than 64
-characters, and a value that does not match one `@` plus the email pattern.
-`ValidatePassword` requires 8 through 128 characters, one uppercase letter,
+`ValidateEmail` rejects more than 254 UTF-8 bytes, a local part longer than 64
+bytes, and a value that does not match one `@` plus the ASCII email pattern.
+`ValidatePassword` requires 8 through 128 UTF-8 bytes, one uppercase letter,
 one lowercase letter, one digit, and one punctuation or symbol character.
 `ValidateUsername` requires 3 through 32 characters matching
 `[a-zA-Z0-9_-]{3,32}`. `NormalizeEmail` trims space and lowercases the value.
@@ -43,17 +43,34 @@ The sentinel errors are `ErrEmailInvalid`, `ErrEmailTooLong`,
 `ErrPasswordNoSpecial`, `ErrUsernameTooShort`, `ErrUsernameTooLong`, and
 `ErrUsernameInvalid`.
 
+These legacy scalar password rules are independent of the current
+[authentication candidate policy](../authentication/README.md). That policy
+normalizes NFC, counts code points and invokes its configured checker; it does
+not require these character classes.
+
 ## Fields
 
 `Field`, `UUIDField`, `IntField`, and `FloatField` collect errors for one
 value. An empty string skips `MinLength`, `MaxLength`, `Email`, `Password`,
-`Phone`, `NoHTML`, and `OneOf`. `Required` trims space and adds `is required`
+`Phone`, `NoHTML`, `Equal`, `Alphanumeric`, `OneOf` and `OneOfWithLabels`.
+`Required` trims space and adds `is required`
 when the result is empty. Later rules still run.
 
 `ValidateEmailField`, `ValidatePhoneField`, and `NoHTML` return an empty
 error for an empty value. Phone validation strips spaces, hyphens, dots, and
 parentheses, then requires 7 through 15 characters and a match of the original
 value against the phone pattern.
+
+String length rules count UTF-8 bytes. `Equal` compares exact strings;
+`Alphanumeric` accepts ASCII letters and digits. `OneOfWithLabels` compares
+values and uses labels only for feedback when their count matches the values.
+`NoHTML` rejects `<...>` patterns; it neither escapes nor sanitizes content.
+Keep HTML escaping at the rendering boundary.
+
+`UUIDField.Required` rejects `uuid.Nil`. Integer and float fields provide
+`Min`, `Max`, `Positive` and `NonNegative`; integers also provide `InRange`.
+Float comparisons do not reject NaN, so validate finite values in the domain
+when required.
 
 `ValidateAll` appends the errors from each `FieldErrors` value.
 

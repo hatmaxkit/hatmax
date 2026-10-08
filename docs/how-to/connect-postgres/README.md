@@ -9,6 +9,11 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 This procedure adds the Hatmax database component to an existing application.
 
+Use the [bootstrap application](../bootstrap-application/README.md) and a
+disposable PostgreSQL database owned by this procedure. Provision the database
+and role before startup; the component creates a schema, not the database or
+role. The role needs schema creation privileges if `database.schema` is set.
+
 ## Add configuration
 
 Add the connection fields to `config.yaml`:
@@ -41,6 +46,19 @@ starts, stops, registrars := app.Setup(ctx, router, database)
 
 Ensure `assets/` contains at least one file so the embed pattern matches.
 Place components that call `database.GetDB()` during `Start` after `database`.
+
+This fragment adds imports `embed` and `db` to the bootstrap. Pass `starts`,
+`stops` and `registrars` to its existing startup/shutdown functions. If schema
+creation fails after a successful ping, close the pool on the startup error
+path before exiting. Rollback closes only earlier successful components:
+
+```go
+err := app.Start(ctx, logger, starts, stops, registrars, router)
+if err != nil {
+    _ = database.Stop(ctx)
+    return err
+}
+```
 
 ## Verify the connection
 

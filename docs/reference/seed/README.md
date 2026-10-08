@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Seed
 
-`seed` runs named seeders once and records them. The implementation note is
+`seed` skips recorded seeder names and records successful runs. The implementation note is
 [seed/readme.md](../../../seed/readme.md).
 
 ## Seeder
@@ -25,6 +25,13 @@ already in that table. A seed error or a tracking error stops the remaining
 seeders. A seed that succeeds and then fails to record its name can run again
 on the next start. `Run` calls `Start`.
 
+The provider must expose a live non-nil connection before `Start`; the runner
+does not guard a nil pool. It neither starts nor closes that pool. There is no
+transaction joining a seeder's work and its tracking insert, and no concurrent
+runner lock. Coordinate one runner and make each seeder safe to retry after
+partial work. A name is not a content checksum; changing code does not replay
+a recorded name.
+
 ## Tracker
 
 `_seeds` has `id` and `applied_at`. `IsApplied` counts rows for that id.
@@ -37,3 +44,7 @@ already present.
 for a ref and overwrites an existing ref. `Resolve` returns `unresolved
 reference: <ref>` when the ref is absent. `MustResolve` panics with that
 error. `Has` reports whether the ref is present.
+
+References are an in-memory map without synchronization or persistence. A
+skipped seeder does not reconstruct them after restart. Later seeders must
+reload durable IDs when they depend on previously applied records.

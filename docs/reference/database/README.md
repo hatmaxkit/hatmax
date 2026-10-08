@@ -30,7 +30,15 @@ If an existing deployment relied on unquoted case folding, configure its actual
 schema name before upgrading rather than expecting an automatic rename.
 A schema error returns `cannot ensure schema` and leaves the connection open.
 `Stop` closes the connection when one is stored, and returns nil otherwise.
-`GetDB` returns the stored connection, or nil before a successful `Start`.
+`GetDB` returns the stored connection, or nil before a successful ping.
+
+After a successful ping, `GetDB` is set before schema creation. A schema error
+therefore also leaves a non-nil pool. The caller must call `Stop` after such a
+failed start. `app.Start` rolls back only earlier successful components; the
+failed component owns its partial-start cleanup. A wrapper can close this pool
+before returning that error. `Stop` does not clear the stored pointer; a closed
+pool is not a new live connection. Start once per lifecycle and do not overwrite
+an open pool by starting it again.
 
 ## Migrations
 
@@ -53,3 +61,15 @@ is absent from that table. An empty `Up` section fails that migration. Each
 pending migration runs in its own transaction: the `Up` SQL, then an insert
 that calls `gen_random_uuid()`. A failure rolls that transaction back and
 stops the remaining files. `Down` is parsed and is not executed.
+
+The datetime is a string sorted lexicographically; there is no datetime-format
+validation or content checksum. Use fixed-width unique prefixes. Equal prefixes
+have no supported tie-order contract. The tracking key concatenates datetime
+and name without a separator, so choose unambiguous names and never rename an
+applied file to request a replay. Editing its SQL leaves it applied.
+
+The tracking table is created before files are loaded, outside a migration's
+transaction. Earlier successful migrations remain committed if a later one
+fails. The runner supplies no cross-process migration lock; coordinate one
+migration owner at startup. It does not drop the selected schema or pool.
+`gen_random_uuid()` must be available (built in on current PostgreSQL).

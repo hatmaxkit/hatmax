@@ -11,23 +11,30 @@ Structured logging on top of slog.
 
 ## Usage
 
-```go
-log := log.NewLogger(cfg)
+This fragment belongs in the bootstrap/request composition with `cfg`, `port`,
+`reqID` and `userID`. Import the Hatmax `log` package. Supply safe identifiers
+and messages; the logger does not redact secrets.
 
-log.Info("server started")
-log.Infof("listening on %s", port)
-log.Error("connection failed")
+```go
+logger := log.NewLogger(cfg)
+
+logger.Info("server started")
+logger.Infof("listening on %s", port)
+logger.Error("connection failed")
 
 // With context
-reqLog := log.With("request_id", reqID, "user_id", userID)
+reqLog := logger.With("request_id", reqID, "user_id", userID)
 reqLog.Info("processing request")
 ```
 
 Levels: `debug`, `info`, `error`. Configured via `cfg.Log.Level`.
 
 JSON output if `LOG_FORMAT=json`, human-readable text by default.
+Both output format and level are captured when the logger is constructed.
 
 ## API
+
+The structural contract below uses the imported `log.Logger` return type:
 
 ```go
 type Logger interface {
@@ -37,7 +44,7 @@ type Logger interface {
     Infof(format string, a ...any)
     Error(v ...any)
     Errorf(format string, a ...any)
-    With(args ...any) Logger
+    With(args ...any) log.Logger
 }
 ```
 

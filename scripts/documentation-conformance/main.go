@@ -199,6 +199,11 @@ func discover() (inventory, error) {
 					result.rows[len(result.rows)-1].slice = 3
 				}
 
+				if file == "examples/guide/README.md" && strings.Contains(block, "/greeting") {
+					result.rows[len(result.rows)-1].owner = "settings"
+					result.rows[len(result.rows)-1].slice = 3
+				}
+
 				if strings.HasPrefix(block, "```sql") && pageOwner(file) == "app" {
 					result.rows[len(result.rows)-1].owner = "db"
 					result.rows[len(result.rows)-1].slice = 3

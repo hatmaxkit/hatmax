@@ -39,6 +39,9 @@ string. Recognized values are case-insensitive:
 
 Any other string, including an empty string, selects info.
 
+Level and handler format are captured at construction. Changing the config or
+environment later does not reconfigure an existing logger.
+
 A message is emitted when the logger's level is at or below that message's
 level. Debug is level 0, info is level 1, and error is level 2. An info logger
 emits info and error. An error logger emits error.
@@ -49,6 +52,10 @@ emits info and error. An error logger emits error.
 from `config.Config`. The value `json` selects `slog`'s JSON handler. Any
 other value selects the text handler. Both handlers write to standard output
 and use the same level limit as the `Logger` method.
+
+The logger has no automatic secret redaction. Supply safe operation names and
+identifiers; exclude full configuration, connection strings, passwords, keys
+and tokens from messages and `With` fields.
 
 ## Noop logger
 

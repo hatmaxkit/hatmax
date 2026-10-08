@@ -11,19 +11,22 @@ Application configuration from YAML, env vars, and flags.
 
 ## Usage
 
+This fragment belongs in the bootstrap composition root. Import `config`,
+`fmt` and `os`; pass a readable YAML file and the complete `os.Args`.
+
 ```go
 cfg, err := config.Load("config.yaml", "MYAPP_", os.Args)
 if err != nil {
-    log.Fatal(err)
+    return err
 }
 
 if err := cfg.Validate(); err != nil {
-    log.Fatal(err)
+    return err
 }
 
 // Access config
 fmt.Println(cfg.Server.Port)
-fmt.Println(cfg.Database.ConnectionString())
+fmt.Println(cfg.Log.Level)
 ```
 
 Precedence (highest to lowest):
@@ -35,3 +38,9 @@ Precedence (highest to lowest):
 ## Notes
 
 Static configuration at startup. For dynamic runtime configuration, see `settings/`.
+
+`Load` does not validate automatically. `Validate` checks core startup
+constraints; capability constructors validate their own additional settings.
+Do not log `ConnectionString()`: it includes the configured database password.
+The [Configuration Reference](../docs/reference/configuration/README.md)
+describes flag support, environment key mapping and validator boundaries.

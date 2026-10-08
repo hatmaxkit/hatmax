@@ -24,6 +24,11 @@ integrity.
 
 Use `web.ParseForm` at the request boundary:
 
+The fragments extend the illustrative invoice handler from
+[Feature Anatomy](feature-anatomy.md). The application supplies `r`, `w`,
+`h.renderForm` and `invoiceForm`; the [Guide companion](../../../examples/guide/README.md)
+executes the corresponding name-validation and safe-feedback workflow.
+
 ```go
 form, err := web.ParseForm(r)
 if err != nil {
@@ -45,6 +50,9 @@ control characters, trims the result, and collapses whitespace.
 `NormalizeOptionalText` additionally turns empty optional text into `nil`.
 Normalization should be deterministic and must not silently change the
 meaning of domain data.
+
+String length rules count UTF-8 bytes. `NoHTML` detects tag-shaped input and
+does not escape or sanitize HTML; retain the template's escaping boundary.
 
 ## Collect Structured Field Errors
 

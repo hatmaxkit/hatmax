@@ -9,8 +9,9 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 Hatmax has two configuration layers.
 
-Static configuration is a `config.Config` value loaded at process start. It
-does not change while the process is running. The implementation note is
+Static configuration is a `config.Config` value loaded at process start. The
+application keeps it as a startup snapshot; its exported fields are mutable,
+and constructors may capture them. The implementation note is
 [config/readme.md](../../../config/readme.md).
 
 Settings are runtime key-value records checked against a schema. The
@@ -42,6 +43,19 @@ remainder, and turning each `_` into `.`. `HATMAX_DATABASE_HOST` with prefix
 
 `Load` does not call `Validate`.
 
+Environment mapping replaces every underscore, including underscores within a
+field name. For example, `HATMAX_AUTH_SESSION_TTL` becomes `auth.session.ttl`,
+not `auth.session_ttl`, and does not override that field. Use YAML or the
+registered `--auth.session_ttl` flag for such keys. Unknown YAML/environment
+keys do not become new `Config` fields. YAML `${NAME}` expansion is a separate
+mechanism and can inject a value into a key that contains underscores.
+
+Flags are registered explicitly in `Load`. The groups below have corresponding
+flags except `authenticator`, whose fields must come from YAML or supported
+environment mappings. An unknown flag exits the process. Omitted flags retain
+the loaded YAML/environment value; their defaults fill only missing keys.
+An unset variable used in YAML expansion becomes an empty string.
+
 ### Groups
 
 | Group | Fields |
@@ -50,6 +64,10 @@ remainder, and turning each `_` into `.`. `HATMAX_DATABASE_HOST` with prefix
 | `server` | `port`, `host` |
 | `database` | `host`, `port`, `user`, `password`, `database`, `schema`, `sslmode` |
 | `auth` | session lifecycle and credential policy/work fields below, `email_encryption_key`, `email_lookup_key` |
+| `authenticator` | RP identity/origins, development opt-in and enrollment bounds below |
+| `credential_admission` | durable credential admission bounds below |
+| `authentication_ingress` | HTTP peer/concurrency/acknowledgment bounds below |
+| `security_observation` | bounded event-delivery timeout and concurrency |
 | `recovery` | mailbox token lifetimes, lease, timeout, attempt budgets and cleanup bounds below |
 | `contact` | `pii_encryption_key`, `email_lookup_key` |
 | `property` | `notes_protection_key` |
@@ -136,9 +154,19 @@ shared per service; full admission returns a busy error without a waiting queue.
 | `database.user` is empty | `database.user is required` |
 | `database.database` is empty | `database.database is required` |
 | Credential policy, timeout or Argon2 work settings violate the bounds above | A credential configuration error; startup is rejected |
+| Session lifetime, cadence, capacity or cleanup settings violate their bounds | A session configuration error |
+| Recovery settings violate their bounds | A recovery configuration error |
+| Security observation timeout or concurrency violates its bounds | A security observation configuration error |
 | `scheduler.batch_size` is less than 1 | `scheduler.batch_size must be at least 1` |
 | `scheduler.workers` is less than 1 | `scheduler.workers must be at least 1` |
 | `scheduler.retry_attempts` is less than 1 | `scheduler.retry_attempts must be at least 1` |
+
+This is the complete `Config.Validate` boundary. It does not check database
+reachability, port range, SSL mode, log level, provider credentials, or all
+capability settings. Authenticator, credential-admission and HTTP-ingress
+settings have separate validation methods and constructor checks. Duration
+fallback helpers for pubsub/scheduler are separate from strict constructor
+validation. A successful `Validate` is not a connection or deployment check.
 
 ### Derived values
 
@@ -148,6 +176,10 @@ Each string value uses PostgreSQL keyword/value escaping: apostrophes and
 backslashes are backslash-escaped, and empty values remain explicit `''`.
 Spaces, quotes, and connection-option text remain part of their configured
 value. Existing driver validation and defaults still apply.
+
+The result contains the password. Do not print it, the full `Config`, or secret
+provider fields in diagnostics. The configuration and logging packages do not
+redact caller-supplied values automatically.
 
 A non-empty schema appends `search_path` containing one double-quoted SQL
 identifier, itself escaped as a connection value. Schema names preserve case,
@@ -175,12 +207,21 @@ A `Schema` names the key and its constraints. `Type` is `string`, `int`,
 an existing key. `Get` reports whether the key exists. `All` returns the
 schemas. `ByPrefix` returns the schemas whose key has that prefix.
 
+`All` and `ByPrefix` have no guaranteed ordering. Registry lookup protects the
+map with a mutex; schema slice/pointer fields are shallow copies. Treat schemas
+as immutable after registration. Registration and typed reads do not validate
+defaults. `Set` validates registered values; a typed read parses the stored raw
+value without rechecking numeric bounds or enum membership.
+
 `Schema.Validate` accepts an empty raw value when `Required` is false, without
 checking the type. A required empty value returns `setting "<key>" is required`.
 `MaxLength` above zero rejects a longer raw value. `bool` uses
 `strconv.ParseBool`. `int` uses `strconv.Atoi` and rejects values outside
 `Min` or `Max` when those pointers are set. `enum` accepts only an entry in
 `Options`. `MaxLength` of zero does not limit length.
+
+`MaxLength` counts UTF-8 bytes. `Secret` is UI metadata, not encryption,
+redaction or access control. The application owns those boundaries.
 
 `DisplayLabel` returns `Label`, or `Key` when `Label` is empty.
 `NamespaceSchema.DisplayLabel` does the same for a namespace key.

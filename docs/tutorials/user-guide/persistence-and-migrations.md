@@ -22,6 +22,12 @@ until the connection is live and every pending migration has succeeded.
 
 Construct the database without opening a connection:
 
+These Go fragments extend the illustrative invoice composition in
+[Feature Anatomy](feature-anatomy.md). The application supplies embedded assets,
+`cfg`, `logger`, `ctx`, a router, its feature store/service/handler and SQLC DAL.
+The [Guide companion](../../../examples/guide/README.md) supplies runnable note
+persistence; it creates its demo tables in `Start`, without a migrator.
+
 ```go
 database := db.New(assetsFS, db.Postgres, cfg, logger)
 ```
@@ -29,7 +35,8 @@ database := db.New(assetsFS, db.Postgres, cfg, logger)
 `db.Database.Start` opens the configured connection through the Postgres
 driver and verifies it with a ping. When the application selects a schema, it
 also ensures that schema exists. `GetDB` exposes the connection only after a
-successful start; `Stop` closes it during reverse shutdown.
+ping; `Stop` closes it during reverse shutdown. A subsequent schema failure
+retains the pool and requires cleanup by the failed component's owner.
 
 Code that needs SQL depends on a narrow provider:
 
@@ -46,6 +53,9 @@ follow the database and migrator in the lifecycle list.
 Connection pool sizing, credentials, host selection, and schema selection are
 startup configuration. Feature packages consume the managed connection; they
 do not open their own pools or read configuration independently.
+
+`db.New` does not configure pool sizing. The composition owner can configure
+the resulting `*sql.DB` before passing it to consumers.
 
 ## Make Schema History Executable
 
@@ -91,6 +101,11 @@ to a shared database, add a new migration instead of rewriting its history.
 Choose nullability, uniqueness, foreign keys, checks, and indexes from the
 feature invariants and supported queries, not from Go field types alone.
 
+Prefixes sort lexicographically; use unique fixed-width identifiers. The
+current migrator checks datetime/name, not SQL digests, so editing an applied
+file does not request a replay. Coordinate one migration runner; startup has
+no cross-process migration lock.
+
 During startup the migrator reads its files, compares them with the
 `migrations` table, and applies each pending `Up` section in its own
 transaction. It records the migration only after the SQL succeeds. A failure
@@ -127,6 +142,11 @@ build. Regenerate the DAL whenever a migration changes a queried column, then
 compile before adapting feature code. Do not silently replace the project
 SQLC pipeline with ad hoc SQL because generation or compilation reveals a
 mismatch.
+
+The query block is SQLC input, not directly executable PostgreSQL SQL.
+`dal.CreateInvoiceParams` and `dal.Invoice` are application-generated types,
+not Hatmax exports. Ticked's `sqlc.yaml` and checked-in DAL are one concrete
+configuration; Hatmax does not supply a generic invoice store.
 
 The query file expresses persistence operations. The feature store remains
 responsible for domain mapping, stable errors, and transactions that combine
@@ -198,6 +218,10 @@ it can run again at the next start.
 Use `seed.RefMap` when several seeders need stable symbolic references to IDs
 created earlier in the same run. Keep seed runners after the database and
 migrator, and before components that require the seeded records.
+
+The reference map is not persisted. If earlier seeds are skipped on restart,
+later seeders must resolve their IDs from durable records. Tracking and seeder
+effects are not one transaction; coordinate one runner and make retries safe.
 
 ## Verify the Durable Boundary
 

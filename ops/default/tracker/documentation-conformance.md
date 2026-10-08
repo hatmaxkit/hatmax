@@ -40,7 +40,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | T1.2 | completed | `test(docs): establish Hatmax conformance checks` | `1fe3c2e40d7d58a476dd20e0e3adf64a6ac7bc3f` |
 | T2.1 | completed | `docs: reconcile runtime and presentation guidance` | `cc268ec177e4cdd23817d5bf363fe152ebf5edcf` |
 | T2.2 | completed | `test(docs): verify runtime and presentation examples` | `79a9665a852ffd11f0383146ae745ada41f5d0da` |
-| T3.1 | pending | `docs: reconcile data and configuration guidance` | pending |
+| T3.1 | completed | `docs: reconcile data and configuration guidance` | pending |
 | T3.2 | pending | `test(docs): verify data and configuration examples` | pending |
 | T4.1 | pending | `docs: reconcile identity and recovery guidance` | pending |
 | T4.2 | pending | `test(docs): verify identity and recovery examples` | pending |
@@ -161,3 +161,12 @@ receipt passed `GOWORK=off scripts/check-documentation-conformance.sh slice 2`
 followed by `git diff --check`, including 448 identities and 141 runtime bindings.
 The report is delivered. Slice 3/T3.1/T3.2 is active on its approved branch and
 task map; integrated and native-tooling acceptance remain pending.
+
+T3.1 reconciles static configuration loading/validation and safe diagnostics,
+settings defaults and adapter ownership, database lifecycle and migration
+history, seeder retry/tracking, model primitives and byte-based validation.
+Published seed/model examples use current APIs; illustrative invoice updates
+validate a candidate before mutation. Guide documents persistent notes and
+memory-only greetings. Structural reconciliation covers 451 identities;
+behavioral Slice 3 receipts remain pending for T3.2. The documentation check,
+strict lint and whitespace check passed during this task.

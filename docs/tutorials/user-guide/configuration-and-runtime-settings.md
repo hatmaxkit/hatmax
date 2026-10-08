@@ -21,6 +21,11 @@ preferences from quietly changing infrastructure dependencies.
 
 The composition root loads configuration before it constructs components:
 
+The Go fragments use the illustrative invoice bootstrap. Import `config`,
+`fmt`, `os`, `log` and `settings`, and supply an application `settings.Store`.
+The [Guide companion](../../../examples/guide/README.md) is the runnable
+composition with a memory store and greeting-setting routes.
+
 ```go
 cfg, err := config.Load("config.yaml", "INVOICES_", os.Args)
 if err != nil {
@@ -38,6 +43,11 @@ Values are resolved from flags, prefixed environment variables, the YAML file,
 and defaults, in that precedence order. `Load` and `Validate` are separate;
 successful parsing does not mean the values form an operable application.
 
+Use a readable YAML file and a non-empty argument list that starts with the
+program name. Unknown flags exit the process. The environment mapper replaces
+all underscores with dots; for keys such as `auth.session_ttl`, use YAML or
+the registered flag. See the reference for the exact loading boundary.
+
 Pass the resulting `*config.Config` to constructors that own the relevant
 capability. Feature handlers and stores should not reload files or read
 environment variables independently. This keeps one startup snapshot and one
@@ -47,6 +57,11 @@ Static configuration includes server addresses, database connection details,
 authentication policy, capability enablement, polling intervals, worker
 counts, and provider credentials. Secrets can arrive through environment
 expansion, but must never be printed in startup errors or logs.
+
+Neither the logger nor `Config` redacts secrets. Log only safe operation names
+and selected non-secret fields; `Database.ConnectionString()` includes the
+password. The snapshot lifetime is an application convention: the exported
+struct is mutable, and consumers can capture fields during construction.
 
 ## Construct Logging from the Startup Snapshot
 

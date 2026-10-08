@@ -44,6 +44,11 @@ durable state.
 
 Hatmax supplies consistent primitives for identifiers and timestamps:
 
+The Go fragments below belong to the illustrative invoice feature from
+[Feature Anatomy](feature-anatomy.md). The application supplies `InvoiceInput`,
+`Invoice`, its `Validate` method, the handler and SQLC's `dal.Invoice`.
+They show mappings; the Guide companion supplies the runnable note workflow.
+
 ```go
 func NewInvoice(input InvoiceInput) (*Invoice, error) {
 	now := model.Now()
@@ -73,14 +78,16 @@ An update should not replace identity or creation time:
 
 ```go
 func (invoice *Invoice) Update(input InvoiceInput) error {
-	invoice.Number = input.Number
-	invoice.Notes = input.Notes
+	candidate := *invoice
+	candidate.Number = input.Number
+	candidate.Notes = input.Notes
 
-	if err := invoice.Validate(); err != nil {
+	if err := candidate.Validate(); err != nil {
 		return err
 	}
 
-	invoice.UpdatedAt = model.Now()
+	candidate.UpdatedAt = model.Now()
+	*invoice = candidate
 
 	return nil
 }

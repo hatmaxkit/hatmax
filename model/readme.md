@@ -11,30 +11,49 @@ Base types for domain models: IDs, timestamps, passwords, roles.
 
 ## Usage
 
+This fragment belongs in an application function with `ctx`, `password`, a
+`user` containing `ID string`, and a valid `parentID string`.
+
 ```go
 // IDs
 id := model.NewID()                    // "550e8400-e29b-41d4-a716-446655440000"
 model.GenerateID(&user.ID)             // sets in place
-parsed, err := model.ParseID(str)
+parsed, err := model.ParseID(id)
+if err != nil {
+    return err
+}
 
 // Nullable UUIDs (for optional foreign keys)
 nullID := model.NullUUID(&parentID)    // string ptr -> uuid.NullUUID
 strPtr := model.FromNullUUID(nullID)   // uuid.NullUUID -> string ptr
 
 // Timestamps
-now := model.Now()                     // time.Time truncated to seconds
+now := model.Now()                     // UTC time; precision is retained
 
 // Passwords
 verifier, err := model.NewPasswordVerifier(model.PasswordVerifierConfig{})
+if err != nil {
+    return err
+}
 hash, err := verifier.Hash(ctx, password)
+if err != nil {
+    return err
+}
 err = verifier.Verify(ctx, hash, password)
+if err != nil {
+    return err
+}
 
 // Roles
-role := model.RoleAdmin
-if role.HasPermission(model.PermWrite) { ... }
+allowed := model.HasRole([]string{"editor"}, "editor")
 ```
 
 See individual files: `id.go`, `time.go`, `password.go`, `roles.go`.
+
+`model.HasRole` checks string membership with a `superadmin` bypass. It is a
+primitive, not an application authorization policy; `auth.User.HasRole` has
+its own contract. `NullUUID` collapses malformed and absent input to an invalid
+nullable value, so validate required identifiers before conversion.
 
 ## Versioned credentials
 

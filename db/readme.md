@@ -11,15 +11,20 @@ PostgreSQL connection with lifecycle management.
 
 ## Usage
 
+This fragment belongs in a bootstrap startup function with `ctx`, `cfg` and a
+logger. Import `embed` and `db`; keep at least one file below `assets/`.
+
 ```go
 //go:embed assets
 var assetsFS embed.FS
 
-database := db.New(assetsFS, db.Postgres, cfg, log)
+database := db.New(assetsFS, db.Postgres, cfg, logger)
 
 // Implements app.Startable/Stoppable
-if err := database.Start(ctx); err != nil {
-    log.Fatal(err)
+err := database.Start(ctx)
+if err != nil {
+    _ = database.Stop(ctx)
+    return err
 }
 defer database.Stop(ctx)
 
@@ -28,6 +33,8 @@ sqlDB := database.GetDB()
 ```
 
 Creates schema automatically if `cfg.Database.Schema` is set.
+The caller closes a pool retained after a schema error. `Stop` closes the pool,
+not the schema. See [Database](../docs/reference/database/README.md).
 
 ## Directory Structure
 
