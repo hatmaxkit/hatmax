@@ -17,7 +17,7 @@ Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
 Active slice: Slice 6
 Next slice: Slice 6
-Active tasks: T6.1, T6.2
+Active tasks: T6.2
 Execution gate: Open — independent slice-loop execution authorized on 2026-10-08
 
 ## Slice Status
@@ -46,7 +46,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | T4.2 | completed | `test(docs): verify identity and recovery examples` | `1cb59fa18fb16e50b0a56c64b9e1fbdb808ee713` |
 | T5.1 | completed | `docs: reconcile infrastructure and helper guidance` | `a94d6a41afd83e55c7cd02fe70b36238846c9e04` |
 | T5.2 | completed | `test(docs): verify infrastructure and helper examples` | `38eb310994d7abf1731bd3aeb2ccb14d8a628ae4` |
-| T6.1 | pending | `docs: reconcile generator and assisted workflow guidance` | pending |
+| T6.1 | completed | `docs: reconcile generator and assisted workflow guidance` | `0a70f3b71cd69db25dfaae0a62224a0f6eef087d` |
 | T6.2 | pending | `test(docs): verify generator documentation workflows` | pending |
 | T7.1 | pending | `docs: reconcile complete Hatmax documentation coverage` | pending |
 | T7.2 | pending | `test(docs): bind Hatmax documentation acceptance` | pending |
@@ -251,3 +251,10 @@ receipt passed the ordered Slice 5 command and whitespace check: 451 identities,
 Owned fixtures stopped. The report is delivered; Slice 6/T6.1/T6.2 is active
 with its approved identities. Integrated acceptance and generic native-toolchain
 closure remain pending.
+
+T6.1 corrects the current hm source-install route, CLI usage, playground tool
+requirements, Book intervals and selection, generated ownership markers,
+retention/privacy and post-commit validation outcomes. Focused documentation,
+licensing, strict lint, 451-identity reconciliation and owned source installation
+passed. All 63 Slice 6 workflow bindings remain pending for T6.2; report status
+is drafting and no canonical Slice 6 PR is prepared yet.
