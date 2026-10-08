@@ -8,15 +8,15 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Hatmax Documentation
 
 Hatmax is a composable Go toolkit for building web applications. The User
-Guide is the path from a first running process to an application that stores
-data, signs in, does work outside the request, and reads a runtime setting.
+Guide explains the connected application model: process lifecycle, stored
+data, identity, work outside the request, and runtime settings.
 Supporting guides explain focused tasks, package contracts, and the design
 decisions that connect the packages.
 
 ## User Guide
 
 The [User Guide](tutorials/user-guide/README.md) is the learning path. Follow
-it in order when building a first application, or open one chapter when
+it in order to understand application assembly, or open one chapter when
 returning to a step you already know.
 
 Focused tutorials that are not part of the main learning path are listed in

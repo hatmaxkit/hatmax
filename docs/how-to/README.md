@@ -22,6 +22,6 @@ minimum prerequisites, gives direct steps, and ends with a verification.
 - [Store and Resize Images](store-images/README.md)
 - [Test with Postgres](test-with-postgres/README.md)
 
-For a progressive first application, use the
+For the connected application model, use the
 [User Guide](../tutorials/user-guide/README.md). For exact behavior, use the
 [Reference](../reference/README.md).

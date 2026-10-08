@@ -67,5 +67,19 @@ the module `hatmax.adrianpk.com`.
 | `fake` | Mailer and telemetry fakes |
 | `testhelper` | Isolated Postgres test databases and test logging |
 
+## Assisted generation
+
+| Package or command | Responsibility |
+| --- | --- |
+| `generator` | Typed intent, project inspection, admission, planning, execution, validation, and managed documentation |
+| `generator/book` | Embedded Book selection and capability contracts |
+| `hm` | Conversational TUI, headless generation, conversation selection, and playground preparation |
+| `hatmax` | Playground preparation entrypoint |
+
+Use [Generator](../generator/README.md) for compatibility, provider
+prerequisites and failure boundaries. Runtime defects currently block fresh
+scaffold evolution and particular field updates; source generation does not
+establish successful follow-up validation.
+
 Use the [Reference index](../README.md) for package contracts and the
 [How-to Guides](../../how-to/README.md) for integration procedures.

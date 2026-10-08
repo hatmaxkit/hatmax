@@ -84,5 +84,5 @@ A package `readme.md` sits next to the package. It shows usage for that
 package. It is the implementation note.
 
 The reference states the contract without the usage walkthrough. The User
-Guide teaches one step of an application and links to the reference for the
+Guide explains one boundary of an application and links to the reference for the
 exact contract.

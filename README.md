@@ -34,13 +34,17 @@ It includes:
 
 ## Quick Start
 
-Create a module and add Hatmax:
+With Go 1.27.1, clone current `dev` and bind the application to that source
+revision. Published v0.5.0 uses the older server API:
 
 ```sh
+git clone --branch dev https://forge.adrianpk.com/hatmax/hatmax.git hatmax
 mkdir myapp
 cd myapp
 go mod init example.com/myapp
+go mod edit -replace=hatmax.adrianpk.com=../hatmax
 go get hatmax.adrianpk.com
+git -C ../hatmax rev-parse HEAD
 ```
 
 Create `config.yaml`:
@@ -62,6 +66,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"hatmax.adrianpk.com/app"
 	"hatmax.adrianpk.com/config"
@@ -71,12 +77,12 @@ import (
 func main() {
 	cfg, err := config.Load("config.yaml", "MYAPP_", os.Args)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "cannot load config: %v\n", err)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
 	if err = cfg.Validate(); err != nil {
-		fmt.Fprintf(os.Stderr, "cannot validate config: %v\n", err)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
@@ -85,32 +91,52 @@ func main() {
 	ctx := context.Background()
 	starts, stops, registrars := app.Setup(ctx, router)
 
-	err = app.Start(ctx, logger, starts, stops, registrars, router)
-	if err != nil {
-		logger.Errorf("cannot start app: %v", err)
+	if err = app.Start(ctx, logger, starts, stops, registrars, router); err != nil {
+		logger.Errorf("cannot start: %v", err)
 		os.Exit(1)
 	}
 
 	server := &http.Server{Addr: cfg.Server.Port, Handler: router}
-	if err = app.Serve(server); err != nil {
-		logger.Errorf("cannot serve: %v", err)
-		os.Exit(1)
+	serveErrors := make(chan error, 1)
+	go func() {
+		serveErrors <- app.Serve(server)
+	}()
+
+	stopContext, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	select {
+	case <-stopContext.Done():
+		app.Shutdown(server, logger, stops)
+	case err = <-serveErrors:
+		app.Shutdown(server, logger, stops)
+		if err != nil {
+			logger.Errorf("cannot serve: %v", err)
+			os.Exit(1)
+		}
 	}
 }
 ```
 
-Run `go run .`, then request `http://localhost:8080/ping`. Continue with the
-[User Guide](docs/tutorials/user-guide/README.md) to add Postgres, templates,
-forms, authentication, records, background work, and runtime settings.
+Run `go mod tidy` after creating `main.go`, then `go run .`. Request
+`http://localhost:8080/ping`; the response is `{"status":"ok"}`. Ctrl+C
+stops the server and components. The [bootstrap procedure](docs/how-to/bootstrap-application/README.md)
+gives the complete setup and verification. The
+[User Guide](docs/tutorials/user-guide/README.md) explains application assembly
+and the supporting package boundaries.
 
 ## Build with Hatmax
 
-Install the canonical command. Run `hm` from a parent directory to create an
-application, or from an existing Hatmax application to evolve it:
+Install the current command from the source checkout. Published v0.5.0 has no
+`cmd/hm`. Add Go's binary directory to `PATH`; authenticate a compatible Codex
+CLI and resident App Server before requesting generation. Run `hm` from a parent
+directory to create an application, or from a compatible existing project to
+evolve it:
 
 ```sh
-go install hatmax.adrianpk.com/cmd/hm@latest
-cd ~/Projects
+cd ../hatmax
+go install ./cmd/hm
+cd ..
 hm
 ```
 
@@ -120,13 +146,19 @@ explicit approval before applying deterministic Book-owned changes. For a
 single headless request, use:
 
 ```sh
-hm generate "Create a property feature with a required name."
+hm generate "Create an invoice feature with a required number."
 ```
 
 See
 [Assisted Generation](docs/tutorials/user-guide/assisted-generation.md) for the
 guided workflow and [Generator](docs/reference/generator/README.md) for the
 exact contract and prerequisites.
+
+The current fresh scaffold cannot complete follow-up evolution: composition-root
+resolution fails. Required timestamp updates also fail generated SQLC row mapping;
+minimum-length validation can retain changes and then fail generated-test lint.
+[Assisted Generation](docs/tutorials/user-guide/assisted-generation.md) records
+these limits and the successful existing-project operations separately.
 
 ## Package Map
 
@@ -155,8 +187,8 @@ Small interfaces make components swappable:
 ## Key Patterns
 
 - **Ordered lifecycle**: Components start in declared order and routes register
-  only after startup succeeds. Startup rollback requires aligned start and stop
-  capabilities.
+  only after startup succeeds. Each completed startup step carries its own optional rollback; a failing
+  start owns its partial cleanup.
 - **Two configuration layers**: Static process configuration and schema-checked
   runtime settings have separate lifetimes.
 - **Postgres-first infrastructure**: Pubsub, scheduler, and sessions can share
