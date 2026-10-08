@@ -126,16 +126,16 @@ is an execution prerequisite.
 
 Approved amendment: 2026-10-08. Use Go and shell for setup examples,
 documentation validators and workflow/fixture utilities when they solve the
-task. Do not add Python, Ruby or another auxiliary language runtime for those
-purposes. Existing auxiliary helpers in scope must follow the same rule.
+task. Avoid unnecessary auxiliary language runtimes for those purposes.
+Migrate existing helpers in scope to Go or shell where sufficient.
 Technology required by the actual product surface, such as a browser and its
 JavaScript, keeps its existing purpose.
 
 DC09 cannot pass and this delivery set cannot close until current documentation
 and executable workflow requirements satisfy this constraint. The final gate
 must check current prerequisites, examples and executable helper dependencies,
-and demonstrate that the relevant Go/shell workflows succeed without auxiliary
-Python or Ruby interpreters available to their subprocesses. Report actual
+and demonstrate that the relevant workflows succeed with only the required
+native toolchain available to their subprocesses. Report actual
 execution evidence, not only a prose declaration or text search. Historical
 reports retain the commands that were actually executed.
 
