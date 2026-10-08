@@ -15,9 +15,9 @@ Concern: [Documentation conformance](../spec/documentation-conformance.md)
 Plan: [Delivery plan](../plan/documentation-conformance.md)
 Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
-Active slice: Slice 4
-Next slice: Slice 4
-Active tasks: None — Slice 4 canonical PR awaits exact-head checks and controller integration
+Active slice: Slice 5
+Next slice: Slice 5
+Active tasks: T5.1, T5.2
 Execution gate: Open — independent slice-loop execution authorized on 2026-10-08
 
 ## Slice Status
@@ -27,8 +27,8 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | Slice 1 | Coverage and validation | delivered | `docs/hatmax-documentation-coverage` | `docs(slice-1): inventory Hatmax documentation coverage` | `#112` | `ops/default/report/slices/documentation-conformance/slice-1-coverage-and-validation.md` |
 | Slice 2 | Runtime and presentation | delivered | `docs/hatmax-runtime-presentation` | `docs(slice-2): reconcile runtime and presentation guidance` | `#113` | `ops/default/report/slices/documentation-conformance/slice-2-runtime-and-presentation.md` |
 | Slice 3 | Data and configuration | delivered | `docs/hatmax-data-configuration` | `docs(slice-3): reconcile data and configuration guidance` | `#114` | `ops/default/report/slices/documentation-conformance/slice-3-data-and-configuration.md` |
-| Slice 4 | Identity and recovery | reviewing | `docs/hatmax-identity-recovery` | `docs(slice-4): verify identity and recovery documentation` | `#115` | `ops/default/report/slices/documentation-conformance/slice-4-identity-and-recovery.md` |
-| Slice 5 | Infrastructure and helpers | pending | `docs/hatmax-infrastructure-helpers` | `docs(slice-5): reconcile infrastructure and helper guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-5-infrastructure-and-helpers.md` |
+| Slice 4 | Identity and recovery | delivered | `docs/hatmax-identity-recovery` | `docs(slice-4): verify identity and recovery documentation` | `#115` | `ops/default/report/slices/documentation-conformance/slice-4-identity-and-recovery.md` |
+| Slice 5 | Infrastructure and helpers | active | `docs/hatmax-infrastructure-helpers` | `docs(slice-5): reconcile infrastructure and helper guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-5-infrastructure-and-helpers.md` |
 | Slice 6 | Generator and assisted workflows | pending | `docs/hatmax-generator-guidance` | `docs(slice-6): reconcile generator and assisted workflow guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-6-generator-and-assisted-workflows.md` |
 | Slice 7 | Integrated documentation acceptance | pending | `docs/hatmax-documentation-acceptance` | `docs(slice-7): establish complete documentation acceptance` | pending | `ops/default/report/slices/documentation-conformance/slice-7-integrated-documentation-acceptance.md` |
 
@@ -217,3 +217,12 @@ and coordinated shutdown. The development run produced 50 classified bindings.
 Exact-head cumulative runner/evidence checks follow the PR-reference commit;
 DC05/DC08 integrated acceptance and the mandatory native-toolchain closure gate
 remain pending for Slice 7. Historical interpreter-based evidence is unchanged.
+
+Canonical PR #115 merged into dev at `ff63b06c67858b497691eece8d91969006999fee`.
+The controller recorded the exact ordered Slice 4 command and whitespace check
+on that clean pushed head: 451 identities, 141 cumulative runtime bindings,
+89 data bindings and 50 identity bindings passed, including actual browser proof
+and owned fixture shutdown. The foreground Make wrapper correction passed its
+regression checks and the regenerated exact-head gate. Slice 4 is delivered;
+Slice 5/T5.1/T5.2 is active with its original identities. DC09 and integrated
+acceptance remain pending until the approved final native-toolchain gate.

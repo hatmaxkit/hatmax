@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 4: Identity and Recovery
 
-Status: reviewing
+Status: delivered
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
@@ -16,7 +16,7 @@ PR: `#115`
 Report introduction: `1cb59fa18fb16e50b0a56c64b9e1fbdb808ee713`
 Activation revision: `ba9f95b9272d9e80695599d2b9524e9fe2d4b7ff`
 Documentation task: `f96565f609da32a7430cc617138d72d016376fcf`
-Merged revision: pending
+Merged revision: `ff63b06c67858b497691eece8d91969006999fee`
 
 ## Purpose
 
@@ -148,6 +148,12 @@ the listener. The checker now recognizes that Ctrl+C wrapper outcome alongside
 success/interrupted-recipe exits, while still requiring shutdown diagnostics and
 strict success for direct application processes. A regression check rejects
 unrelated signals and failed/empty outcomes; exact-head evidence is regenerated.
+
+The controller recorded both ordered commands successful on clean pushed head
+`ff63b06c67858b497691eece8d91969006999fee`: 451 identities, 141 cumulative runtime,
+89 data and 50 identity bindings passed. Owned PostgreSQL, Ticked and Chromium
+shutdown evidence reconciled. Canonical PR #115 merged at that revision; this
+closure changes only operational delivery state.
 
 ## Risks and Follow-ups
 
