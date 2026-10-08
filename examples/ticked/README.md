@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 This file is part of Hatmax. See LICENSE for license terms.
 -->
 
-# Ticked - HatMax Reference Example
+# Ticked — Hatmax Reference Example
 
 Single-binary todo list application demonstrating HatMax framework patterns with authentication, event-driven architecture, and Postgres-based pub/sub.
 
@@ -62,53 +62,88 @@ A todo list is the archetypical example for a reason: it's familiar, simple to u
 - **HTML + HTMX**: Server-side rendering with dynamic interactions
 - **Postgres PubSub**: Domain events via LISTEN/NOTIFY (no external broker)
 - **Store Pattern**: Type-safe queries with sqlc
-- **Lifecycle Management**: Automatic component discovery via `app.Setup()`
+- **Lifecycle Management**: Discovery from the explicit dependency list passed to `app.Setup`
 - **Feature-based Organization**: Code organized under `internal/feat/`
 
 ## Prerequisites
 
-- Go 1.26.0+
-- PostgreSQL running locally
+- Go 1.27.1
+- PostgreSQL and its client tools for a database you own
 - Make
-- sqlc (for regenerating queries)
+- SQLC v1.30.0 when regenerating queries
 
 ## Quick Start
 
 ### 1. Setup PostgreSQL
 
-Create database and user:
+Run commands from `examples/ticked`. Create the role before the database; the
+shipped configuration uses `tickedhm`, schema `public`. Supply the password
+chosen at the prompt through private configuration. Skip creation when your
+owned role/database already exists.
 
 ```bash
-createdb ticked
-createuser -P dev  # password: dev
+createuser --pwprompt dev
+createdb --owner=dev tickedhm
 ```
 
-### 2. Run migrations
+### 2. Supply Private Admission Material
+
+Startup requires `TICKED_CREDENTIAL_NAMESPACE` and `TICKED_CREDENTIAL_KEY`.
+For a fresh disposable local database, save this Go program as `keygen.go` in a
+temporary directory outside the example source directory and run it with
+`go run /path/to/keygen.go`. Capture its output privately as the environment
+key. The program generates 32 random bytes encoded as canonical standard Base64.
+
+```go
+package main
+
+import (
+    "crypto/rand"
+    "encoding/base64"
+    "fmt"
+)
+
+func main() {
+    key := make([]byte, 32)
+    if _, err := rand.Read(key); err != nil { panic("key generation failed") }
+    fmt.Println(base64.StdEncoding.EncodeToString(key))
+}
+```
+
+Use one stable private namespace/key for this database and all its replicas.
+Changing the key under an existing namespace fails admission. Restart with the
+same key; regenerating it is not a credential-key rotation procedure. Keep it
+separate from fallback encryption keys and out of logs and source control.
+
+### 3. Build and Run in the Foreground
+
+With the admission variables set in your shell and database credentials in
+private configuration:
 
 ```bash
-make migrate
+make build
+./ticked
 ```
 
-### 3. Build and run
-
-```bash
-make run
-```
-
-Access the application at http://localhost:8080
+Startup applies embedded migrations before registering routes. There is no
+`make migrate` target. Access http://localhost:8080 and register a test account;
+registration creates no session, so complete normal sign-in separately.
+The first committed account is assigned the example's `superadmin` role;
+this does not bypass actual proof requirements. Stop your foreground process
+with Ctrl+C; its coordinator closes ingress and owned components.
 
 ## Available Commands
 
 ### Application
 ```bash
 make build      # Build the binary
-make run        # Build and run
+make run-fg     # Build and run in the foreground using the Makefile's DB_* values
 make clean      # Remove binary and logs
 ```
 
 ### Database
 ```bash
-make migrate    # Run database migrations
+make db-init    # Create the selected owned database
 make sqlc       # Regenerate sqlc queries
 ```
 
@@ -119,7 +154,7 @@ make test       # Run tests
 
 ## Configuration
 
-Default configuration in `config.yaml`:
+Selected values from the shipped `config.yaml`:
 
 ```yaml
 server:
@@ -131,18 +166,32 @@ database:
   user: dev
   password: dev
   database: tickedhm
+  schema: public
   sslmode: disable
 
 log:
-  level: debug
+  level: info
 ```
 
 Override with environment variables (prefix `TICKED_`):
 
 ```bash
-TICKED_SERVER_PORT=:9000 make run
-TICKED_DATABASE_HOST=db.example.com make run
+TICKED_SERVER_PORT=:9000 ./ticked
+TICKED_DATABASE_HOST=db.example.com ./ticked
 ```
+
+Changing the HTTP port/origin also requires updating `authenticator.origins` in
+YAML. Environment mapping replaces every underscore with a dot; fields whose
+names contain underscores need YAML or their supported explicit flags. The
+Makefile's `run`/`run-fg` targets export their own DB/server values, overriding
+the corresponding environment values above. Direct foreground launch uses the
+effective application configuration. `make run` also stops its recorded process
+and kills a listener on the selected port; use it only when you own that port.
+
+`make seed` writes a legacy bcrypt credential that the current PHC-only verifier
+rejects. Create accounts through signup instead. Migrations preserve existing
+tracked identities and do not upgrade a previously deployed legacy user/session
+schema automatically. Use a fresh owned database for this walkthrough.
 
 ## API Endpoints
 

@@ -21,10 +21,16 @@ identifies the record and field being protected, then supply precisely the same
 bytes to `DecryptString`. This prevents a valid encrypted value from being
 substituted into another record or field that uses the same key.
 
+These fragments run inside an application function returning an error. The
+application supplies distinct private 32-byte encryption and lookup keys and
+owns their persistence, access and rotation. See the [crypto reference](../docs/reference/crypto/README.md).
+
 ```go
 context := []byte("contact:contact-123:notes")
 value, err := crypto.EncryptString("private note", key, context)
+if err != nil { return err }
 plaintext, err := crypto.DecryptString(value, key, context)
+if err != nil { return err }
 ```
 
 ## Deterministic lookup hashes
@@ -39,21 +45,33 @@ representations as equivalent.
 ```go
 normalizedEmail := strings.ToLower(strings.TrimSpace(email))
 lookup, err := crypto.DeriveLookupHash(normalizedEmail, lookupKey)
+if err != nil { return err }
 ```
 
 ## Other utilities
 
 ```go
-// Argon2id password hashing
-salt, _ := crypto.GenerateSalt()
+// Low-level Argon2id bytes, not the auth service's encoded credential format.
+salt, err := crypto.GenerateSalt()
+if err != nil { return err }
 hash := crypto.HashPassword(password, salt)
 ok := crypto.VerifyPassword(password, hash, salt)
 
 // Secure random tokens
-token, _ := crypto.GenerateSecureToken(32)
+token, err := crypto.GenerateSecureToken(32)
+if err != nil { return err }
 ```
 
-For TOTP/MFA, see `totp.go`. For PASETO tokens, see `tokens.go`.
+`HashPassword` uses 65536 KiB (64 MiB), one iteration and four lanes, with
+caller-owned 32-byte salt and raw 32-byte output. It performs no normalization,
+candidate policy, encoded-record validation or shared KDF admission. Use
+`model.NewPasswordVerifier` and the authentication policy for the current
+credential workflow; these raw bytes cannot be passed to `auth` as a PHC record.
+
+TOTP primitives and backup-code parsing generate or verify cryptographic
+material; the authentication service and transactional adapter own actual
+one-use completion. PASETO signing/verification is independent of digest-based
+authentication sessions. Signed public-token claims remain readable.
 
 `EncryptEmail`, `DecryptEmail`, and `ComputeLookupHash` remain available for
 compatibility. New code should use `EncryptString`, `DecryptString`, and

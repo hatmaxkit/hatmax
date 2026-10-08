@@ -18,6 +18,11 @@ owns one shared policy/verifier. Signup checks complete normalized candidates;
 sign-in verifies PHC Argon2id records and rechecks current persistent state.
 Session record IDs use `model.NewID`; bearer secrets use 32 random bytes.
 
+Core checks that signup email is nonempty and that admission identity is bounded
+valid text; it does not parse or canonicalize a mailbox. The application owns
+lookup normalization, aliases and public form validation. Use the same canonical
+identity for durable admission and account lookup.
+
 ## Contract Map
 
 | Concern | Public boundary | Contract |
@@ -240,7 +245,7 @@ work; late validation/issuance success is discarded. Cleanup deletes one bounded
 batch of absolute or inactivity-expired rows and returns its count. The example
 uses `SKIP LOCKED` to avoid waiting on busy rows.
 
-This service path verifies passwords only. Enrollment fields and the TOTP setup
+The ordinary `Service.Signin` path verifies passwords only. Enrollment fields and the TOTP setup
 middleware do not establish verified MFA or phishing-resistant proof. Stronger
 proof policies are enforced explicitly as described below. Reauthentication and
 session control have their own contracts.
@@ -461,6 +466,10 @@ metadata after validation.
 `RequireAuth(svc, requirement, activity)` redirects to `/signin` with status `303` when the cookie is
 missing or `ValidateSession` returns an error. Success stores the user and
 calls the next handler. It does not clear the cookie.
+
+Install middleware inside the protected route group, after shared router
+middleware. Required policy is captured by the middleware's construction;
+changing an application variable later does not update an existing route.
 
 `OptionalAuth(svc, requirement, activity)` calls the next handler without a user when the cookie is
 missing or validation fails.

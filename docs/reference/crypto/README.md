@@ -11,13 +11,16 @@ This file is part of Hatmax. See LICENSE for license terms.
 PASETO tokens, and generates TOTP material. The implementation note is
 [crypto/readme.md](../../../crypto/readme.md).
 
-`auth` does not call these password or token functions for signup and
-sign-in. See [Authentication](../authentication/README.md).
+Signup and sign-in use the versioned `model.PasswordVerifier`, not
+`crypto.HashPassword` or PASETO credentials. Sessions use random bytes from
+`GenerateSecureToken` and purpose-separated digests. See
+[Authentication](../authentication/README.md).
 
 ## Authenticated strings
 
 `EncryptedString` has `Ciphertext`, `Nonce`, and `Tag`. Each field is
-standard Base64.
+standard padded Base64. Encryption generates a new 12-byte nonce and a 16-byte
+authentication tag; empty plaintext has empty ciphertext and still has a tag.
 
 `EncryptString` requires a 32-byte key. A different length returns
 `ErrInvalidKey`. It seals the plaintext with AES-256-GCM. `associatedData` is
@@ -27,6 +30,13 @@ authenticated and is not encrypted. The same bytes are required for
 `DecryptString` returns `ErrInvalidKey`, `ErrInvalidCiphertext`,
 `ErrInvalidNonce`, or `ErrInvalidTag` when the corresponding input cannot be
 used. An authentication or decryption failure returns `ErrDecryptionFailed`.
+Invalid Base64 tag text is `ErrInvalidTag`; a decoded tag with an invalid length
+fails authentication as `ErrDecryptionFailed`. A failure returns no plaintext.
+
+Callers own keys and any rotation/version metadata. Use independent encryption
+and lookup keys. Persist the nonce and tag with the ciphertext and retain the
+exact associated-data bytes. An HMAC lookup still reveals equal input values
+under the same key; encryption does not remove that equality signal.
 
 `EncryptEmail` calls `EncryptString` with nil associated data and returns the
 three fields. `DecryptEmail` calls `DecryptString` with nil associated data.
@@ -42,10 +52,14 @@ The function does not trim or lowercase the value.
 
 ## Passwords and tokens
 
-Argon2id uses time 1, memory 64 KiB, 4 threads, and a 32-byte key.
+The low-level Argon2id primitive uses time 1, memory 65536 KiB (64 MiB),
+4 lanes, and a 32-byte output.
 `GenerateSalt` returns 32 random bytes. `HashPassword` returns nil when the
 salt is not 32 bytes. `VerifyPassword` returns false for a salt of any other
 length, and otherwise compares the hashes in constant time.
+It hashes password bytes exactly, with no NFC normalization, password policy,
+input bounds, context or shared concurrency budget. The caller owns those
+controls. Its raw output is not the auth service's PHC credential record.
 
 `GenerateSecureToken` uses at least 32 random bytes and returns them as padded
 URL Base64. A requested length below 32 is raised to 32.
@@ -65,6 +79,12 @@ whose code point is that integer plus `'0'`. `VerifyToken` reads
 `ErrTokenExpired` when the parser reports a PASETO rule error, and
 `ErrInvalidToken` for another parse or key error. A missing claim is left at
 its zero value.
+
+Public PASETO signs rather than encrypts claims. Verification checks signature
+and expiration; it does not select an expected audience, authorize a subject,
+check a current account version or consult the session store. The consumer must
+check those application requirements. `AuthzVersion` is this helper's existing
+single-byte encoding, not a general canonical integer claim.
 
 `GenerateSessionID` returns a new UUID string.
 

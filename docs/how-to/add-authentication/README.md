@@ -10,6 +10,12 @@ This file is part of Hatmax. See LICENSE for license terms.
 Hatmax authentication owns password checks and session behavior. The
 application owns persistence through `auth.Queries`.
 
+The Go fragments belong to your application assembly or HTTP handler, with
+owned configuration, logger, checker, context and adapters. Unqualified types
+in the interface describe members of `auth`; caller code uses `auth.User`,
+`auth.Session` and the other exported package types. For a concrete adapter and
+served handlers, use the [Ticked companion](../../../examples/ticked/README.md).
+
 ## Implement the persistence boundary
 
 Provide all methods in `auth.Queries`:
@@ -83,7 +89,9 @@ r.Group(func(r chi.Router) {
 })
 ```
 
-`SetSessionCookie` creates a secure cookie. Use HTTPS for browser testing.
+`SetSessionCookie` creates a secure cookie. Use HTTPS for deployment. The Ticked
+companion's explicit localhost development origin and Chromium test fixture
+exercise browser proof without weakening the cookie attributes.
 
 ## Verify the boundary
 

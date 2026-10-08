@@ -20,6 +20,11 @@ applies policy at signup, and uses the versioned model verifier.
 
 ## Usage
 
+The fragments below belong to an application function returning an error, with
+owned context, configuration, logger, checker and typed durable adapters. The
+[Ticked composition](../examples/ticked/README.md) supplies concrete PostgreSQL
+adapters. Construction alone performs no migrations or authentication.
+
 ```go
 // Create shared durable admission and a service with your Queries implementation.
 admission, err := auth.NewCredentialAdmission(admissionQueries, cfg.CredentialAdmission)
@@ -32,6 +37,7 @@ if err != nil { return err }
 
 // Signup
 user, err := svc.Signup(ctx, "user@example.com", "a distinct password phrase")
+if err != nil { return err }
 
 // Trusted operation policy, selected by server code.
 required := auth.AccessRequirement{Proof: auth.RequirePassword, Revision: "password-v1"}
@@ -42,9 +48,11 @@ if !completed { return auth.ErrSessionProof }
 
 // Validate session (e.g., in middleware)
 validated, err := svc.ValidateSession(ctx, sessionToken, required, auth.RelevantActivity)
+if err != nil { return err }
 
 // Signout
-svc.Signout(ctx, sessionToken)
+err = svc.Signout(ctx, sessionToken)
+if err != nil { return err }
 ```
 
 ## Sessions
@@ -110,6 +118,9 @@ r.Use(auth.RequireTOTP(auth.TOTPEnforcement{
 ```
 
 ## User Model
+
+This declaration describes `auth.User`; it is not a replacement persistence
+type. Methods belong to the exported package type.
 
 ```go
 type User struct {

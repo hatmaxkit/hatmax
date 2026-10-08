@@ -18,6 +18,11 @@ Hatmax supplies the authentication workflow and browser boundary. The
 application supplies the `auth.Queries` adapter, chooses which routes require
 identity, and enforces resource-specific authorization in its services.
 
+Use [Ticked](../../../examples/ticked/README.md) as the complete companion for
+this chapter. The router fragment below belongs to an application-owned invoice
+handler composition; its handler is not supplied by the toolkit. The reference
+maps the complete identity surface, while Ticked provides real storage and forms.
+
 ## Persist Users and Sessions Through the Contract
 
 `auth.Service` depends on the caller-supplied `auth.Queries` interface. Its
@@ -96,10 +101,10 @@ the `session` name and applies `HttpOnly`, `Secure`, `SameSite=Lax`, path `/`,
 and the supplied maximum age. Sign-out deletes the durable session and clears
 the browser cookie.
 
-Because the cookie is secure, normal browser authentication requires HTTPS.
-A command-line localhost check can send it explicitly, but weakening the
-production cookie contract to simplify local testing creates a different
-security model.
+Use HTTPS for deployment. Ticked explicitly enables a trusted localhost
+development WebAuthn origin; its Chromium fixture verifies that the same
+Secure/HttpOnly/SameSite cookie contract works on that origin. A deployment's
+origin and proxy configuration still require their own checks.
 
 `auth.RequireAuth` reads the cookie, validates the session, and stores the user,
 user ID and safe session metadata in the request context. Missing or invalid

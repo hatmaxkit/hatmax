@@ -194,3 +194,14 @@ and 89 data bindings. Owned PostgreSQL and HTTP fixtures stopped. The report is
 delivered. Slice 4/T4.1/T4.2 is active on its approved branch and task map;
 integrated acceptance and the generic native-tooling closure requirement remain
 pending.
+
+T4.1 compares the auth/crypto service, policy, admission, session, factor,
+recovery, observer, key and token contracts with current source. It retains
+actual proof/freshness, atomic mutation, factor-preservation and lost-response
+boundaries. Ticked setup now uses its actual database and startup migrations,
+required private admission material, current Go toolchain and direct owned
+foreground execution. Crypto guidance distinguishes the 64 MiB raw primitive,
+PHC credentials, signed readable PASETO claims and application key ownership.
+Fragments name their owning contexts and retain error handling. Documentation,
+strict lint, whitespace and 451-identity/navigation checks passed; Slice 4
+behavioral evidence remains pending for T4.2.
