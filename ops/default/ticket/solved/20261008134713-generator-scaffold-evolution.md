@@ -1,7 +1,7 @@
 ---
 id: TKT-20261008134713
 title: Recognize generated application composition roots for feature evolution
-status: ready
+status: solved
 kind: bug
 severity: unclassified
 priority: unclassified
@@ -10,6 +10,11 @@ tags: generator, composition-root
 source: implementation
 reported_at: 2026-10-08T13:47:13Z
 ready_at: 2026-10-08T15:36:37Z
+started_at: 2026-10-08T15:42:50Z
+branch: dev
+reviewed_at: 2026-10-08T15:51:27Z
+closed_at: 2026-10-08T15:51:27Z
+resolution: fixed
 commits: 2d8f46019c7fed059c5909be6ff5f14a875c403e
 ---
 <!--
@@ -45,3 +50,20 @@ Exercise bare and initial-feature scaffolds with real Go, SQLC and project
 checks. Resume the created conversation, approve a feature or required field,
 and verify generated SQL/model/handler/wiring and passing project checks.
 Retain rejection of ambiguous composition roots and stale-plan mutation.
+
+## Resolution
+
+Project discovery tracks application composition independently of executable
+entrypoints. Feature planning, evidence and conformance use those roots; wiring
+supports the generated `internal/application` owner and preserves the thin main.
+The bare scaffold owns SQLC configuration and a generation command. Its first
+feature supplies migration and template components before project validation.
+Singular migration directories remain excluded from query-root discovery.
+
+Native acceptance passed for bare and initial-feature scaffolds: create another
+feature, add a required timestamp, and run the real generated project commands
+with SQLC and an invocation-owned PostgreSQL cluster. The main stayed identical.
+Ambiguous composition roots and stale-plan mutation remain rejected. Generator
+project, plan, Book and execution package tests, `make lint-strict` and
+`make docs-check` passed. Fixture interpretation does not establish authenticated
+model acceptance.

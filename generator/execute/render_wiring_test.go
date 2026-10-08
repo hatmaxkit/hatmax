@@ -42,6 +42,20 @@ func main() {
 }
 `
 
+// Recognizing delegated application wiring must not choose between two real
+// composition roots or mutate either candidate before that ambiguity is resolved.
+func TestCompositionAmbiguity(t *testing.T) {
+	root := copyExecutionFixture(t)
+	writeExecutionFile(t, root, "main.go", canonicalCompositionRoot)
+	writeExecutionFile(t, root, "internal/application/application.go", "package application\nimport \"hatmax.adrianpk.com/app\"\nfunc run() { app.Setup() }\n")
+	value, inventory, selectedBook := executionPlan(t, root, intent.OperationCreateFeature, intent.Domain{
+		Entity: "Invoice", Route: "/invoices", Fields: []intent.Field{{Name: "number", Type: "string", Required: true}},
+	}, []string{"postgres_persistence", "runtime_validation"})
+
+	_, err := Prepare(value, inventory, selectedBook)
+	requireExecutionCode(t, err, "execution_layout_ambiguous")
+}
+
 func TestRenderCreateFeatureRendersAndAppliesCompleteManifest(t *testing.T) {
 	root := copyExecutionFixture(t)
 	writeExecutionFile(t, root, "main.go", canonicalCompositionRoot)

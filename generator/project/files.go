@@ -7,6 +7,12 @@ package project
 
 import "path/filepath"
 
+// CompositionRoots returns detached, path-ordered locations that assemble
+// Hatmax components, including composition delegated from a thin main.
+func (i Inventory) CompositionRoots() []string {
+	return cloneStrings(i.compositionRoots)
+}
+
 // Files returns a detached, path-ordered copy of inspected file metadata.
 func (i Inventory) Files() []File {
 	result := make([]File, 0, len(i.files))

@@ -215,6 +215,7 @@ func shouldSkipDirectory(path string) bool {
 }
 
 func sortInventory(inventory *Inventory) {
+	sort.Strings(inventory.compositionRoots)
 	sort.Slice(inventory.Entrypoints, func(left, right int) bool {
 		return inventory.Entrypoints[left].Path < inventory.Entrypoints[right].Path
 	})

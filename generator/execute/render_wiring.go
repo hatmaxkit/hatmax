@@ -39,9 +39,9 @@ func renderWiring(context renderContext, edit Edit) ([]byte, error) {
 		return nil, fmt.Errorf("parse composition root: %w", err)
 	}
 
-	mainFunction := findMainFunction(parsed)
+	mainFunction := findCompositionFunction(parsed)
 	if mainFunction == nil {
-		return nil, wiringPrerequisite(edit.Target, "main function")
+		return nil, wiringPrerequisite(edit.Target, "composition function")
 	}
 
 	depsIndex, dependencies := findDependencyList(mainFunction)
@@ -52,6 +52,20 @@ func renderWiring(context renderContext, edit Edit) ([]byte, error) {
 	required := []string{"database", "migrator", "tmplMgr", "logger"}
 
 	declared := declaredBefore(mainFunction.Body.List[:depsIndex])
+	templateName := "tmplMgr"
+
+	var prerequisites []ast.Stmt
+
+	if parsed.Name.Name == "application" && mainFunction.Name.Name == "run" {
+		prerequisites, err = applicationWiringPrerequisites(parsed, mainFunction, dependencies, declared)
+		if err != nil {
+			return nil, wiringPrerequisite(edit.Target, err.Error())
+		}
+
+		templateName = "templates"
+		required = []string{"database", "logger"}
+	}
+
 	for _, name := range required {
 		if !declared[name] {
 			return nil, wiringPrerequisite(edit.Target, name)
@@ -78,7 +92,7 @@ func renderWiring(context renderContext, edit Edit) ([]byte, error) {
 		}
 	}
 
-	statements := wiringStatements(featureAlias, storeName, serviceName, handlerName)
+	statements := append(prerequisites, wiringStatements(featureAlias, storeName, serviceName, handlerName, templateName)...)
 	mainFunction.Body.List = insertStatements(mainFunction.Body.List, depsIndex, statements)
 
 	insertLifecycleDependencies(dependencies, storeName, handlerName)
@@ -95,10 +109,10 @@ func renderWiring(context renderContext, edit Edit) ([]byte, error) {
 	return rendered.Bytes(), nil
 }
 
-func findMainFunction(file *ast.File) *ast.FuncDecl {
+func findCompositionFunction(file *ast.File) *ast.FuncDecl {
 	for _, declaration := range file.Decls {
 		function, ok := declaration.(*ast.FuncDecl)
-		if ok && function.Recv == nil && function.Name.Name == "main" {
+		if ok && function.Recv == nil && (file.Name.Name == "main" && function.Name.Name == "main" || file.Name.Name == "application" && function.Name.Name == "run") {
 			return function
 		}
 	}
@@ -114,11 +128,19 @@ func findDependencyList(function *ast.FuncDecl) (int, *ast.CompositeLit) {
 		}
 
 		identifier, ok := assignment.Lhs[0].(*ast.Ident)
-		if !ok || identifier.Name != "deps" {
+		if !ok || identifier.Name != "deps" && identifier.Name != "components" {
 			continue
 		}
 
-		literal, ok := assignment.Rhs[0].(*ast.CompositeLit)
+		expression := assignment.Rhs[0]
+		if call, ok := expression.(*ast.CallExpr); ok && len(call.Args) == 2 {
+			name, isName := call.Fun.(*ast.Ident)
+			if isName && name.Name == "append" && call.Ellipsis.IsValid() {
+				expression = call.Args[0]
+			}
+		}
+
+		literal, ok := expression.(*ast.CompositeLit)
 		if !ok || !isAnySlice(literal.Type) {
 			return index, nil
 		}
@@ -205,11 +227,11 @@ func importPathExists(file *ast.File, expected string) bool {
 	return false
 }
 
-func wiringStatements(featureAlias, storeName, serviceName, handlerName string) []ast.Stmt {
+func wiringStatements(featureAlias, storeName, serviceName, handlerName, templateName string) []ast.Stmt {
 	return []ast.Stmt{
 		defineCall(storeName, featureAlias, "NewPostgresStore", "database"),
 		defineCall(serviceName, featureAlias, "NewService", storeName),
-		defineCall(handlerName, featureAlias, "NewHandler", serviceName, "tmplMgr", "logger"),
+		defineCall(handlerName, featureAlias, "NewHandler", serviceName, templateName, "logger"),
 	}
 }
 
@@ -243,7 +265,7 @@ func insertLifecycleDependencies(dependencies *ast.CompositeLit, storeName, hand
 
 	for index, expression := range dependencies.Elts {
 		identifier, ok := expression.(*ast.Ident)
-		if ok && (identifier.Name == "database" || identifier.Name == "migrator" || identifier.Name == "tmplMgr") {
+		if ok && (identifier.Name == "database" || identifier.Name == "migrator" || identifier.Name == "tmplMgr" || identifier.Name == "templates") {
 			insertAt = index + 1
 		}
 	}
@@ -257,8 +279,10 @@ func insertLifecycleDependencies(dependencies *ast.CompositeLit, storeName, hand
 
 func addNamedImport(file *ast.File, name, path string) {
 	specification := &ast.ImportSpec{
-		Name: ast.NewIdent(name),
 		Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote(path)},
+	}
+	if name != "" {
+		specification.Name = ast.NewIdent(name)
 	}
 
 	for _, declaration := range file.Decls {
@@ -281,7 +305,11 @@ func addNamedImport(file *ast.File, name, path string) {
 			value, unquoteErr := strconv.Unquote(imported.Path.Value)
 			if unquoteErr == nil && strings.Contains(value, ".") {
 				insertAt = index
-				specification.Name.NamePos = imported.Pos()
+
+				if specification.Name != nil {
+					specification.Name.NamePos = imported.Pos()
+				}
+
 				specification.Path.ValuePos = imported.Pos()
 
 				break

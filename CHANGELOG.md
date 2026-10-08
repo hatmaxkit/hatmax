@@ -125,6 +125,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Applications created with `hm` can create and evolve features while keeping
+  their entrypoint separate from application wiring.
+
 - Adding durable validation to a generated feature now produces model tests
   that pass the project's lint checks.
 

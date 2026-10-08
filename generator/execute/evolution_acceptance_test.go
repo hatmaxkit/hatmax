@@ -8,10 +8,13 @@
 package execute
 
 import (
+	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"hatmax.adrianpk.com/generator/intent"
+	"hatmax.adrianpk.com/generator/project"
 )
 
 // SQLC must keep table and query row types compatible when ALTER TABLE appends
@@ -173,4 +176,87 @@ func TestValidationRule(t *testing.T) {
 	publishedCommand(t, root, "make", "generate")
 	publishedCommand(t, root, "make", "format")
 	publishedCommand(t, root, "make", "check")
+}
+
+// A freshly published scaffold must accept feature creation without moving
+// application wiring into its thin main, then accept an added required field.
+func TestScaffoldEvolution(t *testing.T) {
+	for _, initial := range []bool{false, true} {
+		name := "bare"
+		var features []intent.InitialFeature
+		if initial {
+			name = "initial feature"
+			features = []intent.InitialFeature{{Feature: "invoice", Domain: intent.Domain{Fields: []intent.Field{{Name: "number", Type: "string", Required: true}}}}}
+		}
+
+		t.Run(name, func(t *testing.T) {
+			root := publishedScaffold(t, features...)
+			main := string(publishedCommand(t, root, "cat", "main.go"))
+			for _, operation := range []intent.Operation{intent.OperationCreateFeature, intent.OperationAddField} {
+				feature := "invoice"
+				domain := intent.Domain{Entity: "Invoice", Route: "/invoices", Fields: []intent.Field{{Name: "number", Type: "string", Required: true}}}
+				if initial && operation == intent.OperationCreateFeature {
+					feature = "customer"
+					domain.Entity, domain.Route = "Customer", "/customers"
+				}
+				if operation == intent.OperationAddField {
+					domain = intent.Domain{Field: &intent.Field{Name: "issued_at", Type: "timestamp", Required: true}}
+				}
+
+				value, inventory, selectedBook := executionPlanForFeature(t, root, feature, operation, domain, []string{"postgres_persistence", "runtime_validation", "htmx_form"})
+
+				manifest, err := Prepare(value, inventory, selectedBook)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				render := RenderCreateFeature
+				if operation == intent.OperationAddField {
+					render = RenderAddField
+				}
+
+				mutations, err := render(value, manifest, inventory)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				workspace, err := OpenWorkspace(t.Context(), manifest, value, inventory)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				for _, mutation := range mutations {
+					_, err = workspace.Stage(mutation)
+					if err != nil {
+						t.Fatal(err)
+					}
+				}
+
+				_, err = workspace.Commit(t.Context())
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				current, err := os.ReadFile(filepath.Join(root, "main.go"))
+				if err != nil || string(current) != main {
+					t.Fatal("feature wiring changed thin main", err)
+				}
+
+				currentInventory, err := project.Inspect(t.Context(), root)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				report, err := ValidateExecution(t.Context(), value, manifest, currentInventory)
+				if err != nil {
+					t.Fatalf("native evolution: %v; commands: %+v", err, report.Commands)
+				}
+
+				wiring, err := os.ReadFile(filepath.Join(root, "internal/application/application.go"))
+				if err != nil || !strings.Contains(string(wiring), feature+"Handler") {
+					t.Fatal("application composition lost feature wiring", err)
+				}
+			}
+		})
+	}
 }

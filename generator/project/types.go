@@ -235,8 +235,9 @@ type Inventory struct {
 	Rules         RepositoryRules
 	Documentation DocumentationInventory
 
-	files           []fileRecord
-	maximumFileSize int64
+	files            []fileRecord
+	compositionRoots []string
+	maximumFileSize  int64
 }
 
 // Error describes a project inspection failure.

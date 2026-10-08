@@ -141,7 +141,6 @@ func checkLifecycleWiring(snapshot conformanceSnapshot, diagnostics *[]Diagnosti
 		snapshot.value.Feature + "Store :=",
 		snapshot.value.Feature + "Service :=",
 		snapshot.value.Feature + "Handler :=",
-		"deps := []any",
 	}
 
 	if entrypoint == "" || !containsAll(content, markers...) {
@@ -155,6 +154,10 @@ func checkLifecycleWiring(snapshot conformanceSnapshot, diagnostics *[]Diagnosti
 	handler := strings.Index(content, snapshot.value.Feature+"Handler :=")
 
 	dependencies := strings.Index(content, "deps := []any")
+	if dependencies < 0 {
+		dependencies = strings.Index(content, "components := append([]any{")
+	}
+
 	if !(store < service && service < handler && handler < dependencies) {
 		addConformanceDiagnostic(diagnostics, "HMGEN-WIRING-ORDER", rule, "wiring", entrypoint, "feature construction order is invalid", "store, service, handler, then dependency list")
 	}
@@ -281,10 +284,8 @@ func conformanceTemplate(snapshot conformanceSnapshot, base string) string {
 }
 
 func conformanceEntrypoint(snapshot conformanceSnapshot) (string, string) {
-	for _, entrypoint := range snapshot.inventory.Entrypoints {
-		if entrypoint.CompositionRoot {
-			return entrypoint.Path, string(snapshot.files[entrypoint.Path])
-		}
+	for _, composition := range snapshot.inventory.CompositionRoots() {
+		return composition, string(snapshot.files[composition])
 	}
 
 	return "", ""

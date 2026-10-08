@@ -431,20 +431,16 @@ func discoveredFieldKind(input discoveredInputField, form discoveredFormField, s
 }
 
 func validateFeatureWiring(value plan.Plan, inventory project.Inventory) error {
-	for _, entrypoint := range inventory.Entrypoints {
-		if !entrypoint.CompositionRoot {
-			continue
-		}
-
-		content, err := os.ReadFile(filepath.Join(inventory.Root, filepath.FromSlash(entrypoint.Path)))
+	for _, entrypoint := range inventory.CompositionRoots() {
+		content, err := os.ReadFile(filepath.Join(inventory.Root, filepath.FromSlash(entrypoint)))
 		if err != nil {
-			return featureStructureError(entrypoint.Path, "read composition root: %v", err)
+			return featureStructureError(entrypoint, "read composition root: %v", err)
 		}
 
 		source := string(content)
 		for _, marker := range []string{featureImportPath(value, inventory), value.Feature + "Store", value.Feature + "Service", value.Feature + "Handler"} {
 			if !strings.Contains(source, marker) {
-				return featureStructureError(entrypoint.Path, "canonical wiring marker %q is missing", marker)
+				return featureStructureError(entrypoint, "canonical wiring marker %q is missing", marker)
 			}
 		}
 

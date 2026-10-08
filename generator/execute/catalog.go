@@ -187,16 +187,12 @@ func resolveLayout(value plan.Plan, inventory project.Inventory) (resolvedLayout
 
 	entrypoint := ""
 
-	for _, candidate := range inventory.Entrypoints {
-		if !candidate.CompositionRoot {
-			continue
-		}
-
+	for _, candidate := range inventory.CompositionRoots() {
 		if entrypoint != "" {
 			return resolvedLayout{}, executionError("execution_layout_ambiguous", "wiring", "project has multiple Hatmax composition roots")
 		}
 
-		entrypoint = candidate.Path
+		entrypoint = candidate
 	}
 
 	if entrypoint == "" {

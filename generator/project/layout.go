@@ -52,6 +52,10 @@ func inspectFileSemantics(path, relative string, inventory *Inventory) (bool, []
 		})
 	}
 
+	if !strings.HasSuffix(relative, "_test.go") && hasHatmaxSetup(parsed) {
+		inventory.compositionRoots = append(inventory.compositionRoots, relative)
+	}
+
 	return generated, surfaces, nil
 }
 
@@ -185,7 +189,7 @@ func collectLayouts(path string, record fileRecord, directories map[string]map[s
 	addLayoutDirectory(directories, "templates", directoryThroughSegment(segments, "templates", 0))
 	addLayoutDirectory(directories, "queries", directoryThroughSegment(segments, "queries", 0))
 
-	if filepath.Ext(path) == ".sql" && !containsSegment(segments, "migrations") {
+	if filepath.Ext(path) == ".sql" && !containsSegment(segments, "migrations") && !containsSegment(segments, "migration") {
 		addLayoutDirectory(directories, "queries", filepath.ToSlash(filepath.Dir(path)))
 	}
 

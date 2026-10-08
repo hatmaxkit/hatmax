@@ -212,16 +212,12 @@ func (i Inventory) canonicalEvidencePaths(feature, featureRoot string) (map[stri
 
 	entrypoint := ""
 
-	for _, candidate := range i.Entrypoints {
-		if !candidate.CompositionRoot {
-			continue
-		}
-
+	for _, candidate := range i.CompositionRoots() {
 		if entrypoint != "" {
 			return nil, featureEvidenceError("wiring", "multiple Hatmax composition roots exist")
 		}
 
-		entrypoint = candidate.Path
+		entrypoint = candidate
 	}
 
 	if entrypoint == "" {

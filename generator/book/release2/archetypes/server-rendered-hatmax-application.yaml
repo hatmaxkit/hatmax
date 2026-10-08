@@ -78,6 +78,8 @@ obligations:
     files:
       - path: config.yaml
         mode: create
+      - path: sqlc.yaml
+        mode: create
       - path: internal/application/config.go
         mode: create
   - id: logging

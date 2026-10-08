@@ -42,6 +42,10 @@ type applicationRecipe struct {
 }
 
 var applicationFoundationRecipes = map[string]applicationRecipe{
+	applicationSQLCRecipe: {
+		target:   "sqlc.yaml",
+		template: applicationSQLCConfiguration,
+	},
 	applicationModuleRecipe: {
 		target: "go.mod",
 		template: `module {{.ModulePath}}
@@ -82,7 +86,7 @@ hatmax.adrianpk.com v0.5.0/go.mod h1:X8IRNfizbKzpeyDUTs2iSuzpPvuF8zNa2ndkGC6c6Yg
 		target: "Makefile",
 		template: `BINARY := {{.ProjectSlug}}
 
-.PHONY: build run test fmt lint clean
+.PHONY: build run test fmt lint clean generate
 
 build:
 	go build -o $(BINARY) .
@@ -98,6 +102,10 @@ fmt:
 
 lint:
 	go vet ./...
+
+generate:
+	sqlc generate
+	go mod tidy
 
 clean:
 	rm -f $(BINARY) coverage.out

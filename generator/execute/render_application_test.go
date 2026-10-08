@@ -22,6 +22,7 @@ import (
 )
 
 var applicationFoundationOrder = []string{
+	applicationSQLCRecipe,
 	applicationModuleRecipe,
 	applicationChecksumsRecipe,
 	applicationIgnoreRecipe,
@@ -108,7 +109,7 @@ func TestRenderApplicationFoundationUsesCanonicalIdentityAndBoundaries(t *testin
 	assertContains(t, contents["internal/application/application.go"], "app.Setup", "app.Start", "app.Shutdown")
 
 	for path, content := range contents {
-		if strings.Contains(content, "migration") || strings.Contains(path, "migration") {
+		if strings.Contains(content, "NewMigrator") || strings.Contains(path, "migration") {
 			t.Errorf("foundation unexpectedly activates migrations in %s", path)
 		}
 	}
@@ -199,6 +200,7 @@ func applicationRenderPlan(t *testing.T) plan.Plan {
 func applicationExecutionPlan(
 	t *testing.T,
 	prepare func(string),
+	initialFeatures ...intent.InitialFeature,
 ) (plan.Plan, project.TargetInventory, *book.Book) {
 	t.Helper()
 
@@ -208,13 +210,14 @@ func applicationExecutionPlan(
 	}
 
 	value := intent.Intent{
-		SchemaVersion: intent.ApplicationSchemaVersion,
-		Operation:     intent.OperationCreateApplication,
-		HatmaxVersion: "0.5.0",
-		BookVersion:   2,
-		Archetype:     "server_rendered_hatmax_application",
-		Capabilities:  []string{},
-		Documentation: intent.DocumentationNotRequested,
+		SchemaVersion:   intent.ApplicationSchemaVersion,
+		Operation:       intent.OperationCreateApplication,
+		HatmaxVersion:   "0.5.0",
+		BookVersion:     2,
+		Archetype:       "server_rendered_hatmax_application",
+		Capabilities:    []string{},
+		Documentation:   intent.DocumentationNotRequested,
+		InitialFeatures: initialFeatures,
 		Application: &intent.ApplicationIdentity{
 			DisplayName: "Real Estate", ProjectSlug: "real-estate", ModulePath: "example.com/alex/real-estate",
 		},

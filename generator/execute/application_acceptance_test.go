@@ -15,6 +15,8 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+
+	"hatmax.adrianpk.com/generator/intent"
 )
 
 // Published consumer checks must resolve the corrected module graph without
@@ -39,10 +41,10 @@ func TestScaffoldSecurity(t *testing.T) {
 	t.Log(strings.TrimSpace(string(output)))
 }
 
-func publishedScaffold(t *testing.T) string {
+func publishedScaffold(t *testing.T, initialFeatures ...intent.InitialFeature) string {
 	t.Helper()
 
-	value, target, selectedBook := applicationExecutionPlan(t, nil)
+	value, target, selectedBook := applicationExecutionPlan(t, nil, initialFeatures...)
 
 	manifest, err := PrepareApplication(value, target, selectedBook)
 	if err != nil {
@@ -71,7 +73,7 @@ func publishedScaffold(t *testing.T) string {
 		t.Fatalf("Commit() error = %v, result = %#v", err, result)
 	}
 
-	if result.Status != ExecutionApplied || len(result.Validation) != 3 {
+	if result.Status != ExecutionApplied || len(result.Validation) != len(manifest.Commands) {
 		t.Fatalf("Commit() = %#v, want applied with module, build, and test validation", result)
 	}
 

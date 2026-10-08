@@ -90,12 +90,6 @@ func RenderApplicationFeatures(value plan.Plan, manifest Manifest) ([]Mutation, 
 	result := make([]Mutation, 0)
 
 	for _, edit := range manifest.Edits {
-		if edit.Recipe == applicationSQLCRecipe {
-			result = append(result, Mutation{EditID: edit.ID, Kind: MutationCreate, Content: []byte(applicationSQLCConfiguration)})
-
-			continue
-		}
-
 		renderer, exists := renderers[edit.Recipe]
 		if !exists {
 			continue
