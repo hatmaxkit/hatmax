@@ -352,7 +352,7 @@ func renderValidationModelTest(source *strings.Builder, context renderContext) {
 	fmt.Fprintf(source, "\nfunc Test%sRejects%sValidation(t *testing.T) {\n", context.entity, exportedName(context.validation.Field))
 	fmt.Fprintf(source, "\tinput := %sInput{%s}\n", context.entity, renderTestInput(context.fields, true))
 	fmt.Fprintf(source, "\tinput.%s = %s\n", field.GoName, invalidValidationValue(field, *context.validation))
-	fmt.Fprintf(source, "\t_, err := New%s(input)\n\tif err == nil {\n\t\tt.Fatal(\"New%s() error = nil, want validation failure\")\n\t}\n}\n", context.entity, context.entity)
+	fmt.Fprintf(source, "\n\t_, err := New%s(input)\n\tif err == nil {\n\t\tt.Fatal(\"New%s() error = nil, want validation failure\")\n\t}\n}\n", context.entity, context.entity)
 }
 
 func renderFieldByName(fields []renderField, name string) (renderField, bool) {

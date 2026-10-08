@@ -134,3 +134,43 @@ func nativeFeatureProject(t *testing.T) string {
 
 	return root
 }
+
+// A durable validation change must survive the consumer's real lint rules and
+// reject an invalid number in its generated executable model test.
+func TestValidationRule(t *testing.T) {
+	root := nativeFeatureProject(t)
+	value, inventory, selectedBook := executionPlanForFeature(t, root, "invoice", intent.OperationAddValidation, intent.Domain{
+		Validation: &intent.ValidationRule{Field: "number", Kind: "min_length", Value: "3", Scope: intent.ValidationDurable},
+	}, []string{"postgres_persistence", "runtime_validation"})
+
+	manifest, err := Prepare(value, inventory, selectedBook)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mutations, err := RenderAddValidation(value, manifest, inventory)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	workspace, err := OpenWorkspace(t.Context(), manifest, value, inventory)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, mutation := range mutations {
+		_, err = workspace.Stage(mutation)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	_, err = workspace.Commit(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	publishedCommand(t, root, "make", "generate")
+	publishedCommand(t, root, "make", "format")
+	publishedCommand(t, root, "make", "check")
+}

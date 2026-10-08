@@ -125,6 +125,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Adding durable validation to a generated feature now produces model tests
+  that pass the project's lint checks.
+
 - Adding a required timestamp to an existing generated feature now preserves
   compatible PostgreSQL query rows and stored timestamp values.
 

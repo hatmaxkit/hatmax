@@ -1,7 +1,7 @@
 ---
 id: TKT-20261008135846
 title: Generate validation model tests that satisfy project lint
-status: ready
+status: solved
 kind: bug
 severity: unclassified
 priority: unclassified
@@ -10,6 +10,11 @@ tags: generator, validation, lint
 source: implementation
 reported_at: 2026-10-08T13:58:46Z
 ready_at: 2026-10-08T15:36:37Z
+started_at: 2026-10-08T15:41:32Z
+branch: dev
+reviewed_at: 2026-10-08T15:42:18Z
+closed_at: 2026-10-08T15:42:18Z
+resolution: fixed
 commits: 2d8f46019c7fed059c5909be6ff5f14a875c403e
 ---
 <!--
@@ -41,3 +46,19 @@ and the approved operation completes real project checks.
 Use real Go, SQLC and project lint in a canonical existing project. Create
 invoice, add the durable minimum-length number rule, then run full generated
 project checks and validate rejection of invalid number values.
+
+## Resolution
+
+Separate the prepared input assignments from constructor validation in the
+generated test. The domain rejection and generated assertion remain unchanged.
+
+`TestValidationRule` reproduced the generated `wsl_v5` failure with real tools
+before the correction. Afterward, native SQLC generation, formatting, build,
+generated model rejection tests, PostgreSQL tests and project lint passed.
+The invocation-owned PostgreSQL cluster stopped successfully.
+
+Successful checks:
+
+- `GOWORK=off go test -tags=acceptance -run '^TestValidationRule$' -count=1 -timeout=4m ./generator/execute` under the owned data fixture.
+- `GOWORK=off go test -run '^TestRenderAddValidation' -count=1 ./generator/execute`
+- `make lint-strict`
