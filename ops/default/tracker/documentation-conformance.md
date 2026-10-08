@@ -40,8 +40,8 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | T1.2 | completed | `test(docs): establish Hatmax conformance checks` | `1fe3c2e40d7d58a476dd20e0e3adf64a6ac7bc3f` |
 | T2.1 | completed | `docs: reconcile runtime and presentation guidance` | `cc268ec177e4cdd23817d5bf363fe152ebf5edcf` |
 | T2.2 | completed | `test(docs): verify runtime and presentation examples` | `79a9665a852ffd11f0383146ae745ada41f5d0da` |
-| T3.1 | completed | `docs: reconcile data and configuration guidance` | pending |
-| T3.2 | pending | `test(docs): verify data and configuration examples` | pending |
+| T3.1 | completed | `docs: reconcile data and configuration guidance` | `c48977e03c158214f6118312d8e331b4dec8bd40` |
+| T3.2 | completed | `test(docs): verify data and configuration examples` | pending |
 | T4.1 | pending | `docs: reconcile identity and recovery guidance` | pending |
 | T4.2 | pending | `test(docs): verify identity and recovery examples` | pending |
 | T5.1 | pending | `docs: reconcile infrastructure and helper guidance` | pending |
@@ -170,3 +170,12 @@ validate a candidate before mutation. Guide documents persistent notes and
 memory-only greetings. Structural reconciliation covers 451 identities;
 behavioral Slice 3 receipts remain pending for T3.2. The documentation check,
 strict lint and whitespace check passed during this task.
+
+T3.2 supplies fresh native PostgreSQL storage, exact published Go compilation,
+real YAML/validator and SQLC execution, migration rollback/history checks,
+settings persistence/absence/error behavior, seeder retry/tracking and Guide
+note/greeting restart observations. Coverage records 89 Slice 3 bindings and
+keeps future groups pending. The gate reruns Slice 2 and adds Slice 3 receipts,
+tool binary identities, command diagnostics and owned-process/cluster cleanup.
+The report is prepared for canonical PR creation; ordered final validation is
+recorded by the controller on the clean pushed head after PR references.

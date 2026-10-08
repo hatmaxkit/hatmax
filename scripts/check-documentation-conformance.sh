@@ -6,8 +6,8 @@
 
 set -euo pipefail
 
-if [[ $# != 2 || "$1" != slice || ("$2" != 1 && "$2" != 2) ]]; then
-  echo 'Only slices 1 and 2 are implemented; integrated acceptance is not yet available.' >&2
+if [[ $# != 2 || "$1" != slice || ("$2" != 1 && "$2" != 2 && "$2" != 3) ]]; then
+  echo 'Only slices 1 through 3 are implemented; integrated acceptance is not yet available.' >&2
   exit 2
 fi
 
@@ -37,6 +37,22 @@ mkdir -p "$fixture/bin" "$fixture/build" "$fixture/cache"
 ln -s "$go_tool" "$fixture/bin/go"
 ln -s "$make_tool" "$fixture/bin/make"
 ln -s "$lint_tool" "$fixture/bin/golangci-lint"
+if [[ $slice_number == 3 ]]; then
+  sqlc_command=${HATMAX_DOC_SQLC:-sqlc}
+  if [[ -z ${HATMAX_DOC_SQLC:-} ]] && ! command -v sqlc >/dev/null; then
+    sqlc_command="$repo_root/.tmp/documentation-conformance/tools/sqlc"
+  fi
+  sqlc_tool=$(realpath -- "$(command -v "$sqlc_command")")
+  ln -s "$sqlc_tool" "$fixture/bin/sqlc"
+  for tool in initdb pg_ctl postgres psql; do
+    tool_command=$tool
+    if [[ -n ${HATMAX_DOC_PG_BINDIR:-} ]]; then
+      tool_command="$HATMAX_DOC_PG_BINDIR/$tool"
+    fi
+    tool_path=$(realpath -- "$(command -v "$tool_command")")
+    ln -s "$tool_path" "$fixture/bin/$tool"
+  done
+fi
 export PATH="$fixture/bin:$PATH"
 export GOWORK=off
 export TMPDIR="$fixture/build" GOTMPDIR="$fixture/build"
@@ -79,8 +95,16 @@ run_check 'make source-license-check' make source-license-check
 run_check 'make lint-strict' make lint-strict
 run_check 'go run ./scripts/documentation-conformance check' go run ./scripts/documentation-conformance check
 run_check 'go test -count=1 -timeout=2m ./scripts/documentation-conformance' go test -count=1 -timeout=2m ./scripts/documentation-conformance
-if [[ $slice_number == 2 ]]; then
-  run_check 'go run ./scripts/documentation-conformance runtime <owned-fixture>' go run ./scripts/documentation-conformance runtime "$fixture"
-  run_check 'go run ./scripts/documentation-conformance evidence <owned-fixture>/runtime-receipts.json' go run ./scripts/documentation-conformance evidence "$fixture/runtime-receipts.json"
+if ((slice_number >= 2)); then
+  runtime_fixture=$fixture
+  if [[ $slice_number == 3 ]]; then
+    runtime_fixture=$(mktemp -d "$repo_root/.tmp/documentation-conformance/slice-2.cumulative.XXXXXXXX")
+  fi
+  run_check 'go run ./scripts/documentation-conformance runtime <owned-fixture>' go run ./scripts/documentation-conformance runtime "$runtime_fixture"
+  run_check 'go run ./scripts/documentation-conformance evidence <owned-fixture>/runtime-receipts.json' go run ./scripts/documentation-conformance evidence "$runtime_fixture/runtime-receipts.json"
+fi
+if [[ $slice_number == 3 ]]; then
+  run_check 'owned PostgreSQL and go run ./scripts/documentation-conformance data <owned-fixture>' scripts/documentation-conformance/data-fixture.sh "$fixture" go run ./scripts/documentation-conformance data "$fixture"
+  run_check 'go run ./scripts/documentation-conformance data-evidence <owned-fixture>/data-receipts.json' go run ./scripts/documentation-conformance data-evidence "$fixture/data-receipts.json"
 fi
 printf 'Slice %s documentation conformance passed. Safe diagnostics retained in ignored fixture storage.\n' "$slice_number"

@@ -69,7 +69,7 @@ func TestUnavailableModes(t *testing.T) {
 		args []string
 	}{
 		{name: "integrated"},
-		{name: "future slice", args: []string{"slice", "3"}},
+		{name: "future slice", args: []string{"slice", "4"}},
 		{name: "missing number", args: []string{"slice"}},
 		{name: "unknown mode", args: []string{"all"}},
 	}

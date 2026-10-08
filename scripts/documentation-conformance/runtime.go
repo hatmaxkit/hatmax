@@ -92,7 +92,7 @@ func executionInputs(discovered inventory) (string, error) {
 		return "", err
 	}
 
-	files = append(files, "scripts/check-documentation-conformance.sh", "Makefile")
+	files = append(files, "scripts/check-documentation-conformance.sh", "scripts/documentation-conformance/data-fixture.sh", "Makefile")
 	for _, file := range files {
 		contents, err := os.ReadFile(file)
 		if err != nil {
@@ -355,12 +355,16 @@ func runRuntime(fixture string) error {
 }
 
 func (v *verification) packageChecks(discovered inventory) error {
+	return v.packageGroup(discovered, 2)
+}
+
+func (v *verification) packageGroup(discovered inventory, group int) error {
 	args := []string{"test", "-json", "-count=1", "-timeout=3m"}
 
 	var selected []row
 
 	for _, r := range discovered.rows {
-		if r.slice == 2 && strings.HasPrefix(r.id, "package:") && r.id != "package:render" {
+		if r.slice == group && (strings.HasPrefix(r.id, "package:") || r.id == "example-package:examples/ticked/internal/feat/list") && r.id != "package:render" {
 			args = append(args, "./"+r.source)
 			selected = append(selected, r)
 		}
@@ -509,7 +513,7 @@ func (v *verification) start(binary, directory string, env []string, name string
 	}
 
 	expected := "exit 0 after Ctrl+C"
-	if name == "guide" {
+	if strings.HasPrefix(name, "guide") {
 		expected = "signal interrupt; coordinator absent"
 	}
 
@@ -844,6 +848,10 @@ func (v *verification) httpContracts() error {
 }
 
 func verifyProofs(discovered inventory, receipt runtimeReceipt) error {
+	return verifyGroupProofs(discovered, receipt, 2, expectedMethod)
+}
+
+func verifyGroupProofs(discovered inventory, receipt runtimeReceipt, group int, methodFor func(row, inventory) (string, error)) error {
 	known := make(map[string]proof)
 	for _, p := range receipt.Proofs {
 		if _, duplicate := known[p.ID]; duplicate {
@@ -854,13 +862,13 @@ func verifyProofs(discovered inventory, receipt runtimeReceipt) error {
 	}
 
 	for _, r := range discovered.rows {
-		if r.slice != 2 {
+		if r.slice != group {
 			continue
 		}
 
 		p, found := known[r.id]
 
-		method, err := expectedMethod(r, discovered)
+		method, err := methodFor(r, discovered)
 		if err != nil {
 			return err
 		}

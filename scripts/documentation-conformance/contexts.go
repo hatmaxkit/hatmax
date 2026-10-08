@@ -67,13 +67,14 @@ var contextOutcomes = map[string]string{
 var importPaths = map[string]string{
 	"context": "context", "embed": "embed", "errors": "errors", "fmt": "fmt",
 	"http": "net/http", "httptest": "net/http/httptest", "netip": "net/netip",
+	"sql": "database/sql", "strconv": "strconv",
 	"fs": "io/fs", "os": "os", "strings": "strings", "template": "html/template", "time": "time",
 	"chi": "github.com/go-chi/chi/v5", "hatlog": "hatmax.adrianpk.com/log", "log": "hatmax.adrianpk.com/log",
 	"invoicefeat": "example.com/docfixture/invoicefeat",
 }
 
 func init() {
-	for _, owner := range []string{"app", "config", "format", "htmx", "i18n", "middleware", "modal", "model", "pagination", "render", "settings", "ui", "web"} {
+	for _, owner := range []string{"app", "config", "db", "format", "htmx", "i18n", "middleware", "modal", "model", "pagination", "render", "seed", "settings", "slug", "ui", "validation", "web"} {
 		importPaths[owner] = "hatmax.adrianpk.com/" + owner
 	}
 }
@@ -106,7 +107,7 @@ func importsFor(source string) (string, error) {
 		selector, ok := node.(*ast.SelectorExpr)
 		if ok {
 			name, ok := selector.X.(*ast.Ident)
-			if ok {
+			if ok && name.Obj == nil {
 				selectors[name.Name] = true
 			}
 		}

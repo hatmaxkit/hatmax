@@ -53,6 +53,22 @@ func main() {
 }
 
 func run(args []string) error {
+	if len(args) == 2 && args[0] == "data" {
+		return runData(args[1])
+	}
+
+	if len(args) == 2 && args[0] == "data-evidence" {
+		return checkDataEvidence(args[1])
+	}
+
+	if len(args) == 2 && args[0] == "data-workbench" {
+		return runDataWorkbench(args[1])
+	}
+
+	if len(args) == 2 && args[0] == "data-contexts" {
+		return runDataContexts(args[1])
+	}
+
 	if len(args) == 2 && args[0] == "runtime" {
 		return runRuntime(args[1])
 	}
@@ -62,7 +78,7 @@ func run(args []string) error {
 	}
 
 	if len(args) != 1 || (args[0] != "inventory" && args[0] != "check") {
-		return fmt.Errorf("usage: documentation-conformance inventory|check|runtime FIXTURE|evidence RECEIPT")
+		return fmt.Errorf("usage: documentation-conformance inventory|check|runtime FIXTURE|evidence RECEIPT|data-contexts FIXTURE|data-workbench FIXTURE|data FIXTURE|data-evidence RECEIPT")
 	}
 
 	discovered, err := discover()
@@ -502,9 +518,12 @@ func reconcile(discovered, recorded []row) error {
 			return fmt.Errorf("invalid inspected revision: %s", r.id)
 		}
 
-		if (r.status != "inventoried" || r.receipt != "pending") &&
-			(r.slice != 2 || r.receipt != "slice-2/runtime-receipts.json" ||
-				!slices.Contains([]string{"source-inspected", "compiled", "rendered", "executed", "package-tests"}, r.status)) {
+		verified := r.slice == 2 && r.receipt == "slice-2/runtime-receipts.json" &&
+			slices.Contains([]string{"source-inspected", "compiled", "rendered", "executed", "package-tests"}, r.status)
+
+		verified = verified || (r.slice == 3 && r.receipt == "slice-3/data-receipts.json" &&
+			slices.Contains([]string{"source-inspected", "compiled", "executed", "package-tests"}, r.status))
+		if (r.status != "inventoried" || r.receipt != "pending") && !verified {
 			return fmt.Errorf("unsupported status or receipt; future rows require pending receipts only: %s", r.id)
 		}
 

@@ -57,3 +57,41 @@ func checkProcedures(discovered inventory) error {
 
 	return nil
 }
+
+var dataProcedureExpectations = map[string]string{
+	"example:docs/how-to/apply-migrations/README.md#block-3": "psql -h localhost -U dev -d myapp -c '\\d notes'",
+	"example:examples/guide/README.md#block-2":               "GUIDE_DATABASE_ENABLED=true go run .",
+	"example:examples/guide/README.md#block-4":               "curl -fsS http://localhost:8080/greeting\ncurl -fsS -H 'Origin: http://localhost:8080' -d 'greeting=Welcome' http://localhost:8080/greeting\ncurl -fsS http://localhost:8080/greeting",
+}
+
+func checkDataProcedures(discovered inventory) error {
+	found := 0
+
+	for _, r := range discovered.rows {
+		if r.slice != 3 || !strings.HasPrefix(r.id, "example:") {
+			continue
+		}
+
+		block, err := rowBlock(discovered, r)
+		if err != nil {
+			return err
+		}
+
+		if blockMethod(block) != "published command procedure" {
+			continue
+		}
+
+		expected, ok := dataProcedureExpectations[r.id]
+		if !ok || strings.TrimSpace(blockBody(block)) != expected {
+			return fmt.Errorf("unaccounted data command procedure: %s", r.id)
+		}
+
+		found++
+	}
+
+	if found != len(dataProcedureExpectations) {
+		return fmt.Errorf("missing published data command procedure")
+	}
+
+	return nil
+}
