@@ -14,8 +14,8 @@ fixture=$(realpath -- "$1")
 shift
 repo_root=$(git rev-parse --show-toplevel)
 case "$fixture" in
-  "$repo_root"/.tmp/documentation-conformance/slice-3.* | "$repo_root"/.tmp/documentation-conformance/slice-4.*) ;;
-  *) echo 'Data fixtures require owned Slice 3 storage or owned Slice 4 storage.' >&2; exit 2 ;;
+  "$repo_root"/.tmp/documentation-conformance/slice-3.* | "$repo_root"/.tmp/documentation-conformance/slice-4.* | "$repo_root"/.tmp/documentation-conformance/slice-5.*) ;;
+  *) echo 'Data fixtures require owned Slice 3 storage, Slice 4 storage or Slice 5 storage.' >&2; exit 2 ;;
 esac
 git check-ignore -q "$fixture/postgres.log"
 for tool in initdb pg_ctl psql postgres; do

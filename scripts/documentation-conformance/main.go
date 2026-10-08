@@ -53,6 +53,28 @@ func main() {
 }
 
 func run(args []string) error {
+	if len(args) == 2 && args[0] == "infrastructure" {
+		return runInfrastructure(args[1])
+	}
+
+	if len(args) == 2 && args[0] == "infrastructure-evidence" {
+		return checkInfrastructureEvidence(args[1])
+	}
+
+	if len(args) == 2 && args[0] == "infrastructure-contexts" {
+		v, discovered, err := newGroupVerification(args[1], 5)
+		if err != nil {
+			return err
+		}
+
+		err = compileInfrastructureContexts(v, discovered)
+		if err == nil {
+			fmt.Printf("Infrastructure contexts passed: %d exact Go fragments; workflow receipts remain pending.\n", len(v.receipt.Proofs))
+		}
+
+		return err
+	}
+
 	if len(args) == 2 && args[0] == "identity" {
 		return runIdentity(args[1])
 	}
@@ -109,7 +131,7 @@ func run(args []string) error {
 	}
 
 	if len(args) != 1 || (args[0] != "inventory" && args[0] != "check") {
-		return fmt.Errorf("usage: documentation-conformance inventory|check|runtime FIXTURE|evidence RECEIPT|data-contexts FIXTURE|data-workbench FIXTURE|data FIXTURE|data-evidence RECEIPT|identity-contexts FIXTURE|identity-ticked FIXTURE|identity FIXTURE|identity-evidence RECEIPT")
+		return fmt.Errorf("usage: documentation-conformance inventory|check|runtime FIXTURE|evidence RECEIPT|data-contexts FIXTURE|data-workbench FIXTURE|data FIXTURE|data-evidence RECEIPT|identity-contexts FIXTURE|identity-ticked FIXTURE|identity FIXTURE|identity-evidence RECEIPT|infrastructure-contexts FIXTURE|infrastructure FIXTURE|infrastructure-evidence RECEIPT")
 	}
 
 	discovered, err := discover()
@@ -556,6 +578,9 @@ func reconcile(discovered, recorded []row) error {
 			slices.Contains([]string{"source-inspected", "compiled", "executed", "package-tests"}, r.status))
 
 		verified = verified || (r.slice == 4 && r.receipt == "slice-4/identity-receipts.json" &&
+			slices.Contains([]string{"source-inspected", "compiled", "executed", "package-tests"}, r.status))
+
+		verified = verified || (r.slice == 5 && r.receipt == "slice-5/infrastructure-receipts.json" &&
 			slices.Contains([]string{"source-inspected", "compiled", "executed", "package-tests"}, r.status))
 		if (r.status != "inventoried" || r.receipt != "pending") && !verified {
 			return fmt.Errorf("unsupported status or receipt; future rows require pending receipts only: %s", r.id)

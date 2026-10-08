@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 5: Infrastructure and Helpers
 
-Status: drafting
+Status: reviewing
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
@@ -15,6 +15,7 @@ Branch: `docs/hatmax-infrastructure-helpers`
 PR: pending
 Activation revision: `414b9e071f95b07f531aae5808a8eb903c066a16`
 Documentation task: `a94d6a41afd83e55c7cd02fe70b36238846c9e04`
+Report introduction: `b1b77bb68e9e0c3c25b87f5b2ed2a64076dc8122`
 
 ## Purpose
 
@@ -35,23 +36,31 @@ document environment-based selection, consumer-owned pools and actual cleanup
 limitations. Fake and slug notes state attempted-call, pointer and collision
 contracts.
 
-T5.2 execution evidence and the Slice 5 gate remain pending. No workflow is
-marked executed on the strength of this documentation task's compilation check.
+T5.2 compiles all 35 exact Go fragments and executes eight complete package
+examples plus published local workflows. Owned SMTP captures matching message
+content; local PNG readback verifies dimensions, extension, URL and deletion.
+Real PostgreSQL exercises independent subscriber acknowledgement, pending
+delivery after restart, recurring job slots, persistent retry budgets, panic and
+unknown-handler outcomes, cancellation and joined shutdown. Telemetry records
+and drains actual HTTP/panic observations. Fake capture/reset, slug outputs,
+helper schema selection and externally inspected removal also pass.
 
 ## Implementation Notes
 
 The dedicated branch starts at current canonical dev after PR #115 closure.
-The 451-row coverage inventory preserves prior slice identities and updates only
-changed Slice 5 source/snippet digests, with their behavioral receipts pending.
-Native-toolchain closure wording and exact slice identities remain unchanged.
+The 451-row inventory preserves slice identities. Slice 5 supplies 92 classified
+bindings: 14 package suites, 11 compilation-only contexts, 38 executed bindings
+and 29 source inspections. Exact source blocks supply generated contexts and
+workflows; typed application adapters make their owning context explicit. Both
+published helper commands run in an isolated module containing the exact test.
 
-The next task must compile all contextual Go fragments and execute published
-local mail/image/event/job/helper workflows using owned resources. Required
-outcomes include captured mail, image readback and deletion, named subscriber
-retry/restart, durable scheduled-slot transitions and retry budgets, cancellation,
-telemetry drain and test-schema removal. Provider-only configuration retains its
-source-review boundary; local adapters cannot establish external inbox or cloud
-account acceptance.
+Each invocation owns its PostgreSQL cluster, schemas, SMTP listener and files.
+Go owns fixture generation, message/image assertions and process coordination;
+shell owns bounded cluster setup and teardown. Receipts bind the clean head,
+source/snippet digests, compiler, native tool binaries, generated fixture inputs,
+ordered commands and diagnostic digests. Missing, stale, duplicate, failed,
+cached or compile-only substitutes cannot establish execution. Cumulative
+Slice 2–4 checks precede the new Slice 5 run.
 
 ## Contracts Added or Changed
 
@@ -59,6 +68,8 @@ Documentation reflects existing APIs and resource ownership; toolkit behavior
 and module dependencies are unchanged. Scheduler retry configuration is applied;
 only its pause setting is consulted dynamically. Telemetry modes describe
 application exporter policy and do not activate collection or transmission.
+The slice runner now accepts Slice 5 and reconciles source-bound infrastructure
+receipts after owned fixture shutdown.
 
 ## Files of Interest
 
@@ -68,6 +79,8 @@ application exporter policy and do not activate collection or transmission.
 - [Scheduler workflow](../../../../../docs/how-to/run-background-jobs/README.md)
 - [Telemetry reference](../../../../../docs/reference/telemetry/README.md)
 - [Test helper workflow](../../../../../docs/how-to/test-with-postgres/README.md)
+- [Native workflow fixture](../../../../../scripts/documentation-conformance/infrastructure_fixture.go)
+- [Evidence reconciliation](../../../../../scripts/documentation-conformance/infrastructure_evidence.go)
 - [Coverage record](../../documentation-conformance-coverage.md)
 
 ## Validation
@@ -81,17 +94,33 @@ Focused T5.1 checks passed before its task commit:
 - `GOWORK=off GOFLAGS=-p=2 go test -run '^$' ./...` — eight exact first Go blocks compiled in the ignored `.tmp/documentation-conformance/source-audit/contexts` module with a local source replacement; no test execution assertion.
 - `git diff --check` — passed.
 
-The final ordered controller checks are pending until T5.2, canonical PR
-references and the final clean pushed head are complete:
+Focused T5.2 checks passed:
+
+- `GOWORK=off make docs-check` — structure, links, compilation and whitespace.
+- `GOWORK=off make source-license-check` — 930 headers and 113 content-preserving annotations.
+- `GOWORK=off make lint-strict` — zero issues.
+- `GOWORK=off go run ./scripts/documentation-conformance check` — 451 identities.
+- `GOWORK=off go test -count=1 -timeout=2m ./scripts/documentation-conformance` — evidence and context negative controls.
+- `bash -n scripts/check-documentation-conformance.sh scripts/documentation-conformance/data-fixture.sh` — passed.
+- `PATH="$PWD/.tmp/documentation-conformance/tools:$PATH" GOWORK=off GOFLAGS=-p=2 scripts/documentation-conformance/data-fixture.sh "$fixture" go run ./scripts/documentation-conformance infrastructure "$fixture"` — 92 bindings in a fresh owned development fixture.
+
+Fixture failures exposed two harness assumptions:
+configuration loading requires a non-empty argument vector, and broker payload
+storage needs UTF-8 decoding before JSON inspection. Corrected fixtures passed;
+no production correction was required.
+
+The controller records the final ordered checks against the clean pushed head
+after canonical PR references are complete:
 
 - `GOWORK=off scripts/check-documentation-conformance.sh slice 5`
 - `git diff --check`
 
 ## Risks and Follow-ups
 
-T5.2 and DC06/DC08 acceptance are pending. DC09's required constrained native
-toolchain execution remains part of integrated closure under the generic
-approved policy. Local capture,
-filesystem, database and fixture endpoint evidence must retain their actual
-assurance limits. Source, head, configuration or tool drift requires renewed
-execution evidence.
+DC06/DC08 integrated acceptance remains pending; the exact-head controller
+receipt owns Slice 5 validation. DC09's constrained native-toolchain execution remains mandatory for
+integrated closure under the generic approved policy. SMTP capture cannot
+establish inbox acceptance; S3 configuration and package fixtures cannot establish
+cloud account access. This gate executes the helper server path; its container
+path remains source-inspected. Typed application fragments establish compilation
+only. Source, head, configuration or tool drift requires renewed execution.

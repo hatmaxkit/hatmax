@@ -45,7 +45,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | T4.1 | completed | `docs: reconcile identity and recovery guidance` | `f96565f609da32a7430cc617138d72d016376fcf` |
 | T4.2 | completed | `test(docs): verify identity and recovery examples` | `1cb59fa18fb16e50b0a56c64b9e1fbdb808ee713` |
 | T5.1 | completed | `docs: reconcile infrastructure and helper guidance` | `a94d6a41afd83e55c7cd02fe70b36238846c9e04` |
-| T5.2 | pending | `test(docs): verify infrastructure and helper examples` | pending |
+| T5.2 | completed | `test(docs): verify infrastructure and helper examples` | pending |
 | T6.1 | pending | `docs: reconcile generator and assisted workflow guidance` | pending |
 | T6.2 | pending | `test(docs): verify generator documentation workflows` | pending |
 | T7.1 | pending | `docs: reconcile complete Hatmax documentation coverage` | pending |
@@ -226,3 +226,13 @@ and owned fixture shutdown. The foreground Make wrapper correction passed its
 regression checks and the regenerated exact-head gate. Slice 4 is delivered;
 Slice 5/T5.1/T5.2 is active with its original identities. DC09 and integrated
 acceptance remain pending until the approved final native-toolchain gate.
+
+T5.2 compiles 35 exact Go fragments and supplies 92 infrastructure/helper
+bindings: 14 package suites, 11 compilation-only contexts, 38 executed outcomes
+and 29 source inspections. Published mail/image/event/job/helper workflows use
+owned SMTP capture, filesystem and PostgreSQL; named retry/restart, persistent
+slot budgets, recurring slots, cancellation, telemetry drain and schema removal
+passed development checks. The native runner binds fixture inputs, source/head,
+tool identities, commands and diagnostics, then verifies owned shutdown.
+Canonical PR references and ordered final clean-head controller checks follow
+the task commit. Slice 5 remains active until verified canonical merge.

@@ -6,8 +6,8 @@
 
 set -euo pipefail
 
-if [[ $# != 2 || "$1" != slice || ("$2" != 1 && "$2" != 2 && "$2" != 3 && "$2" != 4) ]]; then
-  echo 'Only slices 1 through 4 are implemented; integrated acceptance is not yet available.' >&2
+if [[ $# != 2 || "$1" != slice || ("$2" != 1 && "$2" != 2 && "$2" != 3 && "$2" != 4 && "$2" != 5) ]]; then
+  echo 'Only slices 1 through 5 are implemented; integrated acceptance is not yet available.' >&2
   exit 2
 fi
 
@@ -53,7 +53,7 @@ if ((slice_number >= 3)); then
     ln -s "$tool_path" "$fixture/bin/$tool"
   done
 fi
-if [[ $slice_number == 4 ]]; then
+if ((slice_number >= 4)); then
   chromium_command=${HATMAX_DOC_CHROMIUM:-chromium}
   # Arch's launcher is a shell script. Prefer its actual native image so the
   # receipt binds executable bytes as well as the observed browser version.
@@ -115,14 +115,22 @@ if ((slice_number >= 2)); then
 fi
 if ((slice_number >= 3)); then
   data_fixture=$fixture
-  if [[ $slice_number == 4 ]]; then
+  if ((slice_number >= 4)); then
     data_fixture=$(mktemp -d "$repo_root/.tmp/documentation-conformance/slice-3.cumulative.XXXXXXXX")
   fi
   run_check 'owned PostgreSQL and go run ./scripts/documentation-conformance data <owned-fixture>' scripts/documentation-conformance/data-fixture.sh "$data_fixture" go run ./scripts/documentation-conformance data "$data_fixture"
   run_check 'go run ./scripts/documentation-conformance data-evidence <owned-fixture>/data-receipts.json' go run ./scripts/documentation-conformance data-evidence "$data_fixture/data-receipts.json"
 fi
-if [[ $slice_number == 4 ]]; then
-  run_check 'owned PostgreSQL and go run ./scripts/documentation-conformance identity <owned-fixture>' scripts/documentation-conformance/data-fixture.sh "$fixture" go run ./scripts/documentation-conformance identity "$fixture"
-  run_check 'go run ./scripts/documentation-conformance identity-evidence <owned-fixture>/identity-receipts.json' go run ./scripts/documentation-conformance identity-evidence "$fixture/identity-receipts.json"
+if ((slice_number >= 4)); then
+  identity_fixture=$fixture
+  if ((slice_number >= 5)); then
+    identity_fixture=$(mktemp -d "$repo_root/.tmp/documentation-conformance/slice-4.cumulative.XXXXXXXX")
+  fi
+  run_check 'owned PostgreSQL and go run ./scripts/documentation-conformance identity <owned-fixture>' scripts/documentation-conformance/data-fixture.sh "$identity_fixture" go run ./scripts/documentation-conformance identity "$identity_fixture"
+  run_check 'go run ./scripts/documentation-conformance identity-evidence <owned-fixture>/identity-receipts.json' go run ./scripts/documentation-conformance identity-evidence "$identity_fixture/identity-receipts.json"
+fi
+if ((slice_number >= 5)); then
+  run_check 'owned PostgreSQL and go run ./scripts/documentation-conformance infrastructure <owned-fixture>' scripts/documentation-conformance/data-fixture.sh "$fixture" go run ./scripts/documentation-conformance infrastructure "$fixture"
+  run_check 'go run ./scripts/documentation-conformance infrastructure-evidence <owned-fixture>/infrastructure-receipts.json' go run ./scripts/documentation-conformance infrastructure-evidence "$fixture/infrastructure-receipts.json"
 fi
 printf 'Slice %s documentation conformance passed. Safe diagnostics retained in ignored fixture storage.\n' "$slice_number"
