@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 2: Runtime and Presentation
 
-Status: reviewing
+Status: delivered
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
@@ -16,6 +16,7 @@ PR: `#113`
 Report introduction: `79a9665a852ffd11f0383146ae745ada41f5d0da`
 Activation revision: `84180a9b003fb661604f612d7015e39d03a203d0`
 Rebased dev revision: `064c5490f8f97f730cd37daaf80de6492d495cec`
+Merged revision: `f2d706af2f4afb467b17a8e9b489af9355af1407`
 
 ## Purpose
 
@@ -126,6 +127,11 @@ final head; successful exact-head results reside in controller evidence and the
 canonical PR. Integrated documentation acceptance remains with Slice 7.
 
 ## Risks and Follow-ups
+
+Canonical PR #113 merged through Rebase + Fast-forward. The controller recorded
+both ordered checks above as successful on the exact clean merged revision,
+including 448 identities and 141 fresh runtime bindings. This closes Slice 2;
+integrated acceptance and constrained native-toolchain execution remain pending.
 
 The approved native-tooling closure amendment is included from canonical dev; these
 validators and fixture utilities use Go/shell. Slice 7 owns its final constrained
