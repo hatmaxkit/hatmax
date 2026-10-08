@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 3: Data and Configuration
 
-Status: reviewing
+Status: delivered
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
@@ -16,6 +16,7 @@ PR: `#114`
 Report introduction: `22b7bd76e7d239185a1ac2bb06e2be11b7ce1442`
 Activation revision: `0c6817af71c895ce2d1e7b4d436c6c290124ba99`
 Documentation task: `c48977e03c158214f6118312d8e331b4dec8bd40`
+Merged revision: `76fc39c8a7c0c40c1aca9020e753c079fe366514`
 
 ## Purpose
 
@@ -117,6 +118,12 @@ The slice command includes required docs, source-license and strict-lint checks,
 earlier runtime checks, active data workflows and receipt reconciliation. The
 report introduction precedes that final head; canonical PR/controller evidence
 owns final exact-head results.
+
+The controller recorded both ordered commands successful on clean pushed head
+`76fc39c8a7c0c40c1aca9020e753c079fe366514`: 451 identities, 141 cumulative runtime
+bindings and 89 data bindings passed. Cluster and HTTP cleanup evidence passed.
+Canonical PR #114 merged at that same revision; this closure changes only
+operational delivery state.
 
 The first controller invocation exposed an ownership-test path error: the gate's
 owned TMPDIR made `t.TempDir()` a permitted fixture path. The negative test now
