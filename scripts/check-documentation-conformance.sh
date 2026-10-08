@@ -172,7 +172,7 @@ if ((slice_number == 7)); then
     printf 'Slice 7 evidence infrastructure passed; integrated closure remains conditional on every coverage outcome.\n'
   fi
 elif ((slice_number == 6)); then
-  printf 'Slice 6 evidence checks passed; blocked generator workflows remain unresolved. Safe diagnostics retained in ignored fixture storage.\n'
+  printf 'Slice 6 generator workflow evidence checks passed. Safe diagnostics retained in ignored fixture storage.\n'
 else
   printf 'Slice %s documentation conformance passed. Safe diagnostics retained in ignored fixture storage.\n' "$slice_number"
 fi

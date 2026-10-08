@@ -22,10 +22,6 @@ type generatorReceipt struct {
 }
 
 func generatorMethod(r row, discovered inventory) (string, error) {
-	if r.id == "walkthrough:"+generatorGuide || r.id == "example:"+generatorGuide+"#block-6" || r.id == "example:"+generatorGuide+"#block-9" {
-		return "blocked", nil
-	}
-
 	if strings.HasPrefix(r.id, "package:") || strings.HasPrefix(r.id, "implementation:") {
 		return "package-tests", nil
 	}
@@ -135,7 +131,7 @@ func runGenerator(fixture string) error {
 		"exact published requests passed through fixture interpretation into production coordinators, persistence, planning, approval, rendering, conformance and generated-project validation",
 		"real hm/hatmax entrypoints, source install, owned PTY help/quit, conversation selection and no-run playground preparation; no inference request or resident daemon mutation",
 		"Book positive/negative illustrative files and backend prerequisites compared to current source; fixture interpretation and backend protocol suites do not establish authenticated model acceptance",
-		"fresh-scaffold evolution, required timestamp and minimum-length validation remain blocked by three open runtime tickets; evidence assertions passing do not establish a completed reader journey",
+		"bare and initial-feature scaffolds complete feature evolution; required timestamps and minimum-length validation pass real generated-project checks",
 	)
 
 	for _, r := range discovered.rows {
@@ -151,10 +147,6 @@ func runGenerator(fixture string) error {
 		outcome := "T6.1 current source, selected Book contracts and provider-prerequisite comparison; illustrative positive/negative Book fragments are not standalone programs"
 		if method == "executed" {
 			outcome = "named native command and generated workflow tests passed: exact published prompts, owned source install/state/playground, PTY help/quit and production-kernel approval/resume/mutation controls; interpreter fixture, no model acceptance claim"
-		}
-
-		if method == "blocked" {
-			outcome = "blocked: fresh-scaffold evolution fails layout resolution; required timestamp fails SQLC row-mapping compilation; minimum-length validation fails generated model-test lint; TKT-20261008134713, TKT-20261008135600 and TKT-20261008135846 remain open; canonical feature creation and documentation verified separately"
 		}
 
 		v.bindData(r, method, outcome)
@@ -185,7 +177,7 @@ func runGenerator(fixture string) error {
 		return err
 	}
 
-	fmt.Printf("Generator receipts reconciled: %d bindings; three blocked rows remain unresolved alongside native command and generated-project evidence.\n", len(v.receipt.Proofs))
+	fmt.Printf("Generator receipts reconciled: %d bindings with completed native command and generated-project evidence.\n", len(v.receipt.Proofs))
 
 	return nil
 }
@@ -213,16 +205,16 @@ func verifyGeneratorCommands(receipt runtimeReceipt, fixture string) error {
 			}
 		}
 
-		if !strings.Contains(string(output), "fresh-scaffold evolution blocked: HMGEN-EXECUTION-LAYOUT-MISSING; no mutation") {
-			return fmt.Errorf("fresh-scaffold blocked outcome evidence missing")
+		if !strings.Contains(string(output), "fresh-scaffold evolution completed: resumed conversation and project checks passed") {
+			return fmt.Errorf("fresh-scaffold completion evidence missing")
 		}
 
-		if !strings.Contains(string(output), "timestamp evolution blocked: SQLC row mapping compilation failed; changes retained") {
-			return fmt.Errorf("timestamp blocked outcome evidence missing")
+		if !strings.Contains(string(output), "timestamp evolution completed: SQLC and generated project checks passed") {
+			return fmt.Errorf("timestamp completion evidence missing")
 		}
 
-		if !strings.Contains(string(output), "validation evolution blocked: generated model test fails wsl_v5; changes retained") {
-			return fmt.Errorf("validation blocked outcome evidence missing")
+		if !strings.Contains(string(output), "validation evolution completed: generated model tests and project lint passed") {
+			return fmt.Errorf("validation completion evidence missing")
 		}
 
 		workflow = true
@@ -316,7 +308,7 @@ func checkGeneratorEvidence(file string) error {
 		return fmt.Errorf("owned generator shutdown evidence missing")
 	}
 
-	fmt.Printf("Exact-head generator evidence reconciled: %d bindings; three blocked rows remain unresolved; owned cluster stopped.\n", len(receipt.Proofs))
+	fmt.Printf("Exact-head generator evidence reconciled: %d completed bindings; owned cluster stopped.\n", len(receipt.Proofs))
 
 	return nil
 }

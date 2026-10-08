@@ -56,7 +56,28 @@ terminal, including native role/database creation and coordinated shutdown.
 
 ## Risks and Follow-ups
 
-This correction does not establish integrated acceptance. The three existing
-generator runtime tickets still block their documented workflows. Resolve those
-through their own ticket delivery before revalidating the complete documentation
-set. Preserve the same controller run, seven integrated slices and conversation.
+This correction alone does not establish integrated acceptance. The separate
+runtime deliveries below remove the remaining generator failures. Preserve the
+same controller run, seven integrated slices and conversation for revalidation.
+
+## Separately Approved Runtime Corrections
+
+The maintainer approved the three independent tickets on 2026-10-08. They were
+delivered individually to `dev`:
+
+- TKT-20261008135600: `e88a34ff4c89` preserves SQLC table row types after field
+  evolution. A regression reproduced the original compiler failure; real
+  PostgreSQL create/get/list/update preserves the required timestamp.
+- TKT-20261008135846: `bfe44acd2d08` separates generated test assignments from
+  assertions. The original project lint failure reproduces before the fix;
+  generated validation, SQLC, PostgreSQL tests and lint pass afterward.
+- TKT-20261008134713: `6cdb5fb35a07` recognizes delegated composition, preserves
+  thin main and supplies native SQLC tooling for first-feature evolution. Bare
+  and initial-feature scaffolds create another feature and add a timestamp with
+  real project validation. Ambiguous roots and stale plans remain rejected.
+
+All three deliveries passed applicable generator tests, `make lint-strict` and
+`make docs-check`. The documentation workbench now requires completed resumed
+conversation, timestamp and validation workflows instead of reproduced failures.
+Its native run passed all three named workflow tests with owned PostgreSQL;
+shutdown succeeded. This remains focused evidence, not the integrated gate.

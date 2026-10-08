@@ -15,7 +15,7 @@ Tracker: [Delivery tracker](../tracker/documentation-conformance.md)
 Coverage: [Source-bound inventory](documentation-conformance-coverage.md)
 Integrated candidate: pending controller capture of clean prepared canonical dev
 Integrated command: `GOWORK=off scripts/check-documentation-conformance.sh`
-Integrated result: pending controller execution; closure blocked by recorded rows
+Integrated result: pending controller execution after separate runtime corrections
 
 ## Acceptance Mapping
 
@@ -33,8 +33,8 @@ must replace these pending fields before closure.
 | DC04 | Slice 3 actual config validators, SQLC, fresh PostgreSQL schema/migrations/settings/seeding and Guide persistence receipts | pending integrated execution |
 | DC05 | Slice 4 exact crypto contexts, real production browser/race journeys and owned Ticked setup/identity/restart/shutdown receipts | pending integrated execution |
 | DC06 | Slice 5 exact fragments, native owned SMTP/filesystem/database workflows and infrastructure/helper package receipts | pending integrated execution |
-| DC07 | Slice 6 production CLI/TUI/local state, Book source comparison, bare scaffold, canonical feature and managed documentation receipts | blocked for complete generator journey by three runtime tickets |
-| DC08 | Every owning group's exact digest/method/outcome proofs; Slice 7 root examples bound to executed bootstrap, native PTY and production CLI fixture | three generator rows blocked; successful full runnable-example coverage unproven |
+| DC07 | Slice 6 production CLI/TUI/local state, Book source comparison, bare scaffold, canonical feature and managed documentation receipts | runtime corrections delivered; integrated execution pending |
+| DC08 | Every owning group's exact digest/method/outcome proofs; Slice 7 root examples bound to executed bootstrap, native PTY and production CLI fixture | successful workflow controls updated; integrated execution pending |
 | DC09 | Default gate on clean canonical dev; cumulative execution with allowlist-only tool lookup, executable identities and local Go 1.27.1; complete acceptance rejects unresolved coverage | pending integrated execution; cannot pass with blocked rows |
 | DC10 | Exact candidate/command/result here, canonical slice reports and immutable task/PR references, retained independent controller checkpoint | pending integrated evidence and approved operational closure |
 
@@ -59,15 +59,16 @@ sandbox. The final controller execution remains required evidence.
 
 ## Unresolved Claims and Assurance Limits
 
-Three coverage rows remain blocked: the assisted-generation walkthrough and
-its timestamp request blocks 6 and 9. Their runtime owners are
+The assisted-generation walkthrough and timestamp request blocks 6 and 9
+previously failed. Their separately approved runtime corrections are recorded in
 [TKT-20261008134713](../ticket/solved/20261008134713-generator-scaffold-evolution.md),
 [TKT-20261008135600](../ticket/solved/20261008135600-generator-timestamp-row-mapping.md)
 and [TKT-20261008135846](../ticket/solved/20261008135846-generator-validation-test-lint.md).
-Observed failures include fresh-scaffold composition resolution, timestamp row
-mapping compilation and generated validation-test lint. Passing assertions that
-reproduce these failures preserve blockers; they never establish a successful
-create-then-evolve journey.
+The corrections preserve delegated application composition, SQLC table row
+types and lint-compliant generated validation tests. Native regressions now
+require successful bare/initial-feature evolution, timestamp persistence and
+validation checks. Documentation workflow controls require completed operations;
+the earlier failing outcomes cannot establish current acceptance.
 
 Generator interpretation uses bounded Go fixtures around production coordinators
 and CLI parsing. It proves local admission, approval, mutation, persistence and

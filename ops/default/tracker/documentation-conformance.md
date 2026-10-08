@@ -18,7 +18,7 @@ Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
 Active slice: None — all 7 slice PRs integrated
 Next slice: None — integrated validation pending
 Active tasks: None — all 14 mapped tasks integrated
-Execution gate: Blocked — three separate generator runtime tickets require resolution before integrated acceptance
+Execution gate: Open — runtime corrections delivered; controller-owned integrated acceptance pending
 
 ## Slice Status
 
@@ -86,8 +86,8 @@ existing meaning.
 | DC04 | pending | pending |
 | DC05 | pending | pending |
 | DC06 | pending | pending |
-| DC07 | generator guidance reconciled; full journey blocked by runtime defects | `ops/default/report/slices/documentation-conformance/slice-6-generator-and-assisted-workflows.md` |
-| DC08 | focused evidence classified; three generator rows blocked | `ops/default/report/documentation-conformance-coverage.md` |
+| DC07 | runtime corrections delivered; integrated execution pending | `ops/default/report/slices/documentation-conformance/slice-6-generator-and-assisted-workflows.md` |
+| DC08 | successful workflow controls updated; integrated execution pending | `ops/default/report/documentation-conformance-coverage.md` |
 | DC09 | pending | pending |
 | DC10 | pending | pending |
 
@@ -342,3 +342,15 @@ slices and its conversation. Do not spend another complete gate invocation
 until TKT-20261008134713, TKT-20261008135600 and TKT-20261008135846 are resolved
 and their documentation execution controls assert successful workflows rather
 than the recorded failures. Those runtime tickets remain separate delivery units.
+
+The maintainer approved the three independent runtime tickets on 2026-10-08.
+TKT-20261008135600 (`e88a34ff4c89`), TKT-20261008135846 (`bfe44acd2d08`) and
+TKT-20261008134713 (`6cdb5fb35a07`) are solved and delivered to dev. Native
+regressions reproduce the original failures and pass after correction, including
+PostgreSQL timestamp round trips, validation lint and bare/initial-feature
+scaffold evolution with an unchanged thin main. Documentation controls now
+require completed workflows. A fresh owned workbench passed all three named
+workflow tests and stopped its PostgreSQL cluster. Coverage digests were
+reconciled; historical failure evidence remains historical. The same controller
+run can resume integrated validation with seven completed slices and its retained
+conversation. No integrated success is claimed before that gate passes.

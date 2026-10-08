@@ -107,20 +107,21 @@ func TestBuilder(t *testing.T){
  session,err=coordinator.Open(t.Context(),root,conversation.SessionOptions{});must(t,err);defer session.Close()
  if session.Current().ID!=identity{t.Fatal("created project lost conversation")}
  before=snapshot(t,root,false);proposal=turn(t,session,addField);outcome(t,proposal,interaction.OutcomePlanReady);same(t,before,snapshot(t,root,false))
- blocked:=approve(t,session,proposal);outcome(t,blocked,interaction.OutcomeExecutionFailed)
- found:=false;for _,diagnostic:=range blocked.Interaction.Diagnostics{if diagnostic.Code=="HMGEN-EXECUTION-LAYOUT-MISSING"{found=true}}
- if !found{t.Fatal("fresh-scaffold failure changed")};same(t,before,snapshot(t,root,false))
- t.Log("fresh-scaffold evolution blocked: HMGEN-EXECUTION-LAYOUT-MISSING; no mutation")
+ outcome(t,approve(t,session,proposal),interaction.OutcomeCompleted)
+ if !strings.Contains(strings.Join(strings.Fields(read(t,root,"internal/feat/invoice/model.go"))," "),"IssuedAt time.Time"){t.Fatal("scaffold timestamp missing")}
+ t.Log("fresh-scaffold evolution completed: resumed conversation and project checks passed")
  run(t,root,"go","build","./...");run(t,root,"go","test","-count=1","./...")
  must(t,session.Close());root=existing(t)
  session,err=coordinator.Open(t.Context(),root,conversation.SessionOptions{});must(t,err);defer session.Close()
  proposal=turn(t,session,createFeature);outcome(t,proposal,interaction.OutcomePlanReady);outcome(t,approve(t,session,proposal),interaction.OutcomeCompleted)
- proposal=turn(t,session,addField);outcome(t,proposal,interaction.OutcomePlanReady);timestampBlocked(t,approve(t,session,proposal))
- if !strings.Contains(strings.Join(strings.Fields(read(t,root,"internal/feat/invoice/model.go"))," "),"IssuedAt time.Time"){t.Fatal("required timestamp not retained after failed check")}
+ proposal=turn(t,session,addField);outcome(t,proposal,interaction.OutcomePlanReady);outcome(t,approve(t,session,proposal),interaction.OutcomeCompleted)
+ if !strings.Contains(strings.Join(strings.Fields(read(t,root,"internal/feat/invoice/model.go"))," "),"IssuedAt time.Time"){t.Fatal("required timestamp missing")}
+ t.Log("timestamp evolution completed: SQLC and generated project checks passed")
  must(t,session.Close());root=existing(t)
  session,err=coordinator.Open(t.Context(),root,conversation.SessionOptions{});must(t,err);defer session.Close()
  proposal=turn(t,session,createFeature);outcome(t,approve(t,session,proposal),interaction.OutcomeCompleted)
- proposal=turn(t,session,"Validate invoice numbers.");validationBlocked(t,approve(t,session,proposal))
+ proposal=turn(t,session,"Validate invoice numbers.");outcome(t,approve(t,session,proposal),interaction.OutcomeCompleted)
+ t.Log("validation evolution completed: generated model tests and project lint passed")
  must(t,session.Close());root=existing(t)
  session,err=coordinator.Open(t.Context(),root,conversation.SessionOptions{});must(t,err);defer session.Close()
  proposal=turn(t,session,createFeature);outcome(t,approve(t,session,proposal),interaction.OutcomeCompleted)
@@ -149,30 +150,15 @@ func TestHeadless(t *testing.T){
  root:=filepath.Join(parent,"ledger")
  if strings.Contains(run(t,root,"go","list","-m","-json","hatmax.adrianpk.com"),"Replace"){t.Fatal("published bare scaffold replaced toolkit")}
  run(t,root,"go","build","./...");run(t,root,"go","test","-count=1","./...")
- root=existing(t)
  for _,request:=range []string{createFeature,addField}{
   output.Reset();stderr.Reset()
   app,err=hatmaxcli.New(hatmaxcli.Config{Input:strings.NewReader("yes\n"),Output:&output,ErrorOutput:&stderr,WorkingDirectory:func()(string,error){return root,nil},CommandName:"hm",CoordinatorFactory:func(_ string,a interaction.Approver,c interaction.Clarifier)(hatmaxcli.Runner,error){return interaction.New(interaction.Config{Interpreter:interpreter{},Approver:a,Clarifier:c})}});must(t,err)
   status:=app.Run(t.Context(),[]string{"generate",request})
-  if request==addField{if status!=8||!strings.Contains(output.String(),"HMGEN-EXECUTION-COMMAND-FAILED"){t.Fatalf("timestamp blocked result changed: %d %s %s",status,stderr.String(),output.String())};return}
   if status!=0{t.Fatalf("published request exit %d: %s\n%s",status,stderr.String(),output.String())}
  }
  run(t,root,"go","build","./...");run(t,root,"go","test","-count=1","./...")
 }
 
-func timestampBlocked(t *testing.T,result conversation.SessionResult){
- t.Helper();outcome(t,result,interaction.OutcomeExecutionFailed)
- found:=false;if result.Interaction.Report!=nil{for _,command:=range result.Interaction.Report.Commands{if command.Name=="validation.check"&&command.ExitCode!=0&&strings.Contains(command.Output,"cannot use row")&&strings.Contains(command.Output,"as dal.Invoice"){found=true}}}
- if !found||len(result.Interaction.RetainedChanges)==0{t.Fatal("timestamp compiler failure or retained-change evidence missing")}
- t.Log("timestamp evolution blocked: SQLC row mapping compilation failed; changes retained")
-}
-
-func validationBlocked(t *testing.T,result conversation.SessionResult){
- t.Helper();outcome(t,result,interaction.OutcomeExecutionFailed)
- found:=false;if result.Interaction.Report!=nil{for _,command:=range result.Interaction.Report.Commands{if command.Name=="validation.check"&&command.ExitCode!=0&&strings.Contains(command.Output,"model_test.go")&&strings.Contains(command.Output,"wsl_v5"){found=true}}}
- if !found||len(result.Interaction.RetainedChanges)==0{t.Fatal("generated validation lint failure evidence missing")}
- t.Log("validation evolution blocked: generated model test fails wsl_v5; changes retained")
-}
 `
 
 // Entry-point checks isolate local state and never request backend inference.

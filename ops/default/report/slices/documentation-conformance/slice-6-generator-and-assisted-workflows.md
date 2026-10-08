@@ -123,3 +123,16 @@ rows as verified success for closure. DC09 constrained native-toolchain executio
 and integrated acceptance remain pending. Fixture interpretation cannot prove
 live model acceptance. Source, head, tool or configuration drift invalidates
 execution evidence.
+
+## Runtime Resolution on 2026-10-08
+
+The maintainer separately approved and delivered the three linked runtime
+corrections. Current native controls require successful operations instead of
+reproducing their historical failures. A fresh owned PostgreSQL workbench passed
+`TestBuilder`, `TestHeadless` and `TestCommands`: resumed initial-feature scaffold
+and bare headless scaffold evolution, canonical required timestamp and validation,
+managed documentation, stale approval and unsupported-operation rejection. The
+owned cluster stopped. Coverage now records 17 executed bindings and no blocked
+rows for this group. Integrated acceptance remains controller-owned and pending;
+fixture interpretation retains its model-acceptance limit. See the
+[correction evidence](../../documentation-conformance-validation.md).

@@ -18,10 +18,8 @@ Both interfaces use the same Hatmax Book, planning, approval, execution, and
 validation contracts. The TUI adds a persistent conversation around those
 contracts; it does not replace them with a general coding agent.
 
-This chapter creates an application in a TUI conversation, then describes
-conversation selection and feature operations on existing canonical projects.
-The current scaffold cannot yet complete the create-then-evolve sequence:
-its follow-up mutations fail to recognize the generated composition root.
+This chapter creates an application in a TUI conversation, resumes that
+conversation and evolves a feature in the created project.
 
 ## Prepare Hatmax
 
@@ -150,17 +148,9 @@ hm
 ```
 
 Hatmax resumes the active local conversation and reinspects the project before
-planning another change. The current scaffold places wiring in
-`internal/application`, while feature execution recognizes a composition root
-in `package main`. A follow-up mutation on this scaffold can display a plan,
-then return `Execution failed` with `HMGEN-EXECUTION-LAYOUT-MISSING` before
-changing source. Creation and conversation rebinding succeed; the full
-create-then-evolve journey remains blocked by this runtime defect.
-
-An existing canonical project whose composition root is recognized can admit
-feature creation, validation and documentation operations. The timestamp
-request below currently renders changes, then fails its project check because
-generated SQLC query row types do not match the store mapper:
+planning another change. Application wiring stays in `internal/application`;
+the executable entrypoint remains separate. Ask to evolve the invoice created
+in the first request:
 
 ```text
 Add a required issued-at timestamp to invoice.
@@ -171,12 +161,10 @@ required, visible plan, explicit approval, execution, and validation. Prior
 dialogue can preserve product context, but source inspection remains
 authoritative.
 
-This timestamp example is blocked until its row-mapping defect is resolved.
-Its retained changes require inspection; a failed check does not roll them back
-or establish a successful feature update.
-Some validation updates also retain changes and fail the generated model
-test's project lint. Read the validation diagnostic before treating an admitted
-operation as complete.
+After approval, Hatmax updates the model, migration, SQL queries and affected
+feature surfaces, then runs generation and project checks. Validation and
+documentation requests follow the same approval cycle. Inspect the final
+result before treating a change as complete.
 
 Generated files are ordinary Go, SQL, templates, and assets. The application
 does not require `hm` or Codex at runtime.
@@ -222,9 +210,8 @@ reconstructs project facts from source and the compatible Book.
 
 ## Use the Headless CLI
 
-Use the headless CLI on an existing canonical project when one bounded request
-is more useful than a persistent conversation. The same blocked timestamp
-example reports an execution failure and exits with status `8`:
+Use the headless CLI in the created project when one bounded request is more
+useful than a persistent conversation:
 
 ```sh
 hm generate "Add a required issued-at timestamp to invoice."
