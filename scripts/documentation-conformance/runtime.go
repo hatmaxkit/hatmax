@@ -126,6 +126,12 @@ func (v *verification) execBound(directory string, bound time.Duration, input, n
 	}
 
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	if input != "" {
+		// Password prompts open /dev/tty before stdin. A private session keeps
+		// supplied fixture input authoritative even under a tmux controller.
+		cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	}
+
 	cmd.Cancel = func() error { return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL) }
 	cmd.WaitDelay = 2 * time.Second
 	output, err := cmd.CombinedOutput()

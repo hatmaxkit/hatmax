@@ -320,3 +320,14 @@ The runner will create and stop fresh invocation-owned storage, listeners and
 browser contexts when the controller executes its default command. No full gate
 was run during preparation. Three generator rows remain blocked; integrated
 acceptance and delivery-set completion remain pending.
+
+The controller's default gate failed on
+`ba95fab8bc52a77daf894b269c11cb3a5517bb6f`: `createuser --pwprompt` inherited
+the controller terminal and waited there instead of consuming fixture stdin.
+The approved contingency branch `fix/documentation-conformance-validation`
+isolates commands with scripted input in a private session. A terminal-backed
+regression, the real owned PostgreSQL/Ticked procedure, checker tests, strict
+lint and coverage checks passed. See the
+[validation correction](../report/documentation-conformance-validation.md).
+All seven slices remain integrated; three generator runtime tickets and final
+integrated acceptance remain pending.

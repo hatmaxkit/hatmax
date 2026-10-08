@@ -6,11 +6,42 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
+
+// Password tools prefer a controlling terminal over stdin. Owned scripted
+// input must work even when the controller itself runs inside a terminal.
+func TestCommandInput(t *testing.T) {
+	root := t.TempDir()
+	v := verification{root: root, fixture: root}
+	command := `if (: </dev/tty) 2>/dev/null; then
+  echo 'unexpected controlling terminal' >&2
+  exit 1
+fi
+read -r first
+read -r second
+test "$first" = fixture-only && test "$second" = fixture-only`
+
+	err := v.execBound(root, 5*time.Second, "fixture-only\nfixture-only\n", "sh", "-eu", "-c", command)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(v.receipt.Commands) != 1 || v.receipt.Commands[0].Exit != 0 {
+		t.Fatal("scripted input did not record a successful command")
+	}
+
+	_, err = os.Stat(filepath.Join(root, v.receipt.Commands[0].Log))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 
 // Evidence must reject missing or stale bindings and refuse compilation as execution proof.
 func TestRuntimeControls(t *testing.T) {
