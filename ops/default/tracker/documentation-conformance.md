@@ -18,7 +18,7 @@ Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
 Active slice: None — all 7 slice PRs integrated
 Next slice: None — integrated validation pending
 Active tasks: None — all 14 mapped tasks integrated
-Execution gate: Open — controller-owned integrated validation pending
+Execution gate: Blocked — three separate generator runtime tickets require resolution before integrated acceptance
 
 ## Slice Status
 
@@ -333,3 +333,12 @@ Canonical correction PR: [#119](https://forge.adrianpk.com/hatmax/hatmax/pulls/1
 introduced at `547ce501fd7317b9521569ed3e4022de21e801d7`.
 All seven slices remain integrated; three generator runtime tickets and final
 integrated acceptance remain pending.
+
+PR #119 merged through SHA-bound Rebase + Fast-forward at
+`ee16d2fe9bfe3158853a2920893be1bb61e0b76c` (Acta
+`01M4E2A3PASA63KJJZX1FQF2T0`). The terminal-input correction is delivered.
+The controller retains run `run-cbe92c396a2202a8bc1792a6`, seven integrated
+slices and its conversation. Do not spend another complete gate invocation
+until TKT-20261008134713, TKT-20261008135600 and TKT-20261008135846 are resolved
+and their documentation execution controls assert successful workflows rather
+than the recorded failures. Those runtime tickets remain separate delivery units.

@@ -8,7 +8,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Documentation Conformance Validation Correction
 
 Date: 2026-10-08
-Status: reviewing
+Status: delivered
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../tracker/documentation-conformance.md)
@@ -29,6 +29,9 @@ fixture input rather than waiting for an operator in the controller terminal.
 Other command invocations retain their existing process-group behavior.
 Finite deadlines, group cancellation and command receipts remain in force.
 Correction introduction: `547ce501fd7317b9521569ed3e4022de21e801d7`.
+PR #119 merged through SHA-bound Rebase + Fast-forward at
+`ee16d2fe9bfe3158853a2920893be1bb61e0b76c`; Acta event
+`01M4E2A3PASA63KJJZX1FQF2T0` records the canonical integration.
 
 ## Implementation Notes
 
