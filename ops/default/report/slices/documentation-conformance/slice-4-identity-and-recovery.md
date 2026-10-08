@@ -12,8 +12,8 @@ Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
 Branch: `docs/hatmax-identity-recovery`
-PR: pending
-Report introduction: pending
+PR: `#115`
+Report introduction: `1cb59fa18fb16e50b0a56c64b9e1fbdb808ee713`
 Activation revision: `ba9f95b9272d9e80695599d2b9524e9fe2d4b7ff`
 Documentation task: `f96565f609da32a7430cc617138d72d016376fcf`
 Merged revision: pending
