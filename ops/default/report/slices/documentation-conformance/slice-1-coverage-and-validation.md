@@ -8,6 +8,8 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Slice 1: Coverage and Validation
 
 Status: delivered
+Integrated candidate: `090e260378cbb47734f6202be360923a9db1c3ac`
+Integrated acceptance: [Passed controller evidence](../../documentation-conformance-acceptance.md)
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
@@ -86,8 +88,8 @@ the complete runtime suite.
 
 ## Risks and Follow-ups
 
-Slices 2 through 6 must reconcile public contracts, specify owning compositions
-for fragments and supply actual example/walkthrough execution receipts. Slice 7
-owns complete acceptance. The initial coverage table must be reconciled when
-source, pages or example content changes. No behavioral coverage row is verified
-by this preparatory slice.
+Slices 2 through 7 completed the public-contract reconciliation, contextual
+fragments and execution receipts. The controller's full documentation gate
+passed on the integrated candidate above, including native-toolchain acceptance.
+This preparatory slice's historical checks retain their original boundary.
+The coverage table requires reconciliation when source, pages or examples change.

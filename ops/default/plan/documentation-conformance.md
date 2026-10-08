@@ -8,7 +8,9 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Hatmax Documentation Conformance Delivery Plan
 
 Date: 2026-10-08
-Status: Approved
+Status: Completed
+Completed: 2026-10-08
+Validated revision: `090e260378cbb47734f6202be360923a9db1c3ac`
 Approved: 2026-10-08
 Delivery set: documentation-conformance
 Concern: [Documentation conformance](../spec/documentation-conformance.md)
@@ -16,8 +18,8 @@ Tracker: [Delivery tracker](../tracker/documentation-conformance.md)
 Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
 Active slice: None — all 7 slice PRs integrated
-Next slice: None — integrated validation pending
-Execution gate: Open — controller-owned integrated validation pending
+Next slice: None — delivery set complete
+Execution gate: Closed — controller-owned integrated documentation gate passed
 Slice strategy: layered
 Reason: inventory and evidence tooling establish the audit boundary; independently
 reviewable reader-workflow groups reconcile existing content; integrated acceptance
@@ -30,8 +32,8 @@ this complete delivery set with the new slice-loop. The specification and plan
 are approved, implementation is authorized, and Rebase + Fast-forward merges
 into dev are delegated to this repository's independent controller.
 
-All 7 slice PRs are integrated; the execution gate now awaits the controller's
-default integrated documentation check. Each delivered slice has one
+All 7 slice PRs are integrated; the controller's default integrated documentation
+check passed on the validated revision above. Each delivered slice has one
 recorded branch, one canonical PR to dev and one report. The approved external
 controller owns Rebase + Fast-forward integration and immediate continuation
 through this set; no separate reviewer agent is introduced.
@@ -276,3 +278,14 @@ only frozen operational closure paths and must leave the tested product docs,
 examples and validation code unchanged. Do not rerun expensive accepted journeys
 for those metadata-only changes. Completion applies to the validated source
 revision, not unbounded future code changes.
+
+Closure on 2026-10-08 uses the controller's successful command
+`GOWORK=off scripts/check-documentation-conformance.sh` at
+`090e260378cbb47734f6202be360923a9db1c3ac`. All 451 coverage identities,
+16 entrypoint bindings, five workflow groups and 72 native executable identities
+reconciled with zero blocked rows and verified owned shutdown. The generic
+native-tooling requirement is satisfied by actual constrained execution.
+All seven reports are delivered and DC01–DC10 are complete; the
+[acceptance record](../report/documentation-conformance-acceptance.md) preserves
+the exact evidence and assurance limits. The closure commit changes only frozen
+operational paths; the accepted journeys are not rerun for that metadata update.

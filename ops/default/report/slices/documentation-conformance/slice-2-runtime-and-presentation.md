@@ -8,6 +8,8 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Slice 2: Runtime and Presentation
 
 Status: delivered
+Integrated candidate: `090e260378cbb47734f6202be360923a9db1c3ac`
+Integrated acceptance: [Passed controller evidence](../../documentation-conformance-acceptance.md)
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
@@ -130,13 +132,14 @@ canonical PR. Integrated documentation acceptance remains with Slice 7.
 
 Canonical PR #113 merged through Rebase + Fast-forward. The controller recorded
 both ordered checks above as successful on the exact clean merged revision,
-including 448 identities and 141 fresh runtime bindings. This closes Slice 2;
-integrated acceptance and constrained native-toolchain execution remain pending.
+including 448 identities and 141 fresh runtime bindings. The later integrated
+gate passed 451 identities and fresh runtime evidence on the candidate above,
+including constrained native-toolchain execution.
 
 The approved native-tooling closure amendment is included from canonical dev; these
-validators and fixture utilities use Go/shell. Slice 7 owns its final constrained
-toolchain acceptance. Later slices verify database-backed Guide and Ticked journeys and complete
-cross-quadrant acceptance. Conceptual chapters retain source inspection; compile
+validators and fixture utilities use Go/shell. Later slices verified database-backed
+Guide and Ticked journeys; the controller completed cross-quadrant and native
+toolchain acceptance. Conceptual chapters retain source inspection; compile
 adapters and local template rendering do not establish external deployment,
 authentication proof or browser DOM behavior. Inspected content changes require
 new bindings and fresh receipts.

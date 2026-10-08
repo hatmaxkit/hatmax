@@ -8,7 +8,9 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Hatmax Documentation Conformance Tracker
 
 Date: 2026-10-08
-Status: In progress
+Status: Completed
+Completed: 2026-10-08
+Validated revision: `090e260378cbb47734f6202be360923a9db1c3ac`
 Approved: 2026-10-08
 Delivery set: documentation-conformance
 Concern: [Documentation conformance](../spec/documentation-conformance.md)
@@ -16,9 +18,9 @@ Plan: [Delivery plan](../plan/documentation-conformance.md)
 Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
 Active slice: None — all 7 slice PRs integrated
-Next slice: None — integrated validation pending
+Next slice: None — delivery set complete
 Active tasks: None — all 14 mapped tasks integrated
-Execution gate: Open — runtime corrections delivered; controller-owned integrated acceptance pending
+Execution gate: Closed — controller-owned integrated documentation gate passed
 
 ## Slice Status
 
@@ -63,35 +65,40 @@ Execution gate: Open — runtime corrections delivered; controller-owned integra
 - [x] Complete source/page inventory and example identities recorded.
 - [x] All mapped tasks integrated with actual immutable commit evidence.
 - [x] All canonical slice PRs integrated and reports delivered.
-- [ ] All acceptance criteria passed with source-bound example/walkthrough evidence.
-- [ ] Exact clean immutable dev candidate passed the full documentation gate.
-- [ ] Frozen operational closure paths updated without changing tested documentation.
+- [x] All acceptance criteria passed with source-bound example/walkthrough evidence.
+- [x] Exact clean immutable dev candidate passed the full documentation gate.
+- [x] Frozen operational closure paths updated without changing tested product documentation, examples or validation code.
 
 ## Acceptance Tracking
 
 Mandatory closure condition approved on 2026-10-08:
 
-- [ ] Current setup, examples, validators and fixtures use Go/shell where sufficient; no gratuitous auxiliary runtime requirement remains.
-- [ ] The final gate enforces this constraint and records successful relevant workflows with only their required native toolchain available.
+- [x] Current setup, examples, validators and fixtures use Go/shell where sufficient; no gratuitous auxiliary runtime requirement remains.
+- [x] The final gate enforces this constraint and records successful relevant workflows with only their required native toolchain available.
 
-DC09 and delivery-set completion remain pending until both conditions pass.
+Both conditions passed on the validated revision; DC09 and this delivery set
+are complete.
 Historical execution records and product-owned browser technology retain their
 existing meaning.
 
 | Criterion | Evidence status | Reference |
 | --- | --- | --- |
-| DC01 | inventory established; integrated acceptance pending | `ops/default/report/documentation-conformance-coverage.md` |
-| DC02 | focused anchors/navigation passed; integrated acceptance pending | `ops/default/report/slices/documentation-conformance/slice-1-coverage-and-validation.md` |
-| DC03 | pending | pending |
-| DC04 | pending | pending |
-| DC05 | pending | pending |
-| DC06 | pending | pending |
-| DC07 | runtime corrections delivered; integrated execution pending | `ops/default/report/slices/documentation-conformance/slice-6-generator-and-assisted-workflows.md` |
-| DC08 | successful workflow controls updated; integrated execution pending | `ops/default/report/documentation-conformance-coverage.md` |
-| DC09 | pending | pending |
-| DC10 | pending | pending |
+| DC01 | passed; 451 identities reconciled on the integrated candidate | `ops/default/report/documentation-conformance-coverage.md` |
+| DC02 | passed; four-quadrant navigation, links and anchors | `ops/default/report/documentation-conformance-acceptance.md` |
+| DC03 | passed; 141 runtime/presentation bindings | `ops/default/report/documentation-conformance-acceptance.md` |
+| DC04 | passed; 89 data/configuration bindings | `ops/default/report/documentation-conformance-acceptance.md` |
+| DC05 | passed; 50 identity/recovery bindings | `ops/default/report/documentation-conformance-acceptance.md` |
+| DC06 | passed; 92 infrastructure/helper bindings | `ops/default/report/documentation-conformance-acceptance.md` |
+| DC07 | passed; 63 completed generator bindings after separate runtime corrections | `ops/default/report/documentation-conformance-acceptance.md` |
+| DC08 | passed; classified exact-head workflow proofs and 16 entrypoint bindings | `ops/default/report/documentation-conformance-acceptance.md` |
+| DC09 | passed; default integrated gate, 72 native executable identities and zero blocked rows | `ops/default/report/documentation-conformance-acceptance.md` |
+| DC10 | passed; exact controller evidence, delivered reports and frozen operational closure | `ops/default/report/documentation-conformance-acceptance.md` |
 
 ## Execution Record
+
+The entries below preserve the state and evidence at each delivery checkpoint.
+Their pending and blocked outcomes are historical; final closure is recorded
+at the end of this section and in the current acceptance table above.
 
 Execution authorized on 2026-10-08. Activation verified clean primary `dev`
 and canonical `origin/dev` at `6715ab2912d27263a78f0bd1419db8b49c3d8089`,
@@ -354,3 +361,22 @@ workflow tests and stopped its PostgreSQL cluster. Coverage digests were
 reconciled; historical failure evidence remains historical. The same controller
 run can resume integrated validation with seven completed slices and its retained
 conversation. No integrated success is claimed before that gate passes.
+
+Delivery set completed on 2026-10-08. The controller passed the exact command
+`GOWORK=off scripts/check-documentation-conformance.sh` on clean canonical dev
+`090e260378cbb47734f6202be360923a9db1c3ac`. Its retained evidence is
+`checks/090e260378cbb47734f6202be360923a9db1c3ac.json` and the corresponding
+`.log` in this set's independent controller state. The gate passed required
+documentation, licensing and strict lint checks, all 451 identities, 141 runtime,
+89 data, 50 identity, 92 infrastructure and 63 completed generator bindings,
+plus 16 entrypoint bindings. The finite native toolchain contained 72 executable
+identities; inherited lookup directories were removed and zero blocked rows
+remained. Owned PostgreSQL, HTTP, SMTP, Ticked and Chromium shutdown reconciled.
+
+DC01–DC10 and the generic native-tooling closure requirement are satisfied.
+All seven canonical slice reports remain delivered, with their original task,
+branch, report-introduction and PR identities preserved. The closure commit
+changes only configured operational documentation paths; the tested product
+documentation, examples and validation code remain at the accepted revision.
+The independent controller retains its checkpoint, command evidence and worker
+conversation. No additional gate execution is required for this metadata closure.

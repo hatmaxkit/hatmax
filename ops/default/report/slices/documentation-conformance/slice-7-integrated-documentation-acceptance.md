@@ -8,6 +8,8 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Slice 7: Integrated Documentation Acceptance
 
 Status: delivered
+Integrated candidate: `090e260378cbb47734f6202be360923a9db1c3ac`
+Integrated acceptance: [Passed controller evidence](../../documentation-conformance-acceptance.md)
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
@@ -23,6 +25,10 @@ Report introduction: `060c3fb18588b261f877848d0d73a7eb8bf1188f`
 Reconcile the remaining entrypoints and complete source-bound coverage, then
 bind integrated documentation acceptance to one clean immutable candidate and
 actual execution with the required native toolchain.
+
+The delivered behavior and implementation notes below describe the original
+Slice 7 checkpoint. The final controller result in Validation supersedes its
+pending and blocked states after separately approved runtime corrections.
 
 ## Delivered Behavior
 
@@ -100,11 +106,20 @@ toolchain. Owned fixtures stopped. Three blocked generator outcomes remain
 unresolved. The default integrated command
 `GOWORK=off scripts/check-documentation-conformance.sh` belongs to the
 controller after prerequisite preparation; its result and set closure remain
-pending.
+pending at that slice checkpoint.
+
+The controller subsequently passed
+`GOWORK=off scripts/check-documentation-conformance.sh` on clean canonical dev
+`090e260378cbb47734f6202be360923a9db1c3ac`, after separately approved runtime
+corrections. All 451 identities, 16 entrypoint bindings and five workflow groups
+reconciled with 72 native executable identities and zero blocked rows. Required
+repository checks and complete acceptance passed; owned fixtures stopped.
+The linked acceptance record preserves the exact controller evidence and limits.
 
 ## Risks and Follow-ups
 
-Tickets TKT-20261008134713, TKT-20261008135600 and TKT-20261008135846 block
-the affected generator journey. DC07/DC08 claims and integrated DC09/DC10
-closure remain unresolved. Fixture interpretation proves local production-kernel
+Tickets TKT-20261008134713, TKT-20261008135600 and TKT-20261008135846 were
+resolved in separately approved runtime deliveries. DC01–DC10 and the generic
+native-tooling closure requirement passed on the integrated candidate above.
+The original slice evidence and failures remain historical. Fixture interpretation proves local production-kernel
 behavior and establishes no authenticated model acceptance.

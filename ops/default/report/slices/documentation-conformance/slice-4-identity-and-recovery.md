@@ -8,6 +8,8 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Slice 4: Identity and Recovery
 
 Status: delivered
+Integrated candidate: `090e260378cbb47734f6202be360923a9db1c3ac`
+Integrated acceptance: [Passed controller evidence](../../documentation-conformance-acceptance.md)
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
@@ -158,7 +160,8 @@ closure changes only operational delivery state.
 ## Risks and Follow-ups
 
 DC05/DC08 integrated acceptance and DC09's native-toolchain closure demonstration
-remain with Slice 7. Virtual devices prove browser/library/adapter integration,
+passed in the controller's full documentation gate on the candidate above.
+Virtual devices prove browser/library/adapter integration,
 not hardware identity, attestation, deployment custody or compliance. Captured
 mail proves local dispatch/notification behavior rather than external delivery.
 Context-only fragments and conceptual references retain their stated assurance

@@ -8,6 +8,8 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Slice 3: Data and Configuration
 
 Status: delivered
+Integrated candidate: `090e260378cbb47734f6202be360923a9db1c3ac`
+Integrated acceptance: [Passed controller evidence](../../documentation-conformance-acceptance.md)
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
@@ -137,8 +139,8 @@ no toolchain downgrade or repository lint-policy change was made.
 
 ## Risks and Follow-ups
 
-Integrated DC04/DC08 acceptance remains with Slice 7. The approved native-tooling
-closure condition is retained; final constrained-toolchain execution remains
-pending. Identity/browser proof and complete Ticked composition belong to
-Slice 4. Conceptual guidance and compiled application adapters retain the precise
+Integrated DC04/DC08 acceptance and the approved native-tooling closure condition
+passed in the controller's full documentation gate on the candidate above.
+Slice 4 supplied identity/browser proof and the complete Ticked composition.
+Conceptual guidance and compiled application adapters retain the precise
 assurance limits stated above. Changed inputs require fresh evidence.

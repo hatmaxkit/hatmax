@@ -8,6 +8,8 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Slice 6: Generator and Assisted Workflows
 
 Status: delivered
+Integrated candidate: `090e260378cbb47734f6202be360923a9db1c3ac`
+Integrated acceptance: [Passed controller evidence](../../documentation-conformance-acceptance.md)
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
@@ -22,6 +24,10 @@ Report introduction: `0a70f3b71cd69db25dfaae0a62224a0f6eef087d`
 
 Reconcile generator, terminal, conversation, Book and generated documentation
 guidance with delivered behavior and verify local workflows with explicit limits.
+
+The delivered behavior and implementation notes below describe the original
+Slice 6 checkpoint. The runtime resolution and integrated acceptance record
+supersede its pending and blocked states without changing historical results.
 
 ## Delivered Behavior
 
@@ -117,10 +123,11 @@ owned fixtures stopped; the three blocked rows remain unresolved.
 
 ## Risks and Follow-ups
 
-Three open runtime tickets block affected DC07/DC08 claims. Their fixes require
-separate authorization; this documentation set must not count the three blocked
-rows as verified success for closure. DC09 constrained native-toolchain execution
-and integrated acceptance remain pending. Fixture interpretation cannot prove
+The three historical runtime blockers were resolved through the separately
+approved deliveries below. The controller's full documentation gate passed
+63 completed generator bindings, DC07/DC08 and constrained native-toolchain
+acceptance on the integrated candidate above. Earlier reproduced failures remain
+historical evidence and do not supply this success. Fixture interpretation cannot prove
 live model acceptance. Source, head, tool or configuration drift invalidates
 execution evidence.
 
@@ -133,6 +140,6 @@ reproducing their historical failures. A fresh owned PostgreSQL workbench passed
 and bare headless scaffold evolution, canonical required timestamp and validation,
 managed documentation, stale approval and unsupported-operation rejection. The
 owned cluster stopped. Coverage now records 17 executed bindings and no blocked
-rows for this group. Integrated acceptance remains controller-owned and pending;
-fixture interpretation retains its model-acceptance limit. See the
+rows for this group. The controller subsequently passed the integrated gate on
+the candidate above; fixture interpretation retains its model-acceptance limit. See the
 [correction evidence](../../documentation-conformance-validation.md).

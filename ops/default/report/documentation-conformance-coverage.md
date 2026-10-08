@@ -7,7 +7,10 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Hatmax Documentation Conformance Coverage
 
-Status: Slice 2 through Slice 6 bindings reconciled after runtime corrections; integrated acceptance pending
+Status: Verified on the integrated candidate; zero blocked rows
+Integrated candidate: `090e260378cbb47734f6202be360923a9db1c3ac`
+Integrated command: `GOWORK=off scripts/check-documentation-conformance.sh`
+Acceptance: [Passed integrated evidence](documentation-conformance-acceptance.md)
 Activation revision: `cc268ec177e4cdd23817d5bf363fe152ebf5edcf`
 
 ## Inventory Contract
@@ -32,7 +35,7 @@ The current tool binaries, compiler, exact head, source digests, commands and
 diagnostics are bound to receipts. Typed invoice handler/store/DAL adapters in
 other fragments establish compilation; they do not establish a product invoice
 CRUD implementation or browser interaction. The full constrained-toolchain
-closure gate remains pending for Slice 7.
+closure gate passed on the integrated candidate recorded above.
 
 Slice 4 records 50 bindings: five non-empty package suites, 11 compiled contexts,
 21 executed bindings and 13 source-inspected pages or notation. Fifteen exact Go
@@ -49,7 +52,8 @@ origin use explicit owned substitutions. Invoice wiring supplies compilation
 context only; virtual devices and captured mail do not prove hardware identity,
 external provider delivery or deployment custody. Native executable versions and
 digests, source/head/compiler identities, commands and diagnostic digests bind
-the evidence. The final constrained-toolchain closure gate remains pending.
+the evidence. The final constrained-toolchain closure gate passed on the
+integrated candidate recorded above.
 
 Slice 5 records 92 bindings: 14 non-empty package suites, 11 compiled contexts,
 38 executed bindings and 29 source-inspected pages or notation. All 35 published
@@ -66,7 +70,7 @@ account access. The container helper path is source-inspected; this gate execute
 the owned server path. Application-specific interfaces retain contextual
 compilation. Fresh schemas, pools, listeners and the invocation-owned cluster
 close before evidence reconciliation. Integrated acceptance and constrained
-native-toolchain closure remain pending.
+native-toolchain closure passed on the candidate recorded above.
 
 Slice 6 records 63 bindings: 12 non-empty package suites, 17 executed command
 or request bindings and 34 source inspections. Real source
@@ -90,7 +94,7 @@ are illustrative positive/negative context, not standalone executables. Backend
 protocol fixtures cannot establish authenticated model behavior. Exact-head,
 source, tool, canonical fixture inputs and diagnostic identities bind receipts;
 owned processes and PostgreSQL stop before reconciliation. Integrated acceptance
-and generic constrained native-toolchain closure remain pending.
+and generic constrained native-toolchain closure passed on the candidate above.
 
 ## Coverage Rows
 

@@ -8,7 +8,10 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Hatmax Documentation Conformance
 
 Date: 2026-10-08
-Status: Approved
+Status: Completed
+Completed: 2026-10-08
+Validated revision: `090e260378cbb47734f6202be360923a9db1c3ac`
+Acceptance: [Integrated acceptance](../report/documentation-conformance-acceptance.md)
 Kind: Documentation assurance concern
 Planning scope: Requested on 2026-10-08
 Approved: 2026-10-08
@@ -140,6 +143,14 @@ execution evidence, not only a prose declaration or text search. Historical
 reports retain the commands that were actually executed.
 
 ## Completion Claim
+
+The controller passed `GOWORK=off scripts/check-documentation-conformance.sh`
+on clean canonical dev `090e260378cbb47734f6202be360923a9db1c3ac`.
+All DC01–DC10 criteria passed: 451 identities, all five workflow groups,
+16 entrypoint bindings and 72 native executable identities reconciled with
+zero blocked rows. The required native-toolchain execution and owned fixture
+shutdown passed. The acceptance record binds the controller's exact evidence;
+closure changes only the configured operational documentation paths.
 
 The final claim is documentation conformance for the exact validated source
 revision. It is not a permanent guarantee after code changes. Later product
