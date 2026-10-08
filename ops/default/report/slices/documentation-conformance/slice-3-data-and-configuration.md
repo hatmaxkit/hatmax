@@ -118,6 +118,11 @@ earlier runtime checks, active data workflows and receipt reconciliation. The
 report introduction precedes that final head; canonical PR/controller evidence
 owns final exact-head results.
 
+The first controller invocation exposed an ownership-test path error: the gate's
+owned TMPDIR made `t.TempDir()` a permitted fixture path. The negative test now
+creates its directory explicitly outside owned storage; final evidence is
+regenerated on the corrected head.
+
 A direct `GOWORK=off golangci-lint run --fix ./scripts/documentation-conformance`
 attempt failed in extra static-analysis passes with a nil build-IR panic.
 Explicit spacing corrections and the repository's required lint mode passed;

@@ -6,6 +6,7 @@
 package main
 
 import (
+	"os"
 	"os/exec"
 	"slices"
 	"strings"
@@ -76,7 +77,21 @@ func TestDataContext(t *testing.T) {
 // Storage outside the dedicated invocation is rejected before any database
 // process starts, regardless of whether the requested command would succeed.
 func TestDataFixtureOwnership(t *testing.T) {
-	output, err := exec.Command("bash", "data-fixture.sh", t.TempDir(), "true").CombinedOutput()
+	// The gate sets TMPDIR inside owned storage, so choose an outside path
+	// explicitly instead of inheriting that directory through t.TempDir.
+	fixture, err := os.MkdirTemp("/tmp", "hatmax-doc-unowned-")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Cleanup(func() {
+		err := os.RemoveAll(fixture)
+		if err != nil {
+			t.Error(err)
+		}
+	})
+
+	output, err := exec.Command("bash", "data-fixture.sh", fixture, "true").CombinedOutput()
 
 	exit, ok := err.(*exec.ExitError)
 	if !ok || exit.ExitCode() != 2 || !strings.Contains(string(output), "owned Slice 3 storage") {
