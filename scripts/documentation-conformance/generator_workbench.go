@@ -39,6 +39,17 @@ func (v *verification) generatorWorkbench(discovered inventory) error {
 	}
 
 	replacements := make([]string, 0)
+	rootProcedures := ""
+
+	if os.Getenv("HATMAX_DOC_ROOT_PROCEDURES") == "1" {
+		rootInstall, err := sourceBlock(discovered.contents, "README.md", 4)
+		if err != nil {
+			return err
+		}
+
+		rootProcedures = strings.NewReplacer("__ROOT_INSTALL__", strconv.Quote(rootInstall),
+			"__ROOT_HEAD__", strconv.Quote(v.receipt.Head)).Replace(rootCommandTest)
+	}
 
 	for marker, input := range map[string]struct {
 		page   string
@@ -119,7 +130,7 @@ func (v *verification) generatorWorkbench(discovered inventory) error {
 
 	replacements = append(replacements, "__COMPOSITION__", strconv.Quote(composition))
 
-	text := strings.NewReplacer(replacements...).Replace(generatorWorkflowTest + generatorCommandTest + generatorExistingTest)
+	text := strings.NewReplacer(replacements...).Replace(generatorWorkflowTest + generatorCommandTest + generatorExistingTest + rootProcedures)
 	if regexp.MustCompile(`__[A-Z_]+__`).MatchString(text) {
 		return fmt.Errorf("unbound published generator request")
 	}

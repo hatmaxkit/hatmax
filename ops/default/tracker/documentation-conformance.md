@@ -17,7 +17,7 @@ Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
 Active slice: Slice 7
 Next slice: Slice 7
-Active tasks: T7.1, T7.2
+Active tasks: None — Slice 7 canonical PR preparation
 Execution gate: Open — independent slice-loop execution authorized on 2026-10-08
 
 ## Slice Status
@@ -48,8 +48,8 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | T5.2 | completed | `test(docs): verify infrastructure and helper examples` | `38eb310994d7abf1731bd3aeb2ccb14d8a628ae4` |
 | T6.1 | completed | `docs: reconcile generator and assisted workflow guidance` | `0a70f3b71cd69db25dfaae0a62224a0f6eef087d` |
 | T6.2 | completed | `test(docs): verify generator documentation workflows` | `cdd3e8888c4a34bd253dc5503fe4f9bd37c599ba` |
-| T7.1 | active | `docs: reconcile complete Hatmax documentation coverage` | pending |
-| T7.2 | pending | `test(docs): bind Hatmax documentation acceptance` | pending |
+| T7.1 | completed | `docs: reconcile complete Hatmax documentation coverage` | `060c3fb18588b261f877848d0d73a7eb8bf1188f` |
+| T7.2 | completed | `test(docs): bind Hatmax documentation acceptance` | pending |
 
 ## Prerequisites and Gates
 
@@ -281,3 +281,18 @@ confirm integration. The exact clean-head controller receipt passed
 owned fixtures stopped. Three generator rows remain blocked by their recorded
 runtime tickets. The report is delivered; Slice 7/T7.1/T7.2 is active with its
 approved identities. Full acceptance and native-toolchain closure remain pending.
+
+T7.1 at `060c3fb18588b261f877848d0d73a7eb8bf1188f` reconciles the root setup,
+server/install/request examples, User Guide/index intent and generator package
+map. T7.2 completes the 16 entrypoint bindings and integrated evidence mapping.
+Go replaces the link-extractor runtime. The native gate removes inherited
+executable lookup directories, pins resolved Go 1.27.1 and exercises all local
+workflow groups with a finite native toolchain. Focused native documentation and
+four generator tests passed; owned PostgreSQL stopped. Repository documentation,
+licensing, strict lint and uncached checker controls passed.
+
+Default integrated mode requires clean canonical dev and rejects unresolved
+coverage. Slice 7 mode verifies the cumulative evidence machinery while retaining
+the three generator blockers. Canonical PR references and exact-head controller
+checks follow the task commit. No integrated acceptance criterion is marked passed
+before the controller executes its final gate.

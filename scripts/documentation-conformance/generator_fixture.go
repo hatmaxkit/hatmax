@@ -207,12 +207,15 @@ func TestCommands(t *testing.T){
 // A native owned PTY exercises the real no-argument entrypoint, help and quit.
 // No composer message is sent, so it cannot request model inference.
 func terminal(t *testing.T,root,script string){
+ terminalBound(t,root,script,10*time.Second)
+}
+func terminalBound(t *testing.T,root,script string,bound time.Duration){
  t.Helper();fd,err:=unix.Open("/dev/ptmx",unix.O_RDWR|unix.O_NOCTTY|unix.O_CLOEXEC,0);must(t,err)
  master:=os.NewFile(uintptr(fd),"owned-terminal");defer master.Close()
  must(t,unix.IoctlSetPointerInt(fd,unix.TIOCSPTLCK,0));number,err:=unix.IoctlGetInt(fd,unix.TIOCGPTN);must(t,err)
  slave,err:=os.OpenFile(fmt.Sprintf("/dev/pts/%d",number),os.O_RDWR,0);must(t,err);defer slave.Close()
  must(t,unix.IoctlSetWinsize(fd,unix.TIOCSWINSZ,&unix.Winsize{Row:40,Col:120}))
- ctx,cancel:=context.WithTimeout(t.Context(),10*time.Second);defer cancel()
+ ctx,cancel:=context.WithTimeout(t.Context(),bound);defer cancel()
  directory,err:=os.Getwd();must(t,err)
  command:=exec.CommandContext(ctx,"bash","-eu","-c",script);command.Dir=root;command.Env=append(os.Environ(),"TERM=xterm-256color","PATH="+directory+":"+os.Getenv("PATH"))
  command.Stdin=slave;command.Stdout=slave;command.Stderr=slave;command.SysProcAttr=&syscall.SysProcAttr{Setsid:true,Setctty:true,Ctty:0}

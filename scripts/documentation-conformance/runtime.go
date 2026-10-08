@@ -94,7 +94,9 @@ func executionInputs(discovered inventory) (string, error) {
 		return "", err
 	}
 
-	files = append(files, "scripts/check-documentation-conformance.sh", "scripts/documentation-conformance/data-fixture.sh", "Makefile")
+	files = append(files, "scripts/check-documentation-conformance.sh", "scripts/documentation-conformance/data-fixture.sh",
+		"scripts/documentation-conformance/native-tools.sh", "scripts/docs-check.sh", "scripts/source-license-check.sh",
+		"scripts/generator-playground.sh", "Makefile")
 	for _, file := range files {
 		contents, err := os.ReadFile(file)
 		if err != nil {

@@ -53,6 +53,18 @@ func main() {
 }
 
 func run(args []string) error {
+	if len(args) > 1 && args[0] == "links" {
+		return listDocumentationLinks(args[1:])
+	}
+
+	if len(args) >= 2 && args[0] == "acceptance" {
+		return runAcceptance(args[1:])
+	}
+
+	if len(args) == 2 && args[0] == "native" {
+		return checkNativeTools(args[1])
+	}
+
 	if len(args) == 2 && args[0] == "generator" {
 		return runGenerator(args[1])
 	}
@@ -602,6 +614,9 @@ func reconcile(discovered, recorded []row) error {
 
 		verified = verified || (r.slice == 6 && r.receipt == "slice-6/generator-receipts.json" &&
 			slices.Contains([]string{"source-inspected", "executed", "package-tests", "blocked"}, r.status))
+
+		verified = verified || (r.slice == 7 && r.receipt == "slice-7/acceptance-receipts.json" &&
+			slices.Contains([]string{"source-inspected", "executed"}, r.status))
 		if (r.status != "inventoried" || r.receipt != "pending") && !verified {
 			return fmt.Errorf("unsupported status or receipt; future rows require pending receipts only: %s", r.id)
 		}

@@ -62,14 +62,13 @@ func TestCoverageControls(t *testing.T) {
 	}
 }
 
-// Future slice and integrated modes must fail before tools or fixtures can supply a pass.
+// Invalid modes fail before tools or fixtures can supply a pass.
 func TestUnavailableModes(t *testing.T) {
 	cases := []struct {
 		name string
 		args []string
 	}{
-		{name: "integrated"},
-		{name: "future slice", args: []string{"slice", "7"}},
+		{name: "future slice", args: []string{"slice", "8"}},
 		{name: "missing number", args: []string{"slice"}},
 		{name: "unknown mode", args: []string{"all"}},
 	}
@@ -79,7 +78,7 @@ func TestUnavailableModes(t *testing.T) {
 			output, err := exec.Command("bash", args...).CombinedOutput()
 
 			exit, ok := err.(*exec.ExitError)
-			if !ok || exit.ExitCode() != 2 || !strings.Contains(string(output), "not yet available") {
+			if !ok || exit.ExitCode() != 2 || !strings.Contains(string(output), "Usage:") {
 				t.Fatalf("got %q / %v, want unavailable mode with exit 2", output, err)
 			}
 		})

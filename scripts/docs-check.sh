@@ -54,6 +54,10 @@ mapfile -d '' markdown_files < <(
 
 broken=0
 declare -A linked_markdown=()
+mkdir -p .tmp
+link_records=$(mktemp .tmp/docs-links.XXXXXXXX)
+trap 'rm -f -- "$link_records"' EXIT
+go run ./scripts/documentation-conformance links "${markdown_files[@]}" > "$link_records"
 while IFS=$'\t' read -r source target; do
   case "$target" in
     http://*|https://*|mailto:*|'#'*)
@@ -73,12 +77,7 @@ while IFS=$'\t' read -r source target; do
   elif [[ "$resolved" == *.md ]]; then
     linked_markdown["$resolved"]=1
   fi
-done < <(
-  perl -ne '
-    while (/\]\(([^)]+)\)/g) { print "$ARGV\t$1\n" }
-    while (/<(?:img|source)\b[^>]*\bsrc="([^"]+)"/g) { print "$ARGV\t$1\n" }
-  ' "${markdown_files[@]}"
-)
+done < "$link_records"
 
 if ((broken)); then
   exit 1

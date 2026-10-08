@@ -6,8 +6,14 @@
 
 set -euo pipefail
 
-if [[ $# != 2 || "$1" != slice || ("$2" != 1 && "$2" != 2 && "$2" != 3 && "$2" != 4 && "$2" != 5 && "$2" != 6) ]]; then
-  echo 'Only slices 1 through 6 are implemented; integrated acceptance is not yet available.' >&2
+integrated=0
+if (( $# == 0 )); then
+  integrated=1
+  slice_number=7
+elif [[ $# == 2 && $1 == slice && $2 =~ ^[1-7]$ ]]; then
+  slice_number=$2
+else
+  echo 'Usage: check-documentation-conformance.sh [slice 1..7]' >&2
   exit 2
 fi
 
@@ -19,6 +25,9 @@ for tool in git sha256sum mktemp realpath; do
   command -v "$tool" >/dev/null
 done
 go_tool=$(realpath -- "$(command -v "${HATMAX_DOC_GO:-go}")")
+# Resolve the module-selected toolchain before constraining subprocess lookup.
+# The installed launcher may otherwise select a different native Go binary.
+go_tool=$(realpath -- "$("$go_tool" env GOROOT)/bin/go")
 make_tool=$(realpath -- "$(command -v "${HATMAX_DOC_MAKE:-make}")")
 lint_tool=$(realpath -- "$(command -v "${HATMAX_DOC_LINT:-golangci-lint}")")
 if [[ $("$go_tool" version) != 'go version go1.27.1 '* ]]; then
@@ -27,7 +36,6 @@ if [[ $("$go_tool" version) != 'go version go1.27.1 '* ]]; then
 fi
 
 mkdir -p .tmp/documentation-conformance
-slice_number=$2
 fixture=$(mktemp -d "$repo_root/.tmp/documentation-conformance/slice-$slice_number.XXXXXXXX")
 if ! git check-ignore -q "$fixture/receipt.txt"; then
   echo 'Documentation fixture storage must be ignored by Git.' >&2
@@ -63,7 +71,13 @@ if ((slice_number >= 4)); then
   export CHROMIUM_BIN
   CHROMIUM_BIN=$(realpath -- "$(command -v "$chromium_command")")
 fi
-export PATH="$fixture/bin:$PATH"
+if ((slice_number == 7)); then
+  # Every relevant cumulative workflow executes with only its required tools.
+  ln -s "$CHROMIUM_BIN" "$fixture/bin/chromium"
+  source scripts/documentation-conformance/native-tools.sh
+else
+  export PATH="$fixture/bin:$PATH"
+fi
 export GOWORK=off
 export TMPDIR="$fixture/build" GOTMPDIR="$fixture/build"
 export GOFLAGS="${GOFLAGS:--p=2}"
@@ -100,6 +114,9 @@ run_check() {
   fi
 }
 
+if ((slice_number == 7)); then
+  run_check 'required native toolchain identities' go run ./scripts/documentation-conformance native "$fixture/native-tools.tsv"
+fi
 run_check 'make docs-check' make docs-check
 run_check 'make source-license-check' make source-license-check
 run_check 'make lint-strict' make lint-strict
@@ -138,10 +155,23 @@ if ((slice_number >= 5)); then
   run_check 'go run ./scripts/documentation-conformance infrastructure-evidence <owned-fixture>/infrastructure-receipts.json' go run ./scripts/documentation-conformance infrastructure-evidence "$infrastructure_fixture/infrastructure-receipts.json"
 fi
 if ((slice_number >= 6)); then
-  run_check 'owned PostgreSQL and go run ./scripts/documentation-conformance generator <owned-fixture>' scripts/documentation-conformance/data-fixture.sh "$fixture" go run ./scripts/documentation-conformance generator "$fixture"
-  run_check 'go run ./scripts/documentation-conformance generator-evidence <owned-fixture>/generator-receipts.json' go run ./scripts/documentation-conformance generator-evidence "$fixture/generator-receipts.json"
+  generator_fixture=$fixture
+  if ((slice_number >= 7)); then
+    generator_fixture=$(mktemp -d "$repo_root/.tmp/documentation-conformance/slice-6.cumulative.XXXXXXXX")
+    export HATMAX_DOC_ROOT_PROCEDURES=1
+  fi
+  run_check 'owned PostgreSQL and go run ./scripts/documentation-conformance generator <owned-fixture>' scripts/documentation-conformance/data-fixture.sh "$generator_fixture" go run ./scripts/documentation-conformance generator "$generator_fixture"
+  run_check 'go run ./scripts/documentation-conformance generator-evidence <owned-fixture>/generator-receipts.json' go run ./scripts/documentation-conformance generator-evidence "$generator_fixture/generator-receipts.json"
 fi
-if ((slice_number == 6)); then
+if ((slice_number == 7)); then
+  run_check 'integrated evidence mapping' go run ./scripts/documentation-conformance acceptance "$fixture" "$runtime_fixture/runtime-receipts.json" "$data_fixture/data-receipts.json" "$identity_fixture/identity-receipts.json" "$infrastructure_fixture/infrastructure-receipts.json" "$generator_fixture/generator-receipts.json"
+  if ((integrated)); then
+    run_check 'complete acceptance without unresolved coverage' go run ./scripts/documentation-conformance acceptance "$fixture" --complete
+    printf 'Integrated documentation acceptance passed on the immutable candidate.\n'
+  else
+    printf 'Slice 7 evidence infrastructure passed; integrated closure remains conditional on every coverage outcome.\n'
+  fi
+elif ((slice_number == 6)); then
   printf 'Slice 6 evidence checks passed; blocked generator workflows remain unresolved. Safe diagnostics retained in ignored fixture storage.\n'
 else
   printf 'Slice %s documentation conformance passed. Safe diagnostics retained in ignored fixture storage.\n' "$slice_number"
