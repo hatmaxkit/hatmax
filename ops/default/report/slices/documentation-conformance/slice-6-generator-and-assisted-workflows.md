@@ -12,9 +12,10 @@ Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
 Branch: `docs/hatmax-generator-guidance`
-PR: pending
+PR: `#117`
 Activation revision: `c7e9858d8726e0a5f1ed56f41c2daee4e59cebff`
 Documentation task: `0a70f3b71cd69db25dfaae0a62224a0f6eef087d`
+Validation task: `cdd3e8888c4a34bd253dc5503fe4f9bd37c599ba`
 Report introduction: `0a70f3b71cd69db25dfaae0a62224a0f6eef087d`
 
 ## Purpose

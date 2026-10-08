@@ -17,7 +17,7 @@ Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
 Active slice: Slice 6
 Next slice: Slice 6
-Active tasks: T6.2
+Active tasks: None — Slice 6 PR awaiting controller validation and integration
 Execution gate: Open — independent slice-loop execution authorized on 2026-10-08
 
 ## Slice Status
@@ -29,7 +29,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | Slice 3 | Data and configuration | delivered | `docs/hatmax-data-configuration` | `docs(slice-3): reconcile data and configuration guidance` | `#114` | `ops/default/report/slices/documentation-conformance/slice-3-data-and-configuration.md` |
 | Slice 4 | Identity and recovery | delivered | `docs/hatmax-identity-recovery` | `docs(slice-4): verify identity and recovery documentation` | `#115` | `ops/default/report/slices/documentation-conformance/slice-4-identity-and-recovery.md` |
 | Slice 5 | Infrastructure and helpers | delivered | `docs/hatmax-infrastructure-helpers` | `docs(slice-5): reconcile infrastructure and helper guidance` | `#116` | `ops/default/report/slices/documentation-conformance/slice-5-infrastructure-and-helpers.md` |
-| Slice 6 | Generator and assisted workflows | active | `docs/hatmax-generator-guidance` | `docs(slice-6): reconcile generator and assisted workflow guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-6-generator-and-assisted-workflows.md` |
+| Slice 6 | Generator and assisted workflows | reviewing | `docs/hatmax-generator-guidance` | `docs(slice-6): reconcile generator and assisted workflow guidance` | `#117` | `ops/default/report/slices/documentation-conformance/slice-6-generator-and-assisted-workflows.md` |
 | Slice 7 | Integrated documentation acceptance | pending | `docs/hatmax-documentation-acceptance` | `docs(slice-7): establish complete documentation acceptance` | pending | `ops/default/report/slices/documentation-conformance/slice-7-integrated-documentation-acceptance.md` |
 
 ## Tasks
@@ -47,7 +47,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | T5.1 | completed | `docs: reconcile infrastructure and helper guidance` | `a94d6a41afd83e55c7cd02fe70b36238846c9e04` |
 | T5.2 | completed | `test(docs): verify infrastructure and helper examples` | `38eb310994d7abf1731bd3aeb2ccb14d8a628ae4` |
 | T6.1 | completed | `docs: reconcile generator and assisted workflow guidance` | `0a70f3b71cd69db25dfaae0a62224a0f6eef087d` |
-| T6.2 | pending | `test(docs): verify generator documentation workflows` | pending |
+| T6.2 | completed | `test(docs): verify generator documentation workflows` | `cdd3e8888c4a34bd253dc5503fe4f9bd37c599ba` |
 | T7.1 | pending | `docs: reconcile complete Hatmax documentation coverage` | pending |
 | T7.2 | pending | `test(docs): bind Hatmax documentation acceptance` | pending |
 
@@ -86,8 +86,8 @@ existing meaning.
 | DC04 | pending | pending |
 | DC05 | pending | pending |
 | DC06 | pending | pending |
-| DC07 | pending | pending |
-| DC08 | pending | pending |
+| DC07 | generator guidance reconciled; full journey blocked by runtime defects | `ops/default/report/slices/documentation-conformance/slice-6-generator-and-assisted-workflows.md` |
+| DC08 | focused evidence classified; three generator rows blocked | `ops/default/report/documentation-conformance-coverage.md` |
 | DC09 | pending | pending |
 | DC10 | pending | pending |
 
@@ -257,4 +257,18 @@ requirements, Book intervals and selection, generated ownership markers,
 retention/privacy and post-commit validation outcomes. Focused documentation,
 licensing, strict lint, 451-identity reconciliation and owned source installation
 passed. All 63 Slice 6 workflow bindings remain pending for T6.2; report status
-is drafting and no canonical Slice 6 PR is prepared yet.
+was drafting at that task commit; canonical PR preparation followed T6.2.
+
+T6.2 at `cdd3e8888c4a34bd253dc5503fe4f9bd37c599ba` reconciles 63 bindings:
+12 package suites, 14 executed bindings, 34 source inspections and three blocked
+rows. Native CLI/TUI procedures, persisted conversation, published bare scaffold,
+canonical feature creation and managed documentation execute with owned tools
+and PostgreSQL. Actual failures are retained for fresh-scaffold composition
+resolution, timestamp SQLC row mapping and generated validation-test lint.
+Tickets `TKT-20261008134713`, `TKT-20261008135600` and `TKT-20261008135846`
+own these runtime defects; no runtime fix is included in the documentation set.
+Focused required checks and native fixtures passed their evidence assertions;
+owned clusters stopped. Canonical PR #117 targets dev with the approved title
+and immutable report-introduction link. The controller owns final exact-head
+validation after this PR-reference follow-up is pushed. DC07/DC08 affected claims,
+integrated acceptance and generic native-toolchain closure remain unresolved.
