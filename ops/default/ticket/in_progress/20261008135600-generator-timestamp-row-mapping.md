@@ -1,7 +1,7 @@
 ---
 id: TKT-20261008135600
 title: Keep SQLC query rows compatible after required timestamp generation
-status: open
+status: in_progress
 kind: bug
 severity: unclassified
 priority: unclassified
@@ -9,6 +9,9 @@ scope: persistence
 tags: generator, sqlc, timestamp
 source: implementation
 reported_at: 2026-10-08T13:56:00Z
+ready_at: 2026-10-08T15:36:37Z
+started_at: 2026-10-08T15:36:37Z
+branch: dev
 commits: 2d8f46019c7fed059c5909be6ff5f14a875c403e
 ---
 <!--

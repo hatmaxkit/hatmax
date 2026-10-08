@@ -1,7 +1,7 @@
 ---
 id: TKT-20261008135846
 title: Generate validation model tests that satisfy project lint
-status: open
+status: ready
 kind: bug
 severity: unclassified
 priority: unclassified
@@ -9,6 +9,7 @@ scope: api
 tags: generator, validation, lint
 source: implementation
 reported_at: 2026-10-08T13:58:46Z
+ready_at: 2026-10-08T15:36:37Z
 commits: 2d8f46019c7fed059c5909be6ff5f14a875c403e
 ---
 <!--

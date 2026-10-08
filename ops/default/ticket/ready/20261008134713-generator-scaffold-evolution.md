@@ -1,7 +1,7 @@
 ---
 id: TKT-20261008134713
 title: Recognize generated application composition roots for feature evolution
-status: open
+status: ready
 kind: bug
 severity: unclassified
 priority: unclassified
@@ -9,6 +9,7 @@ scope: api
 tags: generator, composition-root
 source: implementation
 reported_at: 2026-10-08T13:47:13Z
+ready_at: 2026-10-08T15:36:37Z
 commits: 2d8f46019c7fed059c5909be6ff5f14a875c403e
 ---
 <!--
