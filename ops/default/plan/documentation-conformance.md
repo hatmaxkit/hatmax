@@ -8,16 +8,16 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Hatmax Documentation Conformance Delivery Plan
 
 Date: 2026-10-08
-Status: Prepared
-Approved: Pending
+Status: Approved
+Approved: 2026-10-08
 Delivery set: documentation-conformance
 Concern: [Documentation conformance](../spec/documentation-conformance.md)
 Tracker: [Delivery tracker](../tracker/documentation-conformance.md)
 Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
-Active slice: None
+Active slice: Slice 1
 Next slice: Slice 1
-Execution gate: Awaiting specification/plan approval and implementation authorization
+Execution gate: Open — independent slice-loop execution authorized on 2026-10-08
 Slice strategy: layered
 Reason: inventory and evidence tooling establish the audit boundary; independently
 reviewable reader-workflow groups reconcile existing content; integrated acceptance
@@ -25,13 +25,12 @@ then verifies complete coverage on one immutable candidate.
 
 ## Authorization
 
-The user requested a complete documentation-conformance scope and its slice-set
-organization on 2026-10-08. This authorizes these planning artifacts. Proposed
-acceptance, slice details and execution remain subject to approval. No implementation
-branch, controller configuration, worker, service fixture or PR is created by
-this planning task.
+The user requested planning on 2026-10-08 and then explicitly requested launching
+this complete delivery set with the new slice-loop. The specification and plan
+are approved, implementation is authorized, and Rebase + Fast-forward merges
+into dev are delegated to this repository's independent controller.
 
-After approval, open the gate and activate Slice 1/T1.1/T1.2. Each slice has one
+The execution gate is open for Slice 1/T1.1/T1.2. Each slice has one
 recorded branch, one canonical PR to dev and one report. The approved external
 controller owns Rebase + Fast-forward integration and immediate continuation
 through this set; no separate reviewer agent is introduced.
@@ -213,7 +212,7 @@ Required PR validation prefix:
 Controller set/configuration name: `hatmax-documentation-conformance`.
 Suggested view: `slice-watch hatmax-documentation-conformance`.
 
-After approval and before the first run, initialize a fresh local configuration
+Before the first run, initialize a fresh local configuration
 outside the Git repository with this plan/tracker and full gate:
 
 `GOWORK=off scripts/check-documentation-conformance.sh`

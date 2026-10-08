@@ -8,17 +8,17 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Hatmax Documentation Conformance Tracker
 
 Date: 2026-10-08
-Status: Prepared
-Approved: Pending
+Status: Approved
+Approved: 2026-10-08
 Delivery set: documentation-conformance
 Concern: [Documentation conformance](../spec/documentation-conformance.md)
 Plan: [Delivery plan](../plan/documentation-conformance.md)
 Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
-Active slice: None
+Active slice: Slice 1
 Next slice: Slice 1
-Active tasks: None
-Execution gate: Awaiting specification/plan approval and implementation authorization
+Active tasks: T1.1, T1.2
+Execution gate: Open — independent slice-loop execution authorized on 2026-10-08
 
 ## Slice Status
 
@@ -57,7 +57,7 @@ Execution gate: Awaiting specification/plan approval and implementation authoriz
 - [x] Own repository scope, source baseline, four quadrants and current entrypoints inspected.
 - [x] 7 exact slice identities and 14 task subjects recorded.
 - [x] Repository-local coverage, example evidence and immutable final-gate contracts defined.
-- [ ] Specification and plan approved; implementation explicitly authorized.
+- [x] Specification and plan approved; implementation explicitly authorized on 2026-10-08.
 - [ ] Actual activation base, clean canonical dev/PR/worktree state and toolchain verified.
 - [ ] Fresh independent loop configuration/run/view identities frozen and reported.
 - [ ] Complete source/page inventory and example identities recorded.
@@ -84,8 +84,8 @@ Execution gate: Awaiting specification/plan approval and implementation authoriz
 
 ## Execution Record
 
-Planning only. No task, slice branch, PR, controller configuration, worker or
-validation fixture has started. The plan owns fixture isolation, exact command
+Execution authorized on 2026-10-08. Slice 1/T1.1/T1.2 is selected for
+controller activation; no implementation or validation result is claimed yet. The plan owns fixture isolation, exact command
 prefixes, acceptance and the correction route. Add actual tested heads, receipts,
 report-introduction commits and canonical PR results only when they exist.
 

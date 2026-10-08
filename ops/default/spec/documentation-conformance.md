@@ -8,10 +8,12 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Hatmax Documentation Conformance
 
 Date: 2026-10-08
-Status: Proposed
+Status: Approved
 Kind: Documentation assurance concern
 Planning scope: Requested on 2026-10-08
-Implementation: Not started
+Approved: 2026-10-08
+Execution authorization: Complete this delivery set through its independent slice-loop, including Rebase + Fast-forward merges into dev
+Implementation: Authorized
 Plan: [Delivery plan](../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../tracker/documentation-conformance.md)
 Related contract: [Boxed documentation](boxed-diataxis-documentation.md)
