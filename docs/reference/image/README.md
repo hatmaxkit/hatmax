@@ -66,6 +66,10 @@ Confinement inherits the [platform guarantees of Go's os.Root](https://pkg.go.de
 It does not sandbox hard links, privileged mounts, or device files.
 `GOOS=js` does not provide protection against symlink replacement races.
 
+Local methods do not inspect their context, impose a byte budget, or roll back a
+partial `Put` after an input read error. The caller owns bounded input, reader
+cancellation and removal of partial files. The constructor performs no I/O.
+
 `URL` remains `baseURL + "/" + path`, without object-path validation or
 filesystem access. `BasePath` returns the configured string unchanged.
 

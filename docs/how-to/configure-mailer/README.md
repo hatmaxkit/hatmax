@@ -12,7 +12,8 @@ Use runtime mode `dry_run` while validating message construction. Select
 
 ## Configure SMTP
 
-Add:
+Add this section to the file loaded with `config.Load`. Set `SMTP_PASSWORD`
+before loading; environment references are expanded at load time:
 
 ```yaml
 mailer:
@@ -30,7 +31,8 @@ mailer:
     starttls: true
 ```
 
-Create the runtime-selected mailer:
+In a function returning an error, with the loaded `*config.Config`, a
+`log.Logger` and the caller's `ctx`, create the runtime-selected mailer:
 
 ```go
 mail := mailer.New(cfg, logger)
@@ -48,6 +50,9 @@ err := mail.Send(ctx, &mailer.Message{
 	Subject: "Welcome",
 	Text:    "Welcome to Example.",
 })
+if err != nil {
+	return err
+}
 ```
 
 Active providers use `DefaultFrom` when `Message.From` is empty. Set `From`
@@ -56,12 +61,17 @@ applying a provider configuration.
 
 ## Activate delivery
 
-Change `mailer.mode` to `active` after dry-run logs show the intended sender,
-recipients, and subject. An unknown mode or provider resolves to `NoopMailer`;
-verify the selected values before relying on delivery.
+Change `mailer.mode` to `active` and construct the mailer again after dry-run
+logs show the intended sender, recipients, and subject. Settings and static
+configuration are resolved once, not on every send. An unknown mode or provider
+resolves to `NoopMailer`; verify the selected values before relying on delivery.
 
 ## Verify the result
 
 In `dry_run`, `Send` validates and logs the message without contacting the
-provider. In `active`, verify delivery through the configured provider. See
+provider. To test active SMTP locally, point host and port at an owned capture
+server and select its advertised TLS/authentication capabilities; confirm its
+captured message. The settings above require STARTTLS. A local capture proves
+transport behavior, while inbox receipt requires the actual configured provider.
+See
 [Mailer Reference](../../reference/mailer/README.md) for provider requirements.

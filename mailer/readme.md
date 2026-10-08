@@ -7,29 +7,41 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # mailer
 
-Email delivery with multiple providers.
+Email delivery with multiple providers. Start with this complete local dry run:
 
 ## Usage
 
 ```go
-// Create mailer (SMTP, Mailgun, SendGrid, SES, or Noop)
-mailer := mailer.NewSMTPMailer(smtpConfig)
-mailer := mailer.NewMailgunMailer(mailgunConfig)
-mailer := mailer.NewSendGridMailer(sendGridConfig)
-mailer, err := mailer.NewSESMailer(ctx, sesConfig)
-mailer := mailer.NewNoopMailer(log) // for tests
+package main
 
-// Send email
-msg := &mailer.Message{
-    From:    mailer.Address{Email: "noreply@example.com", Name: "My App"},
-    To:      []mailer.Address{{Email: "user@example.com"}},
-    Subject: "Welcome",
-    HTML:    "<h1>Hello</h1>",
-    Text:    "Hello",
+import (
+	"context"
+	"log"
+
+	hatmaxlog "hatmax.adrianpk.com/log"
+	"hatmax.adrianpk.com/mailer"
+)
+
+func main() {
+	mail := mailer.NewNoopMailer(hatmaxlog.NewTestLogger("info"))
+	msg := &mailer.Message{
+		From:    mailer.Address{Email: "noreply@example.com", Name: "Example"},
+		To:      []mailer.Address{{Email: "user@example.com"}},
+		Subject: "Welcome",
+		HTML:    "<h1>Hello</h1>",
+		Text:    "Hello",
+	}
+	if err := mail.Send(context.Background(), msg); err != nil {
+		log.Fatal(err)
+	}
 }
-
-if err := mailer.Send(ctx, msg); err != nil { ... }
 ```
+
+No-op validates and logs the sender, recipients and subject without delivering
+mail. Active constructors are `NewSMTPMailer(SMTPConfig)`,
+`NewMailgunMailer(MailgunConfig)`, `NewSendGridMailer(SendGridConfig)` and
+`NewSESMailer(ctx, SESConfig)`. SES construction also returns an error. Provider
+configuration and transport acceptance do not establish inbox receipt.
 
 SMTP, Mailgun, SendGrid, and SES apply `DefaultFrom` before validation when
 `msg.From.Email` is empty. An explicit sender overrides the default. The
@@ -59,15 +71,24 @@ delivery. Messages without attachments retain URL-encoded delivery.
 
 ## Runtime Resolution
 
-```go
-// Static only (from config.Config.Mailer)
-m := mailer.New(cfg, log)
+With a loaded `*config.Config`, a `log.Logger` and optional
+`mailer.SettingsProvider`, choose one constructor in the composition root:
 
-// Dynamic override (settings take precedence over cfg)
-m := mailer.NewWithSettings(settingsSvc, cfg, log)
+```go
+// Static configuration.
+staticMail := mailer.New(cfg, logger)
+
+// Alternative: apply settings overrides at construction.
+settingsMail := mailer.NewWithSettings(settingsService, cfg, logger)
 ```
 
-`NewWithSettings` resolves provider/mode with dynamic settings overrides on top of static config.
+Settings are read once during construction, using a background context;
+changing them later requires constructing a new mailer. A successful settings
+read replaces its static value; a failed read retains it. Disabled mail,
+`disabled`/`dry_run` modes, unknown modes/providers, missing Mailgun or SendGrid
+credentials, and SES initialization failures resolve to no-op. SMTP errors
+surface on `Send`. Empty mode means active and empty provider means SMTP when
+enabled. See [Mailer Reference](../docs/reference/mailer/README.md).
 
 ## API
 

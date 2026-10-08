@@ -25,11 +25,15 @@ Depend on `pubsub.Publisher`, construct an envelope, and publish only after the
 state change it describes has succeeded:
 
 ```go
-envelope := pubsub.NewEnvelope("invoice.created", invoice.ID)
+envelope := pubsub.NewEnvelope("invoices", invoice.ID)
 if err := service.publisher.Publish(ctx, "invoices", envelope); err != nil {
 	return fmt.Errorf("publish invoice creation: %w", err)
 }
 ```
+
+The fragment belongs in an invoice service method returning an error, with a
+`pubsub.Publisher` dependency. The subscriber below supplies its lifecycle
+context; neither fragment is a standalone program.
 
 An envelope carries an ID, topic, timestamp, payload, and metadata. Keep the
 payload small and versionable; identifiers let the subscriber load current
@@ -43,6 +47,9 @@ message pending for another poll; successful messages in the same batch can
 complete. Handlers must tolerate retries and repeated external effects. Monitor
 persistent failures, which can fill a batch and delay newer messages; see the
 [retry contract](../../reference/pubsub/README.md#failures-and-retries).
+Postgres decodes payloads as JSON values, so consumers validate and decode their
+shape rather than asserting the original Go struct type. Memory broker handler
+errors are ignored and it has no persisted retry or acknowledgement state.
 
 Publishing after a database commit still leaves a gap between the state
 change and event insertion. When losing that event is unacceptable, the

@@ -18,6 +18,10 @@ and ordering semantics depend on the backend. The implementation note is
 map. `WithMetadata` returns a copy with one key set. A nil metadata map is
 created first.
 
+The copy is shallow: an existing metadata map remains shared.
+`NewEnvelopeWithMetadata` also retains the supplied map. Copy application-owned
+maps before concurrent mutation when a snapshot is needed. IDs are strings.
+
 `Publish` reports transport or persistence errors. It does not report handler
 errors. `SubscribeOptions.SubscriberID` names the subscriber. An empty id is
 ephemeral.
@@ -34,6 +38,11 @@ nil.
 `Publish` returns. A handler error is ignored and delivery continues.
 `Publish` returns nil. `Close` clears the subscriber lists and returns nil.
 
+Captured envelopes are shallow copies; their payload and metadata are not deep
+snapshots. No-op and memory brokers do not inspect cancellation themselves.
+Memory subscriber IDs are ignored. There are no acknowledgements, persisted
+retries or polling goroutines for this backend.
+
 ## Postgres
 
 `postgres.New` reads `cfg.PubSub.PollIntervalDuration` and `BatchSize`.
@@ -43,10 +52,20 @@ milliseconds, and a non-positive batch size becomes 100.
 `Start` requires `GetDB` and executes the package schema in a transaction. A
 nil database returns `database connection not available`. `Stop` calls `Close`.
 
+`New` accepts root `*config.Config`; `NewBroker` accepts `postgres.Config`.
+Both receive a provider exposing `GetDB() *sql.DB`, not a bare connection. Call
+`Start` before publication or subscription and keep the database alive until
+`Close` completes. `Stop` does not use its wait context to bound completion.
+
 `Publish` rejects a closed broker, JSON-encodes the payload and metadata, and
 inserts `pubsub_messages`. `Subscribe` rejects a duplicate subscriber id. An
 empty id becomes a UUID. A named subscriber resumes from its per-message
 acknowledgements. `Close` is idempotent and cancels the poll loops.
+
+The `Publish` topic argument is stored, rather than `Envelope.Topic`. Payload
+JSON is decoded to ordinary JSON values: objects become `map[string]any` and
+numbers become `float64`. Consumers validate and decode that shape instead of
+asserting the original Go type.
 
 ### Delivery tracking
 

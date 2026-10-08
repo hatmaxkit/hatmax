@@ -12,7 +12,10 @@ executed outside an HTTP request.
 
 ## Create the runner
 
-With an existing `*sql.DB`:
+With a started database provider exposing `GetDB() *sql.DB`, root
+`*config.Config`, logger and optional `scheduler.SettingsProvider`, create the
+store and runner. Apply `schedulerpostgres.Schema` in a prior migrator before
+polling:
 
 ```go
 store := schedulerpostgres.NewStore(database.GetDB())
@@ -27,6 +30,9 @@ runner.Register("send-report", func(ctx context.Context, job scheduler.Job) sche
 })
 ```
 
+This handler demonstrates recorded output. Replace it with the application
+workflow before treating `sent` as a report-delivery claim.
+
 Place the runner after the database and any component that installs the
 scheduler schema. The runner implements `Startable` and `Stoppable`.
 
@@ -40,6 +46,8 @@ scheduler:
   interval: 30s
   batch_size: 20
   workers: 2
+  retry_attempts: 3
+  retry_backoff: 1m
 ```
 
 ## Define the schedule
@@ -60,17 +68,25 @@ In fake-store tests, set `Job.Schedule` to the corresponding `scheduler.Daily`,
 
 The store records the terminal result and advances or retires the slot
 atomically. Recurring work advances from completion time after success or
-failure; missed occurrences are skipped. Do not manually advance the schedule
-from a handler. Configured retry fields are not applied.
+exhausted failure; missed occurrences are skipped. Do not manually advance the
+schedule from a handler. Retry attempts bound total attempts per slot, including
+the first; backoff delays the next eligible poll after a failure. Retry waits
+are persisted without advancing the schedule or holding a worker.
 
 ## Verify the result
 
 Insert a due job with a registered `task_type`, start the process, and inspect
-its `job_runs` row. It should move to `success` with JSON output or `failed`
-with the handler error.
-Trigger a handler panic and verify a failed run with `handler panic:` detail.
+its `job_runs` row. It should move to `success` with JSON output, `retry_wait`
+while a failed handler has attempts left, or `failed` after its budget is
+exhausted. Trigger a handler panic and verify retry or failure with
+`handler panic:` detail.
 A later healthy job should still execute. Check logs for failed-state write
 errors before assuming that the failure was persisted.
+
+Fail once and then succeed: verify a stable run ID, incrementing `attempt`, and
+no attempt before `retry_at`. Restart with a different configured retry limit
+and confirm that the stored slot budget remains unchanged. Set
+`retry_attempts: 1` when a single failure should be terminal.
 
 Tick again at the same time and confirm the old slot does not execute again.
 For one-shot work, check `enabled = false`; for recurring work, check the new

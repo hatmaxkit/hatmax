@@ -7,30 +7,51 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # pubsub
 
-Publish/subscribe messaging with fan-out semantics.
+Publish/subscribe messaging with fan-out semantics. This complete in-process
+example runs without a database:
 
 ## Usage
 
 ```go
-// Create broker (Postgres or Noop)
-broker := postgres.NewBroker(db, cfg, log)
-broker := pubsub.NewNoopBroker()
+package main
 
-// Publish
-env := pubsub.Envelope{
-    ID:      model.NewID(),
-    Topic:   "user.created",
-    Payload: user,
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"hatmax.adrianpk.com/pubsub"
+)
+
+func main() {
+	ctx := context.Background()
+	broker := pubsub.NewMemoryBroker()
+	defer broker.Close()
+	err := broker.Subscribe(ctx, "user.created", func(ctx context.Context, env pubsub.Envelope) error {
+		fmt.Println(env.Topic, env.Payload)
+		return nil
+	}, pubsub.SubscribeOptions{SubscriberID: "email-sender"})
+	if err != nil {
+		log.Fatal(err)
+	}
+	env := pubsub.NewEnvelope("user.created", "user-1")
+	if err := broker.Publish(ctx, "user.created", env); err != nil {
+		log.Fatal(err)
+	}
 }
-broker.Publish(ctx, "user.created", env)
-
-// Subscribe (each subscriber gets all messages)
-broker.Subscribe(ctx, "user.created", func(ctx context.Context, env pubsub.Envelope) error {
-    user := env.Payload.(User)
-    // handle...
-    return nil
-}, pubsub.SubscribeOptions{SubscriberID: "email-sender"})
 ```
+
+Output: `user.created user-1`. Memory delivery is synchronous; handler errors
+are ignored and other handlers still run. Subscriber IDs have no durable
+meaning there. `NewNoopBroker` captures envelopes and never delivers them.
+
+For PostgreSQL, `postgres.New(database, rootConfig, logger)` accepts a
+`DBProvider` and `*config.Config`; `postgres.NewBroker(database, brokerConfig,
+logger)` accepts `postgres.Config`. Start the database and broker before
+subscribing or publishing, and close the broker before its database. PostgreSQL
+decodes payloads from JSON: a Go struct arrives as a map rather than its original
+type. Validate and decode it in the consumer. Follow the
+[Postgres workflow](../docs/how-to/use-pubsub/README.md) for durable delivery.
 
 ## API
 

@@ -21,6 +21,10 @@ Static configuration and optional runtime settings choose mode, provider, and
 sender. Disabled, dry-run, invalid, or unavailable provider configurations can
 resolve to the no-op mailer. That behavior is useful for development but must
 be operationally visible: successful no-op validation is not remote delivery.
+Resolution reads settings once; construct a new mailer to apply later changes.
+An active SMTP adapter reports invalid connection configuration on send, rather
+than falling back to no-op. Provider acceptance still does not prove inbox
+receipt, and a lost transport response can leave delivery uncertain.
 
 Do not send mail directly from an HTTP handler. The service decides when the
 message is warranted and whether delivery failure fails the workflow, is
@@ -43,17 +47,25 @@ metadata, creates requested variants, and compensates for partial failure.
 S3-compatible object storage, and `image/stdprocessor` provides standard
 decoding and resizing. None of those adapters grants authorization to a URL
 or decides which user may read an image.
+The standard processor bounds encoded input and decoded dimensions and checks
+cancellation between phases. Local storage copies input without those limits
+or context checks. Callers close input and `Get` readers, bound concurrent
+processing, choose an extension matching the resulting content type, and clean
+up partial objects when storage or metadata persistence fails.
 
 ## Observe Without Owning Product Behavior
 
 Telemetry request middleware increments a counter and recovery middleware
-records grouped panic information. The collector bounds message and stack
-detail, and read-and-reset operations hand accumulated data to the
+records grouped panic information. The collector truncates messages at 200
+bytes and limits stack function names; it does not redact secrets or cap the
+number of distinct groups. Read-and-reset operations hand accumulated data to the
 application-owned exporter or report.
 
 Runtime telemetry settings describe mode and instance identity. They do not
 authorize logging secrets or unbounded request data. Metrics and crash records
 describe operation; durable business audit events remain application data.
+The exporter owns mode lookup and transmission. Registering telemetry schemas
+does not make collectors consult those settings or start an export loop.
 
 ## Assemble Replaceable Adapters Explicitly
 
@@ -67,7 +79,10 @@ configuration and settings
   -> feature services that consume their interfaces
 ```
 
-Constructors retain dependencies. Components that open resources or start
+Most constructors retain dependencies. Mail runtime selection reads settings
+and SES construction loads SDK configuration, so treat those steps as explicit
+composition work rather than claiming every adapter constructor is free of I/O.
+Components that open resources or start
 work implement lifecycle interfaces and appear in dependency order in
 `app.Setup`; plain adapters and services are passed directly to consumers.
 

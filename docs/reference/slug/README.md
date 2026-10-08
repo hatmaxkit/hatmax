@@ -21,3 +21,8 @@ that limit, or at `maxLength` when no hyphen remains, and then trimmed again.
 `Generate` normalizes the text with `DefaultMaxLength` and appends `-` plus
 the first 8 characters of `id.String()`. An empty normalization returns only
 that prefix.
+
+Accent-mark removal does not transliterate every writing system. The normalized
+part is at most 50 ASCII bytes; `Generate` can return 59 bytes including its
+hyphen and UUID prefix. Eight UUID characters are not a uniqueness guarantee;
+the application owns collision handling and stable identifiers.

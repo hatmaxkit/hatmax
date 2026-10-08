@@ -13,27 +13,32 @@ Job scheduler with pluggable storage backends.
 
 - **Pluggable storage**: Bring your own `JobStore` implementation (Postgres included)
 - **Concurrent workers**: Configurable worker pool for parallel job execution
-- **Dynamic configuration**: Override settings at runtime via `SettingsProvider`
+- **Runtime pause**: Consult `scheduler.paused` through `SettingsProvider`
 - **Testable**: Fake clock, store, and logger for deterministic tests
 - **Schedule types**: Daily, Weekly, and Interval schedules with timezone support
 
 ## Usage
 
+This complete function runs until its startup context is canceled. Its caller
+opens and closes the database, inserts jobs, and supplies a `scheduler.Logger`:
+
 ```go
-package main
+package example
 
 import (
     "context"
-    "log"
+    "database/sql"
     "time"
 
     "hatmax.adrianpk.com/scheduler"
     schedulerpostgres "hatmax.adrianpk.com/scheduler/postgres"
 )
 
-func main() {
-    db := connectDB()
-    store := schedulerpostgres.NewStore(db)
+func run(ctx context.Context, database *sql.DB, logger scheduler.Logger) error {
+    if _, err := database.ExecContext(ctx, schedulerpostgres.Schema); err != nil {
+        return err
+    }
+    store := schedulerpostgres.NewStore(database)
 
     cfg := scheduler.Config{
         Enabled:   true,
@@ -45,26 +50,25 @@ func main() {
     sched := scheduler.New(store, cfg, logger)
 
     sched.Register("send-email", func(ctx context.Context, job scheduler.Job) scheduler.Result {
-        // Process job
+        // Demonstration output only; replace with the application workflow.
         return scheduler.Result{Output: map[string]any{"sent": true}}
     })
 
-    err := sched.Start(ctx)
-    if err != nil {
-        log.Fatal(err)
+    if err := sched.Start(ctx); err != nil {
+        return err
     }
 
-    defer func() {
-        shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-        defer cancel()
+    <-ctx.Done()
+    shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
 
-        err := sched.Stop(shutdownCtx)
-        if err != nil {
-            log.Printf("scheduler shutdown: %v", err)
-        }
-    }()
+    return sched.Stop(shutdownCtx)
 }
 ```
+
+After successful shutdown the caller may close its database. If `Stop` times
+out, retain the store and wait again before assuming the handler has exited.
+The example handler reports a JSON flag; it does not send mail.
 
 ## Lifecycle
 
@@ -95,31 +99,38 @@ by `Stop`. See the [lifecycle contract](../docs/reference/scheduler/README.md#li
 
 ### Dynamic (SettingsProvider)
 
-Implement `SettingsProvider` to override at runtime:
+In `run`, before startup, supply an existing `SettingsProvider` for pause checks:
 
 ```go
 sched.SetSettings(settingsService)
 ```
 
-Or wire from root config + settings in one constructor:
+Alternatively replace the constructor with root `*config.Config` plus settings:
 
 ```go
 sched := scheduler.NewWithConfig(store, settingsService, appCfg, logger)
 ```
 
-Settings keys:
-- `scheduler.enabled` - Override Enabled
-- `scheduler.interval_seconds` - Override Interval
-- `scheduler.paused` - Pause without stopping
+Only `scheduler.paused` is read by the runner at each tick. The exported
+`scheduler.enabled` and `scheduler.interval_seconds` keys are not consulted.
+Enabled, interval, workers, batch size and retry policy come from construction.
+Do not mutate clock or settings dependencies concurrently with scheduler work.
 
 ## Schedule Types
+
+In a function returning an error, calculate the next times and handle timezone
+lookup failure. Daily and weekly results are UTC and strictly after `from`;
+intervals require a positive duration chosen by the application:
 
 ```go
 // Daily at 9:00 AM UTC
 daily := scheduler.Daily{Hour: 9, Minute: 0}
 
 // Weekly on Friday at 5:00 PM in New York
-loc, _ := time.LoadLocation("America/New_York")
+loc, err := time.LoadLocation("America/New_York")
+if err != nil {
+    return err
+}
 weekly := scheduler.Weekly{Day: time.Friday, Hour: 17, Minute: 0, TZ: loc}
 
 // Every 30 minutes
@@ -153,15 +164,19 @@ for the complete format and interrupted-run recovery boundary.
 
 ## Testing
 
-Use fakes for deterministic tests:
+Inside a test with `ctx := context.Background()` and a fixed `baseTime`, execute
+a registered one-shot task without a polling goroutine:
 
 ```go
 store := scheduler.NewFakeStore()
 clock := scheduler.NewFakeClock(baseTime)
 log := &scheduler.FakeLogger{}
 
-sched := scheduler.New(store, cfg, log)
+sched := scheduler.New(store, scheduler.Config{Workers: 1}, log)
 sched.SetClock(clock)
+sched.Register("email", func(ctx context.Context, job scheduler.Job) scheduler.Result {
+    return scheduler.Result{Output: map[string]any{"sent": true}}
+})
 
 store.AddJob(scheduler.Job{
     ID:           "test-job",
@@ -169,21 +184,26 @@ store.AddJob(scheduler.Job{
     ScheduledFor: clock.Now(),
 })
 
-sched.Tick(ctx)
+if err := sched.Tick(ctx); err != nil {
+    t.Fatal(err)
+}
 clock.Advance(time.Hour)
 ```
 
 ## Postgres Backend
 
-```go
-import schedulerpostgres "hatmax.adrianpk.com/scheduler/postgres"
+With an existing `*sql.DB`, use the import from `run` and apply the schema before
+polling. This fragment belongs in a function returning an error:
 
-store := schedulerpostgres.NewStore(db)
+```go
+store := schedulerpostgres.NewStore(database)
 
 // Apply schema (or use migrations)
-db.Exec(schedulerpostgres.Schema)
+if _, err := database.ExecContext(ctx, schedulerpostgres.Schema); err != nil {
+    return err
+}
 ```
 
 Tables:
 - `scheduled_jobs` - Job definitions
-- `job_runs` - Execution history
+- `job_runs` - One row per scheduled slot, retaining the latest attempt outcome

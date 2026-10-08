@@ -33,6 +33,10 @@ Hatmax `fake` implementations cover mail and telemetry when those exact
 interfaces are needed. Scheduler supplies fake stores and clocks. Pubsub
 offers no-op and memory brokers. `testhelper.SetupTestDB` creates an isolated
 Postgres schema or test container and returns cleanup for integration tests.
+Its selection depends on `DB_HOST`, not local-versus-CI execution. The server
+path creates an isolated schema; the container path uses its owned container's
+`public` schema. Fake mail records attempted calls separately from successfully
+stored messages and does not snapshot message pointers.
 
 ## Test Server-Rendered Behavior
 
@@ -56,6 +60,9 @@ or the feature schema required by the test.
 Keep integration data inside the isolated schema returned by `testhelper`.
 Always invoke cleanup, and test stable feature errors rather than leaking raw
 driver messages into higher layers.
+Register cleanup with `t.Cleanup`. When using `SetupTestDBWithConfig`, close
+consumer-opened connections before cleanup. Schema-drop errors are ignored by
+the helper; confirm actual removal when cleanup is part of acceptance.
 
 ## Evolve a Feature Across Every Surface
 
@@ -94,14 +101,16 @@ integration, and record exactly which candidate they exercised.
 ## Review the Assembled Application Again
 
 After a cross-cutting change, read `main.go` from top to bottom. Confirm that
-constructors remain free of I/O, lifecycle components follow their
+dependency-only constructors retain their inputs, lifecycle components follow their
 dependencies, plain services are not added to `app.Setup`, routes appear only
 after successful startup, and shutdown order remains valid.
 
 Then inspect the user-visible path from request to response and the durable
 path from model to Postgres. Passing tests do not justify a second router,
 validation framework, hidden dependency container, or client-side domain
-model that contradicts the Hatmax application model.
+model that contradicts the Hatmax application model. Account for explicit
+adapter configuration loading such as mail runtime settings and SES SDK setup;
+do not generalize a dependency-only constructor rule to those operations.
 
 For exact testing helpers, see [Fake](../../reference/fake/README.md) and
 [Test Helper](../../reference/testhelper/README.md). Revisit

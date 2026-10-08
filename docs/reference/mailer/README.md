@@ -100,6 +100,8 @@ DATA can leave delivery uncertain; the mailer does not automatically retry.
 ## Runtime
 
 `New(cfg, log)` and `NewWithSettings(settings, cfg, log)` resolve a mailer.
+Resolution reads settings once during construction with a background context.
+An existing instance does not reload later changes; construct another instance.
 Settings override the static config when a setting read succeeds.
 
 Disabled mail, mode `disabled`, mode `dry_run`, an unknown mode, and an
@@ -123,3 +125,9 @@ and SES fields. `Schemas` contains the definitions registered by
 `dry_run` resolves to `NoopMailer`; it validates and logs metadata but does not
 contact a provider. An active provider may still return a delivery error from
 its network or remote API.
+
+A successful provider call establishes transport acceptance, not inbox receipt.
+No-op success establishes only validation and does not inspect cancellation.
+Applications own retries; an error after transmission can leave delivery
+uncertain. SMTP configuration errors surface on `Send`, rather than triggering
+no-op during selection.

@@ -32,6 +32,10 @@ This file is part of Hatmax. See LICENSE for license terms.
 UTC. A time that is not after `from` moves to the next day or the next week.
 `Interval.Next` adds `Every` to `from`.
 
+The direct Go schedule structs do not validate their fields: supply valid
+calendar values and positive intervals. The Postgres stored-format parser does
+validate them, as described below.
+
 ## Runner
 
 `ConfigFromRoot` copies the root scheduler config. `WithDefaults` fills a

@@ -19,6 +19,13 @@ not stored. `SendFunc`, when set, decides the returned error. A nil error
 stores the message. Without `SendFunc`, `Send` stores the message, prints it
 when `Output` is set, and returns nil.
 
+`SendCount` counts attempted calls, including failures. Calls are recorded before
+validation; `GetMessages` includes only successful sends. Stored calls and
+messages retain the original message pointer, not a deep copy. Configure hooks,
+validation and output before concurrent use. Hooks execute while holding the
+fake's mutex and must not call back into that same fake. Printed diagnostics
+include message bodies; use only fixture data.
+
 `Reset` clears calls and messages. `GetSendCalls`, `GetMessages`,
 `SendCount`, `LastMessage`, `HasMessageTo`, `HasMessageWithSubject`, and
 `HasMessageContaining` inspect the stored messages. `SetOutput` and
@@ -31,6 +38,8 @@ records the call, adds one, and calls `IncrementFunc` when it is set.
 `GetAndResetRequests` returns the count and sets it to zero, or returns
 `GetAndResetFunc` when it is set.
 `WithCount` sets the count. `Reset` clears the count and the call counts.
+An installed `GetAndResetFunc` supplies the result instead of clearing the
+simulated count. The telemetry fake hooks also run under their fake's mutex.
 
 `NewCrashCollector` implements `RecordPanic`. Each call is stored, and
 `RecordPanicFunc` runs after that when it is set. `LastRecord` returns
