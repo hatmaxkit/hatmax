@@ -17,7 +17,7 @@ Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
 Active slice: Slice 5
 Next slice: Slice 5
-Active tasks: T5.1, T5.2
+Active tasks: T5.2
 Execution gate: Open — independent slice-loop execution authorized on 2026-10-08
 
 ## Slice Status
@@ -44,7 +44,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | T3.2 | completed | `test(docs): verify data and configuration examples` | `22b7bd76e7d239185a1ac2bb06e2be11b7ce1442` |
 | T4.1 | completed | `docs: reconcile identity and recovery guidance` | `f96565f609da32a7430cc617138d72d016376fcf` |
 | T4.2 | completed | `test(docs): verify identity and recovery examples` | `1cb59fa18fb16e50b0a56c64b9e1fbdb808ee713` |
-| T5.1 | pending | `docs: reconcile infrastructure and helper guidance` | pending |
+| T5.1 | completed | `docs: reconcile infrastructure and helper guidance` | `a94d6a41afd83e55c7cd02fe70b36238846c9e04` |
 | T5.2 | pending | `test(docs): verify infrastructure and helper examples` | pending |
 | T6.1 | pending | `docs: reconcile generator and assisted workflow guidance` | pending |
 | T6.2 | pending | `test(docs): verify generator documentation workflows` | pending |
