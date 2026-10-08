@@ -8,7 +8,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Hatmax Documentation Conformance Tracker
 
 Date: 2026-10-08
-Status: Approved
+Status: In progress
 Approved: 2026-10-08
 Delivery set: documentation-conformance
 Concern: [Documentation conformance](../spec/documentation-conformance.md)
@@ -24,7 +24,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Coverage and validation | pending | `docs/hatmax-documentation-coverage` | `docs(slice-1): inventory Hatmax documentation coverage` | pending | `ops/default/report/slices/documentation-conformance/slice-1-coverage-and-validation.md` |
+| Slice 1 | Coverage and validation | implementing | `docs/hatmax-documentation-coverage` | `docs(slice-1): inventory Hatmax documentation coverage` | pending | `ops/default/report/slices/documentation-conformance/slice-1-coverage-and-validation.md` |
 | Slice 2 | Runtime and presentation | pending | `docs/hatmax-runtime-presentation` | `docs(slice-2): reconcile runtime and presentation guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-2-runtime-and-presentation.md` |
 | Slice 3 | Data and configuration | pending | `docs/hatmax-data-configuration` | `docs(slice-3): reconcile data and configuration guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-3-data-and-configuration.md` |
 | Slice 4 | Identity and recovery | pending | `docs/hatmax-identity-recovery` | `docs(slice-4): verify identity and recovery documentation` | pending | `ops/default/report/slices/documentation-conformance/slice-4-identity-and-recovery.md` |
@@ -36,7 +36,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 
 | Task | Status | Expected commit | Commit |
 | --- | --- | --- | --- |
-| T1.1 | pending | `docs: inventory Hatmax documentation surfaces` | pending |
+| T1.1 | completed | `docs: inventory Hatmax documentation surfaces` | pending |
 | T1.2 | pending | `test(docs): establish Hatmax conformance checks` | pending |
 | T2.1 | pending | `docs: reconcile runtime and presentation guidance` | pending |
 | T2.2 | pending | `test(docs): verify runtime and presentation examples` | pending |
@@ -58,9 +58,9 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 - [x] 7 exact slice identities and 14 task subjects recorded.
 - [x] Repository-local coverage, example evidence and immutable final-gate contracts defined.
 - [x] Specification and plan approved; implementation explicitly authorized on 2026-10-08.
-- [ ] Actual activation base, clean canonical dev/PR/worktree state and toolchain verified.
-- [ ] Fresh independent loop configuration/run/view identities frozen and reported.
-- [ ] Complete source/page inventory and example identities recorded.
+- [x] Actual activation base, clean canonical dev/PR/worktree state and toolchain verified.
+- [x] Fresh independent loop configuration/run/view identities frozen and reported.
+- [x] Complete source/page inventory and example identities recorded.
 - [ ] All mapped tasks integrated with actual immutable commit evidence.
 - [ ] All canonical slice PRs integrated and reports delivered.
 - [ ] All acceptance criteria passed with source-bound example/walkthrough evidence.
@@ -84,10 +84,26 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 
 ## Execution Record
 
-Execution authorized on 2026-10-08. Slice 1/T1.1/T1.2 is selected for
-controller activation; no implementation or validation result is claimed yet. The plan owns fixture isolation, exact command
-prefixes, acceptance and the correction route. Add actual tested heads, receipts,
-report-introduction commits and canonical PR results only when they exist.
+Execution authorized on 2026-10-08. Activation verified clean primary `dev`
+and canonical `origin/dev` at `6715ab2912d27263a78f0bd1419db8b49c3d8089`,
+no open canonical PR and no competing controller for this repository.
+Go identity: `go version go1.27.1 linux/amd64`.
+
+Independent configuration: `hatmax-documentation-conformance`.
+Configuration SHA-256: `c21b0166b17341f7971349afb0d4ab1088b3e198d6e8178353a4cdcbee79f222`.
+Launch: `a03d71a56a40`; run: `loop-cbe92c396a22-a03d71a56a40`;
+worker conversation: `01a11aaa-acae-7bd0-854a-b1a71364ce3b`.
+View command: `slice-watch hatmax-documentation-conformance`.
+The controller owns all merge mutations.
+
+T1.1 records 443 source/page/example identities at the activation revision,
+including 101 product pages, 218 fenced blocks and 28 complete walkthroughs.
+Content digests account for package tests, example assets/migrations/browser
+fixtures, both embedded Book releases and dependency inputs. All behavioral
+receipts remain pending for their owning slices. Focused source reconciliation
+and four-quadrant navigation checks passed. T1.2 establishes the slice gate and
+negative controls. The plan owns fixture isolation, exact command prefixes,
+acceptance and the correction route.
 
 Execution remains repository-local. A completed source/page inventory or links
 check alone cannot close the set. Record runtime defects or missing prerequisites
