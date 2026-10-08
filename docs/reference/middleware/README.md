@@ -163,3 +163,9 @@ first comma-separated `X-Forwarded-Proto` value, lowercased. Otherwise it is
 `TelemetryCounter` increments the counter when it is non-nil, then calls the
 next handler. `TelemetryRecovery` records a recovered panic when the recorder
 is non-nil and responds `500` with `Internal Server Error`.
+
+`RequireSameOrigin` reads `X-Forwarded-Proto` independently of `ProxyHeaders`.
+The latter's trusted-client-IP policy does not validate that scheme header.
+Configure an edge proxy to remove untrusted forwarded scheme values; direct TLS
+takes precedence. This local source check does not establish an external proxy
+configuration or a browser authentication workflow.

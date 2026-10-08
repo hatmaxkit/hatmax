@@ -113,5 +113,14 @@ the first error.
 | Option | Route |
 | --- | --- |
 | `WithMiddleware(middleware...)` | Installs the middleware. Returns nil. |
-| `WithPing()` | `GET /ping` responds `200` with `{"status":"ok"}`. |
+| `WithPing()` | `GET /ping` responds `200` with `{"status":"ok"}` and `Content-Type: application/json`. |
 | `WithDebugRoutes()` | `GET /debug/routes` lists the routes registered on the router that is current when the request arrives. A walk error responds `500`. |
+
+Install all root middleware before `WithPing`, `WithDebugRoutes` or a registrar
+adds its first route. Chi rejects later `Use` calls with a panic; logged
+`RouterOption` errors do not recover a panic. `WithPing` only checks the HTTP
+process; it does not test component or database readiness.
+
+The five-second shutdown deadline bounds HTTP draining only. Component stop
+callbacks and startup rollback receive `context.Background()` with no deadline.
+Components must enforce their own cleanup bounds when they own blocking work.

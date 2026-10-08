@@ -11,6 +11,14 @@ Wiring turns constructed values into a running Hatmax application. The goal of
 this chapter is to reason about component order, startup failure, route
 visibility, and shutdown from the composition root.
 
+The Go blocks below are contextual fragments, not standalone programs. The
+[guide companion](../../../examples/guide/main.go) is the complete runnable
+composition for lifecycle, routes, pages and forms. Invoice-specific fields,
+handlers and services are application-owned illustrative names; they require
+that feature's implementation. Use the
+[bootstrap procedure](../../how-to/bootstrap-application/README.md) for a
+complete signal-aware process with a health endpoint.
+
 ## Wiring Is Application Design
 
 The order passed to `app.Setup` states runtime dependencies. Hatmax does not

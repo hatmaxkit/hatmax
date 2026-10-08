@@ -22,6 +22,14 @@ ownership of routes, product language, or feature behavior.
 These primitives support application-owned view models and templates. They
 are not a separate frontend framework.
 
+The Go blocks below are contextual fragments, not standalone programs. The
+[guide companion](../../../examples/guide/main.go) is the complete runnable
+composition for lifecycle, routes, pages and forms. Invoice-specific fields,
+handlers and services are application-owned illustrative names; they require
+that feature's implementation. Use the
+[bootstrap procedure](../../how-to/bootstrap-application/README.md) for a
+complete signal-aware process with a health endpoint.
+
 ## Compose One Template Function Map
 
 Install template functions when constructing the template manager:
@@ -39,6 +47,11 @@ templates := web.NewTemplateManager(
 	web.WithFuncMap(funcs),
 )
 ```
+
+The shown translator has no loaded locales yet. Load embedded locale files
+before serving requests; otherwise `t` returns the untranslated key. The
+[Internationalization reference](../../reference/i18n/README.md) states loading
+and fallback behavior.
 
 Later function maps replace duplicate names. Build the map deliberately in
 the composition root so every parsed template sees one predictable set. A

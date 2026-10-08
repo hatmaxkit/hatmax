@@ -32,3 +32,7 @@ it. `HasLocale` reports whether that locale was loaded. `AvailableLocales`
 returns a copy of the loaded codes.
 
 `TranslateFunc(locale)` returns a function that calls `Get` with that locale.
+
+Load files and set the default locale during startup. The public loader does
+not provide an atomic concurrent reload operation. Repeated successful loads
+append locale codes again; `AvailableLocales` is not a deduplicated catalog.

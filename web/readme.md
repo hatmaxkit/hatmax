@@ -11,12 +11,19 @@ HTTP utilities for templates, forms, and htmx.
 
 ## Template Manager
 
+The fragments run in a handler and composition root with an embedded `assets`
+filesystem, logger, request, response writer and application-owned view data.
+The [guide companion](../examples/guide/main.go) supplies a complete template,
+page and form composition. Check `Start` errors before serving requests.
+
 ```go
 //go:embed assets
 var assetsFS embed.FS
 
 tm := web.NewTemplateManager(assetsFS, log)
-tm.Start(ctx)
+if err := tm.Start(ctx); err != nil {
+    return err
+}
 
 // Render full page (namespace="auth", template="login")
 tm.Render(w, "auth", "login", data)
@@ -52,7 +59,10 @@ web.RedirectOrHXRedirect(w, r, "/dashboard")
 
 // Parse form
 form, err := web.ParseForm(r)
-if err != nil { ... }
+if err != nil {
+    http.Error(w, "bad request", http.StatusBadRequest)
+    return
+}
 name := form.String("name")
 
 // Present structured validation errors without exposing internal errors

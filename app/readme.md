@@ -11,6 +11,13 @@ Lifecycle management for application components.
 
 ## Usage
 
+These are contextual declarations and assembly statements, not a standalone
+program. Use the [bootstrap procedure](../docs/how-to/bootstrap-application/README.md)
+for a complete process with imports, configuration, serving and signal handling.
+`dbPool`, `myService` and `anotherService` denote constructed application
+components; `ctx`, `router`, `logger` and `srv` belong to that composition root.
+The API block below contains declarations for comparison with the exported API.
+
 ```go
 // Components implement optional interfaces
 type MyService struct{}
@@ -18,7 +25,9 @@ type MyService struct{}
 func (s *MyService) Start(ctx context.Context) error { return nil }
 func (s *MyService) Stop(ctx context.Context) error { return nil }
 func (s *MyService) RegisterRoutes(r chi.Router) {
-    r.Get("/health", s.Health)
+    r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+        w.WriteHeader(http.StatusOK)
+    })
 }
 
 // Setup discovers capabilities automatically
@@ -29,12 +38,13 @@ starts, stops, registrars := app.Setup(ctx, router,
 )
 
 // Start executes in order and rolls back completed steps by component identity.
-if err := app.Start(ctx, log, starts, stops, registrars, router); err != nil {
-    log.Fatal(err)
+if err := app.Start(ctx, logger, starts, stops, registrars, router); err != nil {
+    logger.Errorf("cannot start: %v", err)
+    return
 }
 
 // Shutdown in reverse order (LIFO)
-app.Shutdown(srv, log, stops)
+app.Shutdown(srv, logger, stops)
 ```
 
 ## API

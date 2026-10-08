@@ -72,3 +72,14 @@ Both log the template name on failure and write `500`.
 
 `RedirectOrHXRedirect` writes `HX-Redirect` and status `200` when
 `HX-Request` is `true`. Otherwise it sends `303` to the URL.
+
+`RenderPartial` does not choose a fragment based on request headers. The handler
+chooses full-page or partial rendering explicitly. Its missing content type can
+be supplied by the caller or inferred by the HTTP writer. Template execution
+writes directly to the response; an error after output has started cannot replace
+an already committed success status with `500`. Buffer first when the application
+requires an all-or-nothing response.
+
+Only the exact header value `HX-Request: true` selects `HX-Redirect`; other
+values use the ordinary `303` response. The destination remains application
+policy, including whether a redirect may leave the application origin.

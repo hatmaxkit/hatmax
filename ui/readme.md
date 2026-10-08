@@ -11,30 +11,38 @@ UI kit with dependency injection, emoji support, and HTMX-first components.
 
 ## Usage
 
+The Go blocks are independent fragments for the complete page/view composition
+in the [guide companion](../examples/guide/main.go), not consecutive declarations
+in one function. Supply the application-owned dependencies and view fields named
+in each fragment. The [UI reference](../docs/reference/ui/README.md) gives exact
+constructor and option contracts. Templates use `ui.FuncMap()` or `kit.FuncMap()`.
+
 ```go
-ui := ui.New(cfg, log,
+kit := ui.New(cfg, log,
     ui.WithSettings(settingsSvc),
     ui.WithOverlay(os.DirFS("./custom")),
-    ui.WithCSRFFunc(csrf.Token),  // integrate with your CSRF middleware
+    ui.WithCSRFFunc(tokenFromContext),  // integrate with your CSRF middleware
 )
 
 // Template functions
-tmpl := template.New("page").Funcs(ui.FuncMap())
+tmpl := template.New("page").Funcs(kit.FuncMap())
 
 // Or standalone (no kit instance)
-tmpl := template.New("page").Funcs(ui.FuncMap())
+standalone := template.New("page").Funcs(ui.FuncMap())
 ```
 
 ## CSRF Integration
 
-The kit integrates with external CSRF middleware via `WithCSRFFunc`:
+`WithCSRFFunc` accepts `func(context.Context) string`. The application supplies
+`tokenFromContext` and the middleware that validates the submitted token.
+Installing this callback or rendering a hidden input does not validate CSRF:
 
 ```go
 // Your CSRF package provides a function to extract token from context
-ui := ui.New(cfg, log, ui.WithCSRFFunc(csrf.Token))
+kit := ui.New(cfg, log, ui.WithCSRFFunc(tokenFromContext))
 
 // Then in handlers, get token from kit
-token := ui.CSRFToken(r.Context())
+token := kit.CSRFToken(r.Context())
 
 // Pass to forms
 form := ui.NewForm().Action("/submit").CSRFToken(token)
@@ -54,20 +62,15 @@ label := ui.NewLabel("Important").Emoji(ui.EmojiWarning).Warning()
 
 ```go
 btn := ui.NewButton("Save").Emoji(ui.EmojiSave).Primary()
-btn := ui.NewButton("Delete").Emoji(ui.EmojiTrash).Danger()
+deleteButton := ui.NewButton("Delete").Emoji(ui.EmojiTrash).Danger()
 
 // With HTMX
-btn := ui.NewButton("Load").HX().Get("/data").TargetID("result").Done()
+loadButton := ui.NewButton("Load").HX().Get("/data").TargetID("result").Done()
 ```
 
 ### Layout
 
 ```go
-page := ui.NewPage("Dashboard").
-    Header(header).
-    Content(content).
-    Footer(footer)
-
 header := ui.NewPageHeader("Settings").
     Subtitle("Configure your app").
     Breadcrumbs(
@@ -75,6 +78,8 @@ header := ui.NewPageHeader("Settings").
         ui.Breadcrumb{Label: "Settings"},
     ).
     Actions(saveBtn, cancelBtn)
+
+page := ui.NewPage("Dashboard").Header(header).Content(content).Footer(footer)
 
 container := ui.NewContainer().Content(html).Fluid()
 ```
@@ -120,13 +125,20 @@ form := ui.NewForm().
     CSRFToken(csrfToken).
     Post()
 
-// In template
-{{ form.Open }}
+```
+
+The view carries the form as `.Form`:
+
+```html
+{{ .Form.Open }}
   <input type="text" name="email">
   <button type="submit">Submit</button>
-{{ form.Close }}
+{{ .Form.Close }}
+```
 
-// With HTMX
+With HTMX:
+
+```go
 form := ui.NewForm().
     HX().Post("/api/submit").TargetID("result").Done().
     CSRFToken(csrfToken)
@@ -135,14 +147,14 @@ form := ui.NewForm().
 ### Delete Button (form-based, not link)
 
 ```go
-// Safe delete: renders as form, not link (bots can't accidentally trigger)
+// Native deletion uses a POST form; the application still enforces policy.
 deleteBtn := ui.NewDeleteButton("Delete", "/items/123").
     CSRFToken(csrfToken).
     Confirm("Are you sure?").
     Emoji(ui.EmojiTrash)
 
 // With HTMX
-deleteBtn := ui.NewDeleteButton("Delete", "").
+htmxDelete := ui.NewDeleteButton("Delete", "").
     HX().Delete("/api/items/123").SwapDelete().Confirm("Sure?").Done().
     CSRFToken(csrfToken)
 ```
@@ -178,7 +190,7 @@ url := assets.URL("css/style.css") // "/static/css/style.css"
 
 ## Emoji Presets
 
-```go
+```text
 ui.EmojiCheck    // ✅
 ui.EmojiCross    // ❌
 ui.EmojiWarning  // ⚠️
@@ -203,7 +215,7 @@ chip := ui.NewChip("Coffee").Emoji("☕")
 
 ```go
 alert := ui.NewAlert("Something happened").Info().Dismissible()
-alert := ui.AlertSuccess("Saved successfully!")
+savedAlert := ui.AlertSuccess("Saved successfully!")
 
 flash := ui.NewFlash("Changes saved").Success().AutoDismiss(5)
 
@@ -217,22 +229,22 @@ toast := ui.NewToast("New message").
 
 ```go
 link := ui.NewLink("Click here", "/page")
-link := ui.ABlank("External", "https://example.com") // target="_blank"
-link := ui.ABoosted("Navigate", "/page")             // hx-boost
+externalLink := ui.ABlank("External", "https://example.com") // target="_blank"
+boostedLink := ui.ABoosted("Navigate", "/page")             // hx-boost
 
 // With HTMX
-link := ui.NewLink("Load", "/").HX().Get("/api").TargetID("content").Done()
+loadLink := ui.NewLink("Load", "/").HX().Get("/api").TargetID("content").Done()
 ```
 
 ### StatusBadge
 
 ```go
 badge := ui.StatusBadge("active")   // green, "Active"
-badge := ui.StatusBadge("draft")    // yellow, "Draft"
-badge := ui.StatusBadge("expired")  // red, "Expired"
+draftBadge := ui.StatusBadge("draft")    // yellow, "Draft"
+expiredBadge := ui.StatusBadge("expired")  // red, "Expired"
 
 // With icon
-badge := ui.StatusBadgeWithIcon("active") // "● Active"
+iconBadge := ui.StatusBadgeWithIcon("active") // "● Active"
 
 // Register custom status
 ui.RegisterStatus("pending", ui.StatusConfig{
@@ -253,4 +265,7 @@ Formatting functions from `format` package are available in templates:
 
 ## Variants
 
-Chip, Label, Button, and Alert support: Primary, Secondary, Success, Warning, Danger, Info, Muted.
+Chip and Label supply all seven named variant methods. Button supplies Primary,
+Secondary, Success, Warning and Danger. Alert supplies Info, Success, Warning,
+Danger and Error. Use `Variant` for an explicit variant value; the renderer and
+application styles determine its appearance.

@@ -11,15 +11,25 @@ Use this procedure to create a minimal Hatmax process with a health endpoint.
 
 ## Create the module
 
-Hatmax currently declares Go 1.27.1 in its module. Create a directory and add the
-dependency:
+This procedure targets the current Hatmax `dev` checkout with Go 1.27.1.
+The published `v0.5.0` module uses the older `Serve(router, port)` contract;
+`go get` alone does not select the caller-owned-server API shown here.
+Clone the source and bind the application dependency to that checkout:
+
 
 ```sh
+git clone --branch dev https://forge.adrianpk.com/hatmax/hatmax.git hatmax
 mkdir myapp
 cd myapp
 go mod init example.com/myapp
+go mod edit -replace=hatmax.adrianpk.com=../hatmax
 go get hatmax.adrianpk.com
+git -C ../hatmax rev-parse HEAD
 ```
+
+Keep that source revision with the application when reproducing this procedure.
+The replacement is local to this application's module; dependency packages use
+ordinary published Go modules. Run the following commands from `myapp`.
 
 Create `config.yaml`:
 
@@ -94,9 +104,10 @@ func main() {
 
 ## Verify the process
 
-Run the application:
+Resolve the imported dependencies after creating `main.go`, then run the application:
 
 ```sh
+go mod tidy
 go run .
 ```
 

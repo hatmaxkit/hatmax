@@ -66,6 +66,14 @@ when all affected surfaces agree.
 
 ## Model Durable State
 
+The invoice code blocks are contextual fragments of one application-owned
+feature, not a standalone package. Supply the missing validation, read/update/
+delete methods and SQLC adapter in that feature. The complete
+[Ticked list feature](../../../examples/ticked/internal/feat/list/service.go)
+and [guide application](../../../examples/guide/main.go) show delivered
+compositions. The [Generator reference](../../reference/generator/README.md)
+describes the separate generated-feature contract.
+
 The model owns values and rules that must remain true regardless of whether a
 change came from HTTP, a scheduled task, or a test:
 
@@ -133,8 +141,9 @@ and translation of missing rows or zero affected rows to `ErrNotFound`.
 
 The store constructor retains the Hatmax database provider without performing
 I/O. Its `Start` method acquires the live connection and constructs the SQLC
-query set after the database has started. `Stop` keeps lifecycle slices
-aligned even when the store itself owns no connection to close.
+query set after the database has started. A store that owns no independent resource may omit `Stop` or return nil.
+Startup rollback pairs cleanup with the component that actually started; it
+does not depend on positional alignment with the shutdown slice.
 
 Postgres persistence therefore has three explicit representations:
 

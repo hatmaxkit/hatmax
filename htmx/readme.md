@@ -11,6 +11,13 @@ Type-safe HTMX abstractions for Go. Provides primitives for triggers, actions, t
 
 ## Usage
 
+The Go blocks are independent fragments in the handler/template composition
+shown by the complete [guide companion](../examples/guide/main.go). They require
+ordinary Go imports and application-owned request/response/template values.
+Install `htmx.FuncMap()` or `render.FuncMapWithHTMX()` before parsing the HTML
+fragments. Attribute builders describe a browser interaction; they do not install
+HTMX or prove that a browser has applied the swap.
+
 ### Attribute Builder
 
 ```go
@@ -114,13 +121,17 @@ In templates:
 
 ```html
 <!-- Actions -->
-<button {{hxPost "/toggle" | .TargetID "item" | .SwapOuter | .HTML}}>Toggle</button>
+{{with ((hx).Post "/toggle").TargetID "item"}}
+<button {{.SwapOuter.HTML}}>Toggle</button>
+{{end}}
 
 <!-- Quick helpers -->
 <button {{hxPostAttrs "/delete" "item-1"}}>Delete</button>
 
 <!-- Triggers -->
-<input {{hxGet "/search" | .Trigger (hxOnKeyup.Delay (ms 300)) | .TargetID "results" | .HTML}}>
+{{with ((hx).Get "/search").TargetID "results"}}
+<input {{(.Trigger ((hxOnKeyup).Delay (ms 300))).HTML}}>
+{{end}}
 
 <!-- Targets -->
 <div hx-target="{{hxTargetClosest "tr"}}">...</div>

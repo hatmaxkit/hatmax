@@ -11,9 +11,13 @@ Formatting utilities for prices and numbers. Pure functions without HTML output.
 
 ## Usage
 
-```go
-import "hatmax.adrianpk.com/format"
+Import `hatmax.adrianpk.com/format` in the handler/view composition described in
+[Presentation Primitives](../docs/tutorials/user-guide/presentation-primitives.md).
+These calls are contextual expressions; the comments state their observable
+results. The [guide companion](../examples/guide/main.go) shows the complete
+page/view boundary where formatted values belong.
 
+```go
 // Numbers
 format.Number(1234567)    // "1,234,567"
 format.Integer(1234.56)   // "1,235"

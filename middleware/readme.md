@@ -11,40 +11,31 @@ HTTP middleware for chi router.
 
 ## Usage
 
+This router fragment belongs in the composition root before route registration.
+The complete lifecycle is shown in the [bootstrap procedure](../docs/how-to/bootstrap-application/README.md).
+`staticFS` is the application's embedded static filesystem. Role checks belong
+on authenticated route groups rather than the public health/static routes.
+
 ```go
-r := chi.NewRouter()
-
-// Default stack (RequestID, ProxyHeaders, Logger, Recoverer)
-for _, mw := range middleware.DefaultStack() {
-    r.Use(mw)
-}
-
-// Locale detection (cookie, Accept-Language header)
-r.Use(middleware.Locale(middleware.LocaleConfig{
-    Default:   "en",
-    Available: []string{"en", "es", "de"},
-}))
-
-// Static asset caching (1 year, immutable)
-r.Route("/static", func(r chi.Router) {
-    r.Use(middleware.StaticCache)
-    r.Handle("/*", http.FileServer(http.FS(staticFS)))
-})
-
-// Role-based access
-r.Use(middleware.RequireRole(model.RoleAdmin))
-
-// Rate limiting
 limiter, err := middleware.NewRateLimiter(middleware.RateLimitConfig{
     Limit: 100, Window: time.Minute, MaxPeers: 1024, CleanupBatch: 128,
 })
 if err != nil {
     return err
 }
-r.Use(middleware.RateLimit(limiter))
 
-// Same-origin protection for state-changing browser requests
+r := chi.NewRouter()
+r.Use(middleware.DefaultStack()...)
+r.Use(middleware.Locale(middleware.LocaleConfig{
+    Default: "en", Available: []string{"en", "es", "de"},
+}))
+r.Use(middleware.RateLimit(limiter))
 r.Use(middleware.RequireSameOrigin)
+
+r.Route("/static", func(r chi.Router) {
+    r.Use(middleware.StaticCache)
+    r.Handle("/*", http.FileServer(http.FS(staticFS)))
+})
 ```
 
 ## Same-origin request protection

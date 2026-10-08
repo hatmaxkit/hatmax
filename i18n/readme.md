@@ -11,19 +11,26 @@ Internationalization support with YAML translation files.
 
 ## Usage
 
+This fragment extends the complete [guide companion](../examples/guide/main.go)
+with embedded `assets/locales` files. Load them during startup, before concurrent
+requests use the translator. The YAML below is the English locale used by the
+example; an application supplies its other locale files.
+
 ```go
 //go:embed assets
 var assetsFS embed.FS
 
 // Load translations
 translator := i18n.New()
-translator.LoadFromFS(assetsFS, "assets/locales")
+if err := translator.LoadFromFS(assetsFS, "assets/locales"); err != nil {
+    return err
+}
 
 // Get translation
 text := translator.Get("es", "common.search") // "Buscar"
 
 // Fallback to default locale if key missing
-text := translator.Get("es", "missing.key") // returns key itself
+missing := translator.Get("es", "missing.key") // returns key itself
 
 // Template function
 fn := translator.TranslateFunc("es")

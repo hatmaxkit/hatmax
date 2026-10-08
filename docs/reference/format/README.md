@@ -33,3 +33,8 @@ as the symbol, before the amount.
 
 `Price` formats the amount with `Integer`. `PriceWithDecimals` formats it with
 `Number`. `PriceRange` joins `Price(min)` and `Price(max)` with ` - `.
+
+Configure currency registrations before concurrent request handling.
+`RegisterCurrency` mutates a package map and does not synchronize concurrent
+reads/writes. Currency codes are case-sensitive; registering a code does not
+install locale-aware number formatting.

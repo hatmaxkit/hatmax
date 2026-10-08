@@ -13,6 +13,11 @@ For UI components, use `ui.FuncMap()` which extends this.
 
 ## Usage
 
+These construction fragments belong in the composition root described in
+[Presentation Primitives](../docs/tutorials/user-guide/presentation-primitives.md).
+The [guide companion](../examples/guide/main.go) shows a complete template-manager
+lifecycle. `localesFS` is an embedded filesystem with YAML under `locales`.
+
 ```go
 // Base functions only
 tmpl := template.New("").Funcs(render.FuncMap())
@@ -28,9 +33,15 @@ funcs := render.MergeFuncMaps(render.FuncMap(), myFuncMap)
 
 // With i18n support
 translator := i18n.New()
-translator.LoadFromFS(localesFS, "locales")
+if err := translator.LoadFromFS(localesFS, "locales"); err != nil {
+    return err
+}
 funcs := render.MergeFuncMaps(render.FuncMap(), render.I18nFuncMap(translator))
 ```
+
+The base `t` function returns its key unchanged. Load translations and merge
+`render.I18nFuncMap(translator)` after the base map to perform lookups. Later
+maps replace existing functions; `ui.FuncMap()` also starts with the base `t`.
 
 ## Available Functions
 
@@ -40,12 +51,12 @@ funcs := render.MergeFuncMaps(render.FuncMap(), render.I18nFuncMap(translator))
 {{lower "HELLO"}}  <!-- hello -->
 
 <!-- i18n -->
-{{t .Locale "common.search"}}  <!-- Search / Buscar -->
+{{t .Locale "common.search"}}  <!-- common.search in the base map -->
 
 <!-- Math -->
 {{add 1 2}}        <!-- 3 -->
 {{sub 5 2}}        <!-- 3 -->
-{{range seq 1 5}}  <!-- 1, 2, 3, 4, 5 -->
+{{range seq 1 5}}{{.}} {{end}}  <!-- 1 2 3 4 5 -->
 ```
 
 ## UI Components

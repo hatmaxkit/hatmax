@@ -38,7 +38,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | --- | --- | --- | --- |
 | T1.1 | completed | `docs: inventory Hatmax documentation surfaces` | `596cde4204b7596309760b3ffe8f819aff5b34be` |
 | T1.2 | completed | `test(docs): establish Hatmax conformance checks` | `1fe3c2e40d7d58a476dd20e0e3adf64a6ac7bc3f` |
-| T2.1 | pending | `docs: reconcile runtime and presentation guidance` | pending |
+| T2.1 | completed | `docs: reconcile runtime and presentation guidance` | pending |
 | T2.2 | pending | `test(docs): verify runtime and presentation examples` | pending |
 | T3.1 | pending | `docs: reconcile data and configuration guidance` | pending |
 | T3.2 | pending | `test(docs): verify data and configuration examples` | pending |
@@ -131,3 +131,15 @@ at `4edfea516b25656b2ab4797163ddbc6523c54e33`. Its exact clean-head controller
 receipt passed `GOWORK=off scripts/check-documentation-conformance.sh slice 1`
 followed by `git diff --check`. The report is delivered; integrated acceptance
 remains pending. Slice 2/T2.1/T2.2 is active on its approved branch and task map.
+
+T2.1 reconciles runtime/presentation package notes and supporting tutorial,
+how-to and reference guidance. It corrects mixed Go/template blocks, middleware
+installation order, function-map translation behavior, cleanup ownership and
+server/response boundaries. The current bootstrap binds a local `dev` checkout
+because published `v0.5.0` has the older server API, and resolves dependencies
+after `main.go` exists. Its exact Go program built in an isolated source-bound
+module; nine published HTML fragments parsed and executed in typed view context.
+The repository docs/example-compilation check, strict lint and whitespace passed.
+T2.2 remains pending: durable snippet/composition fixtures, real local HTTP
+execution, source-bound receipts, refreshed inventory and the Slice 2 gate must
+complete before the canonical PR is ready.
