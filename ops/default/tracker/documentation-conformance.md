@@ -25,7 +25,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Coverage and validation | delivered | `docs/hatmax-documentation-coverage` | `docs(slice-1): inventory Hatmax documentation coverage` | `#112` | `ops/default/report/slices/documentation-conformance/slice-1-coverage-and-validation.md` |
-| Slice 2 | Runtime and presentation | implementing | `docs/hatmax-runtime-presentation` | `docs(slice-2): reconcile runtime and presentation guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-2-runtime-and-presentation.md` |
+| Slice 2 | Runtime and presentation | reviewing | `docs/hatmax-runtime-presentation` | `docs(slice-2): reconcile runtime and presentation guidance` | `#113` | `ops/default/report/slices/documentation-conformance/slice-2-runtime-and-presentation.md` |
 | Slice 3 | Data and configuration | pending | `docs/hatmax-data-configuration` | `docs(slice-3): reconcile data and configuration guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-3-data-and-configuration.md` |
 | Slice 4 | Identity and recovery | pending | `docs/hatmax-identity-recovery` | `docs(slice-4): verify identity and recovery documentation` | pending | `ops/default/report/slices/documentation-conformance/slice-4-identity-and-recovery.md` |
 | Slice 5 | Infrastructure and helpers | pending | `docs/hatmax-infrastructure-helpers` | `docs(slice-5): reconcile infrastructure and helper guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-5-infrastructure-and-helpers.md` |
@@ -39,7 +39,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | T1.1 | completed | `docs: inventory Hatmax documentation surfaces` | `596cde4204b7596309760b3ffe8f819aff5b34be` |
 | T1.2 | completed | `test(docs): establish Hatmax conformance checks` | `1fe3c2e40d7d58a476dd20e0e3adf64a6ac7bc3f` |
 | T2.1 | completed | `docs: reconcile runtime and presentation guidance` | `8d1866f51cbb032758e1ce244e77daaa505072c9` |
-| T2.2 | completed | `test(docs): verify runtime and presentation examples` | pending |
+| T2.2 | completed | `test(docs): verify runtime and presentation examples` | `50c753df487040e128b1a950bcbd4be2f3a3b1f4` |
 | T3.1 | pending | `docs: reconcile data and configuration guidance` | pending |
 | T3.2 | pending | `test(docs): verify data and configuration examples` | pending |
 | T4.1 | pending | `docs: reconcile identity and recovery guidance` | pending |
@@ -144,3 +144,8 @@ T2.2 now supplies durable source-bound contextual compilation, actual bootstrap
 and Guide HTTP/process execution, classified receipts and the Slice 2 gate.
 The canonical PR and final clean-head controller evidence are prepared after
 this task commit; Slice 2 remains active until canonical merge verification.
+
+Slice 2 canonical PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/113.
+Report introduction: `50c753df487040e128b1a950bcbd4be2f3a3b1f4`.
+Both task commits and PR references are complete. Final clean-head validation
+is recorded through the controller before readiness; merge remains controller-owned.

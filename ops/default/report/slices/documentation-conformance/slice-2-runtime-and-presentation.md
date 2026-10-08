@@ -12,7 +12,8 @@ Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
 Branch: `docs/hatmax-runtime-presentation`
-PR: pending
+PR: `#113`
+Report introduction: `50c753df487040e128b1a950bcbd4be2f3a3b1f4`
 Activation revision: `84180a9b003fb661604f612d7015e39d03a203d0`
 
 ## Purpose
