@@ -61,9 +61,9 @@ sandbox. The final controller execution remains required evidence.
 
 Three coverage rows remain blocked: the assisted-generation walkthrough and
 its timestamp request blocks 6 and 9. Their runtime owners are
-[TKT-20261008134713](../ticket/open/20261008134713-generator-scaffold-evolution.md),
-[TKT-20261008135600](../ticket/open/20261008135600-generator-timestamp-row-mapping.md)
-and [TKT-20261008135846](../ticket/open/20261008135846-generator-validation-test-lint.md).
+[TKT-20261008134713](../ticket/ready/20261008134713-generator-scaffold-evolution.md),
+[TKT-20261008135600](../ticket/solved/20261008135600-generator-timestamp-row-mapping.md)
+and [TKT-20261008135846](../ticket/ready/20261008135846-generator-validation-test-lint.md).
 Observed failures include fresh-scaffold composition resolution, timestamp row
 mapping compilation and generated validation-test lint. Passing assertions that
 reproduce these failures preserve blockers; they never establish a successful

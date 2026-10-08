@@ -1,7 +1,7 @@
 ---
 id: TKT-20261008135600
 title: Keep SQLC query rows compatible after required timestamp generation
-status: in_progress
+status: solved
 kind: bug
 severity: unclassified
 priority: unclassified
@@ -12,6 +12,9 @@ reported_at: 2026-10-08T13:56:00Z
 ready_at: 2026-10-08T15:36:37Z
 started_at: 2026-10-08T15:36:37Z
 branch: dev
+reviewed_at: 2026-10-08T15:40:38Z
+closed_at: 2026-10-08T15:40:38Z
+resolution: fixed
 commits: 2d8f46019c7fed059c5909be6ff5f14a875c403e
 ---
 <!--
@@ -46,3 +49,19 @@ Use a canonical existing project, real SQLC, Go and owned PostgreSQL. Create
 invoice, add the published required timestamp, compile and test the resulting
 project, and verify stored timestamp values. Preserve failure/retained-change
 reporting when a project command fails.
+
+## Resolution
+
+List and Get select the complete table relation so SQLC keeps its table model
+after ALTER TABLE appends a field. Insert and Update retain explicit parameter
+bindings. No runtime conversion or generated-code patch is needed.
+
+`TestRequiredTimestamp` reproduced the compiler failure with real SQLC before
+the change. After correction, it passed real generation, formatting, build,
+PostgreSQL create/Get/List/Update timestamp checks and the generated project's
+strict lint. The invocation-owned PostgreSQL cluster stopped successfully.
+
+Successful checks:
+
+- `GOWORK=off go test -run 'TestRender(AddField|Transport)' -count=1 ./generator/execute`
+- `GOWORK=off go test -tags=acceptance -run '^TestRequiredTimestamp$' -count=1 -timeout=4m ./generator/execute` under the owned data fixture with real SQLC.

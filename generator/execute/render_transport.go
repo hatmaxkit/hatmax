@@ -44,13 +44,15 @@ func renderQueries(context renderContext, _ Edit) ([]byte, error) {
 	arguments := renderSQLArguments(context.fields)
 	assignments := renderSQLAssignments(context.fields)
 
+	// Selecting the whole relation keeps SQLC's table row type stable when
+	// later migrations append fields after the original audit columns.
 	return []byte(fmt.Sprintf(`-- name: List%s :many
-SELECT %s
+SELECT *
 FROM %s
 ORDER BY created_at DESC, id DESC;
 
 -- name: Get%s :one
-SELECT %s
+SELECT *
 FROM %s
 WHERE id = sqlc.arg(id);
 
@@ -67,7 +69,7 @@ WHERE id = sqlc.arg(id);
 -- name: Delete%s :execrows
 DELETE FROM %s
 WHERE id = sqlc.arg(id);
-`, context.plural, columns, context.table, context.entity, columns, context.table, context.entity, context.table, columns, arguments, context.entity, context.table, assignments, context.entity, context.table)), nil
+`, context.plural, context.table, context.entity, context.table, context.entity, context.table, columns, arguments, context.entity, context.table, assignments, context.entity, context.table)), nil
 }
 
 func renderSQLColumns(context renderContext) string {

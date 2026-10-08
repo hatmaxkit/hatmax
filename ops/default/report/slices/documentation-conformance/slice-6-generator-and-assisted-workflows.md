@@ -75,9 +75,9 @@ retains the generic approved requirement.
 - [Native workflow fixture](../../../../../scripts/documentation-conformance/generator_fixture.go)
 - [Evidence reconciliation](../../../../../scripts/documentation-conformance/generator_evidence.go)
 - [Coverage record](../../documentation-conformance-coverage.md)
-- [Scaffold composition defect](../../../ticket/open/20261008134713-generator-scaffold-evolution.md)
-- [Timestamp row-mapping defect](../../../ticket/open/20261008135600-generator-timestamp-row-mapping.md)
-- [Validation lint defect](../../../ticket/open/20261008135846-generator-validation-test-lint.md)
+- [Scaffold composition defect](../../../ticket/ready/20261008134713-generator-scaffold-evolution.md)
+- [Timestamp row-mapping defect](../../../ticket/solved/20261008135600-generator-timestamp-row-mapping.md)
+- [Validation lint defect](../../../ticket/ready/20261008135846-generator-validation-test-lint.md)
 
 ## Validation
 

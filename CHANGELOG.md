@@ -125,6 +125,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Adding a required timestamp to an existing generated feature now preserves
+  compatible PostgreSQL query rows and stored timestamp values.
+
 - Concurrent signup requests now report a duplicate-email outcome consistently.
   Sign-in cannot create a session from credentials or account state changed
   during verification; stale credential writes cannot overwrite newer state.
