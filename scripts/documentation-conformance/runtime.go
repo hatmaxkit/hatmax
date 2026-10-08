@@ -375,7 +375,7 @@ func (v *verification) packageGroup(discovered inventory, group int) error {
 	var selected []row
 
 	for _, r := range discovered.rows {
-		if r.slice == group && (strings.HasPrefix(r.id, "package:") || r.id == "example-package:examples/ticked/internal/feat/list" || (group == 4 && strings.HasPrefix(r.id, "example-package:")) || (group == 5 && r.id == "implementation:image/internal/ingest")) && r.id != "package:render" {
+		if r.slice == group && (strings.HasPrefix(r.id, "package:") || r.id == "example-package:examples/ticked/internal/feat/list" || (group == 4 && strings.HasPrefix(r.id, "example-package:")) || (group == 5 && r.id == "implementation:image/internal/ingest") || (group == 6 && strings.HasPrefix(r.id, "implementation:"))) && r.id != "package:render" {
 			args = append(args, "./"+r.source)
 			selected = append(selected, r)
 		}

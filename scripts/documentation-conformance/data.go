@@ -28,7 +28,7 @@ func newGroupVerification(fixture string, group int) (*verification, inventory, 
 	}
 
 	relative, err := filepath.Rel(root, fixture)
-	if err != nil || (group != 3 && group != 4 && group != 5) || !strings.HasPrefix(filepath.ToSlash(relative), fmt.Sprintf(".tmp/documentation-conformance/slice-%d.", group)) {
+	if err != nil || group < 3 || group > 6 || !strings.HasPrefix(filepath.ToSlash(relative), fmt.Sprintf(".tmp/documentation-conformance/slice-%d.", group)) {
 		return nil, inventory{}, fmt.Errorf("checks require owned slice-%d fixture storage", group)
 	}
 

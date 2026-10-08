@@ -57,6 +57,20 @@ child directory. Run it from a compatible Hatmax application root to evolve
 that application. A pre-project conversation follows the created application
 after successful bootstrap.
 
+Current generated scaffolds delegate from a thin `main` to
+`internal/application`. Feature execution currently searches only `package main`
+entrypoints for the composition root, so follow-up scaffold mutations fail with
+`HMGEN-EXECUTION-LAYOUT-MISSING` before source changes. Application creation and
+conversation rebinding work; feature evolution requires an existing recognized
+canonical composition root until that runtime defect is resolved.
+The required timestamp follow-up also fails real generated-project compilation
+on an existing canonical project: SQLC query row types do not match its store
+mapper. That failure retains rendered changes and returns execution-failure
+status `8`; it does not establish a successful field update.
+An added minimum-length number validation can also fail project lint in its
+generated model test after compilation and Go tests pass. Admitted operations
+still require successful project checks before they count as completed.
+
 The headless generator accepts exactly one non-empty request argument:
 
 ```sh

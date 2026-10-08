@@ -6,8 +6,8 @@
 
 set -euo pipefail
 
-if [[ $# != 2 || "$1" != slice || ("$2" != 1 && "$2" != 2 && "$2" != 3 && "$2" != 4 && "$2" != 5) ]]; then
-  echo 'Only slices 1 through 5 are implemented; integrated acceptance is not yet available.' >&2
+if [[ $# != 2 || "$1" != slice || ("$2" != 1 && "$2" != 2 && "$2" != 3 && "$2" != 4 && "$2" != 5 && "$2" != 6) ]]; then
+  echo 'Only slices 1 through 6 are implemented; integrated acceptance is not yet available.' >&2
   exit 2
 fi
 
@@ -130,7 +130,19 @@ if ((slice_number >= 4)); then
   run_check 'go run ./scripts/documentation-conformance identity-evidence <owned-fixture>/identity-receipts.json' go run ./scripts/documentation-conformance identity-evidence "$identity_fixture/identity-receipts.json"
 fi
 if ((slice_number >= 5)); then
-  run_check 'owned PostgreSQL and go run ./scripts/documentation-conformance infrastructure <owned-fixture>' scripts/documentation-conformance/data-fixture.sh "$fixture" go run ./scripts/documentation-conformance infrastructure "$fixture"
-  run_check 'go run ./scripts/documentation-conformance infrastructure-evidence <owned-fixture>/infrastructure-receipts.json' go run ./scripts/documentation-conformance infrastructure-evidence "$fixture/infrastructure-receipts.json"
+  infrastructure_fixture=$fixture
+  if ((slice_number >= 6)); then
+    infrastructure_fixture=$(mktemp -d "$repo_root/.tmp/documentation-conformance/slice-5.cumulative.XXXXXXXX")
+  fi
+  run_check 'owned PostgreSQL and go run ./scripts/documentation-conformance infrastructure <owned-fixture>' scripts/documentation-conformance/data-fixture.sh "$infrastructure_fixture" go run ./scripts/documentation-conformance infrastructure "$infrastructure_fixture"
+  run_check 'go run ./scripts/documentation-conformance infrastructure-evidence <owned-fixture>/infrastructure-receipts.json' go run ./scripts/documentation-conformance infrastructure-evidence "$infrastructure_fixture/infrastructure-receipts.json"
 fi
-printf 'Slice %s documentation conformance passed. Safe diagnostics retained in ignored fixture storage.\n' "$slice_number"
+if ((slice_number >= 6)); then
+  run_check 'owned PostgreSQL and go run ./scripts/documentation-conformance generator <owned-fixture>' scripts/documentation-conformance/data-fixture.sh "$fixture" go run ./scripts/documentation-conformance generator "$fixture"
+  run_check 'go run ./scripts/documentation-conformance generator-evidence <owned-fixture>/generator-receipts.json' go run ./scripts/documentation-conformance generator-evidence "$fixture/generator-receipts.json"
+fi
+if ((slice_number == 6)); then
+  printf 'Slice 6 evidence checks passed; blocked generator workflows remain unresolved. Safe diagnostics retained in ignored fixture storage.\n'
+else
+  printf 'Slice %s documentation conformance passed. Safe diagnostics retained in ignored fixture storage.\n' "$slice_number"
+fi

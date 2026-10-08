@@ -53,6 +53,23 @@ func main() {
 }
 
 func run(args []string) error {
+	if len(args) == 2 && args[0] == "generator" {
+		return runGenerator(args[1])
+	}
+
+	if len(args) == 2 && args[0] == "generator-evidence" {
+		return checkGeneratorEvidence(args[1])
+	}
+
+	if len(args) == 2 && args[0] == "generator-workbench" {
+		v, discovered, err := newGroupVerification(args[1], 6)
+		if err != nil {
+			return err
+		}
+
+		return v.generatorWorkbench(discovered)
+	}
+
 	if len(args) == 2 && args[0] == "infrastructure" {
 		return runInfrastructure(args[1])
 	}
@@ -131,7 +148,7 @@ func run(args []string) error {
 	}
 
 	if len(args) != 1 || (args[0] != "inventory" && args[0] != "check") {
-		return fmt.Errorf("usage: documentation-conformance inventory|check|runtime FIXTURE|evidence RECEIPT|data-contexts FIXTURE|data-workbench FIXTURE|data FIXTURE|data-evidence RECEIPT|identity-contexts FIXTURE|identity-ticked FIXTURE|identity FIXTURE|identity-evidence RECEIPT|infrastructure-contexts FIXTURE|infrastructure FIXTURE|infrastructure-evidence RECEIPT")
+		return fmt.Errorf("usage: documentation-conformance inventory|check|runtime FIXTURE|evidence RECEIPT|data-contexts FIXTURE|data-workbench FIXTURE|data FIXTURE|data-evidence RECEIPT|identity-contexts FIXTURE|identity-ticked FIXTURE|identity FIXTURE|identity-evidence RECEIPT|infrastructure-contexts FIXTURE|infrastructure FIXTURE|infrastructure-evidence RECEIPT|generator-workbench FIXTURE|generator FIXTURE|generator-evidence RECEIPT")
 	}
 
 	discovered, err := discover()
@@ -582,6 +599,9 @@ func reconcile(discovered, recorded []row) error {
 
 		verified = verified || (r.slice == 5 && r.receipt == "slice-5/infrastructure-receipts.json" &&
 			slices.Contains([]string{"source-inspected", "compiled", "executed", "package-tests"}, r.status))
+
+		verified = verified || (r.slice == 6 && r.receipt == "slice-6/generator-receipts.json" &&
+			slices.Contains([]string{"source-inspected", "executed", "package-tests", "blocked"}, r.status))
 		if (r.status != "inventoried" || r.receipt != "pending") && !verified {
 			return fmt.Errorf("unsupported status or receipt; future rows require pending receipts only: %s", r.id)
 		}

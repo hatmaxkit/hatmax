@@ -94,7 +94,7 @@ func TestDataFixtureOwnership(t *testing.T) {
 	output, err := exec.Command("bash", "data-fixture.sh", fixture, "true").CombinedOutput()
 
 	exit, ok := err.(*exec.ExitError)
-	if !ok || exit.ExitCode() != 2 || !strings.Contains(string(output), "owned Slice 3 storage") {
+	if !ok || exit.ExitCode() != 2 || !strings.Contains(string(output), "owned Slice 3 through Slice 6 storage") {
 		t.Fatalf("unowned fixture accepted: %s / %v", output, err)
 	}
 }
