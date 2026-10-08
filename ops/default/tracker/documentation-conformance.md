@@ -17,7 +17,7 @@ Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
 Active slice: Slice 7
 Next slice: Slice 7
-Active tasks: None — Slice 7 canonical PR preparation
+Active tasks: None — Slice 7 PR awaiting controller validation and integration
 Execution gate: Open — independent slice-loop execution authorized on 2026-10-08
 
 ## Slice Status
@@ -30,7 +30,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | Slice 4 | Identity and recovery | delivered | `docs/hatmax-identity-recovery` | `docs(slice-4): verify identity and recovery documentation` | `#115` | `ops/default/report/slices/documentation-conformance/slice-4-identity-and-recovery.md` |
 | Slice 5 | Infrastructure and helpers | delivered | `docs/hatmax-infrastructure-helpers` | `docs(slice-5): reconcile infrastructure and helper guidance` | `#116` | `ops/default/report/slices/documentation-conformance/slice-5-infrastructure-and-helpers.md` |
 | Slice 6 | Generator and assisted workflows | delivered | `docs/hatmax-generator-guidance` | `docs(slice-6): reconcile generator and assisted workflow guidance` | `#117` | `ops/default/report/slices/documentation-conformance/slice-6-generator-and-assisted-workflows.md` |
-| Slice 7 | Integrated documentation acceptance | active | `docs/hatmax-documentation-acceptance` | `docs(slice-7): establish complete documentation acceptance` | pending | `ops/default/report/slices/documentation-conformance/slice-7-integrated-documentation-acceptance.md` |
+| Slice 7 | Integrated documentation acceptance | reviewing | `docs/hatmax-documentation-acceptance` | `docs(slice-7): establish complete documentation acceptance` | `#118` | `ops/default/report/slices/documentation-conformance/slice-7-integrated-documentation-acceptance.md` |
 
 ## Tasks
 
@@ -49,7 +49,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | T6.1 | completed | `docs: reconcile generator and assisted workflow guidance` | `0a70f3b71cd69db25dfaae0a62224a0f6eef087d` |
 | T6.2 | completed | `test(docs): verify generator documentation workflows` | `cdd3e8888c4a34bd253dc5503fe4f9bd37c599ba` |
 | T7.1 | completed | `docs: reconcile complete Hatmax documentation coverage` | `060c3fb18588b261f877848d0d73a7eb8bf1188f` |
-| T7.2 | completed | `test(docs): bind Hatmax documentation acceptance` | pending |
+| T7.2 | completed | `test(docs): bind Hatmax documentation acceptance` | `7236877162dacffefc1d063756ff8b9ab19e40b7` |
 
 ## Prerequisites and Gates
 
@@ -296,3 +296,11 @@ coverage. Slice 7 mode verifies the cumulative evidence machinery while retainin
 the three generator blockers. Canonical PR references and exact-head controller
 checks follow the task commit. No integrated acceptance criterion is marked passed
 before the controller executes its final gate.
+
+Slice 7 canonical PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/118.
+Report introduction: `060c3fb18588b261f877848d0d73a7eb8bf1188f`.
+Both task commits and canonical PR references are complete. The controller
+records `GOWORK=off scripts/check-documentation-conformance.sh slice 7` followed
+by `git diff --check` on the clean pushed head after this reference commit.
+The primary checkout remains dev; integration and the final default gate
+remain controller-owned. Three generator coverage rows remain blocked.
