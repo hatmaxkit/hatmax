@@ -329,5 +329,7 @@ isolates commands with scripted input in a private session. A terminal-backed
 regression, the real owned PostgreSQL/Ticked procedure, checker tests, strict
 lint and coverage checks passed. See the
 [validation correction](../report/documentation-conformance-validation.md).
+Canonical correction PR: [#119](https://forge.adrianpk.com/hatmax/hatmax/pulls/119),
+introduced at `547ce501fd7317b9521569ed3e4022de21e801d7`.
 All seven slices remain integrated; three generator runtime tickets and final
 integrated acceptance remain pending.

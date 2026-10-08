@@ -13,7 +13,7 @@ Delivery set: documentation-conformance
 Plan: [Delivery plan](../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../tracker/documentation-conformance.md)
 Branch: `fix/documentation-conformance-validation`
-PR: pending
+PR: [#119](https://forge.adrianpk.com/hatmax/hatmax/pulls/119)
 
 ## Purpose
 
@@ -28,6 +28,7 @@ terminal. The documented `createuser --pwprompt` command consumes its owned
 fixture input rather than waiting for an operator in the controller terminal.
 Other command invocations retain their existing process-group behavior.
 Finite deadlines, group cancellation and command receipts remain in force.
+Correction introduction: `547ce501fd7317b9521569ed3e4022de21e801d7`.
 
 ## Implementation Notes
 
