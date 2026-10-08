@@ -24,7 +24,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Coverage and validation | reviewing | `docs/hatmax-documentation-coverage` | `docs(slice-1): inventory Hatmax documentation coverage` | pending | `ops/default/report/slices/documentation-conformance/slice-1-coverage-and-validation.md` |
+| Slice 1 | Coverage and validation | reviewing | `docs/hatmax-documentation-coverage` | `docs(slice-1): inventory Hatmax documentation coverage` | `#112` | `ops/default/report/slices/documentation-conformance/slice-1-coverage-and-validation.md` |
 | Slice 2 | Runtime and presentation | pending | `docs/hatmax-runtime-presentation` | `docs(slice-2): reconcile runtime and presentation guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-2-runtime-and-presentation.md` |
 | Slice 3 | Data and configuration | pending | `docs/hatmax-data-configuration` | `docs(slice-3): reconcile data and configuration guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-3-data-and-configuration.md` |
 | Slice 4 | Identity and recovery | pending | `docs/hatmax-identity-recovery` | `docs(slice-4): verify identity and recovery documentation` | pending | `ops/default/report/slices/documentation-conformance/slice-4-identity-and-recovery.md` |
@@ -37,7 +37,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | Task | Status | Expected commit | Commit |
 | --- | --- | --- | --- |
 | T1.1 | completed | `docs: inventory Hatmax documentation surfaces` | `596cde4204b7596309760b3ffe8f819aff5b34be` |
-| T1.2 | completed | `test(docs): establish Hatmax conformance checks` | pending |
+| T1.2 | completed | `test(docs): establish Hatmax conformance checks` | `1fe3c2e40d7d58a476dd20e0e3adf64a6ac7bc3f` |
 | T2.1 | pending | `docs: reconcile runtime and presentation guidance` | pending |
 | T2.2 | pending | `test(docs): verify runtime and presentation examples` | pending |
 | T3.1 | pending | `docs: reconcile data and configuration guidance` | pending |
@@ -111,3 +111,8 @@ correction route.
 Execution remains repository-local. A completed source/page inventory or links
 check alone cannot close the set. Record runtime defects or missing prerequisites
 as blockers; do not fill pending execution evidence with earlier planning checks.
+
+Slice 1 canonical PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/112.
+Report introduction: `1fe3c2e40d7d58a476dd20e0e3adf64a6ac7bc3f`.
+Both task commits are complete. The PR-reference follow-up records the canonical
+PR in this tracker and the report before final controller validation and push.

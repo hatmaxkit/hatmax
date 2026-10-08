@@ -12,7 +12,7 @@ Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
 Branch: `docs/hatmax-documentation-coverage`
-PR: pending
+PR: `#112`
 Activation revision: `6715ab2912d27263a78f0bd1419db8b49c3d8089`
 
 ## Purpose
