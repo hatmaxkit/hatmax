@@ -17,7 +17,7 @@ Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
 Active slice: Slice 5
 Next slice: Slice 5
-Active tasks: T5.2
+Active tasks: none — Slice 5 PR validation pending
 Execution gate: Open — independent slice-loop execution authorized on 2026-10-08
 
 ## Slice Status
@@ -28,7 +28,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | Slice 2 | Runtime and presentation | delivered | `docs/hatmax-runtime-presentation` | `docs(slice-2): reconcile runtime and presentation guidance` | `#113` | `ops/default/report/slices/documentation-conformance/slice-2-runtime-and-presentation.md` |
 | Slice 3 | Data and configuration | delivered | `docs/hatmax-data-configuration` | `docs(slice-3): reconcile data and configuration guidance` | `#114` | `ops/default/report/slices/documentation-conformance/slice-3-data-and-configuration.md` |
 | Slice 4 | Identity and recovery | delivered | `docs/hatmax-identity-recovery` | `docs(slice-4): verify identity and recovery documentation` | `#115` | `ops/default/report/slices/documentation-conformance/slice-4-identity-and-recovery.md` |
-| Slice 5 | Infrastructure and helpers | active | `docs/hatmax-infrastructure-helpers` | `docs(slice-5): reconcile infrastructure and helper guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-5-infrastructure-and-helpers.md` |
+| Slice 5 | Infrastructure and helpers | active | `docs/hatmax-infrastructure-helpers` | `docs(slice-5): reconcile infrastructure and helper guidance` | `#116` | `ops/default/report/slices/documentation-conformance/slice-5-infrastructure-and-helpers.md` |
 | Slice 6 | Generator and assisted workflows | pending | `docs/hatmax-generator-guidance` | `docs(slice-6): reconcile generator and assisted workflow guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-6-generator-and-assisted-workflows.md` |
 | Slice 7 | Integrated documentation acceptance | pending | `docs/hatmax-documentation-acceptance` | `docs(slice-7): establish complete documentation acceptance` | pending | `ops/default/report/slices/documentation-conformance/slice-7-integrated-documentation-acceptance.md` |
 
@@ -45,7 +45,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | T4.1 | completed | `docs: reconcile identity and recovery guidance` | `f96565f609da32a7430cc617138d72d016376fcf` |
 | T4.2 | completed | `test(docs): verify identity and recovery examples` | `1cb59fa18fb16e50b0a56c64b9e1fbdb808ee713` |
 | T5.1 | completed | `docs: reconcile infrastructure and helper guidance` | `a94d6a41afd83e55c7cd02fe70b36238846c9e04` |
-| T5.2 | completed | `test(docs): verify infrastructure and helper examples` | pending |
+| T5.2 | completed | `test(docs): verify infrastructure and helper examples` | `38eb310994d7abf1731bd3aeb2ccb14d8a628ae4` |
 | T6.1 | pending | `docs: reconcile generator and assisted workflow guidance` | pending |
 | T6.2 | pending | `test(docs): verify generator documentation workflows` | pending |
 | T7.1 | pending | `docs: reconcile complete Hatmax documentation coverage` | pending |
@@ -236,3 +236,10 @@ passed development checks. The native runner binds fixture inputs, source/head,
 tool identities, commands and diagnostics, then verifies owned shutdown.
 Canonical PR references and ordered final clean-head controller checks follow
 the task commit. Slice 5 remains active until verified canonical merge.
+
+Slice 5 canonical PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/116.
+Report introduction: `b1b77bb68e9e0c3c25b87f5b2ed2a64076dc8122`.
+Both task commits and canonical references are complete. The controller records
+`GOWORK=off scripts/check-documentation-conformance.sh slice 5` followed by
+`git diff --check` against the clean pushed head after this reference commit.
+The primary checkout remains on dev; merge remains controller-owned.

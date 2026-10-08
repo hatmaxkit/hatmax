@@ -12,10 +12,12 @@ Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
 Branch: `docs/hatmax-infrastructure-helpers`
-PR: pending
+PR: `#116`
 Activation revision: `414b9e071f95b07f531aae5808a8eb903c066a16`
 Documentation task: `a94d6a41afd83e55c7cd02fe70b36238846c9e04`
+Validation task: `38eb310994d7abf1731bd3aeb2ccb14d8a628ae4`
 Report introduction: `b1b77bb68e9e0c3c25b87f5b2ed2a64076dc8122`
+Canonical PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/116
 
 ## Purpose
 
