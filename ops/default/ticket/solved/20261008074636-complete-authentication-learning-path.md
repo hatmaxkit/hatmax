@@ -1,7 +1,7 @@
 ---
 id: TKT-20261008074636
 title: Complete the authentication learning path across Diataxis
-status: reviewing
+status: solved
 kind: task
 severity: unclassified
 priority: normal
@@ -13,7 +13,9 @@ ready_at: 2026-10-08T07:47:45Z
 started_at: 2026-10-08T07:47:45Z
 reviewed_at: 2026-10-08T08:00:05Z
 branch: dev
-commits:
+closed_at: 2026-10-08T08:00:44Z
+resolution: fixed
+commits: 589aa3f104d60e8cf15ad0eb3614387c8e76ab5d
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -55,3 +57,9 @@ convention and document only implemented public behavior.
   fenced blocks and whitespace: passed.
 - Changed public symbols, example routes and proof semantics checked against
   current source; no runtime files changed.
+
+## Resolution
+
+The four authentication quadrants now link the current learning sequence,
+focused authenticator and recovery procedures, exported contracts and proof
+rationale. Delivered directly on `dev` in the commit recorded above.
