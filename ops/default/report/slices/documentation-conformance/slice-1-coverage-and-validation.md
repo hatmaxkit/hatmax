@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 1: Coverage and Validation
 
-Status: reviewing
+Status: delivered
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
@@ -74,11 +74,15 @@ Focused local checks passed:
 - `GOWORK=off go test -count=1 -timeout=2m ./scripts/documentation-conformance` — passed, including the required negative controls and unavailable-mode checks.
 - `bash -n scripts/check-documentation-conformance.sh` — passed.
 
-The controller records the required
-`GOWORK=off scripts/check-documentation-conformance.sh slice 1` and
-`git diff --check` against the final clean pushed PR head after its PR-reference
-commit. That exact-head receipt is the merge evidence; these focused checks are
-not the integrated documentation gate or the complete runtime test suite.
+The controller recorded these ordered checks as passed against clean pushed
+head `4edfea516b25656b2ab4797163ddbc6523c54e33`:
+
+- `GOWORK=off scripts/check-documentation-conformance.sh slice 1` — passed.
+- `git diff --check` — passed.
+
+Canonical PR #112 merged through Rebase + Fast-forward into `dev` at that same
+commit. This is Slice 1 evidence, not integrated documentation acceptance or
+the complete runtime suite.
 
 ## Risks and Follow-ups
 

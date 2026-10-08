@@ -15,17 +15,17 @@ Concern: [Documentation conformance](../spec/documentation-conformance.md)
 Plan: [Delivery plan](../plan/documentation-conformance.md)
 Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
-Active slice: Slice 1
-Next slice: Slice 1
-Active tasks: T1.1, T1.2
+Active slice: Slice 2
+Next slice: Slice 2
+Active tasks: T2.1, T2.2
 Execution gate: Open — independent slice-loop execution authorized on 2026-10-08
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Coverage and validation | reviewing | `docs/hatmax-documentation-coverage` | `docs(slice-1): inventory Hatmax documentation coverage` | `#112` | `ops/default/report/slices/documentation-conformance/slice-1-coverage-and-validation.md` |
-| Slice 2 | Runtime and presentation | pending | `docs/hatmax-runtime-presentation` | `docs(slice-2): reconcile runtime and presentation guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-2-runtime-and-presentation.md` |
+| Slice 1 | Coverage and validation | delivered | `docs/hatmax-documentation-coverage` | `docs(slice-1): inventory Hatmax documentation coverage` | `#112` | `ops/default/report/slices/documentation-conformance/slice-1-coverage-and-validation.md` |
+| Slice 2 | Runtime and presentation | implementing | `docs/hatmax-runtime-presentation` | `docs(slice-2): reconcile runtime and presentation guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-2-runtime-and-presentation.md` |
 | Slice 3 | Data and configuration | pending | `docs/hatmax-data-configuration` | `docs(slice-3): reconcile data and configuration guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-3-data-and-configuration.md` |
 | Slice 4 | Identity and recovery | pending | `docs/hatmax-identity-recovery` | `docs(slice-4): verify identity and recovery documentation` | pending | `ops/default/report/slices/documentation-conformance/slice-4-identity-and-recovery.md` |
 | Slice 5 | Infrastructure and helpers | pending | `docs/hatmax-infrastructure-helpers` | `docs(slice-5): reconcile infrastructure and helper guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-5-infrastructure-and-helpers.md` |
@@ -116,3 +116,9 @@ Slice 1 canonical PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/112.
 Report introduction: `1fe3c2e40d7d58a476dd20e0e3adf64a6ac7bc3f`.
 Both task commits are complete. The PR-reference follow-up records the canonical
 PR in this tracker and the report before final controller validation and push.
+
+Slice 1 of 7 completed: canonical PR #112 merged through Rebase + Fast-forward
+at `4edfea516b25656b2ab4797163ddbc6523c54e33`. Its exact clean-head controller
+receipt passed `GOWORK=off scripts/check-documentation-conformance.sh slice 1`
+followed by `git diff --check`. The report is delivered; integrated acceptance
+remains pending. Slice 2/T2.1/T2.2 is active on its approved branch and task map.

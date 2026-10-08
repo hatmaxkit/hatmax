@@ -15,8 +15,8 @@ Concern: [Documentation conformance](../spec/documentation-conformance.md)
 Tracker: [Delivery tracker](../tracker/documentation-conformance.md)
 Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
-Active slice: Slice 1
-Next slice: Slice 1
+Active slice: Slice 2
+Next slice: Slice 2
 Execution gate: Open — independent slice-loop execution authorized on 2026-10-08
 Slice strategy: layered
 Reason: inventory and evidence tooling establish the audit boundary; independently
@@ -30,7 +30,7 @@ this complete delivery set with the new slice-loop. The specification and plan
 are approved, implementation is authorized, and Rebase + Fast-forward merges
 into dev are delegated to this repository's independent controller.
 
-The execution gate is open for Slice 1/T1.1/T1.2. Each slice has one
+The execution gate is open for Slice 2/T2.1/T2.2. Each slice has one
 recorded branch, one canonical PR to dev and one report. The approved external
 controller owns Rebase + Fast-forward integration and immediate continuation
 through this set; no separate reviewer agent is introduced.
