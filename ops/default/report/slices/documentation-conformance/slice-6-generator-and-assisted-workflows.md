@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 6: Generator and Assisted Workflows
 
-Status: reviewing
+Status: delivered
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
@@ -105,11 +105,15 @@ Focused repository checks passed before the validation task commit:
 - `bash -n scripts/check-documentation-conformance.sh scripts/documentation-conformance/data-fixture.sh`
 - `git diff --check`
 
-The controller owns final exact-head validation after canonical PR references
-are committed and pushed. Its ordered evidence is authoritative:
+The controller passed final validation on clean pushed head
+`b1c4a8c37278d400bea93fa2b96307b7cb8bf54d`. Its ordered evidence is authoritative:
 
 - `GOWORK=off scripts/check-documentation-conformance.sh slice 6`
 - `git diff --check`
+
+Canonical PR #117 merged that head into dev through Rebase + Fast-forward.
+Forgejo and Acta confirm the merge. All cumulative evidence checks passed and
+owned fixtures stopped; the three blocked rows remain unresolved.
 
 ## Risks and Follow-ups
 
