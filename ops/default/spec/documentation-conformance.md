@@ -122,6 +122,23 @@ is an execution prerequisite.
 | DC09 | One clean immutable integrated dev candidate passes the repository-owned documentation gate; no unresolved or unverified coverage row is counted as current. |
 | DC10 | Closure states the verified revision, full coverage and actual evidence limits, and leaves independent resumable controller/report state. |
 
+## Native Tooling Closure Requirement
+
+Approved amendment: 2026-10-08. Use Go and shell for setup examples,
+documentation validators and workflow/fixture utilities when they solve the
+task. Do not add Python, Ruby or another auxiliary language runtime for those
+purposes. Existing auxiliary helpers in scope must follow the same rule.
+Technology required by the actual product surface, such as a browser and its
+JavaScript, keeps its existing purpose.
+
+DC09 cannot pass and this delivery set cannot close until current documentation
+and executable workflow requirements satisfy this constraint. The final gate
+must check current prerequisites, examples and executable helper dependencies,
+and demonstrate that the relevant Go/shell workflows succeed without auxiliary
+Python or Ruby interpreters available to their subprocesses. Report actual
+execution evidence, not only a prose declaration or text search. Historical
+reports retain the commands that were actually executed.
+
 ## Completion Claim
 
 The final claim is documentation conformance for the exact validated source

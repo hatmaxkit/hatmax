@@ -241,6 +241,15 @@ Verify exact title/base/branch/head/report and canonical merge result.
 
 ## Final Integration and Closure
 
+Maintainer amendment approved on 2026-10-08: closure requires Go/shell-native
+documentation and workflow helpers. Reconcile this constraint in the remaining
+tasks and final acceptance without changing slice identities. DC09 stays pending
+while any gratuitous auxiliary runtime dependency remains in current setup,
+examples, validators or fixtures. The final documentation gate must enforce the
+constraint and record successful relevant workflows with Python/Ruby unavailable
+to their subprocesses. Preserve historical evidence and product-owned browser
+technology. Do not close the set from an instruction acknowledgement alone.
+
 After all 7 slice PRs and report references are integrated, capture one clean
 immutable dev candidate identical to canonical origin/dev. The controller runs
 the repository-owned default documentation gate once against that candidate.

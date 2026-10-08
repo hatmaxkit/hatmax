@@ -69,6 +69,15 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 
 ## Acceptance Tracking
 
+Mandatory closure condition approved on 2026-10-08:
+
+- [ ] Current setup, examples, validators and fixtures use Go/shell where sufficient; no gratuitous auxiliary runtime requirement remains.
+- [ ] The final gate enforces this constraint and records successful relevant workflows without Python/Ruby interpreters available to their subprocesses.
+
+DC09 and delivery-set completion remain pending until both conditions pass.
+Historical execution records and product-owned browser technology retain their
+existing meaning.
+
 | Criterion | Evidence status | Reference |
 | --- | --- | --- |
 | DC01 | inventory established; integrated acceptance pending | `ops/default/report/documentation-conformance-coverage.md` |
