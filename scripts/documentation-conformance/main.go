@@ -53,6 +53,37 @@ func main() {
 }
 
 func run(args []string) error {
+	if len(args) == 2 && args[0] == "identity" {
+		return runIdentity(args[1])
+	}
+
+	if len(args) == 2 && args[0] == "identity-evidence" {
+		return checkIdentityEvidence(args[1])
+	}
+
+	if len(args) == 2 && args[0] == "identity-ticked" {
+		v, discovered, err := newGroupVerification(args[1], 4)
+		if err != nil {
+			return err
+		}
+
+		return v.identityTicked(discovered)
+	}
+
+	if len(args) == 2 && args[0] == "identity-contexts" {
+		v, discovered, err := newGroupVerification(args[1], 4)
+		if err != nil {
+			return err
+		}
+
+		err = compileIdentityContexts(v, discovered)
+		if err == nil {
+			fmt.Printf("Identity/crypto contexts passed: %d exact Go fragments; complete Slice 4 workflow receipts remain pending.\n", len(v.receipt.Proofs))
+		}
+
+		return err
+	}
+
 	if len(args) == 2 && args[0] == "data" {
 		return runData(args[1])
 	}
@@ -78,7 +109,7 @@ func run(args []string) error {
 	}
 
 	if len(args) != 1 || (args[0] != "inventory" && args[0] != "check") {
-		return fmt.Errorf("usage: documentation-conformance inventory|check|runtime FIXTURE|evidence RECEIPT|data-contexts FIXTURE|data-workbench FIXTURE|data FIXTURE|data-evidence RECEIPT")
+		return fmt.Errorf("usage: documentation-conformance inventory|check|runtime FIXTURE|evidence RECEIPT|data-contexts FIXTURE|data-workbench FIXTURE|data FIXTURE|data-evidence RECEIPT|identity-contexts FIXTURE|identity-ticked FIXTURE|identity FIXTURE|identity-evidence RECEIPT")
 	}
 
 	discovered, err := discover()
@@ -522,6 +553,9 @@ func reconcile(discovered, recorded []row) error {
 			slices.Contains([]string{"source-inspected", "compiled", "rendered", "executed", "package-tests"}, r.status)
 
 		verified = verified || (r.slice == 3 && r.receipt == "slice-3/data-receipts.json" &&
+			slices.Contains([]string{"source-inspected", "compiled", "executed", "package-tests"}, r.status))
+
+		verified = verified || (r.slice == 4 && r.receipt == "slice-4/identity-receipts.json" &&
 			slices.Contains([]string{"source-inspected", "compiled", "executed", "package-tests"}, r.status))
 		if (r.status != "inventoried" || r.receipt != "pending") && !verified {
 			return fmt.Errorf("unsupported status or receipt; future rows require pending receipts only: %s", r.id)

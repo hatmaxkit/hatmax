@@ -110,12 +110,20 @@ r.Use(auth.RequireAuth(svc, required, auth.RelevantActivity))
 r.Use(auth.OptionalAuth(svc, required, auth.NoActivity))
 
 // Redirect for TOTP setup (does not verify factor proof)
+require2fa, err := settingsSvc.GetBool(ctx, "security.require_2fa")
+if err != nil { return err }
+graceDays, err := settingsSvc.GetInt(ctx, "security.2fa_grace_period_days")
+if err != nil { return err }
 r.Use(auth.RequireTOTP(auth.TOTPEnforcement{
-    Enabled:   func() bool { return settingsSvc.GetBool(ctx, "security.require_2fa") },
-    GraceDays: func() int { return settingsSvc.GetInt(ctx, "security.2fa_grace_period_days") },
+    Enabled:   func() bool { return require2fa },
+    GraceDays: func() int { return graceDays },
     SetupURL:  "/settings/2fa",
 }))
 ```
+
+This assembly reads a checked settings snapshot. Live changes require an
+application-owned refresh/error policy; a failed settings read is not a false or
+zero value. `RequireTOTP` is a setup redirect, never an actual factor verifier.
 
 ## User Model
 

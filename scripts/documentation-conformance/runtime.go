@@ -40,13 +40,15 @@ type commandReceipt struct {
 }
 
 type processReceipt struct {
-	Arguments     []string `json:"arguments"`
-	Directory     string   `json:"directory"`
-	Environment   []string `json:"fixture_environment"`
-	Configuration string   `json:"configuration_sha256"`
-	Expected      string   `json:"expected_exit"`
-	Actual        string   `json:"actual_exit"`
-	Log           string   `json:"log"`
+	Arguments         []string `json:"arguments"`
+	Directory         string   `json:"directory"`
+	Environment       []string `json:"fixture_environment"`
+	Configuration     string   `json:"configuration_sha256"`
+	ConfigurationFile string   `json:"configuration_file,omitempty"`
+	Expected          string   `json:"expected_exit"`
+	Actual            string   `json:"actual_exit"`
+	Log               string   `json:"log"`
+	LogDigest         string   `json:"log_sha256,omitempty"`
 }
 
 type proof struct {
@@ -106,12 +108,21 @@ func executionInputs(discovered inventory) (string, error) {
 }
 
 func (v *verification) exec(directory, name string, args ...string) error {
+	return v.execBound(directory, 5*time.Minute, "", name, args...)
+}
+
+func (v *verification) execBound(directory string, bound time.Duration, input, name string, args ...string) error {
 	// Build and module commands have finite bounds independent of the external controller.
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), bound)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, name, args...)
+
 	cmd.Dir = directory
+	if input != "" {
+		cmd.Stdin = strings.NewReader(input)
+	}
+
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	cmd.Cancel = func() error { return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL) }
 	cmd.WaitDelay = 2 * time.Second
@@ -364,7 +375,7 @@ func (v *verification) packageGroup(discovered inventory, group int) error {
 	var selected []row
 
 	for _, r := range discovered.rows {
-		if r.slice == group && (strings.HasPrefix(r.id, "package:") || r.id == "example-package:examples/ticked/internal/feat/list") && r.id != "package:render" {
+		if r.slice == group && (strings.HasPrefix(r.id, "package:") || r.id == "example-package:examples/ticked/internal/feat/list" || (group == 4 && strings.HasPrefix(r.id, "example-package:"))) && r.id != "package:render" {
 			args = append(args, "./"+r.source)
 			selected = append(selected, r)
 		}
@@ -485,13 +496,21 @@ type ownedProcess struct {
 }
 
 func (v *verification) start(binary, directory string, env []string, name string) (*ownedProcess, error) {
+	return v.startCommand([]string{binary}, directory, env, name)
+}
+
+func (v *verification) startCommand(arguments []string, directory string, env []string, name string) (*ownedProcess, error) {
 	log, err := os.OpenFile(filepath.Join(v.fixture, name+"-process.log"), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 	if err != nil {
 		return nil, err
 	}
 
-	cmd := exec.Command(binary)
+	cmd := exec.Command(arguments[0], arguments[1:]...)
+
 	cmd.Dir = directory
+	if strings.HasPrefix(name, "ticked-make") {
+		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	}
 
 	cmd.Env = append(os.Environ(), env...)
 	cmd.Stdout, cmd.Stderr = log, log
@@ -517,9 +536,20 @@ func (v *verification) start(binary, directory string, env []string, name string
 		expected = "signal interrupt; coordinator absent"
 	}
 
+	if strings.HasPrefix(name, "ticked-make") {
+		expected = "owned make group interrupted; application coordinated shutdown"
+	}
+
+	safeEnv := append([]string(nil), env...)
+	for index, value := range safeEnv {
+		if strings.HasPrefix(value, "TICKED_CREDENTIAL_KEY=") {
+			safeEnv[index] = "TICKED_CREDENTIAL_KEY=<private fixture value>"
+		}
+	}
+
 	index := len(v.receipt.Processes)
 	v.receipt.Processes = append(v.receipt.Processes, processReceipt{
-		Arguments: cmd.Args, Directory: directory, Environment: env, Configuration: digest(string(configuration)),
+		Arguments: cmd.Args, Directory: directory, Environment: safeEnv, Configuration: digest(string(configuration)),
 		Expected: expected, Log: name + "-process.log",
 	})
 
@@ -532,7 +562,13 @@ func (v *verification) start(binary, directory string, env []string, name string
 func (p *ownedProcess) stop(graceful bool) error {
 	defer p.log.Close()
 
-	_ = p.cmd.Process.Signal(os.Interrupt)
+	group := p.cmd.SysProcAttr != nil && p.cmd.SysProcAttr.Setpgid
+	if group {
+		_ = syscall.Kill(-p.cmd.Process.Pid, syscall.SIGINT)
+	} else {
+		_ = p.cmd.Process.Signal(os.Interrupt)
+	}
+
 	select {
 	case err := <-p.done:
 		actual := "exit 0"
@@ -541,6 +577,12 @@ func (p *ownedProcess) stop(graceful bool) error {
 		}
 
 		p.verification.receipt.Processes[p.index].Actual = actual
+
+		if group {
+			// Make may report the interrupted recipe after its owned application
+			// closes ingress. The caller separately inspects coordinator completion.
+			return nil
+		}
 
 		if graceful {
 			return err
@@ -557,7 +599,12 @@ func (p *ownedProcess) stop(graceful bool) error {
 
 		return err
 	case <-time.After(10 * time.Second):
-		_ = p.cmd.Process.Kill()
+		if group {
+			_ = syscall.Kill(-p.cmd.Process.Pid, syscall.SIGKILL)
+		} else {
+			_ = p.cmd.Process.Kill()
+		}
+
 		<-p.done
 		p.verification.receipt.Processes[p.index].Actual = "shutdown deadline exceeded; owned process killed"
 

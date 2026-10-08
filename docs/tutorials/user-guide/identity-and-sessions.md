@@ -296,7 +296,7 @@ management to enroll a passkey. Request fields cannot change that policy.
 
 After wiring migrations, trusted RP/origin policy and encryption keys, run the
 [finite browser acceptance check](../../reference/authentication/README.md#browser-acceptance)
-with an owned PostgreSQL fixture, Chromium and Node. The tagged check performs
+with an owned PostgreSQL fixture, Go and Chromium. The tagged check performs
 actual passkey registration, sign-in, step-up and the management page's add-passkey
 control. It also completes TOTP and backup-code MFA and rejects their use at the
 phishing-resistant route. Missing prerequisites fail the check.
@@ -380,7 +380,7 @@ for retry, timing and deployment boundaries.
 
 After wiring recovery routes, run the
 [recovery browser acceptance check](../../reference/authentication/README.md#recovery-browser-acceptance)
-with the owned database, Chromium, Node and captured mail fixture. It exercises
+with the owned database, Go, Chromium and captured mail fixture. It exercises
 the forms, required-MFA re-entry, notifications and a lost committed response.
 Your application remains responsible for actual provider delivery, trusted proxy
 and deployment-wide anti-automation controls, bounded cleanup/retry scheduling

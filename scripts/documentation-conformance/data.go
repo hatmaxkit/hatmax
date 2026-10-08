@@ -13,6 +13,10 @@ import (
 )
 
 func newDataVerification(fixture string) (*verification, inventory, error) {
+	return newGroupVerification(fixture, 3)
+}
+
+func newGroupVerification(fixture string, group int) (*verification, inventory, error) {
 	root, err := os.Getwd()
 	if err != nil {
 		return nil, inventory{}, err
@@ -24,8 +28,8 @@ func newDataVerification(fixture string) (*verification, inventory, error) {
 	}
 
 	relative, err := filepath.Rel(root, fixture)
-	if err != nil || !strings.HasPrefix(filepath.ToSlash(relative), ".tmp/documentation-conformance/slice-3.") {
-		return nil, inventory{}, fmt.Errorf("data checks require owned slice-3 fixture storage")
+	if err != nil || (group != 3 && group != 4) || !strings.HasPrefix(filepath.ToSlash(relative), fmt.Sprintf(".tmp/documentation-conformance/slice-%d.", group)) {
+		return nil, inventory{}, fmt.Errorf("checks require owned slice-%d fixture storage", group)
 	}
 
 	_, err = command("git", "check-ignore", filepath.Join(fixture, "data-receipts.json"))

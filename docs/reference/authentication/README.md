@@ -774,13 +774,13 @@ Apply migration `007-factor-control.sql` together with the current typed adapter
 
 Run the optional `browser` build-tag test explicitly. It fails when prerequisites
 are absent; default package tests do not claim browser coverage. Supply Go 1.27.1,
-a Chromium executable with CDP virtual-authenticator support, Node with its built-in
-`WebSocket` implementation, and an owned PostgreSQL database user that can create
-and drop schemas. The verified local versions are Chromium 151.0.7922.173,
-Node v26.8.1 and PostgreSQL 18.6.
+a Chromium executable with CDP virtual-authenticator support, and an owned
+PostgreSQL database user that can create and drop schemas. Go owns browser
+launch, finite CDP calls, profiles and cleanup through a private debugging pipe.
+Browser JavaScript exercises actual navigator operations and served forms.
 
 ```sh
-export CHROMIUM_BIN=/usr/sbin/chromium NODE_BIN=/usr/sbin/node
+export CHROMIUM_BIN="$(command -v chromium)"
 export DB_HOST=/path/to/owned/postgresql/socket DB_PORT=5432
 export DB_USER=postgres DB_NAME=postgres DB_PASSWORD=''
 go test -race -tags=browser ./examples/ticked/internal/web \
@@ -795,13 +795,13 @@ phishing-resistant routes share the application's trusted policy revision;
 management requires recent phishing-resistant proof. Factor access is deliberately
 phishing-resistant in this fixture to exercise the last-passkey constraint.
 
-The finite Node harness uses the
+The Go-owned browser fixture uses the
 [Chrome DevTools WebAuthn protocol](https://chromedevtools.github.io/devtools-protocol/tot/WebAuthn/)
 with CTAP2/RK/UV, an internal device and a second USB device for another passkey.
-It uses an isolated profile, loopback debugging and owned short socket scratch
+It uses an isolated profile, a private debugging pipe and owned short socket scratch
 under `/tmp/hatmax-browser-*`. It closes that browser and removes fixture scratch
-after completion. No npm module, externally stored credential or signed-response
-substitute supplies the successful browser journeys.
+after completion. No externally stored credential or signed-response substitute
+supplies the successful browser journeys.
 
 The test-only `/__test/otp` route generates actual codes through the existing OTP
 library; it never verifies proof or changes persistence. This route exists only
@@ -1070,7 +1070,7 @@ go test -tags=browser -race -run '^TestAccountRecoveryBrowser$' \
   -count=1 -timeout=360s ./examples/ticked/internal/web
 ```
 
-The recovery browser child has a 300-second deadline. The composite fixture explicitly
+The recovery browser process has a 300-second deadline. The composite fixture explicitly
 sets a finite 40-attempt authenticator subject window because its combined
 positive/negative ceremonies exceed the default ten attempts; production defaults
 remain unchanged. The journey respects the real one-minute ingress window before
@@ -1119,7 +1119,7 @@ only active count or redacted events and grant no authority.
 
 The schema-local fixture uses 20 password-proof attempts and ten registrations;
 a dedicated account's nearly spent window is prepared through actual failed
-password operations. The authenticator child has a 210-second deadline; recovery
+password operations. The authenticator process has a 210-second deadline; recovery
 has 300 seconds. Server header/read/write/idle deadlines, CDP calls, owned profiles
 and log capture are finite. Production defaults are unchanged.
 

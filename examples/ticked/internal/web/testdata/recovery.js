@@ -3,12 +3,10 @@
 //
 // This file is part of Hatmax. See LICENSE for license terms.
 
-import assert from 'node:assert/strict';
-import {setTimeout as delay} from 'node:timers/promises';
 
 // Drive the production forms and actual navigator MFA. Test-only routes read
 // captured dispatch and control provider/transport failure, never authentication.
-export async function runRecovery({origin, page, evaluate, navigate, cookie, cookies, replaceCookie, stage}) {
+async function runRecovery({origin, page, evaluate, navigate, cookie, cookies, replaceCookie, stage}) {
   const email = 'passkey@example.com';
   const changed = 'a changed browser password 😀';
   const reset = 'a reset browser password 😀';

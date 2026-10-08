@@ -133,14 +133,12 @@ func TestAuthenticatorBrowser(t *testing.T) {
 
 func runAuthenticatorBrowser(t *testing.T, recovery bool) {
 	t.Helper()
-	node := browserEnvironment(t, "NODE_BIN", false)
 
 	chromium := browserEnvironment(t, "CHROMIUM_BIN", false)
-	for _, binary := range []string{node, chromium} {
-		_, err := exec.LookPath(binary)
-		if err != nil {
-			t.Fatal(err)
-		}
+
+	_, err := exec.LookPath(chromium)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	q, cfg := browserQueries(t)
@@ -332,14 +330,7 @@ func runAuthenticatorBrowser(t *testing.T, recovery bool) {
 	ctx, cancel := context.WithTimeout(t.Context(), timeout)
 	defer cancel()
 
-	args := []string{"testdata/authenticators.mjs", chromium, origin, t.TempDir()}
-	if recovery {
-		args = append(args, "account-recovery")
-	}
-
-	command := exec.CommandContext(ctx, node, args...)
-
-	output, err := command.CombinedOutput()
+	output, err := runNativeBrowser(ctx, chromium, origin, t.TempDir(), recovery)
 	if err != nil {
 		t.Fatalf("browser acceptance: %v\n%s", err, output)
 	}

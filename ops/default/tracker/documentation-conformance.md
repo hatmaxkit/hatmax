@@ -17,7 +17,7 @@ Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
 Active slice: Slice 4
 Next slice: Slice 4
-Active tasks: T4.1, T4.2
+Active tasks: T4.2
 Execution gate: Open — independent slice-loop execution authorized on 2026-10-08
 
 ## Slice Status
@@ -42,7 +42,7 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | T2.2 | completed | `test(docs): verify runtime and presentation examples` | `79a9665a852ffd11f0383146ae745ada41f5d0da` |
 | T3.1 | completed | `docs: reconcile data and configuration guidance` | `c48977e03c158214f6118312d8e331b4dec8bd40` |
 | T3.2 | completed | `test(docs): verify data and configuration examples` | `22b7bd76e7d239185a1ac2bb06e2be11b7ce1442` |
-| T4.1 | pending | `docs: reconcile identity and recovery guidance` | pending |
+| T4.1 | completed | `docs: reconcile identity and recovery guidance` | `f96565f609da32a7430cc617138d72d016376fcf` |
 | T4.2 | pending | `test(docs): verify identity and recovery examples` | pending |
 | T5.1 | pending | `docs: reconcile infrastructure and helper guidance` | pending |
 | T5.2 | pending | `test(docs): verify infrastructure and helper examples` | pending |
@@ -205,3 +205,15 @@ PHC credentials, signed readable PASETO claims and application key ownership.
 Fragments name their owning contexts and retain error handling. Documentation,
 strict lint, whitespace and 451-identity/navigation checks passed; Slice 4
 behavioral evidence remains pending for T4.2.
+
+T4.2 supplies typed contexts for 15 exact Go fragments, including executed
+crypto outcomes and private key-generation output. Go now owns Chromium/CDP,
+profiles and bounded shutdown; JavaScript executes only actual browser journeys.
+The published WebAuthn JSON-conversion fragment and all three uncached race
+selectors passed against production handlers and owned PostgreSQL. Actual Ticked
+entrypoint/Make workflows passed native role/database creation, configuration,
+signup without a session, password sign-in, restart persistence, cookie retirement
+and coordinated shutdown. The development run produced 50 classified bindings.
+Exact-head cumulative runner/evidence checks follow the PR-reference commit;
+DC05/DC08 integrated acceptance and the mandatory native-toolchain closure gate
+remain pending for Slice 7. Historical interpreter-based evidence is unchanged.

@@ -3,68 +3,6 @@
 //
 // This file is part of Hatmax. See LICENSE for license terms.
 
-import assert from 'node:assert/strict';
-import {runControls} from './controls.mjs';
-import {runRecovery} from './recovery.mjs';
-import {spawn} from 'node:child_process';
-import {mkdtemp, readFile, rm} from 'node:fs/promises';
-import {setTimeout as delay} from 'node:timers/promises';
-
-const [binary, origin, profile, concern] = process.argv.slice(2);
-assert(binary && origin && profile, 'mandatory browser arguments');
-const socketScratch = await mkdtemp('/tmp/hatmax-browser-');
-const browser = spawn(binary, [
-  '--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
-  '--disable-background-networking', '--remote-debugging-address=127.0.0.1',
-  '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank',
-], {stdio: ['ignore', 'ignore', 'pipe'], env:{...process.env, TMPDIR:socketScratch}});
-let startupDiagnostics = '';
-browser.stderr.on('data', chunk => { if (startupDiagnostics.length < 4096) startupDiagnostics += chunk.toString(); });
-const exited = new Promise(resolve => browser.once('exit', resolve));
-let socket;
-let serial = 0;
-const pending = new Map();
-const call = (method, params = {}, sessionId) => new Promise((resolve, reject) => {
-  const id = ++serial;
-  const timer = setTimeout(() => {
-    pending.delete(id);
-    reject(Error(`CDP timeout: ${method}`));
-  }, 15000);
-  pending.set(id, {resolve, reject, timer});
-  socket.send(JSON.stringify({id, method, params, ...(sessionId ? {sessionId} : {})}));
-});
-async function waitFor(check, label) {
-  const deadline = Date.now() + 10000;
-  while (Date.now() < deadline) {
-    if (await check()) return;
-    await delay(25);
-  }
-  throw Error(`Browser condition timeout: ${label}`);
-}
-
-try {
-  let port;
-  await waitFor(async () => {
-    try { port = Number((await readFile(`${profile}/DevToolsActivePort`, 'utf8')).split('\n')[0]); }
-    catch { if (browser.exitCode !== null || browser.signalCode !== null) throw Error(`Chromium startup failed (${browser.exitCode}/${browser.signalCode}): ${startupDiagnostics}`); return false; }
-    return port > 0;
-  }, 'owned debugging endpoint');
-  const version = await (await fetch(`http://127.0.0.1:${port}/json/version`)).json();
-  assert(new URL(version.webSocketDebuggerUrl).hostname === '127.0.0.1');
-  socket = new WebSocket(version.webSocketDebuggerUrl);
-  await new Promise((resolve, reject) => {
-    socket.addEventListener('open', resolve, {once: true});
-    socket.addEventListener('error', reject, {once: true});
-  });
-  socket.addEventListener('message', ({data}) => {
-    const response = JSON.parse(data);
-    const request = pending.get(response.id);
-    if (!request) return;
-    pending.delete(response.id);
-    clearTimeout(request.timer);
-    if (response.error) request.reject(Error(`CDP rejected command: ${response.error.message}`));
-    else request.resolve(response.result);
-  });
   const {targetId} = await call('Target.createTarget', {url: 'about:blank'});
   const {sessionId} = await call('Target.attachToTarget', {targetId, flatten: true});
   const page = (method, params) => call(method, params, sessionId);
@@ -151,7 +89,7 @@ try {
     return c.value;
   }
   const replaceCookie = async value => page('Network.setCookie', {name:'session', value, url:origin, path:'/', secure:true, httpOnly:true, sameSite:'Lax'});
-  const stage = name => process.stdout.write(`PASS ${name}\n`);
+  const stage = name => stages.push(`PASS ${name}`);
 
   await navigate('/');
   await runControls({evaluate,cookies,stage});
@@ -162,7 +100,13 @@ try {
     window.enroll = await flow.ok('/authenticators/enrollment/begin', {email:'passkey@example.com',password:'a distinct safe password'});
   })()`);
   assert((await cookie()) === weak, 'begin cannot replace password cookie');
-  await evaluate(`(async () => {window.registration = await flow.create(enroll); await flow.ok('/authenticators/enrollment/finish', registration, {'X-Enrollment-Token':enroll.token});})()`);
+  if (publishedRegistration) {
+    await evaluate(`(async () => {const begin=enroll; ${publishedRegistration}
+      flow.check(response.status===200, 'published registration finish');
+      window.registration=credential.toJSON();})()`);
+  } else {
+    await evaluate(`(async () => {window.registration = await flow.create(enroll); await flow.ok('/authenticators/enrollment/finish', registration, {'X-Enrollment-Token':enroll.token});})()`);
+  }
   assert.equal((await cookies()).length, 0, 'registration issues no session');
   await evaluate(`flow.denied('/authenticators/enrollment/finish', registration, {'X-Enrollment-Token':enroll.token})`);
   await evaluate(`flow.signin()`);
@@ -258,14 +202,3 @@ try {
   const credentials = await page('WebAuthn.getCredentials', {authenticatorId});
   const secondCredentials = await page('WebAuthn.getCredentials', {authenticatorId:secondDevice.authenticatorId});
   assert.equal(credentials.credentials.length + secondCredentials.credentials.length, 2, 'real virtual-device registration inventory');
-  process.stdout.write(`BROWSER ${version.Browser}; CTAP2/internal+USB/RK/UV; journeys complete\n`);
-} finally {
-  for (const request of pending.values()) clearTimeout(request.timer);
-  // Browser.close targets only the debugging connection of our owned profile.
-  if (socket?.readyState === WebSocket.OPEN) {
-    try { await call('Browser.close'); } catch { /* Closing may precede its reply. */ }
-    socket.close();
-  }
-  await Promise.race([exited, delay(10000).then(() => {throw Error('owned browser did not exit');})]);
-  await rm(socketScratch, {recursive:true});
-}

@@ -3,11 +3,10 @@
 //
 // This file is part of Hatmax. See LICENSE for license terms.
 
-import assert from 'node:assert/strict';
 
 // Real browser requests cross the production ingress, PostgreSQL admission and
 // application observer. Fixture reads expose no token, password or authority.
-export async function runControls({evaluate, cookies, stage}) {
+async function runControls({evaluate, cookies, stage}) {
   const events = () => evaluate(`(async () => (await fetch('/__test/security-events', {cache:'no-store'})).json())()`);
   const post = (path, fields) => evaluate(`(async () => {
     const started = performance.now();

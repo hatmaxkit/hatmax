@@ -74,7 +74,7 @@ var importPaths = map[string]string{
 }
 
 func init() {
-	for _, owner := range []string{"app", "config", "db", "format", "htmx", "i18n", "middleware", "modal", "model", "pagination", "render", "seed", "settings", "slug", "ui", "validation", "web"} {
+	for _, owner := range []string{"app", "auth", "crypto", "config", "db", "format", "htmx", "i18n", "middleware", "modal", "model", "pagination", "render", "seed", "settings", "slug", "ui", "validation", "web"} {
 		importPaths[owner] = "hatmax.adrianpk.com/" + owner
 	}
 }
