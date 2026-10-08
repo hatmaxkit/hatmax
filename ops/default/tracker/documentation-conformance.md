@@ -15,9 +15,9 @@ Concern: [Documentation conformance](../spec/documentation-conformance.md)
 Plan: [Delivery plan](../plan/documentation-conformance.md)
 Base branch: `dev`
 Planning base: `3ec58ea2207f71b8eddae39501e69485d2673470`
-Active slice: Slice 5
-Next slice: Slice 5
-Active tasks: none — Slice 5 PR validation pending
+Active slice: Slice 6
+Next slice: Slice 6
+Active tasks: T6.1, T6.2
 Execution gate: Open — independent slice-loop execution authorized on 2026-10-08
 
 ## Slice Status
@@ -28,8 +28,8 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | Slice 2 | Runtime and presentation | delivered | `docs/hatmax-runtime-presentation` | `docs(slice-2): reconcile runtime and presentation guidance` | `#113` | `ops/default/report/slices/documentation-conformance/slice-2-runtime-and-presentation.md` |
 | Slice 3 | Data and configuration | delivered | `docs/hatmax-data-configuration` | `docs(slice-3): reconcile data and configuration guidance` | `#114` | `ops/default/report/slices/documentation-conformance/slice-3-data-and-configuration.md` |
 | Slice 4 | Identity and recovery | delivered | `docs/hatmax-identity-recovery` | `docs(slice-4): verify identity and recovery documentation` | `#115` | `ops/default/report/slices/documentation-conformance/slice-4-identity-and-recovery.md` |
-| Slice 5 | Infrastructure and helpers | active | `docs/hatmax-infrastructure-helpers` | `docs(slice-5): reconcile infrastructure and helper guidance` | `#116` | `ops/default/report/slices/documentation-conformance/slice-5-infrastructure-and-helpers.md` |
-| Slice 6 | Generator and assisted workflows | pending | `docs/hatmax-generator-guidance` | `docs(slice-6): reconcile generator and assisted workflow guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-6-generator-and-assisted-workflows.md` |
+| Slice 5 | Infrastructure and helpers | delivered | `docs/hatmax-infrastructure-helpers` | `docs(slice-5): reconcile infrastructure and helper guidance` | `#116` | `ops/default/report/slices/documentation-conformance/slice-5-infrastructure-and-helpers.md` |
+| Slice 6 | Generator and assisted workflows | active | `docs/hatmax-generator-guidance` | `docs(slice-6): reconcile generator and assisted workflow guidance` | pending | `ops/default/report/slices/documentation-conformance/slice-6-generator-and-assisted-workflows.md` |
 | Slice 7 | Integrated documentation acceptance | pending | `docs/hatmax-documentation-acceptance` | `docs(slice-7): establish complete documentation acceptance` | pending | `ops/default/report/slices/documentation-conformance/slice-7-integrated-documentation-acceptance.md` |
 
 ## Tasks
@@ -243,3 +243,11 @@ Both task commits and canonical references are complete. The controller records
 `GOWORK=off scripts/check-documentation-conformance.sh slice 5` followed by
 `git diff --check` against the clean pushed head after this reference commit.
 The primary checkout remains on dev; merge remains controller-owned.
+
+Slice 5 of 7 completed: canonical PR #116 merged through Rebase + Fast-forward
+at `b29aa327d3b8a815b79c894571438ce2a6f44144`. Its exact clean-head controller
+receipt passed the ordered Slice 5 command and whitespace check: 451 identities,
+141 runtime, 89 data, 50 identity and 92 infrastructure bindings reconciled.
+Owned fixtures stopped. The report is delivered; Slice 6/T6.1/T6.2 is active
+with its approved identities. Integrated acceptance and generic native-toolchain
+closure remain pending.

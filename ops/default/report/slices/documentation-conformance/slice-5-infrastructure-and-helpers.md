@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 5: Infrastructure and Helpers
 
-Status: reviewing
+Status: delivered
 Delivery set: documentation-conformance
 Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
@@ -18,6 +18,7 @@ Documentation task: `a94d6a41afd83e55c7cd02fe70b36238846c9e04`
 Validation task: `38eb310994d7abf1731bd3aeb2ccb14d8a628ae4`
 Report introduction: `b1b77bb68e9e0c3c25b87f5b2ed2a64076dc8122`
 Canonical PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/116
+Merged revision: `b29aa327d3b8a815b79c894571438ce2a6f44144`
 
 ## Purpose
 
@@ -111,11 +112,15 @@ configuration loading requires a non-empty argument vector, and broker payload
 storage needs UTF-8 decoding before JSON inspection. Corrected fixtures passed;
 no production correction was required.
 
-The controller records the final ordered checks against the clean pushed head
-after canonical PR references are complete:
+The controller passed the final ordered checks against clean pushed head
+`b29aa327d3b8a815b79c894571438ce2a6f44144`, including canonical PR references:
 
 - `GOWORK=off scripts/check-documentation-conformance.sh slice 5`
 - `git diff --check`
+
+The gate reconciled 451 identities and 141 runtime, 89 data, 50 identity and
+92 infrastructure bindings. Owned sinks, processes, schemas and clusters stopped.
+Canonical Forgejo and Acta confirm PR #116 merged at the tested revision.
 
 ## Risks and Follow-ups
 
