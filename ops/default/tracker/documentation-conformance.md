@@ -38,8 +38,8 @@ Execution gate: Open — independent slice-loop execution authorized on 2026-10-
 | --- | --- | --- | --- |
 | T1.1 | completed | `docs: inventory Hatmax documentation surfaces` | `596cde4204b7596309760b3ffe8f819aff5b34be` |
 | T1.2 | completed | `test(docs): establish Hatmax conformance checks` | `1fe3c2e40d7d58a476dd20e0e3adf64a6ac7bc3f` |
-| T2.1 | completed | `docs: reconcile runtime and presentation guidance` | `8d1866f51cbb032758e1ce244e77daaa505072c9` |
-| T2.2 | completed | `test(docs): verify runtime and presentation examples` | `50c753df487040e128b1a950bcbd4be2f3a3b1f4` |
+| T2.1 | completed | `docs: reconcile runtime and presentation guidance` | `cc268ec177e4cdd23817d5bf363fe152ebf5edcf` |
+| T2.2 | completed | `test(docs): verify runtime and presentation examples` | `79a9665a852ffd11f0383146ae745ada41f5d0da` |
 | T3.1 | pending | `docs: reconcile data and configuration guidance` | pending |
 | T3.2 | pending | `test(docs): verify data and configuration examples` | pending |
 | T4.1 | pending | `docs: reconcile identity and recovery guidance` | pending |
@@ -146,6 +146,11 @@ The canonical PR and final clean-head controller evidence are prepared after
 this task commit; Slice 2 remains active until canonical merge verification.
 
 Slice 2 canonical PR: https://forge.adrianpk.com/hatmax/hatmax/pulls/113.
-Report introduction: `50c753df487040e128b1a950bcbd4be2f3a3b1f4`.
+Report introduction: `79a9665a852ffd11f0383146ae745ada41f5d0da`.
 Both task commits and PR references are complete. Final clean-head validation
 is recorded through the controller before readiness; merge remains controller-owned.
+
+Slice 2 repair rebased the existing candidate onto canonical dev
+`064c5490f8f97f730cd37daaf80de6492d495cec`, preserving the approved native-tooling
+closure condition. Task and report-introduction references identify the replayed
+commits; the final pushed repair head requires fresh ordered controller checks.

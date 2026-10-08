@@ -13,8 +13,9 @@ Plan: [Delivery plan](../../../plan/documentation-conformance.md)
 Tracker: [Delivery tracker](../../../tracker/documentation-conformance.md)
 Branch: `docs/hatmax-runtime-presentation`
 PR: `#113`
-Report introduction: `50c753df487040e128b1a950bcbd4be2f3a3b1f4`
+Report introduction: `79a9665a852ffd11f0383146ae745ada41f5d0da`
 Activation revision: `84180a9b003fb661604f612d7015e39d03a203d0`
+Rebased dev revision: `064c5490f8f97f730cd37daaf80de6492d495cec`
 
 ## Purpose
 
@@ -109,7 +110,11 @@ Focused local checks passed while implementing:
 - `bash -n scripts/check-documentation-conformance.sh` — passed.
 - `GOWORK=off make lint-strict` — passed with zero issues.
 
-The controller records the ready gate after the PR-reference follow-up is pushed,
+The repair rebases this candidate onto current dev, including its approved
+native-tooling closure amendment. Task, report-introduction and inspected
+revision references identify the replayed commits. Earlier successful checks
+remain historical evidence; the controller regenerates the ready gate after
+the repair reference follow-up is pushed,
 on the exact clean PR head, in this order:
 
 - `GOWORK=off scripts/check-documentation-conformance.sh slice 2`
@@ -122,7 +127,7 @@ canonical PR. Integrated documentation acceptance remains with Slice 7.
 
 ## Risks and Follow-ups
 
-The approved native-tooling closure amendment remains on canonical dev; these
+The approved native-tooling closure amendment is included from canonical dev; these
 validators and fixture utilities use Go/shell. Slice 7 owns its final constrained
 toolchain acceptance. Later slices verify database-backed Guide and Ticked journeys and complete
 cross-quadrant acceptance. Conceptual chapters retain source inspection; compile
