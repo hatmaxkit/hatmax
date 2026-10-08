@@ -69,3 +69,35 @@ func TestBrowserEvidence(t *testing.T) {
 		})
 	}
 }
+
+// Foreground Make may receive SIGINT itself after the application's orderly
+// shutdown. Accept that wrapper outcome while retaining strict direct-process
+// success and rejecting unrelated signals, failures and missing expectations.
+func TestTickedCompletion(t *testing.T) {
+	for _, tc := range []struct {
+		name, actual string
+		index        int
+		valid        bool
+	}{
+		{"direct success", "exit 0", 0, true},
+		{"direct interrupted", "signal: interrupt", 0, false},
+		{"make success", "exit 0", 2, true},
+		{"make recipe interrupted", "exit status 2", 2, true},
+		{"make interrupted", "signal: interrupt", 2, true},
+		{"make terminated", "signal: terminated", 2, false},
+		{"make failed", "exit status 1", 2, false},
+		{"missing", "", 2, false},
+		{"extra process", "exit 0", 3, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			expected := "exit 0 after Ctrl+C"
+			if tc.index >= 2 {
+				expected = "owned make group interrupted; application coordinated shutdown"
+			}
+
+			if validTickedCompletion(tc.index, processReceipt{Actual: tc.actual, Expected: expected}) != tc.valid {
+				t.Fatalf("unexpected foreground completion classification")
+			}
+		})
+	}
+}

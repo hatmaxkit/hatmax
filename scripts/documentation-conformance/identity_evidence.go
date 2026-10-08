@@ -341,7 +341,7 @@ func checkIdentityEvidence(file string) error {
 			return fmt.Errorf("Ticked configuration identity mismatch")
 		}
 
-		if index < 2 && (process.Actual != "exit 0" || process.Expected != "exit 0 after Ctrl+C") || index == 2 && (process.Expected != "owned make group interrupted; application coordinated shutdown" || process.Actual != "exit 0" && process.Actual != "exit status 2") {
+		if !validTickedCompletion(index, process) {
 			return fmt.Errorf("Ticked process completion mismatch")
 		}
 
@@ -372,6 +372,18 @@ func checkIdentityEvidence(file string) error {
 	fmt.Printf("Exact-head identity evidence reconciled: %d bindings; owned database, Ticked and Chromium processes stopped.\n", len(receipt.Proofs))
 
 	return nil
+}
+
+func validTickedCompletion(index int, process processReceipt) bool {
+	if index < 2 {
+		return index >= 0 && process.Actual == "exit 0" && process.Expected == "exit 0 after Ctrl+C"
+	}
+
+	// Ctrl+C reaches the whole owned foreground group. Make may itself report
+	// SIGINT, an interrupted recipe or success; the application must separately
+	// demonstrate coordinator/database completion and a closed HTTP listener.
+	return index == 2 && process.Expected == "owned make group interrupted; application coordinated shutdown" &&
+		(process.Actual == "exit 0" || process.Actual == "exit status 2" || process.Actual == "signal: interrupt")
 }
 
 func verifyIdentityCommands(receipt runtimeReceipt, fixture string) error {

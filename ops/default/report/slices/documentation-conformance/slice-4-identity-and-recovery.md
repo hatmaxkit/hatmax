@@ -141,6 +141,14 @@ error-handling mismatch, an incorrect signout status expectation and licensing
 paths left at the old fixture names. Corrections passed their focused checks
 and actual workflows; no production proof bypass or lint-policy change was used.
 
+The first controller run on `c7f1b8e1dd820fdc1392570e056e7850795d110d`
+passed all workflows but rejected foreground Make's actual `signal: interrupt`
+exit. Its application had completed coordinator/database shutdown and closed
+the listener. The checker now recognizes that Ctrl+C wrapper outcome alongside
+success/interrupted-recipe exits, while still requiring shutdown diagnostics and
+strict success for direct application processes. A regression check rejects
+unrelated signals and failed/empty outcomes; exact-head evidence is regenerated.
+
 ## Risks and Follow-ups
 
 DC05/DC08 integrated acceptance and DC09's native-toolchain closure demonstration
