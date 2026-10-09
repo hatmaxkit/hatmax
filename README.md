@@ -34,11 +34,11 @@ It includes:
 
 ## Quick Start
 
-With Go 1.27.1, clone current `dev` and bind the application to that source
-revision. Published v0.5.0 uses the older server API:
+With Go 1.27.1, clone the source and bind the application to that revision.
+Hatmax v0.6.0 provides the caller-owned server API shown below:
 
 ```sh
-git clone --branch dev https://forge.adrianpk.com/hatmax/hatmax.git hatmax
+git clone --branch v0.6.0 https://forge.adrianpk.com/hatmax/hatmax.git hatmax
 mkdir myapp
 cd myapp
 go mod init example.com/myapp
@@ -127,9 +127,9 @@ and the supporting package boundaries.
 
 ## Build with Hatmax
 
-Install the current command from the source checkout. Published v0.5.0 has no
-`cmd/hm`. Add Go's binary directory to `PATH`; authenticate a compatible Codex
-CLI and resident App Server before requesting generation. Run `hm` from a parent
+Build `hm` from the source checkout. Add Go's binary directory to `PATH`;
+authenticate a compatible Codex CLI and resident App Server before requesting
+generation. Run `hm` from a parent
 directory to create an application, or from a compatible existing project to
 evolve it:
 
@@ -154,11 +154,9 @@ See
 guided workflow and [Generator](docs/reference/generator/README.md) for the
 exact contract and prerequisites.
 
-The current fresh scaffold cannot complete follow-up evolution: composition-root
-resolution fails. Required timestamp updates also fail generated SQLC row mapping;
-minimum-length validation can retain changes and then fail generated-test lint.
-[Assisted Generation](docs/tutorials/user-guide/assisted-generation.md) records
-these limits and the successful existing-project operations separately.
+After creating an application, continue its conversation to add features,
+fields, validation and explicitly requested documentation. Each change requires
+its own plan approval and project validation.
 
 ## Package Map
 

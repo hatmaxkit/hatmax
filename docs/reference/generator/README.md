@@ -20,16 +20,15 @@ conformance, and validation.
 
 ## Installation Requirements
 
-Build the current command from a `dev` source checkout using Go 1.27.1.
+Build the v0.6.0 command from its source checkout using Go 1.27.1.
 Run from the Hatmax checkout root:
 
 ```sh
 go install ./cmd/hm
 ```
 
-Add the resulting Go binary directory to `PATH`. Published `v0.5.0` contains
-`cmd/hatmax`, but does not contain `cmd/hm`; `hm@latest` cannot install this
-source command from that release. The command also requires:
+Add the resulting Go binary directory to `PATH`. The v0.6.0 release contains
+both `hm` and the `hatmax` compatibility alias. The command also requires:
 
 - a compatible, authenticated `codex` executable on `PATH`; installation and
   authentication are covered by the
@@ -165,7 +164,7 @@ Diataxis quadrant and preserve text outside Hatmax-managed sections.
 ### Book and Project Contracts
 
 Existing-project operations use embedded Book release 1, which admits declared
-Hatmax versions from v0.4.0 up to, but excluding, v0.6.0. Application creation
+Hatmax versions from v0.4.0 up to, but excluding, v0.7.0. Application creation
 uses release 2 and selects published v0.5.0; release 2 adds application rules
 while inheriting shared feature rules. Dependency declarations and replacements,
 canonical feature layout, project rules, protected paths and discovered

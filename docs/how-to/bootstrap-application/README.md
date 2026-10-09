@@ -11,14 +11,12 @@ Use this procedure to create a minimal Hatmax process with a health endpoint.
 
 ## Create the module
 
-This procedure targets the current Hatmax `dev` checkout with Go 1.27.1.
-The published `v0.5.0` module uses the older `Serve(router, port)` contract;
-`go get` alone does not select the caller-owned-server API shown here.
+This procedure uses Go 1.27.1 and the caller-owned-server API in Hatmax v0.6.0.
 Clone the source and bind the application dependency to that checkout:
 
 
 ```sh
-git clone --branch dev https://forge.adrianpk.com/hatmax/hatmax.git hatmax
+git clone --branch v0.6.0 https://forge.adrianpk.com/hatmax/hatmax.git hatmax
 mkdir myapp
 cd myapp
 go mod init example.com/myapp

@@ -23,7 +23,7 @@ conversation and evolves a feature in the created project.
 
 ## Prepare Hatmax
 
-From a Go 1.27.1 `dev` source checkout of Hatmax, install the current command
+From the Hatmax v0.6.0 source checkout with Go 1.27.1, install the command
 and authenticate the Codex CLI as described in the
 [official Codex CLI documentation](https://learn.chatgpt.com/docs/codex/cli):
 
@@ -31,9 +31,8 @@ and authenticate the Codex CLI as described in the
 go install ./cmd/hm
 ```
 
-Add Go's binary directory to `PATH`. The published v0.5.0 tag has no `cmd/hm`;
-this chapter uses the current source command. The Codex CLI and its resident App
-Server must have compatible versions.
+Add Go's binary directory to `PATH`. The Codex CLI and its resident App Server
+must have compatible versions.
 Hatmax reuses that resident process across conversation turns. It does not
 start a separate Codex process for every message.
 
