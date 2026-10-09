@@ -1,7 +1,7 @@
 ---
 id: TKT-20261009085014
 title: Pin CI to the project Go toolchain
-status: reviewing
+status: solved
 kind: bug
 severity: medium
 priority: high
@@ -13,7 +13,10 @@ ready_at: 2026-10-09T08:50:45Z
 started_at: 2026-10-09T08:50:45Z
 reviewed_at: 2026-10-09T08:50:45Z
 branch: ci/ticket-20261009085014-pin-release-toolchain
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/122
+closed_at: 2026-10-09T09:01:00Z
+resolution: fixed
+commits: 46bd4186f1930c666095c48f0bc222b36235a907
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -39,3 +42,10 @@ validated release toolchain. Preserve existing lint rules and test thresholds.
 - Verify all three CI setup steps select exactly Go 1.27.1.
 - Run local strict lint and whitespace checks.
 - Require green canonical CI on the resulting release candidate before tagging.
+
+## Resolution
+
+PR #122 integrated the correction at `46bd4186f1930c666095c48f0bc222b36235a907`.
+Canonical CI run 23 passed lint, generated-project acceptance, tests with 80.7%
+coverage and build using Go 1.27.1. Release alignment PR #121 preserved that
+exact validated commit on main. This result-only closure does not change it.
