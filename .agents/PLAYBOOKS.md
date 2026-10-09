@@ -43,6 +43,10 @@ the global nightly `main` integration for this repository.
 2. `make check` runs `format`, `vet`, `test`, `test-coverage-check`, and
    `lint-strict`.
 3. `test-coverage-check` fails when total coverage is below 80%.
+4. The coverage denominator contains product packages, excluding example
+   applications and repository workflow tools under `scripts/`. Their default
+   tests still run in `make test`; documentation walkthroughs use
+   `scripts/check-documentation-conformance.sh` as their separate execution gate.
 
 ## CI
 

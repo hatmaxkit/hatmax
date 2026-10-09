@@ -8,7 +8,9 @@ LIB_NAME = hatmax
 MODULE_NAME = hatmax.adrianpk.com
 LINT_CACHE_DIR = $(CURDIR)/.tmp/lint
 LINT_GOCACHE = $(LINT_CACHE_DIR)/gocache
-COVERAGE_PACKAGES = $(shell go list -f '{{if ne (len .TestGoFiles) 0}}{{.ImportPath}}{{end}}' ./... | grep -v -e "/examples/" -e "/tmp/" -e "/build/")
+# Product coverage excludes example applications and repository workflow tools.
+# Their default tests still run through `test`; documentation workflows have a separate gate.
+COVERAGE_PACKAGES = $(shell go list -f '{{if ne (len .TestGoFiles) 0}}{{.ImportPath}}{{end}}' ./... | grep -v -e "/examples/" -e "/scripts/" -e "/tmp/" -e "/build/")
 
 # Default target
 all: test
