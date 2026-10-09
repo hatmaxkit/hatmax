@@ -1,7 +1,7 @@
 ---
 id: TKT-20261009084416
 title: Preserve product coverage scope after documentation tool migration
-status: reviewing
+status: solved
 kind: bug
 severity: medium
 priority: high
@@ -13,7 +13,10 @@ ready_at: 2026-10-09T08:45:34Z
 started_at: 2026-10-09T08:45:34Z
 reviewed_at: 2026-10-09T08:45:34Z
 branch: fix/ticket-20261009084416-release-coverage-scope
-commits:
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/120
+closed_at: 2026-10-09T08:46:13Z
+resolution: fixed
+commits: a15200f935ea894720539edcf654b7ab3186c00d
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -42,3 +45,9 @@ in the repository validation contract and refresh the measured badge.
 - Verify package selection retains product packages and excludes workflow tools.
 - Run the unchanged default test suite and product coverage gate with PostgreSQL.
 - Run strict lint and whitespace checks.
+
+## Resolution
+
+PR #120 integrated the scope correction into dev with Rebase + Fast-forward
+at `a15200f935ea894720539edcf654b7ab3186c00d`. Product coverage passes at 80.7%.
+All default tests remain selected and the documentation command's tests pass.

@@ -7,10 +7,11 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Release Coverage Scope
 
-Status: reviewing
+Status: delivered
 Ticket: TKT-20261009084416
 Branch: `fix/ticket-20261009084416-release-coverage-scope`
-PR: pending
+PR: [#120](https://forge.adrianpk.com/hatmax/hatmax/pulls/120)
+Integrated dev: `a15200f935ea894720539edcf654b7ab3186c00d`
 
 ## Delivered Behavior
 
