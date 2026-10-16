@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Applications can write, inspect, read and delete private local documents with
+  explicit byte limits. Writes replace complete objects atomically, preserve
+  previous content on input failure and stay within the configured directory.
+
 ## [0.6.0] - 2026-10-09
 
 ### Added

@@ -1,7 +1,7 @@
 ---
 id: TKT-20261016081501
 title: Support bounded object storage and exact-target signed uploads
-status: open
+status: in_progress
 kind: task
 severity: medium
 priority: normal
@@ -9,6 +9,9 @@ scope: api
 tags: storage, s3, signing
 source: chat
 reported_at: 2026-10-16T08:15:01Z
+ready_at: 2026-10-16T09:11:36Z
+started_at: 2026-10-16T09:11:36Z
+branch: feat/bounded-local-storage
 commits:
 ---
 <!--
@@ -41,8 +44,8 @@ contracts and local/S3 adapters. Preserve existing image APIs and leave domain
 ownership, authorization, quotas and completion with applications.
 
 The specification defines OS01-OS10, provider capability boundaries, compatibility
-and real fixture evidence. Scope is approved; runtime/controller execution and
-integration authority remain pending. This source ticket tracks the formal
+and real fixture evidence. Scope, five-slice controller execution and controller-owned integration were
+authorized on 2026-10-16. Slice 1 is in progress. This source ticket tracks the formal
 delivery until its exact gate passes and its implemented resolution is recorded.
 
 ## Validation

@@ -36,6 +36,7 @@ go.work.sum
 build/
 dist/
 bin/
+.tmp/object-storage/
 
 # OS
 .DS_Store

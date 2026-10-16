@@ -14,7 +14,7 @@ Specification approved: 2026-10-16
 Planning authorized: 2026-10-16
 Delivery set: object-storage
 Concern: [Object storage capabilities](../spec/object-storage.md)
-Source ticket: [Bounded object storage and signed uploads](../ticket/open/20261016081501-support-bounded-object-storage-and-signed-uploads.md)
+Source ticket: [Bounded object storage and signed uploads](../ticket/in_progress/20261016081501-support-bounded-object-storage-and-signed-uploads.md)
 Tracker: [Delivery tracker](../tracker/object-storage.md)
 Base branch: `dev`
 Planning base: `60fcca7f8f88059608b353420dfa7513c0b78279`
