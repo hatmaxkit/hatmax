@@ -22,7 +22,7 @@ Execution authorized: 2026-10-16; five-slice Looper delivery, exact-candidate fu
 Integration authorized: Controller-owned Rebase + Fast-forward into dev
 Active slice: Slice 3 - Signed POST uploads
 Next slice: Slice 4 - Object storage guides
-Active tasks: T3.2
+Active tasks: None; Slice 3 PR preparation
 Execution gate: Open
 Worker budget: 300 total turns; 10 consecutive stalled turns
 
@@ -32,7 +32,7 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Bounded local objects | delivered | `feat/bounded-local-storage` | `feat(slice-1): store bounded private local objects` | [#123](https://forge.adrianpk.com/hatmax/hatmax/pulls/123) | `ops/default/report/slices/object-storage/slice-1-local-objects.md` |
 | Slice 2 | Private S3 objects | delivered | `feat/private-s3-storage` | `feat(slice-2): inspect private S3 objects` | [#124](https://forge.adrianpk.com/hatmax/hatmax/pulls/124) | `ops/default/report/slices/object-storage/slice-2-s3-objects.md` |
-| Slice 3 | Signed POST uploads | active | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | pending | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
+| Slice 3 | Signed POST uploads | reviewing | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | pending | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
 | Slice 4 | Object storage guides | pending | `docs/object-storage-workflows` | `docs(slice-4): guide private object storage workflows` | pending | `ops/default/report/slices/object-storage/slice-4-storage-guides.md` |
 | Slice 5 | Integrated acceptance | pending | `test/object-storage-acceptance` | `test(slice-5): verify object storage acceptance` | pending | `ops/default/report/slices/object-storage/slice-5-integrated-acceptance.md` |
 
@@ -45,7 +45,7 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | T2.1 | completed | `feat(storage): implement private S3 object operations` | `9de7c8aef2d8a487cf192ad3b5899e64157d2fb5` |
 | T2.2 | completed | `test(storage): verify private S3 transport outcomes` | `b85c9496d412f0a759e4640264ffa0689c2fdd0c` |
 | T3.1 | completed | `feat(storage): sign exact-target bounded POST uploads` | `2b0802dc245271aadab6b41ce6d6968dcb004db8` |
-| T3.2 | active | `test(storage): verify signed upload enforcement` | pending |
+| T3.2 | completed | `test(storage): verify signed upload enforcement` | `25e7d3ca3f7a78bf0a5b765043e0ae1a148cc38a` |
 | T4.1 | pending | `docs(storage): explain private object storage contracts` | pending |
 | T4.2 | pending | `test(storage): execute documented storage workflows` | pending |
 | T5.1 | pending | `test(storage): verify integrated object lifecycles` | pending |
@@ -53,7 +53,7 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 
 The plan owns task scopes, named future selectors and finite bounds. Each PR
 requires `GOWORK=off scripts/check-object-storage.sh slice N` first and
-`git diff --check` last. T1.2/T2.2 deliver runner modes 1-2 and their required local/remote roots. Later modes remain
+`git diff --check` last. T1.2-T3.2 deliver runner modes 1-3 and their required local/remote/signing roots. Later modes remain
 unavailable until their owning tasks deliver them. Final PR outcomes bind to
 the exact clean-HEAD controller receipt; task checks do not replace that receipt.
 
@@ -93,7 +93,10 @@ the exact clean-HEAD controller receipt; task checks do not replace that receipt
 Slices 1-2 of 5 are delivered through canonical PRs #123 and #124. PR #124
 is verified merged into dev at `8322aa5e654f51ac240c868426be1e565509fb88`;
 its three exact-HEAD controller checks and owned fixture cleanup passed.
-Slice 3 T3.1/T3.2 are active for constrained signed POST uploads.
+Slice 3 T3.1/T3.2 are implemented on the approved branch; its report is
+reviewing. Focused ordinary and actual signed multipart checks passed, including
+confirmed owned cleanup. Canonical PR preparation and final clean-HEAD
+controller validation precede integration.
 
 Slice 1 report introduction: `4719f3678de9ab4b761e1faf8281aa206c4f4d98`.
 
