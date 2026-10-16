@@ -22,7 +22,7 @@ Execution authorized: 2026-10-16; five-slice Looper delivery, exact-candidate fu
 Integration authorized: Controller-owned Rebase + Fast-forward into dev
 Active slice: Slice 2 - Private S3 objects
 Next slice: Slice 3 - Signed POST uploads
-Active tasks: T2.1, T2.2
+Active tasks: T2.2
 Execution gate: Open
 Worker budget: 300 total turns; 10 consecutive stalled turns
 
@@ -42,8 +42,8 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | --- | --- | --- | --- |
 | T1.1 | completed | `feat(storage): implement bounded local object operations` | `b6ba9e4509918ec2fe6fca7a491a63a552ee10fd` |
 | T1.2 | completed | `test(storage): verify local ownership and resource bounds` | `94681613bb9ef8075979dd9b0ede1d99500b8259` |
-| T2.1 | active | `feat(storage): implement private S3 object operations` | pending |
-| T2.2 | pending | `test(storage): verify private S3 transport outcomes` | pending |
+| T2.1 | completed | `feat(storage): implement private S3 object operations` | `9de7c8aef2d8a487cf192ad3b5899e64157d2fb5` |
+| T2.2 | active | `test(storage): verify private S3 transport outcomes` | pending |
 | T3.1 | pending | `feat(storage): sign exact-target bounded POST uploads` | pending |
 | T3.2 | pending | `test(storage): verify signed upload enforcement` | pending |
 | T4.1 | pending | `docs(storage): explain private object storage contracts` | pending |
