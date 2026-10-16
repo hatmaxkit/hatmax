@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 1: Bounded Local Objects
 
-Status: reviewing
+Status: delivered
 Delivery set: object-storage
 Plan: [Object storage plan](../../../plan/object-storage.md)
 Tracker: [Object storage tracker](../../../tracker/object-storage.md)
@@ -69,7 +69,8 @@ I/O goroutine emulates cancellation. Mutations are not automatically retried.
 Focused T1.2 check passed:
 `GOWORK=off go test -count=1 -timeout=60s ./storage/...`.
 
-The final PR uses these ordered controller-recorded commands:
+All three ordered controller-recorded commands passed at the merged PR HEAD
+`b338fa2182414eee755d39d53c0360a554c27281`:
 
 - `GOWORK=off scripts/check-object-storage.sh slice 1`
 - `GOWORK=off make docs-check`

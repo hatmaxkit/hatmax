@@ -20,9 +20,9 @@ Base branch: `dev`
 Planning base: `60fcca7f8f88059608b353420dfa7513c0b78279`
 Execution authorized: 2026-10-16; five-slice Looper delivery, exact-candidate full gate and restricted closure
 Integration authorized: Controller-owned Rebase + Fast-forward into dev
-Active slice: Slice 1 - Bounded local objects
-Next slice: Slice 2 - Private S3 objects
-Active tasks: None; Slice 1 awaiting controller integration
+Active slice: Slice 2 - Private S3 objects
+Next slice: Slice 3 - Signed POST uploads
+Active tasks: T2.1, T2.2
 Execution gate: Open
 Worker budget: 300 total turns; 10 consecutive stalled turns
 
@@ -30,8 +30,8 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Bounded local objects | reviewing | `feat/bounded-local-storage` | `feat(slice-1): store bounded private local objects` | [#123](https://forge.adrianpk.com/hatmax/hatmax/pulls/123) | `ops/default/report/slices/object-storage/slice-1-local-objects.md` |
-| Slice 2 | Private S3 objects | pending | `feat/private-s3-storage` | `feat(slice-2): inspect private S3 objects` | pending | `ops/default/report/slices/object-storage/slice-2-s3-objects.md` |
+| Slice 1 | Bounded local objects | delivered | `feat/bounded-local-storage` | `feat(slice-1): store bounded private local objects` | [#123](https://forge.adrianpk.com/hatmax/hatmax/pulls/123) | `ops/default/report/slices/object-storage/slice-1-local-objects.md` |
+| Slice 2 | Private S3 objects | active | `feat/private-s3-storage` | `feat(slice-2): inspect private S3 objects` | pending | `ops/default/report/slices/object-storage/slice-2-s3-objects.md` |
 | Slice 3 | Signed POST uploads | pending | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | pending | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
 | Slice 4 | Object storage guides | pending | `docs/object-storage-workflows` | `docs(slice-4): guide private object storage workflows` | pending | `ops/default/report/slices/object-storage/slice-4-storage-guides.md` |
 | Slice 5 | Integrated acceptance | pending | `test/object-storage-acceptance` | `test(slice-5): verify object storage acceptance` | pending | `ops/default/report/slices/object-storage/slice-5-integrated-acceptance.md` |
@@ -42,7 +42,7 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | --- | --- | --- | --- |
 | T1.1 | completed | `feat(storage): implement bounded local object operations` | `b6ba9e4509918ec2fe6fca7a491a63a552ee10fd` |
 | T1.2 | completed | `test(storage): verify local ownership and resource bounds` | `94681613bb9ef8075979dd9b0ede1d99500b8259` |
-| T2.1 | pending | `feat(storage): implement private S3 object operations` | pending |
+| T2.1 | active | `feat(storage): implement private S3 object operations` | pending |
 | T2.2 | pending | `test(storage): verify private S3 transport outcomes` | pending |
 | T3.1 | pending | `feat(storage): sign exact-target bounded POST uploads` | pending |
 | T3.2 | pending | `test(storage): verify signed upload enforcement` | pending |
@@ -90,14 +90,9 @@ the exact clean-HEAD controller receipt; task checks do not replace that receipt
 
 ## Current Checkpoint
 
-Slice 1 T1.1 and T1.2 are implemented in the dedicated approved branch. Focused
-ordinary storage checks passed; the canonical report is reviewing. Canonical
-PR #123 is open against dev. Its references are committed before final
-clean-HEAD controller validation and integration.
-The primary checkout stays on dev. Slice 2 remains pending.
-
-The remote fixture source remains pinned to
-`9e49d5e7a648f00e26f2246f4dc28e6b07f8c84a`; its build identity and acceptance
-belong to the later remote-storage tasks.
+Slice 1 of 5 is delivered through canonical PR #123, verified merged into dev
+at `b338fa2182414eee755d39d53c0360a554c27281`. Its three exact-HEAD controller
+checks passed. Slice 2 T2.1/T2.2 are active on the approved branch; remote
+fixture preparation and private S3 implementation remain to be delivered.
 
 Slice 1 report introduction: `4719f3678de9ab4b761e1faf8281aa206c4f4d98`.
