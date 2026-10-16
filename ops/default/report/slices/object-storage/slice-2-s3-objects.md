@@ -12,7 +12,7 @@ Delivery set: object-storage
 Plan: [Object storage plan](../../../plan/object-storage.md)
 Tracker: [Object storage tracker](../../../tracker/object-storage.md)
 Branch: `feat/private-s3-storage`
-PR: pending
+PR: `#124`
 
 ## Purpose
 
