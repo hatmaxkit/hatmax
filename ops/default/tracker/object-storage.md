@@ -20,9 +20,9 @@ Base branch: `dev`
 Planning base: `60fcca7f8f88059608b353420dfa7513c0b78279`
 Execution authorized: 2026-10-16; five-slice Looper delivery, exact-candidate full gate and restricted closure
 Integration authorized: Controller-owned Rebase + Fast-forward into dev
-Active slice: Slice 5 - Integrated acceptance
-Next slice: None; final recorded slice
-Active tasks: None; Slice 5 awaiting controller integration
+Active slice: None; all five slices delivered
+Next slice: None; final gate pending
+Active tasks: None; awaiting controller-owned full gate
 Execution gate: Open
 Worker budget: 300 total turns; 10 consecutive stalled turns
 
@@ -34,7 +34,7 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | Slice 2 | Private S3 objects | delivered | `feat/private-s3-storage` | `feat(slice-2): inspect private S3 objects` | [#124](https://forge.adrianpk.com/hatmax/hatmax/pulls/124) | `ops/default/report/slices/object-storage/slice-2-s3-objects.md` |
 | Slice 3 | Signed POST uploads | delivered | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | [#125](https://forge.adrianpk.com/hatmax/hatmax/pulls/125) | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
 | Slice 4 | Object storage guides | delivered | `docs/object-storage-workflows` | `docs(slice-4): guide private object storage workflows` | [#126](https://forge.adrianpk.com/hatmax/hatmax/pulls/126) | `ops/default/report/slices/object-storage/slice-4-storage-guides.md` |
-| Slice 5 | Integrated acceptance | reviewing | `test/object-storage-acceptance` | `test(slice-5): verify object storage acceptance` | [#127](https://forge.adrianpk.com/hatmax/hatmax/pulls/127) | `ops/default/report/slices/object-storage/slice-5-integrated-acceptance.md` |
+| Slice 5 | Integrated acceptance | delivered | `test/object-storage-acceptance` | `test(slice-5): verify object storage acceptance` | [#127](https://forge.adrianpk.com/hatmax/hatmax/pulls/127) | `ops/default/report/slices/object-storage/slice-5-integrated-acceptance.md` |
 
 ## Tasks
 
@@ -69,7 +69,7 @@ the exact clean-HEAD controller receipt; task checks do not replace that receipt
 - [x] Runtime/controller, Rebase + Fast-forward merges, complete local gate and closure authorized on 2026-10-16.
 - [x] Pinned native fixture built with Go 1.27.1; source/module/build information and binary SHA-256 bound before Slice 2 integration tests.
 - [x] Canonical origin/dev, empty open PR inventory, installed tools and existing controller ownership verified at Slice 1 entry.
-- [ ] Five canonical PRs, ten tasks and original reports delivered.
+- [x] Five canonical PRs, ten tasks and original reports delivered.
 - [ ] Exact complete gate passed; all required storage roots and OS01-OS10 accepted.
 - [ ] Restricted closure, source-ticket resolution and Acta completed.
 
@@ -90,16 +90,18 @@ the exact clean-HEAD controller receipt; task checks do not replace that receipt
 
 ## Current Checkpoint
 
-Slices 1-4 of 5 are delivered through canonical PRs #123-#126. PR #126 is
-verified merged into dev at `3dcfa804bffcedafa036cafd6a758be21cb1850d`.
-Both exact-HEAD controller commands passed, including documentation, cumulative
-storage/image race roots, the actual signed guide and confirmed owned cleanup.
-Slice 5 T5.1/T5.2 deliver the integrated lifecycle, immutable ledger introduction,
-complete root/command/result evidence and owned native PostgreSQL composition.
-Focused actual-server lifecycle, guide, database fixture and evidence controls
-passed. Its report and source ticket are reviewing. Canonical PR #127 is open against
-dev, with references committed before final clean-HEAD validation and controller
-integration. The full gate remains pending.
+All five slices and all ten tasks are delivered through canonical PRs #123-#127.
+PR #127 is verified merged into dev at
+`ad83e03b79052ef403c7be33cdc7fc6c27e45675`. Its two exact-HEAD controller
+commands passed in validation `IZKKCB7PYSOCATN6P5UHWRSGFW`: 21 ordered evidence
+steps and 81 discovered roots, including actual remote/guide/native PostgreSQL
+checks and confirmed owned cleanup. The focused receipt leaves OS10 pending.
+
+The source ticket remains reviewing. Go 1.27.1, configured lint, GNU Make,
+PostgreSQL 18.6 native tools and the identified MinIO executable are available
+for the controller-owned full gate. No fixture service is left running. The
+complete gate and restricted acceptance closure remain pending; no successor
+slice, version, tag or promotion is introduced.
 
 Slice 1 report introduction: `4719f3678de9ab4b761e1faf8281aa206c4f4d98`.
 

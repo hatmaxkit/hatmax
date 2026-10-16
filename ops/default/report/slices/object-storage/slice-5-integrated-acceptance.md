@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 5: Integrated Acceptance
 
-Status: reviewing
+Status: delivered
 Delivery set: object-storage
 Plan: [Object storage plan](../../../plan/object-storage.md)
 Tracker: [Object storage tracker](../../../tracker/object-storage.md)
@@ -112,7 +112,11 @@ Final PR acceptance uses these ordered controller-recorded commands:
 - `GOWORK=off scripts/check-object-storage.sh slice 5`
 - `git diff --check`
 
-The exact clean-HEAD controller receipt owns their final result. Full mode is
+Both commands passed at clean pushed HEAD
+`ad83e03b79052ef403c7be33cdc7fc6c27e45675` in controller validation
+`IZKKCB7PYSOCATN6P5UHWRSGFW`. Canonical PR #127 merged that commit into dev
+on 2026-10-16. The receipt binds 21 ordered steps, 81 discovered roots and
+confirmed MinIO/guide/PostgreSQL cleanup, with OS10 explicitly pending. Full mode is
 implemented and remains unexecuted by this worker. The controller runs the
 unchanged configured full command after integration; its exact evidence alone
 can accept OS10 and authorize the prescribed documentation closure.
