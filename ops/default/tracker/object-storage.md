@@ -34,7 +34,7 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | Slice 2 | Private S3 objects | delivered | `feat/private-s3-storage` | `feat(slice-2): inspect private S3 objects` | [#124](https://forge.adrianpk.com/hatmax/hatmax/pulls/124) | `ops/default/report/slices/object-storage/slice-2-s3-objects.md` |
 | Slice 3 | Signed POST uploads | delivered | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | [#125](https://forge.adrianpk.com/hatmax/hatmax/pulls/125) | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
 | Slice 4 | Object storage guides | delivered | `docs/object-storage-workflows` | `docs(slice-4): guide private object storage workflows` | [#126](https://forge.adrianpk.com/hatmax/hatmax/pulls/126) | `ops/default/report/slices/object-storage/slice-4-storage-guides.md` |
-| Slice 5 | Integrated acceptance | reviewing | `test/object-storage-acceptance` | `test(slice-5): verify object storage acceptance` | pending | `ops/default/report/slices/object-storage/slice-5-integrated-acceptance.md` |
+| Slice 5 | Integrated acceptance | reviewing | `test/object-storage-acceptance` | `test(slice-5): verify object storage acceptance` | [#127](https://forge.adrianpk.com/hatmax/hatmax/pulls/127) | `ops/default/report/slices/object-storage/slice-5-integrated-acceptance.md` |
 
 ## Tasks
 
@@ -97,8 +97,9 @@ storage/image race roots, the actual signed guide and confirmed owned cleanup.
 Slice 5 T5.1/T5.2 deliver the integrated lifecycle, immutable ledger introduction,
 complete root/command/result evidence and owned native PostgreSQL composition.
 Focused actual-server lifecycle, guide, database fixture and evidence controls
-passed. Its report and source ticket are reviewing. Canonical PR references and
-final clean-HEAD validation precede controller integration; the full gate is pending.
+passed. Its report and source ticket are reviewing. Canonical PR #127 is open against
+dev, with references committed before final clean-HEAD validation and controller
+integration. The full gate remains pending.
 
 Slice 1 report introduction: `4719f3678de9ab4b761e1faf8281aa206c4f4d98`.
 
@@ -107,3 +108,5 @@ Slice 2 report introduction: `73436bade00dc1d42025cfb511bf04aff3719d15`.
 Slice 3 report introduction: `c75d41100e9c9856f378a5ca221c54bc8718ec96`.
 
 Slice 4 report introduction: `eda2f220f1dff8c187e1428d4d0b202bad912eb2`.
+
+Slice 5 report introduction: `e61a4f71b5308decda73da49061c9118e6914ff0`.
