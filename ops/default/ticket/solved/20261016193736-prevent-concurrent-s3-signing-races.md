@@ -1,7 +1,7 @@
 ---
 id: TKT-20261016193736
 title: Prevent concurrent S3 signing and object operation races
-status: reviewing
+status: solved
 kind: bug
 severity: medium
 priority: high
@@ -12,7 +12,10 @@ reported_at: 2026-10-16T19:37:36Z
 ready_at: 2026-10-16T19:38:43Z
 started_at: 2026-10-16T19:38:43Z
 reviewed_at: 2026-10-16T19:41:07Z
-commits:
+closed_at: 2026-10-16T19:42:06Z
+resolution: fixed
+validated_commit: 46d6781e98dded955995a459c7b8a0d8c70261d2
+commits: d065ab6e6a42, 46d6781e98dded955995a459c7b8a0d8c70261d2
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -45,6 +48,7 @@ Do not serialize unrelated object operations or introduce another dependency.
 The constructor now initializes one reusable presign client before exposing the
 store; each signing call still binds its own policy signer and deadlines.
 Public interfaces and dependencies are unchanged.
+The correction is integrated in `dev` at the validated commit above.
 
 - `GOWORK=off go test -race -count=10 -run '^TestConcurrentSigning$' -timeout=120s ./storage/s3` passed both concurrent cases and exact policy assertions.
 - `GOWORK=off go test -race -count=1 -timeout=180s ./storage/... ./image/...` passed.
