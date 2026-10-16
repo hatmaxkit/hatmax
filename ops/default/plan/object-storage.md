@@ -8,22 +8,24 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Object Storage Delivery Plan
 
 Date: 2026-10-16
-Status: Active
+Status: Completed
+Completed: 2026-10-16
+Validated candidate: `c03a4f042507eb8e255571aa2781fcf7a42f0036`
 Approved: 2026-10-16
 Specification approved: 2026-10-16
 Planning authorized: 2026-10-16
 Delivery set: object-storage
 Concern: [Object storage capabilities](../spec/object-storage.md)
-Source ticket: [Bounded object storage and signed uploads](../ticket/reviewing/20261016081501-support-bounded-object-storage-and-signed-uploads.md)
+Source ticket: [Bounded object storage and signed uploads](../ticket/solved/20261016081501-support-bounded-object-storage-and-signed-uploads.md)
 Tracker: [Delivery tracker](../tracker/object-storage.md)
 Base branch: `dev`
 Planning base: `60fcca7f8f88059608b353420dfa7513c0b78279`
 Execution authorized: 2026-10-16; five-slice Looper delivery, exact-candidate full gate and restricted closure
 Integration authorized: Controller-owned Rebase + Fast-forward into dev
 Active slice: None; all five slices delivered
-Next slice: None; final gate pending
-Active tasks: None; awaiting controller-owned full gate
-Execution gate: Open
+Next slice: None; delivery set completed
+Active tasks: None; all tasks and gates completed
+Execution gate: Closed; exact integrated acceptance passed
 Worker budget: 300 total turns; 10 consecutive stalled turns
 Slice strategy: behavior-first
 Reason: local I/O, remote I/O and signed forms each deliver complete package behavior and real boundary evidence without empty interfaces or intentionally failing layers.
@@ -223,3 +225,14 @@ introduction. PRs use Summary, Changes and Validation with the immutable report
 link last under Changes. Record significant outcomes in Acta. Closure does not
 create a version, publish a module or promote main; those remain separately
 authorized operations.
+
+## Completion
+
+All five canonical PRs #123-#127 and ten task commits are integrated into dev.
+The controller's `GOWORK=off scripts/check-object-storage.sh` passed at
+`c03a4f042507eb8e255571aa2781fcf7a42f0036` in validation
+`ORAZRFW4UDUF4TSQEPDZ47HPFF`. OS01-OS10 are accepted, required roots ran
+without skip, owned fixture cleanup is confirmed and the source ticket is solved.
+The [acceptance report](../report/object-storage-acceptance.md) retains exact
+manifest, ordered command/result and log hashes. This documentation-only closure
+preserves the tested source, scripts, tests, dependencies, examples and product docs.

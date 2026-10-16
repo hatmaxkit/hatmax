@@ -11,13 +11,16 @@ Date: 2026-10-16
 Status: Approved
 Approved: 2026-10-16
 Concern: object-storage
-Source ticket: [Bounded object storage and signed uploads](../ticket/reviewing/20261016081501-support-bounded-object-storage-and-signed-uploads.md)
+Source ticket: [Bounded object storage and signed uploads](../ticket/solved/20261016081501-support-bounded-object-storage-and-signed-uploads.md)
 Inspected baseline: `82defb7b51f71436ae71cbb5b2e2c980bca359b1`
-Implementation status: Implemented; awaiting exact integrated gate
+Implementation status: Completed
+Completed: 2026-10-16
+Validated candidate: `c03a4f042507eb8e255571aa2781fcf7a42f0036`
+Acceptance: [Exact integrated result](../report/object-storage-acceptance.md)
 Plan: [Delivery plan](../plan/object-storage.md)
 Tracker: [Delivery tracker](../tracker/object-storage.md)
 Planning authorized: 2026-10-16
-Execution gate: Open; five-slice delivery authorized on 2026-10-16
+Execution gate: Closed; OS01-OS10 accepted on 2026-10-16
 
 ## Purpose
 

@@ -13,6 +13,8 @@ Plan: [Object storage plan](../../../plan/object-storage.md)
 Tracker: [Object storage tracker](../../../tracker/object-storage.md)
 Branch: `feat/private-s3-storage`
 PR: `#124`
+Integrated candidate: `c03a4f042507eb8e255571aa2781fcf7a42f0036`
+Acceptance completed: 2026-10-16
 
 ## Purpose
 
@@ -120,10 +122,17 @@ required tagged S3 roots with race detection, licensing, formatting, shell
 syntax, affected build/vet and configured ordinary/integration lint. Missing
 roots, skips, failed cleanup or fixture identity drift fail acceptance.
 
+Integrated closure: the controller's
+`GOWORK=off scripts/check-object-storage.sh` passed at
+`c03a4f042507eb8e255571aa2781fcf7a42f0036` in validation
+`ORAZRFW4UDUF4TSQEPDZ47HPFF`. All OS01-OS10 criteria and owned cleanup are
+accepted. The canonical [acceptance report](../../object-storage-acceptance.md)
+retains the complete command/result manifests and evidence hashes.
+
 ## Risks and Follow-ups
 
 The actual-server evidence establishes the pinned MinIO profile, not arbitrary
 S3-compatible vendors. The native ownership fixture currently requires Linux;
 unsupported hosts fail visibly. Remote mutation failure cannot guarantee
 rollback. Callers choose retry and reconciliation policy. Signing, executable
-guides and complete acceptance retain their approved later owners.
+guides and integrated acceptance are delivered through Slices 3-5.

@@ -13,6 +13,8 @@ Plan: [Object storage plan](../../../plan/object-storage.md)
 Tracker: [Object storage tracker](../../../tracker/object-storage.md)
 Branch: `test/object-storage-acceptance`
 PR: `#127`
+Integrated candidate: `c03a4f042507eb8e255571aa2781fcf7a42f0036`
+Acceptance completed: 2026-10-16
 
 ## Purpose
 
@@ -116,14 +118,19 @@ Both commands passed at clean pushed HEAD
 `ad83e03b79052ef403c7be33cdc7fc6c27e45675` in controller validation
 `IZKKCB7PYSOCATN6P5UHWRSGFW`. Canonical PR #127 merged that commit into dev
 on 2026-10-16. The receipt binds 21 ordered steps, 81 discovered roots and
-confirmed MinIO/guide/PostgreSQL cleanup, with OS10 explicitly pending. Full mode is
-implemented and remains unexecuted by this worker. The controller runs the
-unchanged configured full command after integration; its exact evidence alone
-can accept OS10 and authorize the prescribed documentation closure.
+confirmed MinIO/guide/PostgreSQL cleanup, with OS10 pending at slice delivery. The controller subsequently executed the
+configured full command after integration; that exact passing evidence accepts
+OS10 and authorizes this restricted documentation closure.
+
+Integrated closure: the controller's
+`GOWORK=off scripts/check-object-storage.sh` passed at
+`c03a4f042507eb8e255571aa2781fcf7a42f0036` in validation
+`ORAZRFW4UDUF4TSQEPDZ47HPFF`. All OS01-OS10 criteria and owned cleanup are
+accepted. The canonical [acceptance report](../../object-storage-acceptance.md)
+retains the complete command/result manifests and evidence hashes.
 
 ## Risks and Follow-ups
 
-The complete integrated repository gate is pending. Focused native PostgreSQL
-18.6 and the identified unversioned MinIO profile establish their exercised
-compatibility, not arbitrary deployment/provider versions. Any retained full-gate
-failure requires the controller's explicit repair instruction before correction.
+The integrated gate passed with native PostgreSQL 18.6 and the identified
+unversioned MinIO profile. This establishes their exercised compatibility;
+arbitrary deployment/provider versions require their own evidence.

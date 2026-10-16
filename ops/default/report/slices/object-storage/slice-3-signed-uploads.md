@@ -13,6 +13,8 @@ Plan: [Object storage plan](../../../plan/object-storage.md)
 Tracker: [Object storage tracker](../../../tracker/object-storage.md)
 Branch: `feat/signed-storage-uploads`
 PR: `#125`
+Integrated candidate: `c03a4f042507eb8e255571aa2781fcf7a42f0036`
+Acceptance completed: 2026-10-16
 
 ## Purpose
 
@@ -121,12 +123,19 @@ both bucket removals, owned server shutdown and temporary-root removal. Mode 3 r
 all earlier local/remote I/O roots plus TestSignedUploads, TestSigningExpiry and
 TestSnapshotCompletion with race detection and confirmed fixture cleanup. It
 also preserves image adapter regressions, formatting, licensing, shell syntax,
-build, vet and configured ordinary/integration lint. Full mode remains unavailable.
+build, vet and configured ordinary/integration lint. At Slice 3 delivery, full mode remained unavailable.
+
+Integrated closure: the controller's
+`GOWORK=off scripts/check-object-storage.sh` passed at
+`c03a4f042507eb8e255571aa2781fcf7a42f0036` in validation
+`ORAZRFW4UDUF4TSQEPDZ47HPFF`. All OS01-OS10 criteria and owned cleanup are
+accepted. The canonical [acceptance report](../../object-storage-acceptance.md)
+retains the complete command/result manifests and evidence hashes.
 
 ## Risks and Follow-ups
 
 Deployments must match the selected tested profile; arbitrary compatible vendors
 are not automatically validated. Clock accuracy and credential expiry remain
 operational prerequisites. A grant's expiry is not an application completion
-deadline or immediate revocation mechanism. Executable guides and complete
-acceptance retain their approved later owners.
+deadline or immediate revocation mechanism. Executable guides and integrated
+acceptance are delivered through Slices 4-5.

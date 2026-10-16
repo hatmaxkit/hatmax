@@ -13,6 +13,8 @@ Plan: [Object storage plan](../../../plan/object-storage.md)
 Tracker: [Object storage tracker](../../../tracker/object-storage.md)
 Branch: `docs/object-storage-workflows`
 PR: `#126`
+Integrated candidate: `c03a4f042507eb8e255571aa2781fcf7a42f0036`
+Acceptance completed: 2026-10-16
 
 ## Purpose
 
@@ -116,11 +118,18 @@ bucket removals, owned server shutdown and temporary-root removal. Mode 4 includ
 make docs-check, all prior local/remote/signing roots, all image packages,
 TestObjectGuideDrift and the tagged TestObjectStorageGuide without required skips.
 Guide execution has the approved 600-second bound; earlier tagged roots retain
-360 seconds. Full mode remains unavailable until its approved Slice 5 owner.
+360 seconds. At Slice 4 delivery, full mode remained unavailable until its Slice 5 owner.
+
+Integrated closure: the controller's
+`GOWORK=off scripts/check-object-storage.sh` passed at
+`c03a4f042507eb8e255571aa2781fcf7a42f0036` in validation
+`ORAZRFW4UDUF4TSQEPDZ47HPFF`. All OS01-OS10 criteria and owned cleanup are
+accepted. The canonical [acceptance report](../../object-storage-acceptance.md)
+retains the complete command/result manifests and evidence hashes.
 
 ## Risks and Follow-ups
 
 The example's fixed exercise keys require an isolated owned bucket. Its content
 check demonstrates validating known bytes, not a general document-safety policy.
 Production admission, aggregate bounds and durable completion remain application
-responsibilities. Complete OS01-OS10 acceptance retains its approved Slice 5 owner.
+responsibilities. OS01-OS10 acceptance is complete through the integrated gate.

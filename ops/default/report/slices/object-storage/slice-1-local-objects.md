@@ -13,6 +13,8 @@ Plan: [Object storage plan](../../../plan/object-storage.md)
 Tracker: [Object storage tracker](../../../tracker/object-storage.md)
 Branch: `feat/bounded-local-storage`
 PR: `#123`
+Integrated candidate: `c03a4f042507eb8e255571aa2781fcf7a42f0036`
+Acceptance completed: 2026-10-16
 
 ## Purpose
 
@@ -85,12 +87,19 @@ runner retains command/log hashes and explicit passes for TestKeys, TestBounds,
 TestObjects, TestConfinement and TestWriteFailure in ordinary and race runs,
 plus existing image/local regressions, licensing, formatting, shell syntax,
 affected build, vet and configured lint. Missing or skipped roots fail.
-Full mode is rejected until its owning task delivers complete acceptance.
+At Slice 1 delivery, full mode was rejected until its owning task delivered complete acceptance.
 The runner records initdb, pg_ctl and psql availability as later full-gate
 prerequisites; Slice 1 does not start a database or remote fixture.
+
+Integrated closure: the controller's
+`GOWORK=off scripts/check-object-storage.sh` passed at
+`c03a4f042507eb8e255571aa2781fcf7a42f0036` in validation
+`ORAZRFW4UDUF4TSQEPDZ47HPFF`. All OS01-OS10 criteria and owned cleanup are
+accepted. The canonical [acceptance report](../../object-storage-acceptance.md)
+retains the complete command/result manifests and evidence hashes.
 
 ## Risks and Follow-ups
 
 Filesystem writes provide atomic visibility, not power-loss durability. Callers
 own concurrency admission and aggregate disk quotas. Remote storage, signing,
-executable guides and complete acceptance retain their approved later owners.
+executable guides and integrated acceptance are delivered through Slices 2-5.
