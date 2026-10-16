@@ -8,7 +8,8 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Object Storage Delivery Plan
 
 Date: 2026-10-16
-Status: Planned
+Status: Active
+Approved: 2026-10-16
 Specification approved: 2026-10-16
 Planning authorized: 2026-10-16
 Delivery set: object-storage
@@ -17,12 +18,13 @@ Source ticket: [Bounded object storage and signed uploads](../ticket/open/202610
 Tracker: [Delivery tracker](../tracker/object-storage.md)
 Base branch: `dev`
 Planning base: `60fcca7f8f88059608b353420dfa7513c0b78279`
-Execution authorized: Pending
-Integration authorized: Pending
-Active slice: None
-Next slice: Slice 1 - Bounded local objects
-Active tasks: None
-Execution gate: Closed
+Execution authorized: 2026-10-16; five-slice Looper delivery, exact-candidate full gate and restricted closure
+Integration authorized: Controller-owned Rebase + Fast-forward into dev
+Active slice: Slice 1 - Bounded local objects
+Next slice: Slice 2 - Private S3 objects
+Active tasks: T1.1, T1.2
+Execution gate: Open
+Worker budget: 300 total turns; 10 consecutive stalled turns
 Slice strategy: behavior-first
 Reason: local I/O, remote I/O and signed forms each deliver complete package behavior and real boundary evidence without empty interfaces or intentionally failing layers.
 Go baseline: 1.27.1; GOWORK=off
@@ -35,13 +37,12 @@ Application authorization, ownership, quotas, durable completion and retry polic
 remain caller responsibilities. This delivery set is owned entirely by this
 repository, with no external application's state or controller as a prerequisite.
 
-The specification is approved; this request authorizes its independent planning.
-Before runtime work, accept/publish this plan and tracker on canonical dev and
-record explicit implementation, controller-owned Rebase + Fast-forward merges,
-the complete repository gate and restricted closure authority. Verify clean dev,
+The maintainer approved this plan and authorized publication and five-slice
+Looper execution on 2026-10-16, including controller-owned Rebase + Fast-forward
+merges, the complete repository gate and restricted closure. Verify clean dev,
 actual canonical origin/base, open PR/worktree inventory, installed tools and
 exclusive controller ownership. Read installed `looper --help` at activation.
-Do not start a controller from specification approval alone.
+The authorization is for this exact delivery set; it does not add release work.
 
 The repository has no scheduled nightly integration. Its `.agents/PLAYBOOKS.md`
 owns local validation and later main alignment. This set's delivery targets dev;
@@ -175,6 +176,14 @@ formatting mutations fail receipt binding. Do not run `make ci` or rewrite badge
 Existing opt-in unrelated live-provider tests retain their declared boundaries;
 record skips explicitly and never treat them as storage acceptance. Every
 required OS root must execute without skip.
+
+Full-mode PostgreSQL uses a fresh private native cluster through the existing
+`db` tests' `DB_HOST`/`DB_PORT`/`DB_USER`/`DB_PASSWORD`/`DB_NAME` contract. Supply
+only the owned cluster to the gate process; do not use a system database or
+require Docker socket access. T1.2 records the initdb/pg_ctl/psql prerequisite
+and T5.2 wires bounded cluster startup and confirmed shutdown into the complete
+runner. Other test-container fallbacks are not silently skipped. This is fixture
+composition through existing test inputs, not a product database-contract change.
 
 Receipts bind exact pushed dev candidate, ordered commands, Go/SDK identities,
 complete manifests/results, source/build/binary fixture identity, log hashes,

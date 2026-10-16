@@ -8,7 +8,8 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Object Storage Delivery Tracker
 
 Date: 2026-10-16
-Status: Planned
+Status: Active
+Approved: 2026-10-16
 Specification approved: 2026-10-16
 Planning authorized: 2026-10-16
 Delivery set: object-storage
@@ -17,18 +18,19 @@ Source ticket: [Bounded object storage and signed uploads](../ticket/open/202610
 Plan: [Delivery plan](../plan/object-storage.md)
 Base branch: `dev`
 Planning base: `60fcca7f8f88059608b353420dfa7513c0b78279`
-Execution authorized: Pending
-Integration authorized: Pending
-Active slice: None
-Next slice: Slice 1 - Bounded local objects
-Active tasks: None
-Execution gate: Closed
+Execution authorized: 2026-10-16; five-slice Looper delivery, exact-candidate full gate and restricted closure
+Integration authorized: Controller-owned Rebase + Fast-forward into dev
+Active slice: Slice 1 - Bounded local objects
+Next slice: Slice 2 - Private S3 objects
+Active tasks: T1.1, T1.2
+Execution gate: Open
+Worker budget: 300 total turns; 10 consecutive stalled turns
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Bounded local objects | pending | `feat/bounded-local-storage` | `feat(slice-1): store bounded private local objects` | pending | `ops/default/report/slices/object-storage/slice-1-local-objects.md` |
+| Slice 1 | Bounded local objects | active | `feat/bounded-local-storage` | `feat(slice-1): store bounded private local objects` | pending | `ops/default/report/slices/object-storage/slice-1-local-objects.md` |
 | Slice 2 | Private S3 objects | pending | `feat/private-s3-storage` | `feat(slice-2): inspect private S3 objects` | pending | `ops/default/report/slices/object-storage/slice-2-s3-objects.md` |
 | Slice 3 | Signed POST uploads | pending | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | pending | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
 | Slice 4 | Object storage guides | pending | `docs/object-storage-workflows` | `docs(slice-4): guide private object storage workflows` | pending | `ops/default/report/slices/object-storage/slice-4-storage-guides.md` |
@@ -38,7 +40,7 @@ Execution gate: Closed
 
 | Task | Status | Expected commit | Commit |
 | --- | --- | --- | --- |
-| T1.1 | pending | `feat(storage): implement bounded local object operations` | pending |
+| T1.1 | active | `feat(storage): implement bounded local object operations` | pending |
 | T1.2 | pending | `test(storage): verify local ownership and resource bounds` | pending |
 | T2.1 | pending | `feat(storage): implement private S3 object operations` | pending |
 | T2.2 | pending | `test(storage): verify private S3 transport outcomes` | pending |
@@ -63,8 +65,8 @@ commits, canonical PRs and immutable report introductions after verification.
 - [x] OS01-OS10 mapped to owners and future required checks.
 - [x] Reference server release/source/module identities resolved from authoritative sources.
 - [x] Eleven documentation-only closure path names specified, including both ticket move paths.
-- [ ] Plan accepted and all planning artifacts committed/pushed to canonical dev.
-- [ ] Runtime/controller, Rebase + Fast-forward merges, complete local gate and closure authorized.
+- [x] Plan accepted and publication authorized on 2026-10-16; activation commit/push verified by controller startup.
+- [x] Runtime/controller, Rebase + Fast-forward merges, complete local gate and closure authorized on 2026-10-16.
 - [ ] Exact native fixture binary build information/hash bound before integration tests.
 - [ ] Clean candidate, canonical PR inventory, tools and exclusive controller ownership verified.
 - [ ] Five canonical PRs, ten tasks and original reports delivered.
@@ -88,8 +90,10 @@ commits, canonical PRs and immutable report introductions after verification.
 
 ## Current Checkpoint
 
-Scope is approved; independent planning is prepared. Runtime/controller and
-integration gates remain closed. The reference fixture source is pinned to
+The maintainer authorized publication and the complete five-slice controller
+delivery on 2026-10-16. Slice 1 and T1.1/T1.2 are active; final startup still
+requires clean pushed dev and exclusive ownership verification. The reference
+fixture source is pinned to
 `9e49d5e7a648f00e26f2246f4dc28e6b07f8c84a`, resolved module
 `v0.0.0-20251015172955-9e49d5e7a648`; no executable hash or runtime acceptance
 is fabricated before its future owned build and actual tests.

@@ -17,7 +17,7 @@ Implementation status: Pending
 Plan: [Delivery plan](../plan/object-storage.md)
 Tracker: [Delivery tracker](../tracker/object-storage.md)
 Planning authorized: 2026-10-16
-Execution gate: Closed
+Execution gate: Open; five-slice delivery authorized on 2026-10-16
 
 ## Purpose
 
@@ -250,10 +250,11 @@ This establishes that fixture's tested compatibility, not every provider's.
 
 ## Approval State and References
 
-The maintainer approved this core scope on 2026-10-16. Its independent plan and
-tracker bind slice identities, test server source/build identity, commands and
-closure. Runtime/controller and delegated integration authority remain pending;
-approval does not declare a capability delivered or authorize a version/release.
+The maintainer approved this core scope and authorized its independent five-slice
+Looper execution on 2026-10-16. The plan/tracker bind exact identities, fixture
+source/build, commands and restricted closure. Authority includes Rebase +
+Fast-forward into dev and the complete gate; it neither declares delivery nor
+authorizes a version/release.
 
 Source references: `image/store.go`, `image/local/store.go`, `image/s3/store.go`,
 and the pinned AWS SDK's `PresignPostObject`/`PresignPostOptions.Conditions`.
