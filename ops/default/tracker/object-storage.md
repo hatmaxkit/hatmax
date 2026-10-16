@@ -33,7 +33,7 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | Slice 1 | Bounded local objects | delivered | `feat/bounded-local-storage` | `feat(slice-1): store bounded private local objects` | [#123](https://forge.adrianpk.com/hatmax/hatmax/pulls/123) | `ops/default/report/slices/object-storage/slice-1-local-objects.md` |
 | Slice 2 | Private S3 objects | delivered | `feat/private-s3-storage` | `feat(slice-2): inspect private S3 objects` | [#124](https://forge.adrianpk.com/hatmax/hatmax/pulls/124) | `ops/default/report/slices/object-storage/slice-2-s3-objects.md` |
 | Slice 3 | Signed POST uploads | delivered | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | [#125](https://forge.adrianpk.com/hatmax/hatmax/pulls/125) | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
-| Slice 4 | Object storage guides | reviewing | `docs/object-storage-workflows` | `docs(slice-4): guide private object storage workflows` | pending | `ops/default/report/slices/object-storage/slice-4-storage-guides.md` |
+| Slice 4 | Object storage guides | reviewing | `docs/object-storage-workflows` | `docs(slice-4): guide private object storage workflows` | [#126](https://forge.adrianpk.com/hatmax/hatmax/pulls/126) | `ops/default/report/slices/object-storage/slice-4-storage-guides.md` |
 | Slice 5 | Integrated acceptance | pending | `test/object-storage-acceptance` | `test(slice-5): verify object storage acceptance` | pending | `ops/default/report/slices/object-storage/slice-5-integrated-acceptance.md` |
 
 ## Tasks
@@ -97,10 +97,13 @@ controller checks passed, including actual signed multipart race roots and
 confirmed owned fixture cleanup. Slice 4 T4.1/T4.2 deliver linked executable guides, exact source/output controls
 and historical image compatibility evidence. Focused ordinary and actual-server
 walkthroughs passed with confirmed owned cleanup. Its report is reviewing;
-canonical PR references precede final clean-HEAD controller validation.
+Canonical PR #126 is open against dev. Its references are committed before
+final clean-HEAD controller validation and integration.
 
 Slice 1 report introduction: `4719f3678de9ab4b761e1faf8281aa206c4f4d98`.
 
 Slice 2 report introduction: `73436bade00dc1d42025cfb511bf04aff3719d15`.
 
 Slice 3 report introduction: `c75d41100e9c9856f378a5ca221c54bc8718ec96`.
+
+Slice 4 report introduction: `eda2f220f1dff8c187e1428d4d0b202bad912eb2`.
