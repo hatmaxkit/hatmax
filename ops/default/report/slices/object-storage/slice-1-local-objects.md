@@ -75,7 +75,11 @@ The final PR uses these ordered controller-recorded commands:
 - `GOWORK=off make docs-check`
 - `git diff --check`
 
-The controller's exact clean-HEAD receipt owns their final result. The slice
+The Slice 1 runner passed through the controller at
+`07af2e04d77834fb104adb7f6a02041c93b471dc`. Documentation validation then found a
+stale tracker link after the source-ticket move; the link was corrected before
+regenerating final evidence. The controller's exact clean-HEAD receipt owns the
+final result for all three commands. The slice
 runner retains command/log hashes and explicit passes for TestKeys, TestBounds,
 TestObjects, TestConfinement and TestWriteFailure in ordinary and race runs,
 plus existing image/local regressions, licensing, formatting, shell syntax,
