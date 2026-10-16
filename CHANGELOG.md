@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with explicit byte limits. Local writes replace complete objects atomically
   within the configured directory. S3 operations preserve access failures and
   identify uncertain writes or deletes for caller reconciliation.
+- Applications can issue signed forms for private MinIO uploads restricted to
+  one destination, declared content type, byte range and expiry. Applications
+  validate and finalize uploaded bytes; forms remain reusable until expiry.
 
 ## [0.6.0] - 2026-10-09
 

@@ -40,6 +40,7 @@ type Options struct {
 	ReadAttempts          int
 	OperationTimeout      time.Duration
 	AllowInsecureLoopback bool
+	PostPolicy            PostPolicyProfile
 }
 
 // Store implements storage.Store in a private, initially unversioned bucket.
@@ -54,6 +55,7 @@ type Store struct {
 	readAttempts int
 	timeout      time.Duration
 	httpClient   *http.Client
+	postPolicy   PostPolicyProfile
 }
 
 // NewStore validates configuration and opens the owned spool directory. HTTPS
@@ -130,10 +132,14 @@ func NewStore(ctx context.Context, options Options) (*Store, error) {
 		}
 	})
 
-	return &Store{client: api, bucket: options.Bucket, spool: root, capacity: options.MaxSpoolBytes, readAttempts: options.ReadAttempts, timeout: options.OperationTimeout, httpClient: client}, nil
+	return &Store{client: api, bucket: options.Bucket, spool: root, capacity: options.MaxSpoolBytes, readAttempts: options.ReadAttempts, timeout: options.OperationTimeout, httpClient: client, postPolicy: options.PostPolicy}, nil
 }
 
 func validateOptions(options Options) error {
+	if options.PostPolicy != PostPolicyDisabled && (options.PostPolicy != PostPolicyMinIO || options.Endpoint == "") {
+		return fmt.Errorf("S3 POST policy profile: %w", storage.ErrUnsupported)
+	}
+
 	err := (storage.ReadOptions{MaxBytes: options.MaxSpoolBytes}).Validate()
 	if err != nil || options.SpoolDirectory == "" || strings.TrimSpace(options.Region) == "" || options.ReadAttempts < 1 || options.ReadAttempts > 5 || options.OperationTimeout <= 0 || options.OperationTimeout > 120*time.Second {
 		return fmt.Errorf("S3 limits or configuration: %w", storage.ErrInvalid)
