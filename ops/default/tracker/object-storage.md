@@ -22,7 +22,7 @@ Execution authorized: 2026-10-16; five-slice Looper delivery, exact-candidate fu
 Integration authorized: Controller-owned Rebase + Fast-forward into dev
 Active slice: Slice 1 - Bounded local objects
 Next slice: Slice 2 - Private S3 objects
-Active tasks: None; Slice 1 PR preparation
+Active tasks: None; Slice 1 awaiting controller integration
 Execution gate: Open
 Worker budget: 300 total turns; 10 consecutive stalled turns
 
@@ -30,7 +30,7 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Bounded local objects | reviewing | `feat/bounded-local-storage` | `feat(slice-1): store bounded private local objects` | pending | `ops/default/report/slices/object-storage/slice-1-local-objects.md` |
+| Slice 1 | Bounded local objects | reviewing | `feat/bounded-local-storage` | `feat(slice-1): store bounded private local objects` | [#123](https://forge.adrianpk.com/hatmax/hatmax/pulls/123) | `ops/default/report/slices/object-storage/slice-1-local-objects.md` |
 | Slice 2 | Private S3 objects | pending | `feat/private-s3-storage` | `feat(slice-2): inspect private S3 objects` | pending | `ops/default/report/slices/object-storage/slice-2-s3-objects.md` |
 | Slice 3 | Signed POST uploads | pending | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | pending | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
 | Slice 4 | Object storage guides | pending | `docs/object-storage-workflows` | `docs(slice-4): guide private object storage workflows` | pending | `ops/default/report/slices/object-storage/slice-4-storage-guides.md` |
@@ -92,9 +92,12 @@ the exact clean-HEAD controller receipt; task checks do not replace that receipt
 
 Slice 1 T1.1 and T1.2 are implemented in the dedicated approved branch. Focused
 ordinary storage checks passed; the canonical report is reviewing. Canonical
-PR preparation and final clean-HEAD controller validation precede integration.
+PR #123 is open against dev. Its references are committed before final
+clean-HEAD controller validation and integration.
 The primary checkout stays on dev. Slice 2 remains pending.
 
 The remote fixture source remains pinned to
 `9e49d5e7a648f00e26f2246f4dc28e6b07f8c84a`; its build identity and acceptance
 belong to the later remote-storage tasks.
+
+Slice 1 report introduction: `4719f3678de9ab4b761e1faf8281aa206c4f4d98`.

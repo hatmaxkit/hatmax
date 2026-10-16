@@ -12,7 +12,7 @@ Delivery set: object-storage
 Plan: [Object storage plan](../../../plan/object-storage.md)
 Tracker: [Object storage tracker](../../../tracker/object-storage.md)
 Branch: `feat/bounded-local-storage`
-PR: pending
+PR: `#123`
 
 ## Purpose
 
