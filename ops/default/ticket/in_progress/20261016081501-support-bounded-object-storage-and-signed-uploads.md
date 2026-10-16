@@ -13,7 +13,7 @@ ready_at: 2026-10-16T09:11:36Z
 started_at: 2026-10-16T09:11:36Z
 branch: feat/private-s3-storage
 pr: "#123"
-commits: b6ba9e4509918ec2fe6fca7a491a63a552ee10fd, 94681613bb9ef8075979dd9b0ede1d99500b8259
+commits: b6ba9e4509918ec2fe6fca7a491a63a552ee10fd, 94681613bb9ef8075979dd9b0ede1d99500b8259, 9de7c8aef2d8a487cf192ad3b5899e64157d2fb5, b85c9496d412f0a759e4640264ffa0689c2fdd0c
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -46,7 +46,7 @@ ownership, authorization, quotas and completion with applications.
 
 The specification defines OS01-OS10, provider capability boundaries, compatibility
 and real fixture evidence. Scope, five-slice controller execution and controller-owned integration were
-authorized on 2026-10-16. Slice 1 is in progress. This source ticket tracks the formal
+authorized on 2026-10-16. Slice 1 is delivered and Slice 2 is reviewing. This source ticket tracks the formal
 delivery until its exact gate passes and its implemented resolution is recorded.
 
 ## Validation
