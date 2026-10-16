@@ -8,11 +8,16 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Object Storage Capabilities
 
 Date: 2026-10-16
-Status: Proposed
+Status: Approved
+Approved: 2026-10-16
 Concern: object-storage
 Source ticket: [Bounded object storage and signed uploads](../ticket/open/20261016081501-support-bounded-object-storage-and-signed-uploads.md)
 Inspected baseline: `82defb7b51f71436ae71cbb5b2e2c980bca359b1`
 Implementation status: Pending
+Plan: [Delivery plan](../plan/object-storage.md)
+Tracker: [Delivery tracker](../tracker/object-storage.md)
+Planning authorized: 2026-10-16
+Execution gate: Closed
 
 ## Purpose
 
@@ -33,7 +38,7 @@ tenant model, background worker or generic provider registry.
 
 ## Package Contracts
 
-The proposed API uses caller contexts, ordinary readers and small typed options:
+The API uses caller contexts, ordinary readers and small typed options:
 
 ```go
 type Object struct {
@@ -220,10 +225,12 @@ bearer scope and completion. Examples use existing Go/shell tooling. Signing
 examples submit the actual form and inspect actual accepted bytes without
 printing grant fields. No external production account is needed for acceptance.
 
-Use real filesystem operations and an isolated MinIO-compatible S3 server via
-the repository's existing Go testcontainers/Docker infrastructure. Pin the test
-server image by immutable digest during planning; do not use a floating tag or
-add another language runtime. Fixture startup, readiness, operation and teardown
+Use real filesystem operations and an isolated MinIO-compatible S3 server built
+with Go from the exact source version pinned by the independent plan. Record
+the built binary digest before integration validation. This avoids depending on
+an unavailable published image and adds no language runtime. Existing container
+infrastructure may remain in use for other repository tests. Fixture startup,
+readiness, operation and teardown
 have finite deadlines and exact ownership. Missing required infrastructure is
 a visible validation blocker, not a skipped green integration result.
 This establishes that fixture's tested compatibility, not every provider's.
@@ -241,12 +248,12 @@ This establishes that fixture's tested compatibility, not every provider's.
 | OS09 | Four documentation quadrants and executable examples match public APIs and prove actual local and signed remote workflows |
 | OS10 | Exact-candidate package/integration/documentation/full-repository checks and owned cleanup pass; unsupported provider behavior cannot be reported as accepted |
 
-## Review State and References
+## Approval State and References
 
-This is a proposal for core review. It does not authorize runtime implementation
-or declare any capability delivered. Approval is followed by an independent
-plan and tracker that bind exact slice identities, test server digest, commands
-and closure. No version or release authority is inferred.
+The maintainer approved this core scope on 2026-10-16. Its independent plan and
+tracker bind slice identities, test server source/build identity, commands and
+closure. Runtime/controller and delegated integration authority remain pending;
+approval does not declare a capability delivered or authorize a version/release.
 
 Source references: `image/store.go`, `image/local/store.go`, `image/s3/store.go`,
 and the pinned AWS SDK's `PresignPostObject`/`PresignPostOptions.Conditions`.

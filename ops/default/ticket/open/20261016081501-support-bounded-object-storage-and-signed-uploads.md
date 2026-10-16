@@ -33,17 +33,17 @@ capabilities are not currently expressed in Hatmax's public storage contracts.
 
 ## Expected Outcome
 
-Refine and approve [Object storage capabilities](../../spec/object-storage.md),
-then deliver its independent plan and tracker. Provide bounded private object
+The maintainer approved [Object storage capabilities](../../spec/object-storage.md)
+on 2026-10-16. Its independent [plan](../../plan/object-storage.md) and
+[tracker](../../tracker/object-storage.md) govern delivery. Provide bounded private object
 I/O, metadata inspection and exact-target signed POST uploads through small Go
 contracts and local/S3 adapters. Preserve existing image APIs and leave domain
 ownership, authorization, quotas and completion with applications.
 
 The specification defines OS01-OS10, provider capability boundaries, compatibility
-and real fixture evidence. Capture does not approve its proposed package design
-or start implementation. Keep this ticket open until formal scope approval;
-record its eventual delivery artifacts and resolution through this repository's
-normal lifecycle.
+and real fixture evidence. Scope is approved; runtime/controller execution and
+integration authority remain pending. This source ticket tracks the formal
+delivery until its exact gate passes and its implemented resolution is recorded.
 
 ## Validation
 
