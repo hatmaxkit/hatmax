@@ -22,7 +22,7 @@ Execution authorized: 2026-10-16; five-slice Looper delivery, exact-candidate fu
 Integration authorized: Controller-owned Rebase + Fast-forward into dev
 Active slice: Slice 3 - Signed POST uploads
 Next slice: Slice 4 - Object storage guides
-Active tasks: None; Slice 3 PR preparation
+Active tasks: None; Slice 3 awaiting controller integration
 Execution gate: Open
 Worker budget: 300 total turns; 10 consecutive stalled turns
 
@@ -32,7 +32,7 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Bounded local objects | delivered | `feat/bounded-local-storage` | `feat(slice-1): store bounded private local objects` | [#123](https://forge.adrianpk.com/hatmax/hatmax/pulls/123) | `ops/default/report/slices/object-storage/slice-1-local-objects.md` |
 | Slice 2 | Private S3 objects | delivered | `feat/private-s3-storage` | `feat(slice-2): inspect private S3 objects` | [#124](https://forge.adrianpk.com/hatmax/hatmax/pulls/124) | `ops/default/report/slices/object-storage/slice-2-s3-objects.md` |
-| Slice 3 | Signed POST uploads | reviewing | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | pending | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
+| Slice 3 | Signed POST uploads | reviewing | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | [#125](https://forge.adrianpk.com/hatmax/hatmax/pulls/125) | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
 | Slice 4 | Object storage guides | pending | `docs/object-storage-workflows` | `docs(slice-4): guide private object storage workflows` | pending | `ops/default/report/slices/object-storage/slice-4-storage-guides.md` |
 | Slice 5 | Integrated acceptance | pending | `test/object-storage-acceptance` | `test(slice-5): verify object storage acceptance` | pending | `ops/default/report/slices/object-storage/slice-5-integrated-acceptance.md` |
 
@@ -95,9 +95,11 @@ is verified merged into dev at `8322aa5e654f51ac240c868426be1e565509fb88`;
 its three exact-HEAD controller checks and owned fixture cleanup passed.
 Slice 3 T3.1/T3.2 are implemented on the approved branch; its report is
 reviewing. Focused ordinary and actual signed multipart checks passed, including
-confirmed owned cleanup. Canonical PR preparation and final clean-HEAD
-controller validation precede integration.
+confirmed owned cleanup. Canonical PR #125 is open against dev. Its references are committed before
+final clean-HEAD controller validation and integration.
 
 Slice 1 report introduction: `4719f3678de9ab4b761e1faf8281aa206c4f4d98`.
 
 Slice 2 report introduction: `73436bade00dc1d42025cfb511bf04aff3719d15`.
+
+Slice 3 report introduction: `c75d41100e9c9856f378a5ca221c54bc8718ec96`.

@@ -12,7 +12,7 @@ reported_at: 2026-10-16T08:15:01Z
 ready_at: 2026-10-16T09:11:36Z
 started_at: 2026-10-16T09:11:36Z
 branch: feat/signed-storage-uploads
-pr: "#123, #124"
+pr: "#123, #124, #125"
 commits: b6ba9e4509918ec2fe6fca7a491a63a552ee10fd, 94681613bb9ef8075979dd9b0ede1d99500b8259, 9de7c8aef2d8a487cf192ad3b5899e64157d2fb5, b85c9496d412f0a759e4640264ffa0689c2fdd0c, 2b0802dc245271aadab6b41ce6d6968dcb004db8, 25e7d3ca3f7a78bf0a5b765043e0ae1a148cc38a
 ---
 <!--
