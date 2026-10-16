@@ -65,6 +65,7 @@ func run(ctx context.Context, directory string) (result error) {
 	}
 
 	snapshot, readErr := io.ReadAll(reader)
+
 	err = errors.Join(readErr, reader.Close())
 	if err != nil {
 		return err

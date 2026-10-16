@@ -68,6 +68,7 @@ func submit(ctx context.Context, grant storage.UploadGrant) error {
 	var body bytes.Buffer
 
 	form := multipart.NewWriter(&body)
+
 	fields := make([]string, 0, len(grant.Fields))
 	for name := range grant.Fields {
 		fields = append(fields, name)
@@ -103,6 +104,7 @@ func submit(ctx context.Context, grant storage.UploadGrant) error {
 	}
 
 	request.Header.Set("Content-Type", form.FormDataContentType())
+
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	defer transport.CloseIdleConnections()
 
@@ -116,6 +118,7 @@ func submit(ctx context.Context, grant storage.UploadGrant) error {
 	}
 
 	_, readErr := io.Copy(io.Discard, io.LimitReader(response.Body, 4096))
+
 	err = errors.Join(readErr, response.Body.Close())
 	if err != nil {
 		return err
@@ -153,6 +156,7 @@ func complete(ctx context.Context, store storage.Store) error {
 
 	// Only successful EOF establishes a complete bounded snapshot.
 	snapshot, readErr := io.ReadAll(reader)
+
 	err = errors.Join(readErr, reader.Close())
 	if err != nil {
 		return err
@@ -175,6 +179,7 @@ func complete(ctx context.Context, store storage.Store) error {
 	}
 
 	accepted, readErr := io.ReadAll(final)
+
 	err = errors.Join(readErr, final.Close())
 	if err != nil {
 		return err

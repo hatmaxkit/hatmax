@@ -22,6 +22,7 @@ func complete(ctx context.Context, store storage.Store) error {
 
 	// Only successful EOF establishes a complete bounded snapshot.
 	snapshot, readErr := io.ReadAll(reader)
+
 	err = errors.Join(readErr, reader.Close())
 	if err != nil {
 		return err
@@ -44,6 +45,7 @@ func complete(ctx context.Context, store storage.Store) error {
 	}
 
 	accepted, readErr := io.ReadAll(final)
+
 	err = errors.Join(readErr, final.Close())
 	if err != nil {
 		return err

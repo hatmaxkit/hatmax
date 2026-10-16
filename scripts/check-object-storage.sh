@@ -7,8 +7,8 @@
 set -euo pipefail
 
 # Only implemented modes are admitted. Full acceptance is introduced by T5.2.
-if [[ $# != 2 || $1 != slice || ! $2 =~ ^[1-3]$ ]]; then
-  echo 'Usage: check-object-storage.sh slice 1..3 (full acceptance is not available yet)' >&2
+if [[ $# != 2 || $1 != slice || ! $2 =~ ^[1-4]$ ]]; then
+  echo 'Usage: check-object-storage.sh slice 1..4 (full acceptance is not available yet)' >&2
   exit 2
 fi
 slice_number=$2
@@ -67,7 +67,7 @@ run_check() {
     printf '\n'
   } >> "$receipt"
   local result=0
-  timeout --foreground 360s "$@" > "$last_log" 2>&1 || result=$?
+  timeout --foreground "${check_timeout:-360s}" "$@" > "$last_log" 2>&1 || result=$?
   cat "$last_log"
   printf 'finish: %s exit=%s\n' "$label" "$result" | tee -a "$receipt"
   sha256sum "$last_log" >> "$receipt"
@@ -99,7 +99,14 @@ check_roots() {
   fi
 }
 
-mapfile -t go_files < <(rg --files storage -g '*.go' | sort)
+format_paths=(storage)
+if ((slice_number >= 4)); then
+  format_paths+=(examples/object-storage)
+fi
+mapfile -t go_files < <(rg --files "${format_paths[@]}" -g '*.go' | sort)
+if ((slice_number >= 4)); then
+  go_files+=(scripts/documentation-conformance/object_guide_test.go scripts/documentation-conformance/object_guide_integration_test.go)
+fi
 run_check 'storage formatting' gofmt -l "${go_files[@]}"
 if [[ -s "$last_log" ]]; then
   echo 'Storage formatting differs from gofmt.' >&2
@@ -112,9 +119,16 @@ packages=(./storage/... ./image/local)
 if ((slice_number >= 2)); then
   packages+=(./image/s3)
 fi
+if ((slice_number >= 4)); then
+  packages=(./storage/... ./image/... ./examples/object-storage/... ./scripts/documentation-conformance)
+fi
 local_roots=(storage TestKeys storage TestBounds storage/local TestObjects storage/local TestConfinement storage/local TestWriteFailure)
 if ((slice_number >= 3)); then
   local_roots+=(storage TestUploadBounds)
+fi
+if ((slice_number >= 4)); then
+  local_roots+=(scripts/documentation-conformance TestObjectGuideDrift scripts/documentation-conformance TestObjectGuideControls scripts/documentation-conformance TestObjectLocalGuide scripts/documentation-conformance TestObjectImageCompatibility)
+  local_roots+=(image/local TestNewStore image/local TestStore_URL image/local TestStore_PutGetDelete image/s3 TestUploadInput image/stdprocessor TestProcessorResize image/stdprocessor TestResizeByteLimit image/stdprocessor TestProcessorPixels)
 fi
 run_check 'ordinary storage and image adapter roots' go test -json -count=1 -p=1 -parallel=2 -timeout=360s "${packages[@]}"
 check_roots "$last_log" "${local_roots[@]}"
@@ -155,6 +169,24 @@ if ((slice_number >= 2)); then
   sha256sum "$HATMAX_STORAGE_FIXTURE_RECEIPT" >> "$receipt"
   run_check 'integration vet' go vet -tags=integration ./storage/s3
   run_check 'configured integration lint' golangci-lint run --default=none --enable=nlreturn --enable=noinlineerr --enable=wsl_v5 --build-tags=integration ./storage/s3
+fi
+
+if ((slice_number >= 4)); then
+  run_check 'documentation structure, links and compiled examples' make docs-check
+  export HATMAX_STORAGE_FIXTURE_RECEIPT="$run_root/guide-fixture.txt"
+  check_timeout=600s
+  run_check 'published actual signed remote workflow' go test -json -race -tags=integration,documentation -count=1 -p=1 -parallel=2 -timeout=600s -run '^TestObjectStorageGuide$' ./scripts/documentation-conformance
+  unset check_timeout
+  check_roots "$last_log" scripts/documentation-conformance TestObjectStorageGuide
+  for outcome in 'guide: signed POST and exact final readback passed' 'guide: spool empty' 'objects-after-cleanup: 0' 'bucket: removed' 'server: stopped' 'temporary-root: removed'; do
+    if ! rg -Fxq "$outcome" "$HATMAX_STORAGE_FIXTURE_RECEIPT"; then
+      printf 'Missing required guide evidence: %s\n' "$outcome" >&2
+      exit 1
+    fi
+  done
+  sha256sum "$HATMAX_STORAGE_FIXTURE_RECEIPT" >> "$receipt"
+  run_check 'documentation integration vet' go vet -tags=integration,documentation ./storage/s3 ./scripts/documentation-conformance
+  run_check 'configured documentation integration lint' golangci-lint run --default=none --enable=nlreturn --enable=noinlineerr --enable=wsl_v5 --build-tags=integration,documentation ./storage/s3 ./scripts/documentation-conformance
 fi
 
 if [[ $(git rev-parse HEAD) != "$candidate" ]]; then
