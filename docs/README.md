@@ -26,7 +26,7 @@ the [Tutorials index](tutorials/README.md).
 
 The [How-to Guides](how-to/README.md) are direct procedures for known goals,
 including application setup, Postgres, migrations, authentication, mail,
-background jobs, pubsub, image storage, and database-backed tests.
+background jobs, pubsub, image storage, private object storage, and database-backed tests.
 
 ## Reference
 

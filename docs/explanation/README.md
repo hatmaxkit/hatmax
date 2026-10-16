@@ -21,3 +21,5 @@ API contracts.
 
 For procedures, use the [How-to Guides](../how-to/README.md). For exact
 behavior, use the [Reference](../reference/README.md).
+
+- [Private Object Ownership, Bearers and Snapshots](private-object-ownership/README.md)

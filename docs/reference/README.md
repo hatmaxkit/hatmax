@@ -50,3 +50,5 @@ reference follows the exported code.
 - [Fake](fake/README.md)
 - [Gallery](gallery/README.md)
 - [Generator](generator/README.md)
+
+- [Object Storage](storage/README.md)

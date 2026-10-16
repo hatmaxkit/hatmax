@@ -126,3 +126,7 @@ Encoded-byte and pixel limits bound individual inputs, not total process
 memory or request concurrency. Applications still own upload admission and
 concurrent processing limits. Registered codecs must report consistent
 configuration and decoded dimensions.
+
+For bounded documents without image metadata or public URLs, see
+[Object Storage Reference](../storage/README.md). Existing image constructors,
+keys, URL helpers and processing limits retain their contracts.

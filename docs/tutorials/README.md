@@ -16,3 +16,5 @@ not form a step-by-step project tutorial. The repository's `examples/ticked`
 application supplies a runnable composition for larger integration steps.
 Focused task procedures remain under
 [How-to Guides](../how-to/README.md).
+
+- [Store a Private Document](private-objects/README.md) walks through bounded local I/O.

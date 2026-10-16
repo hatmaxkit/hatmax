@@ -25,3 +25,7 @@ minimum prerequisites, gives direct steps, and ends with a verification.
 For the connected application model, use the
 [User Guide](../tutorials/user-guide/README.md). For exact behavior, use the
 [Reference](../reference/README.md).
+
+- [Configure Private S3 Object Storage](store-private-objects/README.md)
+- [Submit and Complete a Signed Object Upload](sign-object-uploads/README.md)
+- [Reconcile a Failed Object Mutation](reconcile-object-storage/README.md)
