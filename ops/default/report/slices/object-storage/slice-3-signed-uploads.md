@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 3: Signed POST Uploads
 
-Status: reviewing
+Status: delivered
 Delivery set: object-storage
 Plan: [Object storage plan](../../../plan/object-storage.md)
 Tracker: [Object storage tracker](../../../tracker/object-storage.md)
@@ -113,7 +113,11 @@ Final PR acceptance uses these ordered controller-recorded commands:
 - `GOWORK=off make docs-check`
 - `git diff --check`
 
-The exact clean-HEAD controller receipt owns their final result. Mode 3 requires
+All three passed at clean pushed HEAD
+`33b825eb1bfa77d64423eea8a2e0c1e7ca616cbc` in controller validation
+`4Q24N4WI3KUWDUNKK7Z3Q4VPRI`. Canonical PR #125 merged that commit into dev
+on 2026-10-16. The native receipt confirmed eight objects cleaned to zero,
+both bucket removals, owned server shutdown and temporary-root removal. Mode 3 requires
 all earlier local/remote I/O roots plus TestSignedUploads, TestSigningExpiry and
 TestSnapshotCompletion with race detection and confirmed fixture cleanup. It
 also preserves image adapter regressions, formatting, licensing, shell syntax,
