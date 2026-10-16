@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   one destination, declared content type, byte range and expiry. Applications
   validate and finalize uploaded bytes; forms remain reusable until expiry.
 
+### Fixed
+
+- S3 upload signing can run concurrently with other signing and object
+  operations without racing on shared credentials state.
+
 ## [0.6.0] - 2026-10-09
 
 ### Added

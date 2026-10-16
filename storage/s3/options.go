@@ -49,6 +49,7 @@ type Options struct {
 // creates a bucket nor probes remote permissions, and starts no workers.
 type Store struct {
 	client       *sdk.Client
+	presigner    *sdk.PresignClient
 	bucket       string
 	spool        *os.Root
 	capacity     int64
@@ -132,7 +133,20 @@ func NewStore(ctx context.Context, options Options) (*Store, error) {
 		}
 	})
 
-	return &Store{client: api, bucket: options.Bucket, spool: root, capacity: options.MaxSpoolBytes, readAttempts: options.ReadAttempts, timeout: options.OperationTimeout, httpClient: client, postPolicy: options.PostPolicy}, nil
+	var presigner *sdk.PresignClient
+
+	if options.PostPolicy == PostPolicyMinIO {
+		// SDK client construction mutates shared credentials state. Finish it
+		// before publishing the store to concurrent signing and object operations.
+		presigner = sdk.NewPresignClient(api, func(o *sdk.PresignOptions) {
+			o.ClientOptions = append(o.ClientOptions, func(options *sdk.Options) {
+				options.ClientLogMode = 0
+				options.DisableClockSkewCorrection = true
+			})
+		})
+	}
+
+	return &Store{client: api, presigner: presigner, bucket: options.Bucket, spool: root, capacity: options.MaxSpoolBytes, readAttempts: options.ReadAttempts, timeout: options.OperationTimeout, httpClient: client, postPolicy: options.PostPolicy}, nil
 }
 
 func validateOptions(options Options) error {

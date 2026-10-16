@@ -57,19 +57,13 @@ func (s *Store) SignUpload(ctx context.Context, request storage.UploadRequest) (
 	}
 
 	bound := &boundPostSigner{ctx: operation, bucket: s.bucket, request: request}
-	client := sdk.NewPresignClient(s.client, func(o *sdk.PresignOptions) {
-		o.ClientOptions = append(o.ClientOptions, func(options *sdk.Options) {
-			options.ClientLogMode = 0
-			options.DisableClockSkewCorrection = true
-		})
-	})
 	conditions := []any{
 		map[string]string{"key": request.Key},
 		map[string]string{"Content-Type": request.ContentType},
 		[]any{"content-length-range", request.MinBytes, request.MaxBytes},
 	}
 
-	post, err := client.PresignPostObject(operation, &sdk.PutObjectInput{Bucket: aws.String(s.bucket), Key: aws.String(request.Key), ContentType: aws.String(request.ContentType)}, func(o *sdk.PresignPostOptions) {
+	post, err := s.presigner.PresignPostObject(operation, &sdk.PutObjectInput{Bucket: aws.String(s.bucket), Key: aws.String(request.Key), ContentType: aws.String(request.ContentType)}, func(o *sdk.PresignPostOptions) {
 		// Never allow the SDK's zero-duration default. The bound signer below uses
 		// the absolute requested deadline, not this duration added to a later clock.
 		o.Expires = request.ExpiresAt.Sub(now)
