@@ -6,6 +6,8 @@
 # Variables
 LIB_NAME = hatmax
 MODULE_NAME = hatmax.adrianpk.com
+# Optional test output flags; the aggregate gate retains the complete suite.
+TEST_FLAGS ?=
 LINT_CACHE_DIR = $(CURDIR)/.tmp/lint
 LINT_GOCACHE = $(LINT_CACHE_DIR)/gocache
 # Product coverage excludes example applications and repository workflow tools.
@@ -95,7 +97,7 @@ format:
 
 # Run tests
 test:
-	@go test ./...
+	@go test $(TEST_FLAGS) ./...
 
 # Run tests with verbose output
 test-v:

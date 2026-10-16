@@ -32,10 +32,21 @@ func TestObjectStorageGuide(t *testing.T) {
 	command.WaitDelay = 5 * time.Second
 
 	output, err := command.CombinedOutput()
+	commandErr := err
+
+	results, err := os.OpenFile(os.Getenv("HATMAX_STORAGE_FIXTURE_RECEIPT")+".results.jsonl", os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
 	if err != nil {
-		t.Fatalf("owned documented remote workflow failed: %v", err)
+		t.Fatal(err)
 	}
 
+	t.Cleanup(func() {
+		closeErr := results.Close()
+		if closeErr != nil {
+			t.Error(closeErr)
+		}
+	})
+
+	encoder := json.NewEncoder(results)
 	passed := false
 
 	for line := range strings.SplitSeq(string(output), "\n") {
@@ -50,6 +61,13 @@ func TestObjectStorageGuide(t *testing.T) {
 			t.Fatal("remote root produced malformed result evidence")
 		}
 
+		if event.Action != "output" {
+			err = encoder.Encode(event)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+
 		if event.Action == "skip" {
 			t.Fatal("required documented workflow skipped")
 		}
@@ -57,6 +75,10 @@ func TestObjectStorageGuide(t *testing.T) {
 		if event.Package == "hatmax.adrianpk.com/storage/s3" && event.Test == "TestDocumentedStorage" && event.Action == "pass" {
 			passed = true
 		}
+	}
+
+	if commandErr != nil {
+		t.Fatalf("owned documented remote workflow failed: %v", commandErr)
 	}
 
 	if !passed {

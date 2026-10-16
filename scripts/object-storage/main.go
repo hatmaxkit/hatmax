@@ -45,7 +45,23 @@ func run(args []string) error {
 		return err
 	}
 
-	return fmt.Errorf("usage: object-storage contract")
+	if len(args) == 3 && args[0] == "begin" {
+		return beginEvidence(args[1], args[2])
+	}
+
+	if len(args) >= 7 && args[0] == "record" {
+		return recordStep(args[1], args[2], args[3], args[4], args[5], args[6:])
+	}
+
+	if len(args) == 2 && args[0] == "verify" {
+		return verifyEvidence(args[1])
+	}
+
+	if len(args) == 2 && args[0] == "postgres" {
+		return checkPostgres(args[1])
+	}
+
+	return fmt.Errorf("usage: object-storage contract|begin DIRECTORY MODE|record DIRECTORY GROUP LABEL EXIT LOG COMMAND...|verify DIRECTORY|postgres DIRECTORY")
 }
 
 type listedPackage struct {
@@ -89,14 +105,14 @@ func listedRoots(tags string, packages []string) ([]root, error) {
 		}
 
 		for _, file := range append(listed.TestGoFiles, listed.XTestGoFiles...) {
-			source, err := parser.ParseFile(token.NewFileSet(), filepath.Join(listed.Dir, file), nil, 0)
+			source, err := parser.ParseFile(token.NewFileSet(), filepath.Join(listed.Dir, file), nil, parser.ParseComments)
 			if err != nil {
 				return nil, err
 			}
 
 			for _, declaration := range source.Decls {
 				function, ok := declaration.(*ast.FuncDecl)
-				if ok && function.Recv == nil && strings.HasPrefix(function.Name.Name, "Test") && function.Name.Name != "TestMain" {
+				if ok && function.Recv == nil && executableRoot(function, source.Comments) {
 					result = append(result, root{Package: strings.TrimPrefix(listed.ImportPath, "hatmax.adrianpk.com/"), Name: function.Name.Name})
 				}
 			}
@@ -174,4 +190,24 @@ func checkLedger(roots []root) error {
 	}
 
 	return nil
+}
+
+// Examples without output directives compile but are not executed by go test.
+func executableRoot(function *ast.FuncDecl, comments []*ast.CommentGroup) bool {
+	name := function.Name.Name
+	if strings.HasPrefix(name, "Test") && name != "TestMain" || strings.HasPrefix(name, "Fuzz") {
+		return true
+	}
+
+	if !strings.HasPrefix(name, "Example") {
+		return false
+	}
+
+	for _, group := range comments {
+		if group.Pos() > function.Pos() && group.End() < function.End() && (strings.Contains(group.Text(), "Output:") || strings.Contains(group.Text(), "Unordered output:")) {
+			return true
+		}
+	}
+
+	return false
 }

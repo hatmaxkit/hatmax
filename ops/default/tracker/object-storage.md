@@ -14,7 +14,7 @@ Specification approved: 2026-10-16
 Planning authorized: 2026-10-16
 Delivery set: object-storage
 Concern: [Object storage capabilities](../spec/object-storage.md)
-Source ticket: [Bounded object storage and signed uploads](../ticket/in_progress/20261016081501-support-bounded-object-storage-and-signed-uploads.md)
+Source ticket: [Bounded object storage and signed uploads](../ticket/reviewing/20261016081501-support-bounded-object-storage-and-signed-uploads.md)
 Plan: [Delivery plan](../plan/object-storage.md)
 Base branch: `dev`
 Planning base: `60fcca7f8f88059608b353420dfa7513c0b78279`
@@ -48,7 +48,7 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | T3.2 | completed | `test(storage): verify signed upload enforcement` | `25e7d3ca3f7a78bf0a5b765043e0ae1a148cc38a` |
 | T4.1 | completed | `docs(storage): explain private object storage contracts` | `7161cc892c5f0e56ddd5eb11c9c96d647c8d43ee` |
 | T4.2 | completed | `test(storage): execute documented storage workflows` | `270d1a89d8d562dd84f8ec008d014c35fb1592d9` |
-| T5.1 | active | `test(storage): verify integrated object lifecycles` | pending |
+| T5.1 | completed | `test(storage): verify integrated object lifecycles` | `9cde0688161bab2a69ef6b9a49cb62054bef5ae6` |
 | T5.2 | active | `test(storage): bind exact-candidate acceptance evidence` | pending |
 
 The plan owns task scopes, named future selectors and finite bounds. Each PR

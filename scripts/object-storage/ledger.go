@@ -36,3 +36,23 @@ var criteria = []criterion{
 const fixtureSource = "9e49d5e7a648f00e26f2246f4dc28e6b07f8c84a"
 const fixtureModule = "v0.0.0-20251015172955-9e49d5e7a648"
 const fixtureSum = "h1:6TdolSCLSs2nwm8i0PpWDqf9iX2Ty9WQK8wmr7dCnUM="
+
+// Ordering is part of acceptance, independently of the runtime step files.
+func expectedLabels(mode string) []string {
+	labels := []string{
+		"evidence tool build", "storage formatting", "source licensing",
+		"runner shell syntax", "fixture tool shell syntax", "PostgreSQL fixture shell syntax",
+		"ordinary storage and image adapter roots", "race storage and image adapter roots",
+		"affected build", "affected vet", "configured affected lint",
+		"private S3 integration roots", "integration vet", "configured integration lint",
+		"documentation structure, links and compiled examples", "published actual signed remote workflow",
+		"documented storage child results", "documentation integration vet", "configured documentation integration lint",
+	}
+	if mode == "full" {
+		labels = append(labels, "complete repository gate")
+	} else {
+		labels = append(labels, "native PostgreSQL smoke")
+	}
+
+	return append(labels, "owned PostgreSQL cleanup")
+}

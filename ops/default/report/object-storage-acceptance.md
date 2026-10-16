@@ -11,11 +11,12 @@ Status: Awaiting exact integrated gate
 Delivery set: object-storage
 Plan: [Delivery plan](../plan/object-storage.md)
 Tracker: [Delivery tracker](../tracker/object-storage.md)
-Source ticket: [Bounded objects and signed uploads](../ticket/in_progress/20261016081501-support-bounded-object-storage-and-signed-uploads.md)
+Source ticket: [Bounded objects and signed uploads](../ticket/reviewing/20261016081501-support-bounded-object-storage-and-signed-uploads.md)
 
 ## Acceptance Contract
 
-The versioned `scripts/object-storage/ledger.go` maps OS01-OS10 to current
+The [immutable ledger introduction](https://forge.adrianpk.com/hatmax/hatmax/src/commit/9cde0688161bab2a69ef6b9a49cb62054bef5ae6/scripts/object-storage/ledger.go)
+maps OS01-OS10 to current
 package/tag/root identities. Runtime evidence binds that ledger, the candidate,
 tracked source bytes, exact ordered command arguments, discovered root manifests,
 results and log hashes. Source discovery or a slice receipt alone cannot accept
@@ -51,6 +52,21 @@ existing DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME test inputs. It records too
 identity, bounded startup and confirmed shutdown without logging credentials.
 All required storage roots must run without skip. Existing unrelated opt-in
 boundaries are recorded separately and cannot count as storage acceptance.
+
+The runner emits an exact-candidate manifest, 21 ordered command/result records
+and a hashed acceptance receipt under ignored `.tmp/object-storage/`. Discovery
+uses actual build-tag-selected Go files, including runnable tests, examples and
+fuzz seeds. Ordinary and race results, every introduced tagged root, sanitized
+guide-child results and native cleanup are mandatory. Only full mode on clean
+pushed dev, including the existing complete make check target, can accept OS10.
+Slice 5 mode reports OS10 pending even when its focused evidence is green.
+
+Full make check receives optional TEST_FLAGS for JSON, fresh execution and finite
+scheduling. Its original license, format, vet, complete tests, 80% coverage and
+strict lint prerequisites remain intact. PostgreSQL initialization/start/shutdown
+are bounded to 60/30/30 seconds; its command has a 30-minute ceiling. Tagged
+storage roots retain 360 seconds and the guide 600 seconds. No full gate is
+executed during Slice 5 preparation.
 
 ## Final Gate Evidence
 
