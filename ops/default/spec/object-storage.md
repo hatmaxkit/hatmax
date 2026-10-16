@@ -13,7 +13,7 @@ Approved: 2026-10-16
 Concern: object-storage
 Source ticket: [Bounded object storage and signed uploads](../ticket/reviewing/20261016081501-support-bounded-object-storage-and-signed-uploads.md)
 Inspected baseline: `82defb7b51f71436ae71cbb5b2e2c980bca359b1`
-Implementation status: Pending
+Implementation status: Implemented; awaiting exact integrated gate
 Plan: [Delivery plan](../plan/object-storage.md)
 Tracker: [Delivery tracker](../tracker/object-storage.md)
 Planning authorized: 2026-10-16

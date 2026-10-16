@@ -22,7 +22,7 @@ Execution authorized: 2026-10-16; five-slice Looper delivery, exact-candidate fu
 Integration authorized: Controller-owned Rebase + Fast-forward into dev
 Active slice: Slice 5 - Integrated acceptance
 Next slice: None; final recorded slice
-Active tasks: T5.1, T5.2
+Active tasks: None; Slice 5 awaiting controller integration
 Execution gate: Open
 Worker budget: 300 total turns; 10 consecutive stalled turns
 
@@ -34,7 +34,7 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | Slice 2 | Private S3 objects | delivered | `feat/private-s3-storage` | `feat(slice-2): inspect private S3 objects` | [#124](https://forge.adrianpk.com/hatmax/hatmax/pulls/124) | `ops/default/report/slices/object-storage/slice-2-s3-objects.md` |
 | Slice 3 | Signed POST uploads | delivered | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | [#125](https://forge.adrianpk.com/hatmax/hatmax/pulls/125) | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
 | Slice 4 | Object storage guides | delivered | `docs/object-storage-workflows` | `docs(slice-4): guide private object storage workflows` | [#126](https://forge.adrianpk.com/hatmax/hatmax/pulls/126) | `ops/default/report/slices/object-storage/slice-4-storage-guides.md` |
-| Slice 5 | Integrated acceptance | active | `test/object-storage-acceptance` | `test(slice-5): verify object storage acceptance` | pending | `ops/default/report/slices/object-storage/slice-5-integrated-acceptance.md` |
+| Slice 5 | Integrated acceptance | reviewing | `test/object-storage-acceptance` | `test(slice-5): verify object storage acceptance` | pending | `ops/default/report/slices/object-storage/slice-5-integrated-acceptance.md` |
 
 ## Tasks
 
@@ -49,12 +49,12 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | T4.1 | completed | `docs(storage): explain private object storage contracts` | `7161cc892c5f0e56ddd5eb11c9c96d647c8d43ee` |
 | T4.2 | completed | `test(storage): execute documented storage workflows` | `270d1a89d8d562dd84f8ec008d014c35fb1592d9` |
 | T5.1 | completed | `test(storage): verify integrated object lifecycles` | `9cde0688161bab2a69ef6b9a49cb62054bef5ae6` |
-| T5.2 | active | `test(storage): bind exact-candidate acceptance evidence` | pending |
+| T5.2 | completed | `test(storage): bind exact-candidate acceptance evidence` | `bd1bd280a1ae2c7409d748ed0c6953fc795ea1fa` |
 
 The plan owns task scopes, named future selectors and finite bounds. Each PR
 requires `GOWORK=off scripts/check-object-storage.sh slice N` first and
-`git diff --check` last. T1.2-T4.2 deliver runner modes 1-4 and their required local/remote/signing/guide roots. Later modes remain
-unavailable until their owning tasks deliver them. Final PR outcomes bind to
+`git diff --check` last. T1.2-T5.2 deliver all five focused modes and the full mode. The controller
+runs the exact integrated full gate after five canonical merges. Final PR outcomes bind to
 the exact clean-HEAD controller receipt; task checks do not replace that receipt.
 
 ## Prerequisites and Gates
@@ -94,8 +94,11 @@ Slices 1-4 of 5 are delivered through canonical PRs #123-#126. PR #126 is
 verified merged into dev at `3dcfa804bffcedafa036cafd6a758be21cb1850d`.
 Both exact-HEAD controller commands passed, including documentation, cumulative
 storage/image race roots, the actual signed guide and confirmed owned cleanup.
-Slice 5 T5.1/T5.2 are active. The integrated acceptance ledger, full runner and
-exact-candidate receipts remain to be delivered; the controller owns the full gate.
+Slice 5 T5.1/T5.2 deliver the integrated lifecycle, immutable ledger introduction,
+complete root/command/result evidence and owned native PostgreSQL composition.
+Focused actual-server lifecycle, guide, database fixture and evidence controls
+passed. Its report and source ticket are reviewing. Canonical PR references and
+final clean-HEAD validation precede controller integration; the full gate is pending.
 
 Slice 1 report introduction: `4719f3678de9ab4b761e1faf8281aa206c4f4d98`.
 
