@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 2: Private S3 Objects
 
-Status: reviewing
+Status: delivered
 Delivery set: object-storage
 Plan: [Object storage plan](../../../plan/object-storage.md)
 Tracker: [Object storage tracker](../../../tracker/object-storage.md)
@@ -107,7 +107,8 @@ HATMAX_STORAGE_MINIO="$PWD/.tmp/object-storage/tools/minio" HATMAX_STORAGE_FIXTU
 
 The observed fixture receipt confirmed two remaining test objects before
 cleanup, zero after cleanup, bucket removal, server shutdown and temporary-root
-removal. Final PR acceptance uses these ordered controller-recorded commands:
+removal. All three final controller-recorded commands passed at the merged
+PR HEAD `8322aa5e654f51ac240c868426be1e565509fb88`:
 
 - `GOWORK=off scripts/check-object-storage.sh slice 2`
 - `GOWORK=off make docs-check`

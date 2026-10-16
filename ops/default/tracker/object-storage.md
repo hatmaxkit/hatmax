@@ -20,9 +20,9 @@ Base branch: `dev`
 Planning base: `60fcca7f8f88059608b353420dfa7513c0b78279`
 Execution authorized: 2026-10-16; five-slice Looper delivery, exact-candidate full gate and restricted closure
 Integration authorized: Controller-owned Rebase + Fast-forward into dev
-Active slice: Slice 2 - Private S3 objects
-Next slice: Slice 3 - Signed POST uploads
-Active tasks: None; Slice 2 awaiting controller integration
+Active slice: Slice 3 - Signed POST uploads
+Next slice: Slice 4 - Object storage guides
+Active tasks: T3.1, T3.2
 Execution gate: Open
 Worker budget: 300 total turns; 10 consecutive stalled turns
 
@@ -31,8 +31,8 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Bounded local objects | delivered | `feat/bounded-local-storage` | `feat(slice-1): store bounded private local objects` | [#123](https://forge.adrianpk.com/hatmax/hatmax/pulls/123) | `ops/default/report/slices/object-storage/slice-1-local-objects.md` |
-| Slice 2 | Private S3 objects | reviewing | `feat/private-s3-storage` | `feat(slice-2): inspect private S3 objects` | [#124](https://forge.adrianpk.com/hatmax/hatmax/pulls/124) | `ops/default/report/slices/object-storage/slice-2-s3-objects.md` |
-| Slice 3 | Signed POST uploads | pending | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | pending | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
+| Slice 2 | Private S3 objects | delivered | `feat/private-s3-storage` | `feat(slice-2): inspect private S3 objects` | [#124](https://forge.adrianpk.com/hatmax/hatmax/pulls/124) | `ops/default/report/slices/object-storage/slice-2-s3-objects.md` |
+| Slice 3 | Signed POST uploads | active | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | pending | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
 | Slice 4 | Object storage guides | pending | `docs/object-storage-workflows` | `docs(slice-4): guide private object storage workflows` | pending | `ops/default/report/slices/object-storage/slice-4-storage-guides.md` |
 | Slice 5 | Integrated acceptance | pending | `test/object-storage-acceptance` | `test(slice-5): verify object storage acceptance` | pending | `ops/default/report/slices/object-storage/slice-5-integrated-acceptance.md` |
 
@@ -44,7 +44,7 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | T1.2 | completed | `test(storage): verify local ownership and resource bounds` | `94681613bb9ef8075979dd9b0ede1d99500b8259` |
 | T2.1 | completed | `feat(storage): implement private S3 object operations` | `9de7c8aef2d8a487cf192ad3b5899e64157d2fb5` |
 | T2.2 | completed | `test(storage): verify private S3 transport outcomes` | `b85c9496d412f0a759e4640264ffa0689c2fdd0c` |
-| T3.1 | pending | `feat(storage): sign exact-target bounded POST uploads` | pending |
+| T3.1 | active | `feat(storage): sign exact-target bounded POST uploads` | pending |
 | T3.2 | pending | `test(storage): verify signed upload enforcement` | pending |
 | T4.1 | pending | `docs(storage): explain private object storage contracts` | pending |
 | T4.2 | pending | `test(storage): execute documented storage workflows` | pending |
@@ -90,12 +90,10 @@ the exact clean-HEAD controller receipt; task checks do not replace that receipt
 
 ## Current Checkpoint
 
-Slice 1 of 5 is delivered through canonical PR #123, verified merged into dev
-at `b338fa2182414eee755d39d53c0360a554c27281`. Its three exact-HEAD controller
-checks passed. Slice 2 T2.1/T2.2 are implemented in the approved branch and its
-canonical report is reviewing. Focused ordinary and actual native S3 checks
-passed, including confirmed owned cleanup. Canonical PR #124 is open against dev. Its references are committed before
-final clean-HEAD controller validation and integration.
+Slices 1-2 of 5 are delivered through canonical PRs #123 and #124. PR #124
+is verified merged into dev at `8322aa5e654f51ac240c868426be1e565509fb88`;
+its three exact-HEAD controller checks and owned fixture cleanup passed.
+Slice 3 T3.1/T3.2 are active for constrained signed POST uploads.
 
 Slice 1 report introduction: `4719f3678de9ab4b761e1faf8281aa206c4f4d98`.
 
