@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 4: Object Storage Guides
 
-Status: reviewing
+Status: delivered
 Delivery set: object-storage
 Plan: [Object storage plan](../../../plan/object-storage.md)
 Tracker: [Object storage tracker](../../../tracker/object-storage.md)
@@ -108,7 +108,11 @@ Final PR acceptance uses these ordered controller-recorded commands:
 - `GOWORK=off scripts/check-object-storage.sh slice 4`
 - `git diff --check`
 
-The exact clean-HEAD controller receipt owns their final result. Mode 4 includes
+Both commands passed at clean pushed HEAD
+`3dcfa804bffcedafa036cafd6a758be21cb1850d` in controller validation
+`CLB6CY5I7ALYIXHCPVVIGC5KWM`. Canonical PR #126 merged that commit into dev
+on 2026-10-16. Cumulative and guide receipts confirmed zero remaining objects,
+bucket removals, owned server shutdown and temporary-root removal. Mode 4 includes
 make docs-check, all prior local/remote/signing roots, all image packages,
 TestObjectGuideDrift and the tagged TestObjectStorageGuide without required skips.
 Guide execution has the approved 600-second bound; earlier tagged roots retain

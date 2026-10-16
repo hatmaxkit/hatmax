@@ -20,9 +20,9 @@ Base branch: `dev`
 Planning base: `60fcca7f8f88059608b353420dfa7513c0b78279`
 Execution authorized: 2026-10-16; five-slice Looper delivery, exact-candidate full gate and restricted closure
 Integration authorized: Controller-owned Rebase + Fast-forward into dev
-Active slice: Slice 4 - Object storage guides
-Next slice: Slice 5 - Integrated acceptance
-Active tasks: None; Slice 4 awaiting controller integration
+Active slice: Slice 5 - Integrated acceptance
+Next slice: None; final recorded slice
+Active tasks: T5.1, T5.2
 Execution gate: Open
 Worker budget: 300 total turns; 10 consecutive stalled turns
 
@@ -33,8 +33,8 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | Slice 1 | Bounded local objects | delivered | `feat/bounded-local-storage` | `feat(slice-1): store bounded private local objects` | [#123](https://forge.adrianpk.com/hatmax/hatmax/pulls/123) | `ops/default/report/slices/object-storage/slice-1-local-objects.md` |
 | Slice 2 | Private S3 objects | delivered | `feat/private-s3-storage` | `feat(slice-2): inspect private S3 objects` | [#124](https://forge.adrianpk.com/hatmax/hatmax/pulls/124) | `ops/default/report/slices/object-storage/slice-2-s3-objects.md` |
 | Slice 3 | Signed POST uploads | delivered | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | [#125](https://forge.adrianpk.com/hatmax/hatmax/pulls/125) | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
-| Slice 4 | Object storage guides | reviewing | `docs/object-storage-workflows` | `docs(slice-4): guide private object storage workflows` | [#126](https://forge.adrianpk.com/hatmax/hatmax/pulls/126) | `ops/default/report/slices/object-storage/slice-4-storage-guides.md` |
-| Slice 5 | Integrated acceptance | pending | `test/object-storage-acceptance` | `test(slice-5): verify object storage acceptance` | pending | `ops/default/report/slices/object-storage/slice-5-integrated-acceptance.md` |
+| Slice 4 | Object storage guides | delivered | `docs/object-storage-workflows` | `docs(slice-4): guide private object storage workflows` | [#126](https://forge.adrianpk.com/hatmax/hatmax/pulls/126) | `ops/default/report/slices/object-storage/slice-4-storage-guides.md` |
+| Slice 5 | Integrated acceptance | active | `test/object-storage-acceptance` | `test(slice-5): verify object storage acceptance` | pending | `ops/default/report/slices/object-storage/slice-5-integrated-acceptance.md` |
 
 ## Tasks
 
@@ -48,8 +48,8 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | T3.2 | completed | `test(storage): verify signed upload enforcement` | `25e7d3ca3f7a78bf0a5b765043e0ae1a148cc38a` |
 | T4.1 | completed | `docs(storage): explain private object storage contracts` | `7161cc892c5f0e56ddd5eb11c9c96d647c8d43ee` |
 | T4.2 | completed | `test(storage): execute documented storage workflows` | `270d1a89d8d562dd84f8ec008d014c35fb1592d9` |
-| T5.1 | pending | `test(storage): verify integrated object lifecycles` | pending |
-| T5.2 | pending | `test(storage): bind exact-candidate acceptance evidence` | pending |
+| T5.1 | active | `test(storage): verify integrated object lifecycles` | pending |
+| T5.2 | active | `test(storage): bind exact-candidate acceptance evidence` | pending |
 
 The plan owns task scopes, named future selectors and finite bounds. Each PR
 requires `GOWORK=off scripts/check-object-storage.sh slice N` first and
@@ -90,15 +90,12 @@ the exact clean-HEAD controller receipt; task checks do not replace that receipt
 
 ## Current Checkpoint
 
-Slices 1-3 of 5 are delivered through canonical PRs #123, #124 and #125.
-PR #125 is verified merged into dev at
-`33b825eb1bfa77d64423eea8a2e0c1e7ca616cbc`. Its three exact-HEAD
-controller checks passed, including actual signed multipart race roots and
-confirmed owned fixture cleanup. Slice 4 T4.1/T4.2 deliver linked executable guides, exact source/output controls
-and historical image compatibility evidence. Focused ordinary and actual-server
-walkthroughs passed with confirmed owned cleanup. Its report is reviewing;
-Canonical PR #126 is open against dev. Its references are committed before
-final clean-HEAD controller validation and integration.
+Slices 1-4 of 5 are delivered through canonical PRs #123-#126. PR #126 is
+verified merged into dev at `3dcfa804bffcedafa036cafd6a758be21cb1850d`.
+Both exact-HEAD controller commands passed, including documentation, cumulative
+storage/image race roots, the actual signed guide and confirmed owned cleanup.
+Slice 5 T5.1/T5.2 are active. The integrated acceptance ledger, full runner and
+exact-candidate receipts remain to be delivered; the controller owns the full gate.
 
 Slice 1 report introduction: `4719f3678de9ab4b761e1faf8281aa206c4f4d98`.
 
