@@ -120,7 +120,7 @@ if ((slice_number >= 2)); then
   packages+=(./image/s3)
 fi
 if ((slice_number >= 4)); then
-  packages=(./storage/... ./image/... ./examples/object-storage/... ./scripts/documentation-conformance)
+  packages=(./storage/... ./image/... ./scripts/documentation-conformance)
 fi
 local_roots=(storage TestKeys storage TestBounds storage/local TestObjects storage/local TestConfinement storage/local TestWriteFailure)
 if ((slice_number >= 3)); then
@@ -134,9 +134,15 @@ run_check 'ordinary storage and image adapter roots' go test -json -count=1 -p=1
 check_roots "$last_log" "${local_roots[@]}"
 run_check 'race storage and image adapter roots' go test -json -race -count=1 -p=1 -parallel=2 -timeout=360s "${packages[@]}"
 check_roots "$last_log" "${local_roots[@]}"
-run_check 'affected build' go build "${packages[@]}"
-run_check 'affected vet' go vet "${packages[@]}"
-run_check 'configured affected lint' golangci-lint run --default=none --enable=nlreturn --enable=noinlineerr --enable=wsl_v5 "${packages[@]}"
+# Executable examples compile and lint, but have no unit-test roots. Go emits a
+# package-level skip for them; keep the required test-root no-skip guard intact.
+build_packages=("${packages[@]}")
+if ((slice_number >= 4)); then
+  build_packages+=(./examples/object-storage/...)
+fi
+run_check 'affected build' go build "${build_packages[@]}"
+run_check 'affected vet' go vet "${build_packages[@]}"
+run_check 'configured affected lint' golangci-lint run --default=none --enable=nlreturn --enable=noinlineerr --enable=wsl_v5 "${build_packages[@]}"
 
 if ((slice_number >= 2)); then
   # Preparation is a visible, separately bounded phase, never hidden in a root.

@@ -98,6 +98,11 @@ Its receipt confirms exact final readback, an empty spool, zero objects before
 and after fixture cleanup, bucket removal, owned server shutdown and temporary
 root removal. Configuration-aware ordinary/integration lint passed.
 
+Initial cumulative validation stopped after successful ordinary roots because
+Go emitted package-level skip events for the two executable examples without
+unit-test files. Examples now compile/build/vet/lint separately from required
+test-root execution; required-root skip rejection remains unchanged.
+
 Final PR acceptance uses these ordered controller-recorded commands:
 
 - `GOWORK=off scripts/check-object-storage.sh slice 4`
