@@ -13,7 +13,7 @@ ready_at: 2026-10-16T09:11:36Z
 started_at: 2026-10-16T09:11:36Z
 branch: docs/object-storage-workflows
 pr: "#123, #124, #125"
-commits: b6ba9e4509918ec2fe6fca7a491a63a552ee10fd, 94681613bb9ef8075979dd9b0ede1d99500b8259, 9de7c8aef2d8a487cf192ad3b5899e64157d2fb5, b85c9496d412f0a759e4640264ffa0689c2fdd0c, 2b0802dc245271aadab6b41ce6d6968dcb004db8, 25e7d3ca3f7a78bf0a5b765043e0ae1a148cc38a
+commits: 7161cc892c5f0e56ddd5eb11c9c96d647c8d43ee, 270d1a89d8d562dd84f8ec008d014c35fb1592d9, b6ba9e4509918ec2fe6fca7a491a63a552ee10fd, 94681613bb9ef8075979dd9b0ede1d99500b8259, 9de7c8aef2d8a487cf192ad3b5899e64157d2fb5, b85c9496d412f0a759e4640264ffa0689c2fdd0c, 2b0802dc245271aadab6b41ce6d6968dcb004db8, 25e7d3ca3f7a78bf0a5b765043e0ae1a148cc38a
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -46,7 +46,7 @@ ownership, authorization, quotas and completion with applications.
 
 The specification defines OS01-OS10, provider capability boundaries, compatibility
 and real fixture evidence. Scope, five-slice controller execution and controller-owned integration were
-authorized on 2026-10-16. Slices 1-3 are delivered and Slice 4 is active. This source ticket tracks the formal
+authorized on 2026-10-16. Slices 1-3 are delivered and Slice 4 is reviewing. This source ticket tracks the formal
 delivery until its exact gate passes and its implemented resolution is recorded.
 
 ## Validation
