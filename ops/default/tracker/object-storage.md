@@ -22,7 +22,7 @@ Execution authorized: 2026-10-16; five-slice Looper delivery, exact-candidate fu
 Integration authorized: Controller-owned Rebase + Fast-forward into dev
 Active slice: Slice 1 - Bounded local objects
 Next slice: Slice 2 - Private S3 objects
-Active tasks: T1.2
+Active tasks: None; Slice 1 PR preparation
 Execution gate: Open
 Worker budget: 300 total turns; 10 consecutive stalled turns
 
@@ -30,7 +30,7 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Bounded local objects | active | `feat/bounded-local-storage` | `feat(slice-1): store bounded private local objects` | pending | `ops/default/report/slices/object-storage/slice-1-local-objects.md` |
+| Slice 1 | Bounded local objects | reviewing | `feat/bounded-local-storage` | `feat(slice-1): store bounded private local objects` | pending | `ops/default/report/slices/object-storage/slice-1-local-objects.md` |
 | Slice 2 | Private S3 objects | pending | `feat/private-s3-storage` | `feat(slice-2): inspect private S3 objects` | pending | `ops/default/report/slices/object-storage/slice-2-s3-objects.md` |
 | Slice 3 | Signed POST uploads | pending | `feat/signed-storage-uploads` | `feat(slice-3): sign constrained remote uploads` | pending | `ops/default/report/slices/object-storage/slice-3-signed-uploads.md` |
 | Slice 4 | Object storage guides | pending | `docs/object-storage-workflows` | `docs(slice-4): guide private object storage workflows` | pending | `ops/default/report/slices/object-storage/slice-4-storage-guides.md` |
@@ -41,7 +41,7 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 | Task | Status | Expected commit | Commit |
 | --- | --- | --- | --- |
 | T1.1 | completed | `feat(storage): implement bounded local object operations` | `b6ba9e4509918ec2fe6fca7a491a63a552ee10fd` |
-| T1.2 | active | `test(storage): verify local ownership and resource bounds` | pending |
+| T1.2 | completed | `test(storage): verify local ownership and resource bounds` | `94681613bb9ef8075979dd9b0ede1d99500b8259` |
 | T2.1 | pending | `feat(storage): implement private S3 object operations` | pending |
 | T2.2 | pending | `test(storage): verify private S3 transport outcomes` | pending |
 | T3.1 | pending | `feat(storage): sign exact-target bounded POST uploads` | pending |
@@ -53,9 +53,9 @@ Worker budget: 300 total turns; 10 consecutive stalled turns
 
 The plan owns task scopes, named future selectors and finite bounds. Each PR
 requires `GOWORK=off scripts/check-object-storage.sh slice N` first and
-`git diff --check` last. T1.2 introduces the runner; none of these commands or
-new roots exists or is reported as passed at planning time. Record actual task
-commits, canonical PRs and immutable report introductions after verification.
+`git diff --check` last. T1.2 delivers runner mode 1 and its required local roots. Later modes remain
+unavailable until their owning tasks deliver them. Final PR outcomes bind to
+the exact clean-HEAD controller receipt; task checks do not replace that receipt.
 
 ## Prerequisites and Gates
 
@@ -68,7 +68,7 @@ commits, canonical PRs and immutable report introductions after verification.
 - [x] Plan accepted and publication authorized on 2026-10-16; activation commit/push verified by controller startup.
 - [x] Runtime/controller, Rebase + Fast-forward merges, complete local gate and closure authorized on 2026-10-16.
 - [ ] Exact native fixture binary build information/hash bound before integration tests.
-- [ ] Clean candidate, canonical PR inventory, tools and exclusive controller ownership verified.
+- [x] Canonical origin/dev, empty open PR inventory, installed tools and existing controller ownership verified at Slice 1 entry.
 - [ ] Five canonical PRs, ten tasks and original reports delivered.
 - [ ] Exact complete gate passed; all required storage roots and OS01-OS10 accepted.
 - [ ] Restricted closure, source-ticket resolution and Acta completed.
@@ -90,12 +90,11 @@ commits, canonical PRs and immutable report introductions after verification.
 
 ## Current Checkpoint
 
-The maintainer authorized publication and the complete five-slice controller
-delivery on 2026-10-16. Slice 1 and T1.1/T1.2 are active; final startup still
-requires clean pushed dev and exclusive ownership verification. The reference
-fixture source is pinned to
-`9e49d5e7a648f00e26f2246f4dc28e6b07f8c84a`, resolved module
-`v0.0.0-20251015172955-9e49d5e7a648`; no executable hash or runtime acceptance
-is fabricated before its future owned build and actual tests.
-Do not infer a published storage API, module version or main promotion from
-this planning checkpoint.
+Slice 1 T1.1 and T1.2 are implemented in the dedicated approved branch. Focused
+ordinary storage checks passed; the canonical report is reviewing. Canonical
+PR preparation and final clean-HEAD controller validation precede integration.
+The primary checkout stays on dev. Slice 2 remains pending.
+
+The remote fixture source remains pinned to
+`9e49d5e7a648f00e26f2246f4dc28e6b07f8c84a`; its build identity and acceptance
+belong to the later remote-storage tasks.
