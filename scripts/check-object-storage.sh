@@ -7,8 +7,8 @@
 set -euo pipefail
 
 # Only implemented modes are admitted. Full acceptance is introduced by T5.2.
-if [[ $# != 2 || $1 != slice || ! $2 =~ ^[12]$ ]]; then
-  echo 'Usage: check-object-storage.sh slice 1..2 (full acceptance is not available yet)' >&2
+if [[ $# != 2 || $1 != slice || ! $2 =~ ^[1-3]$ ]]; then
+  echo 'Usage: check-object-storage.sh slice 1..3 (full acceptance is not available yet)' >&2
   exit 2
 fi
 slice_number=$2
@@ -113,6 +113,9 @@ if ((slice_number >= 2)); then
   packages+=(./image/s3)
 fi
 local_roots=(storage TestKeys storage TestBounds storage/local TestObjects storage/local TestConfinement storage/local TestWriteFailure)
+if ((slice_number >= 3)); then
+  local_roots+=(storage TestUploadBounds)
+fi
 run_check 'ordinary storage and image adapter roots' go test -json -count=1 -p=1 -parallel=2 -timeout=360s "${packages[@]}"
 check_roots "$last_log" "${local_roots[@]}"
 run_check 'race storage and image adapter roots' go test -json -race -count=1 -p=1 -parallel=2 -timeout=360s "${packages[@]}"
@@ -129,8 +132,20 @@ if ((slice_number >= 2)); then
   printf 'finish: pinned fixture tool preparation\n'
   export HATMAX_STORAGE_MINIO="$repo_root/.tmp/object-storage/tools/minio"
   export HATMAX_STORAGE_FIXTURE_RECEIPT="$run_root/remote-fixture.txt"
-  run_check 'private S3 integration roots' go test -json -race -tags=integration -count=1 -p=1 -parallel=2 -timeout=360s -run '^Test(PrivateObjects|RemoteBounds|RemoteFailures)$' ./storage/s3
-  check_roots "$last_log" storage/s3 TestPrivateObjects storage/s3 TestRemoteBounds storage/s3 TestRemoteFailures
+  remote_selector='^Test(PrivateObjects|RemoteBounds|RemoteFailures)$'
+  remote_roots=(storage/s3 TestPrivateObjects storage/s3 TestRemoteBounds storage/s3 TestRemoteFailures)
+  if ((slice_number >= 3)); then
+    remote_selector='^Test(PrivateObjects|RemoteBounds|RemoteFailures|SignedUploads|SigningExpiry|SnapshotCompletion)$'
+    remote_roots+=(storage/s3 TestSignedUploads storage/s3 TestSigningExpiry storage/s3 TestSnapshotCompletion)
+  fi
+  run_check 'private S3 integration roots' go test -json -race -tags=integration -count=1 -p=1 -parallel=2 -timeout=360s -run "$remote_selector" ./storage/s3
+  check_roots "$last_log" "${remote_roots[@]}"
+  if ((slice_number >= 3)); then
+    if ! rg -Fxq 'scope-probe-bucket: removed' "$HATMAX_STORAGE_FIXTURE_RECEIPT"; then
+      echo 'Signed upload target-scope probe cleanup was not confirmed.' >&2
+      exit 1
+    fi
+  fi
   for outcome in 'objects-after-cleanup: 0' 'bucket: removed' 'server: stopped' 'temporary-root: removed'; do
     if ! rg -Fxq "$outcome" "$HATMAX_STORAGE_FIXTURE_RECEIPT"; then
       printf 'Missing required fixture cleanup evidence: %s\n' "$outcome" >&2

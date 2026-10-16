@@ -115,6 +115,12 @@ func assertPolicy(t *testing.T, grant storage.UploadGrant, request storage.Uploa
 
 	allowed := map[string]bool{"key": true, "Content-Type": true, "policy": true, "X-Amz-Date": true, "X-Amz-Algorithm": true, "X-Amz-Credential": true, "X-Amz-Signature": true, "X-Amz-Security-Token": true}
 
+	for key := range allowed {
+		if key != "X-Amz-Security-Token" && grant.Fields[key] == "" {
+			t.Fatalf("missing required form field: %s", key)
+		}
+	}
+
 	for key, value := range grant.Fields {
 		if !allowed[key] || value == "" || strings.Contains(value, "fixture-secret") {
 			t.Fatalf("unexpected, empty or unsafe form field: %s", key)
@@ -261,4 +267,25 @@ func TestSigningCredentials(t *testing.T) {
 	}
 
 	assertPolicy(t, grant, request, options.Bucket)
+
+	for _, tc := range []struct {
+		name   string
+		change func(*aws.Credentials)
+	}{
+		{"missing key", func(c *aws.Credentials) { c.AccessKeyID = "" }},
+		{"missing secret", func(c *aws.Credentials) { c.SecretAccessKey = "" }},
+		{"long key", func(c *aws.Credentials) { c.AccessKeyID = strings.Repeat("x", 257) }},
+		{"long secret", func(c *aws.Credentials) { c.SecretAccessKey = strings.Repeat("x", 257) }},
+		{"long token", func(c *aws.Credentials) { c.SessionToken = strings.Repeat("x", (64<<10)+1) }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			creds := aws.Credentials{AccessKeyID: "fixture-key", SecretAccessKey: "fixture-secret"}
+			tc.change(&creds)
+
+			expiration, err := uploadExpiration(request, creds, time.Now())
+			if !errors.Is(err, storage.ErrInvalid) || !expiration.IsZero() {
+				t.Fatal("invalid or unbounded provider signing material admitted")
+			}
+		})
+	}
 }
