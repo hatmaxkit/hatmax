@@ -42,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Durable events retain their original occurrence time through delayed
   publication and retries.
+- Operators can inspect retained deliveries using an already-open read-only
+  database without running schema migrations or workers.
 - S3 upload signing can run concurrently with other signing and object
   operations without racing on shared credentials state.
 

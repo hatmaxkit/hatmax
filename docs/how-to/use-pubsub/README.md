@@ -169,6 +169,13 @@ input limits, classified outcomes and retained storage.
 
 Use a separate authorized operator workflow with a finite context:
 
+Construct `postgres.NewBroker` with a provider for an already-open database to
+inspect an existing schema without calling `Start`. Construction binds that
+connection without queries, schema changes, topic admission or worker startup.
+Use a read-only database connection or SELECT-only role for inspection. `Start`
+remains the migration path for normal runtime startup and deferred providers;
+explicit replay and cleanup require the appropriate write authority.
+
 ```go
 inspectCtx, cancelInspect := context.WithTimeout(ctx, 5*time.Second)
 defer cancelInspect()

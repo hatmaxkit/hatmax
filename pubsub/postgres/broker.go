@@ -85,12 +85,15 @@ func New(dbProvider DBProvider, cfg *config.Config, log log.Logger) *Broker {
 	}, log)
 }
 
-// NewBroker creates a new PostgreSQL-backed pubsub broker with explicit config.
+// NewBroker binds an available provider database without queries or migrations.
+// This allows inspection of an existing schema without Start. If the provider is
+// not ready, Start binds its database after initialization and applies the schema.
 func NewBroker(dbProvider DBProvider, cfg Config, log log.Logger) *Broker {
 	cfg = cfg.WithDefaults()
 
 	return &Broker{
 		dbProvider:    dbProvider,
+		db:            dbProvider.GetDB(),
 		cfg:           cfg,
 		log:           log.With("component", "pubsub"),
 		subscriptions: make(map[string]*subscription),

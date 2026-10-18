@@ -23,12 +23,37 @@ import (
 // explicit retirement, unfinished fan-out and transactional capacity reclamation.
 func TestWorkOperations(t *testing.T) {
 	t.Run("bounded inspection", deliveryInspection)
+	t.Run("read only inspection", deliveryReadOnly)
 	t.Run("replay lifetime", deliveryReplay)
 	t.Run("fanout retention", deliveryRetention)
 	t.Run("capacity reclamation", deliveryCapacity)
 	t.Run("subscriber retirement", deliveryRetirement)
 	t.Run("replay prune race", deliveryReplayPrune)
 	t.Run("legacy upgrade retention", deliveryLegacyRetention)
+}
+
+// Operators can use an already-open read-only database without running Start's
+// schema migration or admitting topics and subscriptions.
+func deliveryReadOnly(t *testing.T) {
+	b, db := boundedFixture(t)
+	durableSub(t, b, "inspector", durableOptions(), nil)
+	id := durableMessage(t, b, "inspection")
+
+	db.SetMaxOpenConns(1)
+
+	_, err := db.Exec(`SET default_transaction_read_only=on`)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() { _, _ = db.Exec(`SET default_transaction_read_only=off`) }()
+
+	inspector := NewBroker(wrapDB(db), DefaultConfig(), testhelper.TestLogger())
+
+	rows, err := inspector.ListDeliveries(context.Background(), DeliveryQuery{SubscriberID: "inspector", Limit: 1})
+	if err != nil || len(rows) != 1 || rows[0].MessageID != id {
+		t.Fatalf("read-only inspection rows=%v error=%v", rows, err)
+	}
 }
 
 func inspectedDelivery(t *testing.T, b *Broker, subscriber string, id int64) DeliveryInfo {

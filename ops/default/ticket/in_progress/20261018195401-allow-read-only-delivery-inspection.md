@@ -1,7 +1,7 @@
 ---
 id: TKT-20261018195401
 title: Allow delivery inspection without schema writes
-status: open
+status: in_progress
 kind: bug
 severity: medium
 priority: high
@@ -9,6 +9,8 @@ scope: api
 tags: pubsub, postgres, inspection
 source: implementation
 reported_at: 2026-10-18T19:54:01Z
+ready_at: 2026-10-18T19:54:30Z
+started_at: 2026-10-18T19:54:30Z
 commits:
 ---
 <!--
