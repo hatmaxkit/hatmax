@@ -12,7 +12,7 @@ Delivery set: durable-background-work
 Plan: [Delivery plan](../../../plan/durable-background-work.md)
 Tracker: [Delivery tracker](../../../tracker/durable-background-work.md)
 Branch: `feat/bounded-durable-pubsub`
-PR: pending
+PR: `#130`
 
 ## Purpose
 
@@ -44,7 +44,8 @@ starving later work behind terminal failures.
 
 ## Implementation Notes
 
-T2.1 is `ab080c841c2b372a1b6e51a7f2180448bc91b70d`. T2.2 supplies subscriber
+T2.1 is `ab080c841c2b372a1b6e51a7f2180448bc91b70d`.
+T2.2 is `c52d6cb2eb8e7c9a6247fcee1faacb74037ae4b3` and supplies subscriber
 policy/claims, safe failure handling, upgrade guidance and the Slice 2 gate mode.
 Merged Slice 1 PR #129 is closed in its existing report/tracker entries.
 The controller owns this slice's Rebase + Fast-forward integration into `dev`.
