@@ -11,7 +11,10 @@ Date: 2026-10-18
 Status: Approved
 Approved: 2026-10-18
 Companion to: [Durable background work](durable-background-work.md)
-Implementation status: Not started
+Implementation status: Completed
+Completed: 2026-10-18
+Validated candidate: `337f4666714f9bdc3a1e08b3cd0cf33643ddcd1a`
+Acceptance: [Integrated gate result](../tracker/durable-background-work.md#gate-evidence-and-closure)
 
 ## Ownership and Shared Claim Value
 

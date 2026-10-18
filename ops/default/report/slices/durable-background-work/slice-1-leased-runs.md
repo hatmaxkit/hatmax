@@ -100,15 +100,18 @@ evidence update. Measured native wall times were:
 
 The owned native PostgreSQL fixture stopped and removed its temporary root.
 These timings are below the estimated 1–3 minute warm-cache budget. The controller
-regenerates the same ordered slice-command/whitespace receipt after this report
-commit; only the receipt for the final clean PR HEAD authorizes integration.
+regenerated the same ordered receipt for final PR HEAD
+`80b183c0e50a6133598ca1abe04b3930b8c0573b` before integration.
 
 BW01: legacy suites plus capability rejection and unfenced-write tests.
 BW02 (scheduler): concurrent stores, an actually killed worker, lease reclamation
 and stale-token/identity/attempt rejection. BW03: persisted waits, frozen policy,
 exhaustion, atomic recurrence and cooperative shutdown. BW08 (scheduler): bounded
 inspection, classified diagnostics, retention, repeated schema upgrade and explicit
-legacy adoption. Pubsub and final integrated acceptance remain with their owning slices.
+legacy adoption. Pubsub and retained-work operations are delivered in Slices 2/3.
+The controller passed the integrated gate at
+`337f4666714f9bdc3a1e08b3cd0cf33643ddcd1a`, accepting BW01–BW08 with owned cleanup;
+see the [final evidence](../../../tracker/durable-background-work.md#gate-evidence-and-closure).
 
 ## Risks and Follow-ups
 

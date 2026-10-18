@@ -116,8 +116,8 @@ evidence update. Native measured wall times were:
 
 The owned native PostgreSQL fixture stopped and removed its temporary root. The
 selected commands totaled 14.12 seconds, below the estimated warm-cache budget.
-The controller regenerates the same ordered receipt after this report commit;
-only evidence for the final clean PR HEAD authorizes integration.
+The controller regenerated the same ordered receipt for final PR HEAD
+`ebba2ebaf991d3b49681f835e2629b191059a4f2` before integration.
 
 BW02 (pubsub): competing brokers, an actually killed worker and stale-generation
 acknowledgements. BW04: actual domain commit/rollback, canonical duplicate and
@@ -125,13 +125,15 @@ conflict tests. BW05: retained/current history, late commits, fan-out, fixed ret
 terminal failure quarantine and later progress. BW07 (admission): concurrent
 capacity reservations, rollback, duplicate-at-capacity, input and registration
 limits. BW08 (pubsub): classified diagnostics and explicit legacy admission upgrades.
-Replay, retirement, fan-out-aware pruning and final integrated acceptance remain
-with the recorded Slice 3 tasks.
+Replay, retirement and fan-out-aware pruning are delivered in Slice 3. The
+controller passed the integrated gate at
+`337f4666714f9bdc3a1e08b3cd0cf33643ddcd1a`, accepting BW01–BW08 with owned cleanup;
+see the [final evidence](../../../tracker/durable-background-work.md#gate-evidence-and-closure).
 
 ## Risks and Follow-ups
 
 Handler cancellation is cooperative and an expired owner can still perform an
 external effect. Applications own deduplication and operator access. Retained
-messages consume capacity until explicit fan-out-aware retention, completed by
-Slice 3. Old workers must be quiesced before admission upgrades; invalid legacy
+messages consume capacity until explicit fan-out-aware retention, now available
+through the Slice 3 operations. Old workers must be quiesced before admission upgrades; invalid legacy
 data is rejected rather than truncated or implicitly replayed.

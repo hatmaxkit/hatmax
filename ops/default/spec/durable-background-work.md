@@ -17,7 +17,10 @@ Tracker: [Delivery tracker](../tracker/durable-background-work.md)
 Planning authorized: 2026-10-18
 Inspected baseline: `b21af0b17c01ebb3544c37d7d200d2c87f4db0b1`
 Owners: existing `scheduler`, `scheduler/postgres`, `pubsub` and `pubsub/postgres` packages
-Implementation status: Not started
+Implementation status: Completed
+Completed: 2026-10-18
+Validated candidate: `337f4666714f9bdc3a1e08b3cd0cf33643ddcd1a`
+Acceptance: [Integrated gate result](../tracker/durable-background-work.md#gate-evidence-and-closure)
 
 ## Purpose and Existing Behavior
 
@@ -182,6 +185,7 @@ existing four documentation quadrants.
 | BW07 | Concurrent admission respects message capacity and input limits; pruning preserves unfinished work and the correct fan-out history. |
 | BW08 | Inspection is bounded and excludes unsafe diagnostic data; migration/recovery guidance and real PostgreSQL evidence match the documented guarantees. |
 
-The specification and model were approved on 2026-10-18. The linked plan and tracker
-define three slices and six tasks. Implementation has not started; execution awaits
-artifact publication, ownership checks and the explicit start instruction.
+The specification/model and all three slices/six tasks are complete. The controller
+passed the selected integrated gate at `337f4666714f9bdc3a1e08b3cd0cf33643ddcd1a`
+on 2026-10-18, accepting BW01–BW08 with owned PostgreSQL cleanup. The linked tracker
+records the immutable evidence, task/PR references and canonical Go module identity.

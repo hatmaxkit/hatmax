@@ -48,7 +48,8 @@ operating guidance and the final gate modes. Merged Slice 2 PR #130 is closed in
 its existing report/tracker entries at `ebba2ebaf991d3b49681f835e2629b191059a4f2`.
 Merged into `dev` through controller-owned PR #131 at
 `889805514800e1550bdb3a3564b98b136b5eea67`. The required ordered Slice 3 checks and whitespace
-check passed at that head. The controller owns the final no-argument gate.
+check passed at that head. The controller also passed the final no-argument gate
+at `337f4666714f9bdc3a1e08b3cd0cf33643ddcd1a`.
 
 Replay follows the claim lock order: subscriber, message, delivery. Pruning locks
 candidate messages and rechecks eligibility in a fresh READ COMMITTED snapshot
@@ -117,9 +118,29 @@ required families. Native measured wall times were:
 The owned native PostgreSQL fixture stopped and removed its temporary root.
 Selected commands totaled 16.36 seconds, below the estimated warm-cache budget.
 The controller regenerated the same ordered receipt for the final clean PR HEAD
-`889805514800e1550bdb3a3564b98b136b5eea67` before integration. The integrated
-no-argument gate is enabled but has not been run; the controller runs it after
-final integration.
+`889805514800e1550bdb3a3564b98b136b5eea67` before integration.
+
+The controller passed `GOWORK=off scripts/check-durable-background-work.sh` at
+immutable integrated candidate `337f4666714f9bdc3a1e08b3cd0cf33643ddcd1a`.
+Its retained native output confirms all four full package suites and all six
+required roots passed, with zero lint issues, documentation and whitespace success.
+The intentional `TestPanicProcess` helper skip does not skip a required family.
+Final native wall times were:
+
+| Integrated command | Seconds |
+| --- | --- |
+| `GOWORK=off go vet ./scheduler ./scheduler/postgres ./pubsub ./pubsub/postgres` | 0.41 |
+| `GOWORK=off go test -v -race -count=1 -p=2 -timeout=180s ./scheduler ./scheduler/postgres ./pubsub ./pubsub/postgres` | 12.90 |
+| `GOCACHE="$PWD/.tmp/lint/gocache" golangci-lint run --default=none --enable=nlreturn --enable=noinlineerr --enable=wsl_v5 ./scheduler ./scheduler/postgres ./pubsub ./pubsub/postgres` | 12.48 |
+| `make docs-check` | 6.61 |
+
+Timed commands totaled 32.40 seconds, below the 1–3 minute estimate. Owned
+PostgreSQL stopped and removed its temporary root; no fixture remains to stop.
+
+`GOWORK=off GOPROXY=direct go list -m -json hatmax.adrianpk.com@337f4666714f9bdc3a1e08b3cd0cf33643ddcd1a`
+resolved `v0.6.1-0.20261018191056-337f4666714f` from the canonical Forgejo repository,
+with the exact tested hash on `dev`. Closure changes only configured documentation;
+the tested runtime and gate remain unchanged.
 
 BW01: Slice 1 protects legacy construction and unfenced writes. BW02: the recorded
 scheduler/pubsub families exercise competing replicas, killed workers and stale
@@ -131,12 +152,11 @@ and actual attempts through the lifetime maximum. BW07: operations tests extend
 admission evidence with fan-out retention, recent-terminal protection, capacity
 rollback, concurrent publication, retirement and replay/prune races. BW08: bounded
 inspection, safe diagnostics and legacy upgrade/retention match the linked
-operating guidance. Final integrated BW01–BW08 acceptance remains pending.
+operating guidance. Final integrated BW01–BW08 acceptance passed at the candidate above.
 
 ## Risks and Follow-ups
 
 Handler cancellation is cooperative; fencing cannot undo an external effect.
 Applications own effect deduplication, operator authority and retention cutoffs.
 Explicit retirement can discard unfinished entitlement and permanently reserves
-the subscriber identity. Quiesce legacy workers before admission upgrades. Final
-delivery-set closure requires the controller's exact integrated gate evidence.
+the subscriber identity. Quiesce legacy workers before admission upgrades.

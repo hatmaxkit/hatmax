@@ -8,8 +8,9 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Durable Background Work Delivery Plan
 
 Date: 2026-10-18
-Status: Approved
+Status: Completed
 Approved: 2026-10-18
+Completed: 2026-10-18
 Specification/model approved: 2026-10-18
 Planning authorized: 2026-10-18
 Delivery set: durable-background-work
@@ -22,7 +23,7 @@ Execution authorized: 2026-10-18
 Integration authority: Controller-owned Rebase + Fast-forward into `dev`
 Active slice: None (all recorded slices integrated)
 Next slice: None
-Execution gate: Awaiting controller-owned integrated validation
+Execution gate: Closed; BW01-BW08 accepted at `337f4666714f9bdc3a1e08b3cd0cf33643ddcd1a`
 Slice strategy: behavior-first
 Reason: leased scheduled execution, bounded event delivery and retained-work operations are independently usable package capabilities; each includes its tests and documentation.
 
@@ -138,3 +139,15 @@ only the spec/model/plan/tracker/reports after the exact candidate passes. Valid
 closure links and whitespace without rerunning unchanged runtime solely for prose.
 Publish the delivered canonical `dev` revision and verify its Go pseudo-version for
 consumers; main/tag publication is a separate operation, not a dependency prerequisite.
+
+## Completion
+
+All three slices and six tasks are integrated through PRs #129–#131. The controller
+passed `GOWORK=off scripts/check-durable-background-work.sh` at immutable candidate
+`337f4666714f9bdc3a1e08b3cd0cf33643ddcd1a` on 2026-10-18. BW01–BW08 are accepted;
+all required families passed and the owned PostgreSQL fixture stopped and removed
+its temporary root. Timed commands totaled 32.40 seconds. The
+[Slice 3 report](../report/slices/durable-background-work/slice-3-work-operations.md#validation)
+records native per-command timings and the verified canonical module identity.
+Closure changes only the configured documentation paths; runtime and gate files
+remain identical to the tested candidate. No active slice or successor remains.

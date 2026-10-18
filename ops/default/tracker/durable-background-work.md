@@ -8,8 +8,9 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Durable Background Work Delivery Tracker
 
 Date: 2026-10-18
-Status: Approved
+Status: Completed
 Approved: 2026-10-18
+Completed: 2026-10-18
 Specification/model approved: 2026-10-18
 Planning authorized: 2026-10-18
 Delivery set: durable-background-work
@@ -23,7 +24,7 @@ Integration authority: Controller-owned Rebase + Fast-forward into `dev`
 Active slice: None (all recorded slices integrated)
 Next slice: None
 Active tasks: None
-Execution gate: Awaiting controller-owned integrated validation
+Execution gate: Closed; BW01-BW08 accepted at `337f4666714f9bdc3a1e08b3cd0cf33643ddcd1a`
 
 ## Slice Status
 
@@ -53,39 +54,46 @@ implementation activation, exact-HEAD validation and integration.
 - [x] Three-slice/six-task plan and matching tracker prepared.
 - [x] Approved artifacts committed/pushed and execution explicitly started.
 - [x] Three PRs and six tasks implemented and integrated into `dev`.
-- [ ] Selected gate passed at the exact integrated candidate, with owned cleanup.
-- [ ] Acceptance/report metadata closed and published module identity verified.
+- [x] Selected gate passed at the exact integrated candidate, with owned cleanup.
+- [x] Acceptance/report metadata closed and published module identity verified.
 
 | Criterion | Owning slices | Evidence status |
 | --- | --- | --- |
-| BW01 | Slice 1 | Slice 1 controller checks passed and PR #129 integrated at `80b183c0e50a6133598ca1abe04b3930b8c0573b` |
-| BW02 | Slice 1, Slice 2 | scheduler and pubsub replicas/killed-worker/stale-claim checks passed; PRs #129/#130 integrated |
-| BW03 | Slice 1 | Slice 1 controller checks passed and PR #129 integrated at `80b183c0e50a6133598ca1abe04b3930b8c0573b` |
-| BW04 | Slice 2 | Slice 2 controller checks passed and PR #130 integrated at `ebba2ebaf991d3b49681f835e2629b191059a4f2` |
-| BW05 | Slice 2 | Slice 2 controller checks passed and PR #130 integrated at `ebba2ebaf991d3b49681f835e2629b191059a4f2` |
-| BW06 | Slice 3 | Slice 3 controller checks passed and PR #131 integrated at `889805514800e1550bdb3a3564b98b136b5eea67`; replay revision, concurrent winner, acknowledgement exclusion and lifetime limits covered; integrated gate pending |
-| BW07 | Slice 2, Slice 3 | focused admission, fan-out retention, retirement, capacity rollback and concurrent prune/publication checks passed; integrated gate pending |
-| BW08 | Slice 1, Slice 3 | bounded scheduler/delivery inspection and legacy upgrade/retention checks passed; linked operating guidance complete; integrated gate pending |
+| BW01 | Slice 1 | Passed: legacy compatibility, capability rejection and unfenced-write protection |
+| BW02 | Slice 1, Slice 2 | Passed: competing replicas, killed workers, reclaimed leases and stale completion/ack rejection |
+| BW03 | Slice 1 | Passed: persisted retry waits, frozen budgets, exhaustion, atomic recurrence and cooperative shutdown |
+| BW04 | Slice 2 | Passed: domain commit/rollback, canonical identity retries and conflicting reuse |
+| BW05 | Slice 2 | Passed: independent fan-out, retained/current history, late commits, finite retries and failure quarantine |
+| BW06 | Slice 3 | Passed: observed revision, concurrent replay winner, acknowledged exclusions and finite lifetime grants |
+| BW07 | Slice 2, Slice 3 | Passed: input/registration/capacity bounds, fan-out retention, retirement, rollback and replay/prune/publication races |
+| BW08 | Slice 1, Slice 3 | Passed: bounded safe inspection, legacy adoption/admission/retention and linked operating guidance |
 
 ## Gate Evidence and Closure
 
-The final command will be `GOWORK=off scripts/check-durable-background-work.sh`.
-Its selected commands, native PostgreSQL ownership and estimated cost are defined
-in the plan. Current gate status: not run. A required family with no execution or
-skipped evidence is not acceptance. Integrated runtime cost: not measured. Slice 3 selected commands totaled 16.36 seconds at `a9b2ee74bb2a8f8e53e287b22ad8dfe7a3f76438`; see the Slice 3 report for native per-command timings.
+The controller passed `GOWORK=off scripts/check-durable-background-work.sh` at
+`337f4666714f9bdc3a1e08b3cd0cf33643ddcd1a` on 2026-10-18. This exact immutable
+candidate accepts BW01–BW08 above. The retained controller receipt records that
+candidate and command; its native log confirms all four package suites, all six
+required roots, vet, zero lint issues, documentation, whitespace and owned
+PostgreSQL shutdown/temporary-root removal. The intentional `TestPanicProcess`
+subprocess helper skip is outside the required families.
 
-All recorded slices are integrated; PR #131 merged at
-`889805514800e1550bdb3a3564b98b136b5eea67`. No active slice or task remains.
-The specification/model and delivery-set acceptance remain open until the
-controller records the integrated gate result.
+Native timed commands totaled 32.40 seconds (vet 0.41, race tests 12.90, lint 12.48,
+documentation 6.61), below the 1–3 minute estimate. See the
+[Slice 3 report](../report/slices/durable-background-work/slice-3-work-operations.md#validation)
+for the exact selected commands and measurements.
 
-Gate prerequisites use the installed Go toolchain, strict linter and native
-PostgreSQL tools. The wrapper creates its own private cluster/socket, sets every
-required database variable, verifies readiness and stops only that owned fixture.
-Its run logs and lint cache are ignored in the primary checkout. No persistent
-fixture or production service is required between preparation and gate execution.
+All three slice reports are delivered, all six task commits and PRs #129–#131
+are integrated, and the specification/model implementation metadata is complete.
+No active task or successor remains. The gate already stopped its owned fixture;
+no persistent test fixture requires shutdown.
 
-Use the existing controller command receipts and slice reports for the actual
-candidate, elapsed time and BW01-BW08 results; add no parallel ledger or receipt
-parser. Closure changes only approved delivery documents, with focused links and
-whitespace checks. No successor or public release is started by planning.
+`GOWORK=off GOPROXY=direct go list -m -json hatmax.adrianpk.com@337f4666714f9bdc3a1e08b3cd0cf33643ddcd1a`
+resolved `hatmax.adrianpk.com` to
+`v0.6.1-0.20261018191056-337f4666714f`, with origin
+`https://forge.adrianpk.com/hatmax/hatmax.git`, `refs/heads/dev` and the exact tested
+commit. Consumers can pin that validated revision.
+
+Only configured closure documents differ from the tested candidate. Closure uses
+documentation and whitespace checks without rerunning unchanged runtime or the
+controller-owned full gate.
