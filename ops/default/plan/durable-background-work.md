@@ -20,8 +20,8 @@ Base branch: `dev`
 Planning base: `b21af0b17c01ebb3544c37d7d200d2c87f4db0b1`
 Execution authorized: 2026-10-18
 Integration authority: Controller-owned Rebase + Fast-forward into `dev`
-Active slice: Slice 1
-Next slice: Slice 2
+Active slice: Slice 2
+Next slice: Slice 3
 Execution gate: Approved artifacts published; controller-owned implementation active
 Slice strategy: behavior-first
 Reason: leased scheduled execution, bounded event delivery and retained-work operations are independently usable package capabilities; each includes its tests and documentation.

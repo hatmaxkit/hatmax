@@ -53,4 +53,31 @@ SELECT s.id, m.id
 FROM initialized s
 JOIN pubsub_messages m ON m.topic = s.topic AND m.id <= s.last_message_id
 ON CONFLICT DO NOTHING;
+` + BoundedSchema
+
+// BoundedSchema adds opt-in admission without rewriting legacy messages.
+const BoundedSchema = `
+CREATE TABLE IF NOT EXISTS pubsub_bounded_config (
+ singleton BOOLEAN PRIMARY KEY DEFAULT true CHECK(singleton),
+ capacity INT NOT NULL CHECK(capacity BETWEEN 100 AND 100000)
+);
+CREATE TABLE IF NOT EXISTS pubsub_topics (
+ topic TEXT PRIMARY KEY CHECK(octet_length(topic) BETWEEN 1 AND 128 AND topic ~ '^[A-Za-z0-9][A-Za-z0-9_.:/-]*$')
+);
+CREATE TABLE IF NOT EXISTS pubsub_capacity_slots (
+ slot INT PRIMARY KEY,
+ message_id BIGINT UNIQUE REFERENCES pubsub_messages(id) ON DELETE SET NULL
+);
+ALTER TABLE pubsub_messages ADD COLUMN IF NOT EXISTS bounded BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE pubsub_messages ADD COLUMN IF NOT EXISTS envelope_digest BYTEA;
+ALTER TABLE pubsub_messages ADD COLUMN IF NOT EXISTS capacity_slot INT UNIQUE REFERENCES pubsub_capacity_slots(slot);
+DO $$ BEGIN
+ ALTER TABLE pubsub_messages ADD CONSTRAINT pubsub_bounded_message CHECK(NOT bounded OR (
+ envelope_digest IS NOT NULL AND octet_length(envelope_digest)=32 AND capacity_slot IS NOT NULL
+ AND octet_length(payload)<=65536 AND metadata IS NOT NULL AND octet_length(metadata::text)<=8192
+ AND octet_length(message_id) BETWEEN 1 AND 128 AND message_id ~ '^[A-Za-z0-9][A-Za-z0-9_.:/-]*$'
+ AND octet_length(topic) BETWEEN 1 AND 128 AND topic ~ '^[A-Za-z0-9][A-Za-z0-9_.:/-]*$'
+ ));
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 `

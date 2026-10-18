@@ -25,6 +25,8 @@ type Config struct {
 	// PollInterval is the delay before the first poll and between completed polls.
 	PollInterval time.Duration
 	BatchSize    int
+	// Bounded explicitly admits configured topics and a fixed retained-message capacity.
+	Bounded *BoundedConfig
 }
 
 // WithDefaults applies defaults for zero values.
@@ -118,6 +120,13 @@ func (b *Broker) Start(ctx context.Context) error {
 		return fmt.Errorf("cannot commit pubsub schema migration: %w", err)
 	}
 
+	if b.cfg.Bounded != nil {
+		err = b.configureBounded(ctx, *b.cfg.Bounded, false)
+		if err != nil {
+			return err
+		}
+	}
+
 	b.log.Info("PubSub schema initialized")
 
 	return nil
@@ -132,14 +141,43 @@ func (b *Broker) Stop(ctx context.Context) error {
 // Publish stores a message and makes it available to all subscribers.
 func (b *Broker) Publish(ctx context.Context, topic string, env pubsub.Envelope) error {
 	b.mu.RLock()
+	closed := b.closed
+	b.mu.RUnlock()
 
-	if b.closed {
-		b.mu.RUnlock()
-
+	if closed {
 		return fmt.Errorf("broker is closed")
 	}
 
-	b.mu.RUnlock()
+	if b.db == nil {
+		return fmt.Errorf("database connection not available")
+	}
+
+	tx, err := b.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	// Share the admission-upgrade boundary before reading topic mode.
+	_, err = tx.ExecContext(ctx, `LOCK TABLE pubsub_messages IN ROW EXCLUSIVE MODE`)
+	if err != nil {
+		return err
+	}
+
+	var bounded bool
+
+	err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM pubsub_topics WHERE topic=$1)`, topic).Scan(&bounded)
+	if err != nil {
+		return err
+	}
+
+	if bounded {
+		err = b.PublishTx(ctx, tx, topic, env)
+		if err != nil {
+			return err
+		}
+
+		return tx.Commit()
+	}
 
 	payload, err := json.Marshal(env.Payload)
 	if err != nil {
@@ -151,19 +189,12 @@ func (b *Broker) Publish(ctx context.Context, topic string, env pubsub.Envelope)
 		return fmt.Errorf("cannot marshal metadata: %w", err)
 	}
 
-	query := `
-		INSERT INTO pubsub_messages (message_id, topic, payload, metadata, created_at)
-		VALUES ($1, $2, $3, $4, $5)
-	`
-
-	_, err = b.db.ExecContext(ctx, query, env.ID, topic, payload, metadata, env.Timestamp)
+	_, err = tx.ExecContext(ctx, `INSERT INTO pubsub_messages(message_id,topic,payload,metadata,created_at) VALUES($1,$2,$3,$4,$5)`, env.ID, topic, payload, metadata, env.Timestamp)
 	if err != nil {
 		return fmt.Errorf("cannot insert message: %w", err)
 	}
 
-	b.log.Debugf("Published message %s to topic %s", env.ID, topic)
-
-	return nil
+	return tx.Commit()
 }
 
 // Subscribe registers a handler for the given topic.

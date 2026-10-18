@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 1: Recover leased scheduled runs
 
-Status: reviewing
+Status: delivered
 Delivery set: durable-background-work
 Plan: [Delivery plan](../../../plan/durable-background-work.md)
 Tracker: [Delivery tracker](../../../tracker/durable-background-work.md)
@@ -33,6 +33,10 @@ completion while preserving existing custom stores and legacy constructors.
 - Inspection uses bounded keyset pages without payloads, tokens or raw diagnostics.
   Explicit pruning preserves unfinished work. Revision-matched legacy adoption
   requires quiesced workers and preserves consumed attempts and future waits.
+
+Merged into `dev` through controller-owned PR #129 at
+`80b183c0e50a6133598ca1abe04b3930b8c0573b`; the exact ordered Slice 1 checks
+and whitespace check passed at that head.
 
 ## Implementation Notes
 
