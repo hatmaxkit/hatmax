@@ -41,6 +41,92 @@ func TestBoundedDeliveries(t *testing.T) {
 	t.Run("shutdown and connection", durableShutdown)
 	t.Run("killed worker", durableInterruption)
 	t.Run("expired final attempt", durableExhaustion)
+	t.Run("source timestamp", durableTimestamp)
+}
+
+// Occurrence time survives duplicate publication and leased retry independently
+// of the database publication time used for retained-message cleanup.
+func durableTimestamp(t *testing.T) {
+	b, db := boundedFixture(t)
+	ctx := context.Background()
+
+	durableSub(t, b, "timestamps", durableOptions(), nil)
+
+	source := time.Now().Add(-time.Hour).UTC().Truncate(time.Microsecond)
+	env := pubsub.NewEnvelope("events", "source")
+	env.ID, env.Timestamp = "timestamp", source
+
+	err := b.Publish(ctx, "events", env)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	env.Timestamp = source.Add(time.Minute)
+
+	err = b.Publish(ctx, "events", env)
+	if err != nil {
+		t.Fatalf("duplicate publication: %v", err)
+	}
+
+	var (
+		id        int64
+		published time.Time
+	)
+
+	err = db.QueryRow(`SELECT id,created_at FROM pubsub_messages WHERE message_id=$1`, env.ID).Scan(&id, &published)
+	if err != nil || !published.After(source.Add(30*time.Minute)) {
+		t.Fatalf("publication time=%s error=%v", published, err)
+	}
+
+	for attempt := 1; attempt <= 2; attempt++ {
+		claim, delivered, code, err := b.claimDelivery(ctx, "timestamps", id)
+		if err != nil || code != "" || !delivered.Timestamp.Equal(source) {
+			t.Fatalf("attempt=%d source=%s delivered=%s code=%s error=%v", attempt, source, delivered.Timestamp, code, err)
+		}
+
+		err = b.completeDelivery(ctx, claim, "handler_error")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		dueDelivery(t, db, "timestamps", id)
+	}
+
+	for _, test := range []struct {
+		name      string
+		timestamp time.Time
+		legacy    bool
+	}{
+		{"zero timestamp", time.Time{}, false},
+		{"pre-upgrade row", source, true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			env := pubsub.NewEnvelope("events", test.name)
+			env.Timestamp = test.timestamp
+
+			err := b.Publish(ctx, "events", env)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if test.legacy {
+				_, err = db.Exec(`UPDATE pubsub_messages SET occurred_at=NULL WHERE message_id=$1`, env.ID)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			err = db.QueryRow(`SELECT id,created_at FROM pubsub_messages WHERE message_id=$1`, env.ID).Scan(&id, &published)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			_, delivered, code, err := b.claimDelivery(ctx, "timestamps", id)
+			if err != nil || code != "" || !delivered.Timestamp.Equal(published) {
+				t.Fatalf("publication=%s delivered=%s code=%s error=%v", published, delivered.Timestamp, code, err)
+			}
+		})
+	}
 }
 
 func durableOptions() pubsub.DurableOptions {

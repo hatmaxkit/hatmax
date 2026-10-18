@@ -206,10 +206,17 @@ func (b *Broker) PublishTx(ctx context.Context, tx *sql.Tx, topic string, env pu
 		return err
 	}
 
-	var id int64
+	var (
+		id       int64
+		occurred any
+	)
 
-	err = tx.QueryRowContext(ctx, `INSERT INTO pubsub_messages(message_id,topic,payload,metadata,created_at,bounded,envelope_digest,capacity_slot)
- VALUES($1,$2,$3,$4,clock_timestamp(),true,$5,$6) RETURNING id`, env.ID, topic, payload, metadata, digest[:], slot).Scan(&id)
+	if !env.Timestamp.IsZero() {
+		occurred = env.Timestamp
+	}
+
+	err = tx.QueryRowContext(ctx, `INSERT INTO pubsub_messages(message_id,topic,payload,metadata,created_at,bounded,envelope_digest,capacity_slot,occurred_at)
+ VALUES($1,$2,$3,$4,clock_timestamp(),true,$5,$6,$7) RETURNING id`, env.ID, topic, payload, metadata, digest[:], slot, occurred).Scan(&id)
 	if err != nil {
 		return err
 	}

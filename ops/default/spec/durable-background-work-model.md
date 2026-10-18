@@ -84,6 +84,12 @@ admitted payload/metadata sizes; the conditional constraints preserve legacy row
 Bounded capacity counts bounded retained rows. A legacy row is not silently adopted
 by a repeated publication; its topic must first pass the explicit admission upgrade.
 
+The additive nullable `occurred_at timestamptz` retains the first non-zero envelope
+timestamp independently of database `created_at`. Delivery uses
+`COALESCE(occurred_at, created_at)` for zero timestamps and pre-upgrade rows. The
+timestamp stays outside the identity digest; duplicate publication never replaces
+the retained occurrence time. Retention and claim deadlines use database time.
+
 Persist a bounded-mode flag, fixed execution policy and history-admission choice on
 the subscription. Legacy rows retain their existing mode.
 Reject reopening its name with a different topic or conflicting fixed policy.

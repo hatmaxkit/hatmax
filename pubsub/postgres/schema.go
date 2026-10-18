@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS pubsub_capacity_slots (
 ALTER TABLE pubsub_messages ADD COLUMN IF NOT EXISTS bounded BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE pubsub_messages ADD COLUMN IF NOT EXISTS envelope_digest BYTEA;
 ALTER TABLE pubsub_messages ADD COLUMN IF NOT EXISTS capacity_slot INT UNIQUE REFERENCES pubsub_capacity_slots(slot);
+ALTER TABLE pubsub_messages ADD COLUMN IF NOT EXISTS occurred_at TIMESTAMPTZ;
 DO $$ BEGIN
  ALTER TABLE pubsub_messages ADD CONSTRAINT pubsub_bounded_message CHECK(NOT bounded OR (
  envelope_digest IS NOT NULL AND octet_length(envelope_digest)=32 AND capacity_slot IS NOT NULL

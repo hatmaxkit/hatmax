@@ -170,8 +170,13 @@ identities are invalid. Metadata nil and an empty map share the same canonical
 identity. JSON objects are canonicalized by key order without converting exact
 numbers to floating point. Numeric spellings remain part of the encoded identity.
 The digest includes topic, payload and metadata, and excludes `Timestamp`.
-Bounded publication uses the database publication time in `created_at`; original
-domain timestamps can be carried in the payload. Delivery decodes JSON numbers as
+Bounded publication retains the first supplied `Envelope.Timestamp` separately
+from the database publication time in `created_at`, which continues to govern
+retention. Retries, restarts and idempotent duplicate publication preserve that
+first occurrence time at PostgreSQL microsecond precision. Zero timestamps and
+rows created before this additive upgrade fall back to their stored publication
+time; source history cannot be recovered for older rows. Durable subscribers
+receive the retained occurrence time. Delivery decodes JSON numbers as
 `json.Number`, rather than legacy `float64`.
 
 Repeating an existing identity with the same canonical envelope succeeds without

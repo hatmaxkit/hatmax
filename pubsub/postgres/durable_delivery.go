@@ -134,7 +134,7 @@ func (b *Broker) claimDelivery(ctx context.Context, subscriber string, message i
 		payload, metadata []byte
 	)
 
-	err = tx.QueryRowContext(ctx, `SELECT message_id,topic,payload,metadata,created_at FROM pubsub_messages m
+	err = tx.QueryRowContext(ctx, `SELECT message_id,topic,payload,metadata,COALESCE(occurred_at,created_at) FROM pubsub_messages m
  WHERE id=$1 AND topic=$2 AND bounded AND NOT EXISTS(SELECT 1 FROM pubsub_acknowledgements a WHERE a.subscriber_id=$3 AND a.message_id=m.id)
  FOR KEY SHARE OF m`, message, topic, subscriber).Scan(&env.ID, &env.Topic, &payload, &metadata, &env.Timestamp)
 	if errors.Is(err, sql.ErrNoRows) {

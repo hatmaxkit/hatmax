@@ -40,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Durable events retain their original occurrence time through delayed
+  publication and retries.
 - S3 upload signing can run concurrently with other signing and object
   operations without racing on shared credentials state.
 

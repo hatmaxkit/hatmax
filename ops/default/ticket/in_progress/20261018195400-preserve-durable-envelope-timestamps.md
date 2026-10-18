@@ -1,7 +1,7 @@
 ---
 id: TKT-20261018195400
 title: Preserve durable envelope occurrence timestamps
-status: open
+status: in_progress
 kind: bug
 severity: medium
 priority: high
@@ -9,6 +9,8 @@ scope: persistence
 tags: pubsub, postgres, timestamps
 source: implementation
 reported_at: 2026-10-18T19:54:00Z
+ready_at: 2026-10-18T19:54:30Z
+started_at: 2026-10-18T19:54:30Z
 commits:
 ---
 <!--
