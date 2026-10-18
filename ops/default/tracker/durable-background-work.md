@@ -20,10 +20,10 @@ Base branch: `dev`
 Planning base: `b21af0b17c01ebb3544c37d7d200d2c87f4db0b1`
 Execution authorized: 2026-10-18
 Integration authority: Controller-owned Rebase + Fast-forward into `dev`
-Active slice: Slice 3
-Next slice: None (final recorded slice)
-Active tasks: None (Slice 3 PR #131 awaiting controller integration)
-Execution gate: Approved artifacts published; controller-owned implementation active
+Active slice: None (all recorded slices integrated)
+Next slice: None
+Active tasks: None
+Execution gate: Awaiting controller-owned integrated validation
 
 ## Slice Status
 
@@ -31,7 +31,7 @@ Execution gate: Approved artifacts published; controller-owned implementation ac
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Recover leased scheduled runs | delivered | `feat/leased-scheduler-recovery` | `feat(slice-1): recover interrupted scheduled work` | [#129](https://forge.adrianpk.com/hatmax/hatmax/pulls/129) | `ops/default/report/slices/durable-background-work/slice-1-leased-runs.md` |
 | Slice 2 | Deliver bounded durable events | delivered | `feat/bounded-durable-pubsub` | `feat(slice-2): deliver bounded durable events` | [#130](https://forge.adrianpk.com/hatmax/hatmax/pulls/130) | `ops/default/report/slices/durable-background-work/slice-2-durable-events.md` |
-| Slice 3 | Operate retained background work | reviewing | `feat/durable-work-operations` | `feat(slice-3): operate retained background work` | [#131](https://forge.adrianpk.com/hatmax/hatmax/pulls/131) | `ops/default/report/slices/durable-background-work/slice-3-work-operations.md` |
+| Slice 3 | Operate retained background work | delivered | `feat/durable-work-operations` | `feat(slice-3): operate retained background work` | [#131](https://forge.adrianpk.com/hatmax/hatmax/pulls/131) | `ops/default/report/slices/durable-background-work/slice-3-work-operations.md` |
 
 ## Tasks
 
@@ -52,7 +52,7 @@ implementation activation, exact-HEAD validation and integration.
 - [x] Specification and durable model approved on 2026-10-18.
 - [x] Three-slice/six-task plan and matching tracker prepared.
 - [x] Approved artifacts committed/pushed and execution explicitly started.
-- [ ] Three PRs and six tasks implemented and integrated into `dev`.
+- [x] Three PRs and six tasks implemented and integrated into `dev`.
 - [ ] Selected gate passed at the exact integrated candidate, with owned cleanup.
 - [ ] Acceptance/report metadata closed and published module identity verified.
 
@@ -63,7 +63,7 @@ implementation activation, exact-HEAD validation and integration.
 | BW03 | Slice 1 | Slice 1 controller checks passed and PR #129 integrated at `80b183c0e50a6133598ca1abe04b3930b8c0573b` |
 | BW04 | Slice 2 | Slice 2 controller checks passed and PR #130 integrated at `ebba2ebaf991d3b49681f835e2629b191059a4f2` |
 | BW05 | Slice 2 | Slice 2 controller checks passed and PR #130 integrated at `ebba2ebaf991d3b49681f835e2629b191059a4f2` |
-| BW06 | Slice 3 | Slice 3 controller checks passed at `a9b2ee74bb2a8f8e53e287b22ad8dfe7a3f76438`; replay revision, concurrent winner, acknowledgement exclusion and lifetime limits covered; final-HEAD receipt regenerated before handoff |
+| BW06 | Slice 3 | Slice 3 controller checks passed and PR #131 integrated at `889805514800e1550bdb3a3564b98b136b5eea67`; replay revision, concurrent winner, acknowledgement exclusion and lifetime limits covered; integrated gate pending |
 | BW07 | Slice 2, Slice 3 | focused admission, fan-out retention, retirement, capacity rollback and concurrent prune/publication checks passed; integrated gate pending |
 | BW08 | Slice 1, Slice 3 | bounded scheduler/delivery inspection and legacy upgrade/retention checks passed; linked operating guidance complete; integrated gate pending |
 
@@ -73,6 +73,17 @@ The final command will be `GOWORK=off scripts/check-durable-background-work.sh`.
 Its selected commands, native PostgreSQL ownership and estimated cost are defined
 in the plan. Current gate status: not run. A required family with no execution or
 skipped evidence is not acceptance. Integrated runtime cost: not measured. Slice 3 selected commands totaled 16.36 seconds at `a9b2ee74bb2a8f8e53e287b22ad8dfe7a3f76438`; see the Slice 3 report for native per-command timings.
+
+All recorded slices are integrated; PR #131 merged at
+`889805514800e1550bdb3a3564b98b136b5eea67`. No active slice or task remains.
+The specification/model and delivery-set acceptance remain open until the
+controller records the integrated gate result.
+
+Gate prerequisites use the installed Go toolchain, strict linter and native
+PostgreSQL tools. The wrapper creates its own private cluster/socket, sets every
+required database variable, verifies readiness and stops only that owned fixture.
+Its run logs and lint cache are ignored in the primary checkout. No persistent
+fixture or production service is required between preparation and gate execution.
 
 Use the existing controller command receipts and slice reports for the actual
 candidate, elapsed time and BW01-BW08 results; add no parallel ledger or receipt

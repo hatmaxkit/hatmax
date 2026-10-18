@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 3: Operate retained background work
 
-Status: reviewing
+Status: delivered
 Delivery set: durable-background-work
 Plan: [Delivery plan](../../../plan/durable-background-work.md)
 Tracker: [Delivery tracker](../../../tracker/durable-background-work.md)
@@ -46,7 +46,9 @@ T3.1 is `e688a1c11d9b5224efae4f8cc1a37cef05de29ff`.
 T3.2 is `a9b2ee74bb2a8f8e53e287b22ad8dfe7a3f76438` and introduces this report,
 operating guidance and the final gate modes. Merged Slice 2 PR #130 is closed in
 its existing report/tracker entries at `ebba2ebaf991d3b49681f835e2629b191059a4f2`.
-The controller owns integration into `dev` and the final no-argument gate.
+Merged into `dev` through controller-owned PR #131 at
+`889805514800e1550bdb3a3564b98b136b5eea67`. The required ordered Slice 3 checks and whitespace
+check passed at that head. The controller owns the final no-argument gate.
 
 Replay follows the claim lock order: subscriber, message, delivery. Pruning locks
 candidate messages and rechecks eligibility in a fresh READ COMMITTED snapshot
@@ -114,8 +116,8 @@ required families. Native measured wall times were:
 
 The owned native PostgreSQL fixture stopped and removed its temporary root.
 Selected commands totaled 16.36 seconds, below the estimated warm-cache budget.
-The controller regenerates the same ordered receipt after this report commit;
-only evidence for the final clean PR HEAD authorizes integration. The integrated
+The controller regenerated the same ordered receipt for the final clean PR HEAD
+`889805514800e1550bdb3a3564b98b136b5eea67` before integration. The integrated
 no-argument gate is enabled but has not been run; the controller runs it after
 final integration.
 
