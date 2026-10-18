@@ -19,16 +19,16 @@ Base branch: `dev`
 Planning base: `3e1b31b63db934d7d8b1c1287db68b6f500a7c27`
 Execution authorized: 2026-10-18
 Integration authority: Controller-owned Rebase + Fast-forward into `dev`
-Active slice: Slice 1
+Active slice: None
 Next slice: None
-Active tasks: None; awaiting PR-head validation and controller integration
-Execution gate: Dedicated controller active; prepare and validate the canonical Slice 1 PR
+Active tasks: None
+Execution gate: All slices integrated; controller-owned final gate pending
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Exact localized display | reviewing | `feat/locale-aware-formatting` | `feat(slice-1): format exact values by locale` | [#128](https://forge.adrianpk.com/hatmax/hatmax/pulls/128) | `ops/default/report/slices/locale-aware-formatting/slice-1-exact-formatting.md` |
+| Slice 1 | Exact localized display | delivered | `feat/locale-aware-formatting` | `feat(slice-1): format exact values by locale` | [#128](https://forge.adrianpk.com/hatmax/hatmax/pulls/128) | `ops/default/report/slices/locale-aware-formatting/slice-1-exact-formatting.md` |
 
 ## Tasks
 
@@ -47,7 +47,7 @@ records implemented LF01-LF06 behavior and focused checks.
 - [x] Specification approved; independent core ownership established.
 - [x] One-slice plan and matching tracker prepared.
 - [x] Planning artifacts committed/pushed; execution and integration activated.
-- [ ] Slice 1 implemented and integrated into `dev`.
+- [x] Slice 1 implemented and integrated into `dev`.
 - [ ] LF01-LF06 verified at the exact integrated candidate.
 - [ ] Report and delivery metadata closed; published module identity available.
 
@@ -62,8 +62,15 @@ records implemented LF01-LF06 behavior and focused checks.
 
 ## Validation Record
 
-Focused implementation checks and measured iteration costs are recorded in the
-slice report. Final PR-head validation runs through `looper validate` after all
-PR-reference commits. Its exact clean HEAD and ordered command outcomes are
-stored in the controller receipt. The controller then integrates and executes
-the unchanged selected gate against the integrated candidate before closure.
+PR #128 merged through controller-owned Rebase + Fast-forward on 2026-10-18 at
+`e7ea97bc28f2810acf018bbd7f6eb82dc8105198`. All five ordered PR-head checks
+passed through `looper validate` at that exact clean commit in approximately
+11.14 seconds. Focused checks and criterion evidence are recorded in the slice
+report. These results do not replace the final integrated gate.
+
+Gate prerequisites are available: Go with race support, a C compiler,
+golangci-lint, Make and Bash. The approved format/render/ui and documentation
+gate requires no database, provider, browser or service fixture. The primary
+checkout remains on `dev`; its lint cache is local and ignored. The controller
+owns execution of the unchanged selected gate against the prepared candidate.
+Delivery-set acceptance and closure remain pending that result.

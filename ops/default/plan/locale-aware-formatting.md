@@ -19,9 +19,9 @@ Base branch: `dev`
 Planning base: `3e1b31b63db934d7d8b1c1287db68b6f500a7c27`
 Execution authorized: 2026-10-18
 Integration authority: Controller-owned Rebase + Fast-forward into `dev`
-Active slice: Slice 1
+Active slice: None
 Next slice: None
-Execution gate: Dedicated controller active; prepare and validate the canonical Slice 1 PR
+Execution gate: All slices integrated; controller-owned final gate pending
 Slice strategy: behavior-first
 Reason: the additive formatter and its complete documentation form one cohesive package capability; no preparatory or testing-only slice is needed.
 

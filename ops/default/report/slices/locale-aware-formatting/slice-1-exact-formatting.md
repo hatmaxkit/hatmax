@@ -7,12 +7,13 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 1: Exact Localized Display
 
-Status: reviewing
+Status: delivered
 Delivery set: locale-aware-formatting
 Plan: [Delivery plan](../../../plan/locale-aware-formatting.md)
 Tracker: [Delivery tracker](../../../tracker/locale-aware-formatting.md)
 Branch: `feat/locale-aware-formatting`
 PR: `#128` ([canonical PR](https://forge.adrianpk.com/hatmax/hatmax/pulls/128))
+Integrated: 2026-10-18 at `e7ea97bc28f2810acf018bbd7f6eb82dc8105198`
 
 ## Purpose
 
@@ -74,9 +75,10 @@ legacy-helper check took approximately 2.4 seconds. Initial assertions were
 aligned with the pinned Austrian grouping and parser-recognized region fallback.
 Implementation lint whitespace findings were corrected before the task commits.
 
-The final clean PR HEAD is validated through the controller after the PR-reference
-follow-up commit. Its exact commit, elapsed time and ordered command outcomes
-belong to the controller receipt; the canonical PR lists successful commands:
+All five ordered PR-head checks passed through the controller at clean commit
+`e7ea97bc28f2810acf018bbd7f6eb82dc8105198` after the PR-reference follow-up,
+in approximately 11.14 seconds. Forgejo integrated that same commit unchanged.
+The controller receipt and canonical PR record these successful commands:
 
 1. `GOWORK=off go vet ./format ./render ./ui`
 2. `GOWORK=off go test -race -count=1 -timeout=120s ./format ./render ./ui`
@@ -89,8 +91,9 @@ Task commits: `0078533f8a40999651927592e50edfa68422777a` implements T1.1;
 canonical report. The final PR-reference commit is the controller's validation
 candidate; it does not change runtime behavior.
 
-These are the approved affected-package and documentation checks. Integrated
-candidate validation and delivery-set closure remain controller-owned.
+These are the approved affected-package and documentation checks. The slice is
+delivered; final integrated-candidate validation and delivery-set closure remain
+controller-owned. No external fixture is required for the selected gate.
 
 ## Risks and Follow-ups
 
