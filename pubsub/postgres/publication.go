@@ -244,6 +244,10 @@ func (b *Broker) configureBounded(ctx context.Context, cfg BoundedConfig, upgrad
 		topics[topic] = true
 	}
 
+	if b.db == nil {
+		return ErrTopicNotAdmitted
+	}
+
 	tx, err := b.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err

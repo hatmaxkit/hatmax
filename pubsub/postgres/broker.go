@@ -53,6 +53,7 @@ type subscription struct {
 	topic      string
 	handler    pubsub.Handler
 	lastOffset int64
+	bounded    bool
 	cancel     context.CancelFunc
 	done       chan struct{}
 }
@@ -135,7 +136,31 @@ func (b *Broker) Start(ctx context.Context) error {
 // Stop gracefully shuts down all subscriptions.
 // Implements app.Stoppable interface.
 func (b *Broker) Stop(ctx context.Context) error {
-	return b.Close()
+	b.mu.Lock()
+	b.closed = true
+
+	subs := make([]*subscription, 0, len(b.subscriptions))
+	for _, sub := range b.subscriptions {
+		sub.cancel()
+		subs = append(subs, sub)
+	}
+	b.mu.Unlock()
+
+	for _, sub := range subs {
+		select {
+		case <-sub.done:
+			continue
+		default:
+		}
+
+		select {
+		case <-sub.done:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+
+	return nil
 }
 
 // Publish stores a message and makes it available to all subscribers.
@@ -168,6 +193,10 @@ func (b *Broker) Publish(ctx context.Context, topic string, env pubsub.Envelope)
 	err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM pubsub_topics WHERE topic=$1)`, topic).Scan(&bounded)
 	if err != nil {
 		return err
+	}
+
+	if !bounded && b.cfg.Bounded != nil {
+		return ErrTopicNotAdmitted
 	}
 
 	if bounded {
@@ -209,6 +238,10 @@ func (b *Broker) Subscribe(ctx context.Context, topic string, handler pubsub.Han
 		return fmt.Errorf("broker is closed")
 	}
 
+	if opts.Durable != nil && (opts.SubscriberID == "" || handler == nil) {
+		return pubsub.ErrDurableOptions
+	}
+
 	subscriberID := opts.SubscriberID
 	if subscriberID == "" {
 		subscriberID = uuid.New().String()
@@ -220,17 +253,32 @@ func (b *Broker) Subscribe(ctx context.Context, topic string, handler pubsub.Han
 	}
 
 	// Get or create subscription record
-	lastOffset, err := b.getOrCreateSubscription(ctx, subscriberID, topic)
+	var (
+		lastOffset int64
+		err        error
+	)
+	if opts.Durable != nil {
+		err = b.registerDurable(ctx, subscriberID, topic, *opts.Durable, false)
+	} else {
+		lastOffset, err = b.getOrCreateSubscription(ctx, subscriberID, topic)
+	}
+
 	if err != nil {
 		return fmt.Errorf("cannot initialize subscription: %w", err)
 	}
 
-	subCtx, cancel := context.WithCancel(context.Background())
+	parent := context.Background()
+	if opts.Durable != nil {
+		parent = ctx
+	}
+
+	subCtx, cancel := context.WithCancel(parent)
 	sub := &subscription{
 		id:         subscriberID,
 		topic:      topic,
 		handler:    handler,
 		lastOffset: lastOffset,
+		bounded:    opts.Durable != nil,
 		cancel:     cancel,
 		done:       make(chan struct{}),
 	}
@@ -247,46 +295,33 @@ func (b *Broker) Subscribe(ctx context.Context, topic string, handler pubsub.Han
 
 // Close stops all subscriptions and releases resources.
 func (b *Broker) Close() error {
-	b.mu.Lock()
-
-	if b.closed {
-		b.mu.Unlock()
-
-		return nil
-	}
-
-	b.closed = true
-
-	// Cancel all subscription contexts
-	for _, sub := range b.subscriptions {
-		sub.cancel()
-	}
-
-	subs := make([]*subscription, 0, len(b.subscriptions))
-	for _, sub := range b.subscriptions {
-		subs = append(subs, sub)
-	}
-
-	b.mu.Unlock()
-
-	// Wait for all poll loops to finish
-	for _, sub := range subs {
-		<-sub.done
-	}
-
-	b.log.Info("PubSub broker closed")
-
-	return nil
+	return b.Stop(context.Background())
 }
 
 func (b *Broker) getOrCreateSubscription(ctx context.Context, subscriberID, topic string) (int64, error) {
-	var lastOffset int64
+	admitted, err := b.boundedTopic(ctx, topic)
+	if err != nil {
+		return 0, err
+	}
+
+	if admitted {
+		return 0, ErrAdmissionUpgrade
+	}
+
+	var (
+		lastOffset int64
+		original   string
+		bounded    bool
+	)
 
 	// Try to get existing subscription
-	err := b.db.QueryRowContext(ctx,
-		"SELECT last_message_id FROM pubsub_subscriptions WHERE id = $1",
+	err = b.db.QueryRowContext(ctx,
+		"SELECT last_message_id,topic,bounded FROM pubsub_subscriptions WHERE id = $1",
 		subscriberID,
-	).Scan(&lastOffset)
+	).Scan(&lastOffset, &original, &bounded)
+	if err == nil && (bounded || original != topic) {
+		return 0, ErrSubscriptionConflict
+	}
 
 	if err == sql.ErrNoRows {
 		// One statement snapshot excludes only committed history visible now.
@@ -333,10 +368,14 @@ func (b *Broker) pollLoop(ctx context.Context, sub *subscription) {
 }
 
 func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
+	if sub.bounded {
+		return b.pollDurable(ctx, sub)
+	}
+
 	query := `
 		SELECT m.id, m.message_id, m.topic, m.payload, m.metadata, m.created_at
 		FROM pubsub_messages m
-		WHERE m.topic = $1 AND NOT EXISTS (
+		WHERE m.topic = $1 AND NOT m.bounded AND NOT EXISTS (
 			SELECT 1 FROM pubsub_acknowledgements a
 			WHERE a.subscriber_id = $2 AND a.message_id = m.id
 		)
@@ -424,15 +463,27 @@ func (b *Broker) pollMessages(ctx context.Context, sub *subscription) error {
 
 func (b *Broker) acknowledgeBatch(ctx context.Context, subscriberID string, ids []int64, offset int64) error {
 	// A single statement commits acknowledgements and diagnostic progress together.
-	_, err := b.db.ExecContext(ctx, `
+	result, err := b.db.ExecContext(ctx, `
 		WITH acknowledged AS (
 			INSERT INTO pubsub_acknowledgements (subscriber_id, message_id)
-			SELECT $1, UNNEST($2::bigint[])
+			SELECT s.id, UNNEST($2::bigint[]) FROM pubsub_subscriptions s WHERE s.id=$1 AND NOT s.bounded
 			ON CONFLICT DO NOTHING
 		)
 		UPDATE pubsub_subscriptions
 		SET last_message_id = GREATEST(last_message_id, $3), updated_at = NOW()
-		WHERE id = $1`, subscriberID, pq.Array(ids), offset)
+		WHERE id = $1 AND NOT bounded`, subscriberID, pq.Array(ids), offset)
+	if err != nil {
+		return err
+	}
 
-	return err
+	count, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if count != 1 {
+		return ErrStaleDelivery
+	}
+
+	return nil
 }

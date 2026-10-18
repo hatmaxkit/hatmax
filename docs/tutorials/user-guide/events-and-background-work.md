@@ -53,8 +53,21 @@ errors are ignored and it has no persisted retry or acknowledgement state.
 
 Publishing after a database commit still leaves a gap between the state
 change and event insertion. When losing that event is unacceptable, the
-application needs an explicit transactional outbox workflow; ordinary broker
-publication does not claim that guarantee.
+application can opt the PostgreSQL topic into bounded mode and use
+`broker.PublishTx(ctx, tx, topic, envelope)` in the same caller-owned transaction.
+The caller owns commit and rollback. Exact repeated message identities are
+idempotent; conflicting reuse and full retained capacity return explicit errors.
+Ordinary separate publication still leaves the commit-to-publication gap.
+
+For finite delivery, configure admitted topics and register a stable subscriber
+with `SubscribeOptions.Durable`. Choose `RetainedHistory` or `CurrentPublications`
+explicitly and use `DefaultDeliveryPolicy()` to start with eight attempts, a
+cooperative 10-second handler deadline, 30-second lease and 30-second retry wait.
+Failed deliveries eventually become terminal while later events remain eligible.
+Independent subscribers retain fan-out and late commits without promising global
+order. Frozen budgets survive restart and stale acknowledgements are fenced.
+See the [bounded workflow](../../how-to/use-pubsub/README.md#enable-bounded-publication-and-delivery)
+for setup and explicit legacy upgrades.
 
 ## Give Subscribers Lifecycle Ownership
 

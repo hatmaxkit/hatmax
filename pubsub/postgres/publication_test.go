@@ -28,6 +28,7 @@ func TestBoundedPublication(t *testing.T) {
 	t.Run("concurrent capacity", boundedCapacity)
 	t.Run("envelope limits", boundedEnvelopeLimits)
 	t.Run("topic admission", boundedTopicAdmission)
+	t.Run("concurrent duplicate", boundedDuplicates)
 }
 
 func boundedFixture(t *testing.T) (*Broker, *sql.DB) {
@@ -208,6 +209,12 @@ func boundedCapacity(t *testing.T) {
 
 func boundedEnvelopeLimits(t *testing.T) {
 	b, _ := boundedFixture(t)
+
+	err := b.Publish(context.Background(), "unknown", pubsub.NewEnvelope("unknown", "value"))
+	if !errors.Is(err, ErrTopicNotAdmitted) {
+		t.Fatalf("unknown topic bypassed admission: %v", err)
+	}
+
 	for _, test := range []struct {
 		name   string
 		change func(*pubsub.Envelope)
@@ -293,5 +300,36 @@ func boundedTopicAdmission(t *testing.T) {
 	err = b.AdmitBoundedTopics(context.Background(), BoundedConfig{Capacity: 101, Topics: []string{"legacy"}})
 	if !errors.Is(err, ErrPolicyConflict) {
 		t.Fatalf("capacity silently changed: %v", err)
+	}
+}
+
+// Concurrent canonical repeats create one retained message and one reservation.
+func boundedDuplicates(t *testing.T) {
+	b, db := boundedFixture(t)
+
+	var group sync.WaitGroup
+	for index := range 12 {
+		group.Go(func() {
+			env := pubsub.NewEnvelope("events", json.RawMessage(`{"a":1,"b":2}`))
+
+			env.ID = "shared"
+			if index%2 == 1 {
+				env.Payload = json.RawMessage(`{"b":2,"a":1}`)
+			}
+
+			err := b.Publish(context.Background(), "events", env)
+			if err != nil {
+				t.Error(err)
+			}
+		})
+	}
+
+	group.Wait()
+
+	var messages, slots int
+
+	err := db.QueryRow(`SELECT (SELECT count(*) FROM pubsub_messages),(SELECT count(*) FROM pubsub_capacity_slots WHERE message_id IS NOT NULL)`).Scan(&messages, &slots)
+	if err != nil || messages != 1 || slots != 1 {
+		t.Fatalf("duplicate messages=%d slots=%d error=%v", messages, slots, err)
 	}
 }

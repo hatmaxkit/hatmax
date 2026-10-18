@@ -70,3 +70,17 @@ Handler errors leave deliveries pending for interval-spaced retries; successful
 messages in the same batch can complete independently.
 See the [delivery contract](../docs/reference/pubsub/README.md#postgres) for
 commit visibility, migration, and failure behavior.
+
+## Bounded durable mode
+
+The PostgreSQL adapter supports explicitly admitted topics and named subscribers
+with finite leased attempts. Configure `postgres.Config.Bounded`, then supply
+`SubscribeOptions.Durable` with `DefaultDeliveryPolicy()` and an explicit history
+choice. `PublishTx` shares a caller-owned domain transaction; exact canonical
+identity retries are idempotent and capacity failures are returned to the caller.
+
+Delivery claims close their fetch resources before invoking handlers, fence stale
+acknowledgements and retain safe classified failures. Shutdown is cooperative and
+`Stop(ctx)` bounds the wait without closing the application's database. See the
+[bounded contract](../docs/reference/pubsub/README.md#bounded-durable-events) and
+[upgrade procedure](../docs/how-to/use-pubsub/README.md#upgrade-an-existing-topic).

@@ -50,12 +50,16 @@ retries or polling goroutines for this backend.
 milliseconds, and a non-positive batch size becomes 100.
 
 `Start` requires `GetDB` and executes the package schema in a transaction. A
-nil database returns `database connection not available`. `Stop` calls `Close`.
+nil database returns `database connection not available`. Bounded topic configuration
+is applied before startup succeeds.
 
 `New` accepts root `*config.Config`; `NewBroker` accepts `postgres.Config`.
 Both receive a provider exposing `GetDB() *sql.DB`, not a bare connection. Call
 `Start` before publication or subscription and keep the database alive until
-`Close` completes. `Stop` does not use its wait context to bound completion.
+shutdown completes. `Stop(ctx)` cancels subscriptions and waits within the caller's
+context deadline; a timed-out wait leaves outstanding handlers running. Repeated
+stops wait on the same loops. `Close()` waits without a deadline. Neither closes
+the caller-owned database.
 
 `Publish` rejects a closed broker, JSON-encodes the payload and metadata, and
 inserts `pubsub_messages`. `Subscribe` rejects a duplicate subscriber id. An
@@ -66,6 +70,9 @@ The `Publish` topic argument is stored, rather than `Envelope.Topic`. Payload
 JSON is decoded to ordinary JSON values: objects become `map[string]any` and
 numbers become `float64`. Consumers validate and decode that shape instead of
 asserting the original Go type.
+
+The following legacy delivery sections describe unadmitted topics and subscriptions
+without `SubscribeOptions.Durable`. Admitted topics require explicit durable options.
 
 ### Delivery tracking
 
@@ -135,3 +142,134 @@ calls, and in-memory ID tracking; database scan work can grow with retained
 history. Indexes cover `(topic, id)` and `(subscriber_id, message_id)`.
 Retention and database capacity remain application-owned. Deleting a message
 or subscription also deletes its acknowledgement rows through foreign keys.
+
+## Bounded durable events
+
+Use `postgres.Config.Bounded` with `BoundedConfig{Topics: ..., Capacity: ...}` in
+`NewBroker` and supply `SubscribeOptions.Durable` for named subscribers. This is
+an explicit PostgreSQL capability; no-op and memory brokers provide no leases,
+retained budgets or transactional publication guarantees. Root-config `New` keeps
+legacy defaults. Upgraded API writers route already admitted topics through bounded
+publication even when constructed with legacy config. A broker constructed with
+`Bounded` rejects publication to unconfigured topics.
+
+### Admission and identity
+
+| Input | Bound |
+| --- | --- |
+| Topics, message IDs and named subscriber IDs | 1–128 ASCII bytes |
+| Identity characters | Alphanumeric first; then letters, digits and `_.:/-` |
+| Configured topics | At most 128 |
+| Durable subscribers | At most 64 across topics |
+| Payload JSON | At most 64 KiB |
+| Metadata JSON | At most 8 KiB, including PostgreSQL JSONB text form |
+| Retained bounded messages | Default 10000; configured 100–100000 |
+
+`Envelope.Topic` must match the publication argument. Empty or display-text
+identities are invalid. Metadata nil and an empty map share the same canonical
+identity. JSON objects are canonicalized by key order without converting exact
+numbers to floating point. Numeric spellings remain part of the encoded identity.
+The digest includes topic, payload and metadata, and excludes `Timestamp`.
+Bounded publication uses the database publication time in `created_at`; original
+domain timestamps can be carried in the payload. Delivery decodes JSON numbers as
+`json.Number`, rather than legacy `float64`.
+
+Repeating an existing identity with the same canonical envelope succeeds without
+another row or capacity reservation. Different topic, payload or metadata returns
+`ErrIdentityConflict`. Capacity is shared across all bounded topics and persists
+across replicas/restarts. Capacity changes conflict with the retained configuration.
+At the default capacity and maximum payload, payload data alone can approach 625 MiB,
+plus metadata, indexes, acknowledgements and delivery rows.
+
+`PublishTx(ctx, tx, topic, envelope)` accepts a caller-owned `*sql.Tx` against the
+same schema. It never commits or rolls back that transaction. Domain state and the
+message commit or roll back together. Roll back the caller transaction after any
+publication error, and retain normal database transaction retry handling.
+An open transaction reserves capacity until commit/rollback. Independent messages
+reserve separate slots and can commit out of ID order. A duplicate at full capacity
+still succeeds. `ErrCapacity` reports exhausted or currently reserved capacity;
+it never drops older pending messages. `Publish` uses the same rules in its own
+transaction. Publication does not wait for handlers.
+
+Admission errors include `ErrEnvelope`, `ErrTopicNotAdmitted`, `ErrCapacity`,
+`ErrIdentityConflict`, `ErrAdmissionLimit`, `ErrPolicyConflict` and
+`ErrAdmissionUpgrade`. Use `errors.Is` for these classified outcomes. Existing
+legacy rows are not adopted by repeated identity publication.
+
+### Subscriber policy and claims
+
+`DurableOptions` explicitly supplies `Policy` and `History`:
+
+| DeliveryPolicy field | Default | Admitted values |
+| --- | --- | --- |
+| `HandlerTimeout` | 10 seconds | 1 second through 10 minutes |
+| `LeaseDuration` | 30 seconds | Handler timeout plus 5 seconds through 15 minutes |
+| `MaxAttempts` | 8 | 1–32 total attempts |
+| `RetryDelay` | 30 seconds | 1 second through 1 hour |
+
+Durations must be whole milliseconds. `DefaultDeliveryPolicy()` returns these
+values. `History` must be `CurrentPublications` or `RetainedHistory`; zero is
+invalid. A bounded subscriber requires a stable valid ID and non-nil handler.
+`CurrentPublications` excludes only the topic history visible at registration;
+`RetainedHistory` admits retained messages without replaying existing successful
+acknowledgements. A lower ID committing later remains eligible in either mode.
+No global commit order or strict processing order is promised.
+
+A name remains bound to its original topic, policy and history admission. Reopening
+with conflicting options returns `ErrSubscriptionConflict`. Explicit
+`ConfigureDurableSubscription(ctx, id, topic, options)` upgrades a legacy named
+subscription or changes the policy of an existing durable subscription for future
+deliveries. It cannot change the topic or an established durable history mode.
+Existing deliveries retain their original policy snapshot and cumulative attempts.
+
+Each subscriber claims independently. First claim inserts `running` and a policy
+snapshot atomically. Due retries and expired leases replace the token and increment
+the same delivery's attempt. Database time controls deadlines. The last allowed
+expired attempt becomes `failed` without invoking another handler. Only the live
+generation can complete; an expired, changed or terminal generation returns
+`ErrStaleDelivery`. Successful completion atomically inserts its acknowledgement,
+updates diagnostic progress and records `succeeded`. A failed delivery has no success
+acknowledgement and is excluded from polling, allowing later messages to progress.
+
+Each poll fetches at most `min(BatchSize, 100)` candidate IDs and closes the result
+set before claiming/invoking handlers. It holds no fetch transaction or connection
+across handler work. Errors, recovered synchronous panics, elapsed cooperative
+handler deadlines and malformed retained data consume the frozen attempt budget.
+Retained codes are `handler_error`, `handler_panic`, `handler_deadline`,
+`invalid_payload`, `invalid_metadata` and `lease_expired`. No arbitrary error or
+panic text is stored as diagnostic data.
+
+Bounded polling inherits the `Subscribe` context; cancellation stops new claims
+and propagates into the active handler. `Stop(ctx)` also cancels polling and bounds
+the wait for the original handler. No heartbeat or replacement handler goroutine
+is created. An unreturned handler can outlive its lease while another process
+owns a later attempt. Applications must protect effects with transactional
+deduplication or external idempotency. Transport success is not exactly-once
+business-effect evidence. `Close()` remains an unbounded wait for compatible
+lifecycle callers.
+
+### Upgrade and retained storage
+
+Stop old workers before applying the additive schema or new ownership semantics.
+Legacy messages/subscriptions remain unbounded and existing acknowledgements stay
+successful. Starting a bounded topic over legacy rows returns `ErrAdmissionUpgrade`.
+After legacy startup applies the schema, explicitly call
+`AdmitBoundedTopics(ctx, BoundedConfig)` to audit and convert retained messages.
+The audit validates identities, JSON, metadata sizes, subscriber names/counts and
+capacity in one transaction using bounded pages. Invalid data or insufficient
+capacity aborts the whole audit; nothing is silently truncated or deleted.
+
+Configure each legacy named subscriber explicitly before restarting durable workers.
+Its successful acknowledgements remain excluded without synthetic attempt history.
+Choose retained history to admit its remaining unacknowledged rows. Mixed old and
+new workers are unsupported. Legacy polling and acknowledgement methods cannot
+write durable delivery state.
+
+The additive tables are `pubsub_bounded_config`, `pubsub_topics`,
+`pubsub_capacity_slots` and `pubsub_deliveries`; messages gain bounded mode, digest
+and a capacity reservation. Conditional constraints leave unrelated legacy rows
+unchanged. Slot reservations roll back with publication and release through the
+message foreign key when an eligible message is deleted. Failed delivery state
+refers to the retained original message; there is no copied dead-letter payload.
+This mode has no automatic cleanup. Reaching capacity returns `ErrCapacity`;
+pending work is retained for explicit operator-owned retention.

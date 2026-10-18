@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Applications can publish bounded events in the same PostgreSQL transaction as
+  their state changes. Named durable subscribers retain finite leased attempts,
+  reject stale acknowledgements and quarantine exhausted failures so later
+  events can progress. Publication reports capacity and identity conflicts.
 - Applications can opt scheduled work into finite leased attempts that recover
   after interruption, reject stale completion and retain retry budgets across
   restarts. Operators can inspect runs, adopt quiesced legacy attempts and prune

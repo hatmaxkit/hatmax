@@ -37,6 +37,8 @@ type SubscribeOptions struct {
 	// If empty, a UUID is auto-generated (ephemeral subscription).
 	// Named subscribers resume from their stored progress after restart.
 	SubscriberID string
+	// Durable opts a named subscriber into backend-supported bounded delivery.
+	Durable *DurableOptions
 }
 
 // Publisher sends messages to topics.

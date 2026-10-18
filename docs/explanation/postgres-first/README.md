@@ -49,3 +49,18 @@ effect happened before the interruption. Applications still own transactional
 deduplication and external idempotency. Retention removes only terminal history in
 caller-owned batches; it never silently discards unfinished work. See the
 [leased scheduler contract](../../reference/scheduler/README.md#leased-execution).
+
+## Transactions and independent event delivery
+
+Bounded publication uses the application's PostgreSQL transaction so domain state
+and its message share one visibility boundary. Capacity reservations belong to that
+transaction and roll back with it. Independent reservations allow a lower message
+ID to commit later; acknowledgement-based selection keeps that late commit eligible.
+Neither an ID nor a registration timestamp is a global commit-order cursor.
+
+Each named durable subscriber owns a separate retained attempt and frozen policy.
+A terminal failed delivery quarantines its transport failure without claiming a
+successful business effect or blocking every future poll. Handler deadlines remain
+cooperative. Applications own deduplication and operator authority; retained capacity
+creates explicit backpressure rather than silently dropping pending work. See the
+[bounded event contract](../../reference/pubsub/README.md#bounded-durable-events).
