@@ -61,8 +61,8 @@ implementation activation, exact-HEAD validation and integration.
 | BW01 | Slice 1 | Slice 1 controller checks passed and PR #129 integrated at `80b183c0e50a6133598ca1abe04b3930b8c0573b` |
 | BW02 | Slice 1, Slice 2 | scheduler and pubsub replicas/killed-worker/stale-claim checks passed; Slice 2 exact-HEAD receipt required |
 | BW03 | Slice 1 | Slice 1 controller checks passed and PR #129 integrated at `80b183c0e50a6133598ca1abe04b3930b8c0573b` |
-| BW04 | Slice 2 | focused transactional publication/identity checks passed; exact-HEAD receipt required |
-| BW05 | Slice 2 | focused history/fan-out/lease/quarantine checks passed; exact-HEAD receipt required |
+| BW04 | Slice 2 | Slice 2 controller checks passed at `93bd762f32990cc22fed5ddb3d0f972574de1f20`; final PR HEAD receipt required |
+| BW05 | Slice 2 | Slice 2 controller checks passed at `93bd762f32990cc22fed5ddb3d0f972574de1f20`; final PR HEAD receipt required |
 | BW06 | Slice 3 | pending |
 | BW07 | Slice 2, Slice 3 | focused concurrent capacity/input/registration checks passed; retention pending |
 | BW08 | Slice 1, Slice 3 | scheduler inspection and pubsub admission/diagnostics checks passed; final operations pending |

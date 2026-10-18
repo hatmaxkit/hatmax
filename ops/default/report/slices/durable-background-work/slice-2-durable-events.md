@@ -96,8 +96,24 @@ Passed focused local checks before the final controller receipt:
 
 Focused package race executions reported 1.013 s and 3.891 s. Owned native
 PostgreSQL stopped and removed its temporary root. The final clean PR HEAD uses
-the controller's ordered `GOWORK=off scripts/check-durable-background-work.sh slice 2`
-and `git diff --check` receipt; these focused results are not the delivery-set gate.
+the controller's ordered slice-command/whitespace receipt; these focused results
+are not the delivery-set gate.
+
+The controller passed `GOWORK=off scripts/check-durable-background-work.sh slice 2`
+and `git diff --check` at `93bd762f32990cc22fed5ddb3d0f972574de1f20` before this
+evidence update. Native measured wall times were:
+
+| Selected command | Seconds |
+| --- | --- |
+| `GOWORK=off go vet ./pubsub ./pubsub/postgres` | 0.41 |
+| `GOWORK=off go test -race -count=1 -p=2 -timeout=180s ./pubsub ./pubsub/postgres` | 7.49 |
+| `GOCACHE="$PWD/.tmp/lint/gocache" golangci-lint run --default=none --enable=nlreturn --enable=noinlineerr --enable=wsl_v5 ./pubsub ./pubsub/postgres` | 0.96 |
+| `make docs-check` | 5.26 |
+
+The owned native PostgreSQL fixture stopped and removed its temporary root. The
+selected commands totaled 14.12 seconds, below the estimated warm-cache budget.
+The controller regenerates the same ordered receipt after this report commit;
+only evidence for the final clean PR HEAD authorizes integration.
 
 BW02 (pubsub): competing brokers, an actually killed worker and stale-generation
 acknowledgements. BW04: actual domain commit/rollback, canonical duplicate and
