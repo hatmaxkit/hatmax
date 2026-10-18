@@ -12,7 +12,7 @@ Delivery set: durable-background-work
 Plan: [Delivery plan](../../../plan/durable-background-work.md)
 Tracker: [Delivery tracker](../../../tracker/durable-background-work.md)
 Branch: `feat/leased-scheduler-recovery`
-PR: pending
+PR: `#129`
 
 ## Purpose
 
@@ -36,7 +36,8 @@ completion while preserving existing custom stores and legacy constructors.
 
 ## Implementation Notes
 
-T1.1 is `fe26565b273132c904da05521fde56e176d4a0e8`. T1.2 adds run operations,
+T1.1 is `fe26565b273132c904da05521fde56e176d4a0e8`.
+T1.2 is `8fe8b7406b3dbf359db0e90edb2c24415b732b7a` and adds run operations,
 operating guidance, Unreleased notes and the thin Slice 1 validation mode.
 The controller owns Rebase + Fast-forward integration into `dev`.
 

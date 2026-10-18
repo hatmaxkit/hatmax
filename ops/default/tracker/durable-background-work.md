@@ -22,14 +22,14 @@ Execution authorized: 2026-10-18
 Integration authority: Controller-owned Rebase + Fast-forward into `dev`
 Active slice: Slice 1
 Next slice: Slice 2
-Active tasks: None (Slice 1 PR preparation)
+Active tasks: None (Slice 1 awaiting controller integration)
 Execution gate: Approved artifacts published; controller-owned implementation active
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Recover leased scheduled runs | reviewing | `feat/leased-scheduler-recovery` | `feat(slice-1): recover interrupted scheduled work` | pending | `ops/default/report/slices/durable-background-work/slice-1-leased-runs.md` |
+| Slice 1 | Recover leased scheduled runs | reviewing | `feat/leased-scheduler-recovery` | `feat(slice-1): recover interrupted scheduled work` | [#129](https://forge.adrianpk.com/hatmax/hatmax/pulls/129) | `ops/default/report/slices/durable-background-work/slice-1-leased-runs.md` |
 | Slice 2 | Deliver bounded durable events | pending | `feat/bounded-durable-pubsub` | `feat(slice-2): deliver bounded durable events` | pending | `ops/default/report/slices/durable-background-work/slice-2-durable-events.md` |
 | Slice 3 | Operate retained background work | pending | `feat/durable-work-operations` | `feat(slice-3): operate retained background work` | pending | `ops/default/report/slices/durable-background-work/slice-3-work-operations.md` |
 
@@ -38,7 +38,7 @@ Execution gate: Approved artifacts published; controller-owned implementation ac
 | Task | Status | Expected commit | Commit |
 | --- | --- | --- | --- |
 | T1.1 | completed | `feat(scheduler): recover leased job attempts` | `fe26565b273132c904da05521fde56e176d4a0e8` |
-| T1.2 | completed | `feat(scheduler): expose durable run operations` | pending |
+| T1.2 | completed | `feat(scheduler): expose durable run operations` | `8fe8b7406b3dbf359db0e90edb2c24415b732b7a` |
 | T2.1 | pending | `feat(pubsub): publish bounded messages transactionally` | pending |
 | T2.2 | pending | `feat(pubsub): fence durable subscriber attempts` | pending |
 | T3.1 | pending | `feat(postgres): inspect and retire durable work` | pending |
