@@ -29,7 +29,8 @@ func (s *Store) ListDue(ctx context.Context, now time.Time, limit int) ([]schedu
 		COALESCE(r.id, ''), COALESCE(r.attempt + 1, 1), COALESCE(r.retry_limit, 0)
 		FROM scheduled_jobs j
 		LEFT JOIN job_runs r ON r.job_id = j.id AND r.scheduled_for = j.next_run_at
-		WHERE j.enabled = true AND j.next_run_at <= $1
+		WHERE j.enabled = true AND j.durable_policy IS NULL AND j.next_run_at <= $1
+		AND (r.id IS NULL OR NOT r.durable)
 		AND (r.id IS NULL OR (r.status = 'retry_wait' AND r.retry_at <= $1))
 		ORDER BY COALESCE(r.retry_at, j.next_run_at), j.id
 		FOR UPDATE OF j SKIP LOCKED
@@ -74,16 +75,17 @@ func (s *Store) ListDue(ctx context.Context, now time.Time, limit int) ([]schedu
 func (s *Store) CreateRun(ctx context.Context, jobID, runID string, scheduledFor time.Time) error {
 	query := `
 		INSERT INTO job_runs (id, job_id, scheduled_for, status, attempt, created_at, updated_at)
-		VALUES ($1, $2, $3, 'pending', 1, $4, $4)
+		SELECT $1, $2, $3, 'pending', 1, $4, $4 FROM scheduled_jobs j
+ WHERE j.id = $2 AND j.durable_policy IS NULL
 	`
 	now := time.Now().UTC()
-	_, err := s.db.ExecContext(ctx, query, runID, jobID, scheduledFor, now)
+	result, err := s.db.ExecContext(ctx, query, runID, jobID, scheduledFor, now)
 
-	return err
+	return claimed(result, err)
 }
 
 func (s *Store) MarkRunning(ctx context.Context, runID string, startedAt time.Time) error {
-	query := `UPDATE job_runs SET status = 'running', started_at = $2, updated_at = $2 WHERE id = $1 AND status = 'pending'`
+	query := `UPDATE job_runs SET status = 'running', started_at = $2, updated_at = $2 WHERE id = $1 AND NOT durable AND status = 'pending'`
 	result, err := s.db.ExecContext(ctx, query, runID, startedAt)
 
 	return claimed(result, err)
@@ -96,7 +98,7 @@ func (s *Store) ClaimRetry(ctx context.Context, runID string, attempt int, start
 
 	result, err := s.db.ExecContext(ctx, `UPDATE job_runs r SET status = 'running',
 		attempt = $2, started_at = $3, finished_at = NULL, retry_at = NULL, updated_at = $3
-		FROM scheduled_jobs j WHERE r.id = $1 AND r.job_id = j.id
+		FROM scheduled_jobs j WHERE r.id = $1 AND NOT r.durable AND r.job_id = j.id
 		AND j.enabled = true AND j.next_run_at = r.scheduled_for
 		AND r.status = 'retry_wait' AND r.attempt = $2 - 1 AND $2 <= r.retry_limit AND r.retry_at <= $3`, runID, attempt, startedAt)
 
@@ -110,7 +112,7 @@ func (s *Store) MarkRetry(ctx context.Context, runID string, maxAttempts int, fi
 
 	result, err := s.db.ExecContext(ctx, `UPDATE job_runs SET status = 'retry_wait',
 		finished_at = $2, retry_at = $3, error = $4, updated_at = $2, retry_limit = $5
-		WHERE id = $1 AND status = 'running' AND attempt < $5
+		WHERE id = $1 AND NOT durable AND status = 'running' AND attempt < $5
 		AND (retry_limit IS NULL OR retry_limit = $5)`, runID, finishedAt, retryAt, errMsg, maxAttempts)
 
 	return claimed(result, err)
@@ -154,14 +156,19 @@ func (s *Store) finish(ctx context.Context, runID string, finishedAt time.Time, 
 		jobID, currentStatus, spec, zone string
 		scheduledFor, currentSlot        time.Time
 		enabled                          bool
+		durable                          bool
 	)
 
 	err = tx.QueryRowContext(ctx, `SELECT j.id, r.status, r.scheduled_for, j.next_run_at,
-		j.schedule_spec, j.schedule_tz, j.enabled FROM job_runs r
+		j.schedule_spec, j.schedule_tz, j.enabled, r.durable FROM job_runs r
 		JOIN scheduled_jobs j ON j.id = r.job_id WHERE r.id = $1
-		FOR UPDATE OF j, r`, runID).Scan(&jobID, &currentStatus, &scheduledFor, &currentSlot, &spec, &zone, &enabled)
+		FOR UPDATE OF j, r`, runID).Scan(&jobID, &currentStatus, &scheduledFor, &currentSlot, &spec, &zone, &enabled, &durable)
 	if err != nil {
 		return err
+	}
+
+	if durable {
+		return scheduler.ErrStaleClaim
 	}
 
 	if currentStatus == "success" || currentStatus == "failed" {
@@ -204,7 +211,8 @@ func (s *Store) finish(ctx context.Context, runID string, finishedAt time.Time, 
 
 func (s *Store) UpdateNextRun(ctx context.Context, jobID string, lastRun, nextRun time.Time) error {
 	query := `UPDATE scheduled_jobs SET last_run_at = $2, next_run_at = COALESCE($3::timestamptz, next_run_at),
-		enabled = ($3::timestamptz IS NOT NULL), updated_at = $4 WHERE id = $1`
+		enabled = ($3::timestamptz IS NOT NULL), updated_at = $4 WHERE id = $1 AND durable_policy IS NULL
+ AND NOT EXISTS (SELECT 1 FROM job_runs WHERE job_id = $1 AND scheduled_for = scheduled_jobs.next_run_at AND durable)`
 	now := time.Now().UTC()
 
 	var next any
@@ -212,7 +220,7 @@ func (s *Store) UpdateNextRun(ctx context.Context, jobID string, lastRun, nextRu
 		next = nextRun
 	}
 
-	_, err := s.db.ExecContext(ctx, query, jobID, lastRun, next, now)
+	result, err := s.db.ExecContext(ctx, query, jobID, lastRun, next, now)
 
-	return err
+	return claimed(result, err)
 }

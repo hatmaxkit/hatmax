@@ -20,16 +20,16 @@ Base branch: `dev`
 Planning base: `b21af0b17c01ebb3544c37d7d200d2c87f4db0b1`
 Execution authorized: 2026-10-18
 Integration authority: Controller-owned Rebase + Fast-forward into `dev`
-Active slice: None
-Next slice: Slice 1
-Active tasks: None
-Execution gate: Publish approved artifacts, verify ownership and explicitly start this set
+Active slice: Slice 1
+Next slice: Slice 2
+Active tasks: T1.2
+Execution gate: Approved artifacts published; controller-owned implementation active
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Recover leased scheduled runs | pending | `feat/leased-scheduler-recovery` | `feat(slice-1): recover interrupted scheduled work` | pending | `ops/default/report/slices/durable-background-work/slice-1-leased-runs.md` |
+| Slice 1 | Recover leased scheduled runs | implementing | `feat/leased-scheduler-recovery` | `feat(slice-1): recover interrupted scheduled work` | pending | `ops/default/report/slices/durable-background-work/slice-1-leased-runs.md` |
 | Slice 2 | Deliver bounded durable events | pending | `feat/bounded-durable-pubsub` | `feat(slice-2): deliver bounded durable events` | pending | `ops/default/report/slices/durable-background-work/slice-2-durable-events.md` |
 | Slice 3 | Operate retained background work | pending | `feat/durable-work-operations` | `feat(slice-3): operate retained background work` | pending | `ops/default/report/slices/durable-background-work/slice-3-work-operations.md` |
 
@@ -37,21 +37,21 @@ Execution gate: Publish approved artifacts, verify ownership and explicitly star
 
 | Task | Status | Expected commit | Commit |
 | --- | --- | --- | --- |
-| T1.1 | pending | `feat(scheduler): recover leased job attempts` | pending |
-| T1.2 | pending | `feat(scheduler): expose durable run operations` | pending |
+| T1.1 | completed | `feat(scheduler): recover leased job attempts` | pending |
+| T1.2 | implementing | `feat(scheduler): expose durable run operations` | pending |
 | T2.1 | pending | `feat(pubsub): publish bounded messages transactionally` | pending |
 | T2.2 | pending | `feat(pubsub): fence durable subscriber attempts` | pending |
 | T3.1 | pending | `feat(postgres): inspect and retire durable work` | pending |
 | T3.2 | pending | `docs(background): guide durable work recovery` | pending |
 
-The plan owns each task's deliverables and selected gate. No runtime command,
-slice report, task commit, PR or controller has been produced for this set.
+The plan owns each task's deliverables and selected gate. The controller owns
+implementation activation, exact-HEAD validation and integration.
 
 ## Prerequisites and Acceptance
 
 - [x] Specification and durable model approved on 2026-10-18.
 - [x] Three-slice/six-task plan and matching tracker prepared.
-- [ ] Approved artifacts committed/pushed and execution explicitly started.
+- [x] Approved artifacts committed/pushed and execution explicitly started.
 - [ ] Three PRs and six tasks implemented and integrated into `dev`.
 - [ ] Selected gate passed at the exact integrated candidate, with owned cleanup.
 - [ ] Acceptance/report metadata closed and published module identity verified.

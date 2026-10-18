@@ -300,7 +300,8 @@ func TestRetrySchema(t *testing.T) {
 	now := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	store, db := slotStore(t, "postgres", scheduler.Job{ID: "job", ScheduledFor: now}, "")
 
-	_, err := db.ExecContext(ctx, `ALTER TABLE job_runs DROP COLUMN retry_at, DROP COLUMN retry_limit;
+	_, err := db.ExecContext(ctx, `ALTER TABLE job_runs DROP CONSTRAINT job_runs_durable_policy;
+ ALTER TABLE job_runs DROP COLUMN retry_at, DROP COLUMN retry_limit;
 		INSERT INTO job_runs (id, job_id, scheduled_for, status, attempt)
 		VALUES ('old', 'job', '2026-01-01T00:00:00Z', 'failed', 1)`)
 	if err != nil {

@@ -19,6 +19,7 @@ import (
 
 type Runner struct {
 	store    JobStore
+	durable  *ExecutionPolicy
 	settings SettingsProvider
 	handlers map[string]Handler
 	clock    Clock
@@ -100,6 +101,11 @@ func (r *Runner) Register(taskType string, handler Handler) {
 // startup. Repeated active starts are no-ops; shutdown is terminal for this instance.
 func (r *Runner) Start(ctx context.Context) error {
 	err := ctx.Err()
+	if err != nil {
+		return err
+	}
+
+	err = r.validateDurable()
 	if err != nil {
 		return err
 	}
@@ -238,9 +244,18 @@ func (r *Runner) Tick(ctx context.Context) error {
 		return err
 	}
 
-	now := r.clock.Now()
+	err = r.validateDurable()
+	if err != nil {
+		return err
+	}
 
-	jobs, err := r.store.ListDue(ctx, now, r.cfg.BatchSize)
+	var jobs []Job
+	if r.durable != nil {
+		jobs, err = r.store.(DurableStore).ListClaimable(ctx, r.cfg.BatchSize)
+	} else {
+		jobs, err = r.store.ListDue(ctx, r.clock.Now(), r.cfg.BatchSize)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -302,6 +317,12 @@ dispatch:
 
 func (r *Runner) process(ctx context.Context, job Job) {
 	if ctx.Err() != nil {
+		return
+	}
+
+	if r.durable != nil {
+		r.processDurable(ctx, job)
+
 		return
 	}
 
