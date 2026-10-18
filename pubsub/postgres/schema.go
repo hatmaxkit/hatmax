@@ -84,6 +84,7 @@ END $$;
 
 // DeliverySchema keeps successful legacy acknowledgements and adds fenced attempts.
 const DeliverySchema = `
+ALTER TABLE pubsub_subscriptions ADD COLUMN IF NOT EXISTS retired_at TIMESTAMPTZ;
 ALTER TABLE pubsub_subscriptions ADD COLUMN IF NOT EXISTS bounded BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE pubsub_subscriptions ADD COLUMN IF NOT EXISTS handler_timeout_ms INT;
 ALTER TABLE pubsub_subscriptions ADD COLUMN IF NOT EXISTS lease_duration_ms INT;
@@ -124,6 +125,7 @@ CREATE TABLE IF NOT EXISTS pubsub_deliveries (
  OR (state='retry_wait' AND lease_token IS NULL AND lease_expires_at IS NULL AND retry_at IS NOT NULL AND finished_at IS NULL)
  OR (state IN ('succeeded','failed') AND lease_token IS NULL AND lease_expires_at IS NULL AND retry_at IS NULL AND finished_at IS NOT NULL))
 );
+CREATE INDEX IF NOT EXISTS idx_pubsub_delivery_message ON pubsub_deliveries(message_id);
 CREATE INDEX IF NOT EXISTS idx_pubsub_delivery_retry ON pubsub_deliveries(subscriber_id,retry_at) WHERE state='retry_wait';
 CREATE INDEX IF NOT EXISTS idx_pubsub_delivery_lease ON pubsub_deliveries(subscriber_id,lease_expires_at) WHERE state='running';
 CREATE INDEX IF NOT EXISTS idx_pubsub_delivery_terminal ON pubsub_deliveries(finished_at,subscriber_id,message_id) WHERE state IN ('succeeded','failed');

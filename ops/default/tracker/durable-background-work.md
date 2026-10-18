@@ -20,9 +20,9 @@ Base branch: `dev`
 Planning base: `b21af0b17c01ebb3544c37d7d200d2c87f4db0b1`
 Execution authorized: 2026-10-18
 Integration authority: Controller-owned Rebase + Fast-forward into `dev`
-Active slice: Slice 2
-Next slice: Slice 3
-Active tasks: None (Slice 2 awaiting controller integration)
+Active slice: Slice 3
+Next slice: None (final recorded slice)
+Active tasks: T3.2
 Execution gate: Approved artifacts published; controller-owned implementation active
 
 ## Slice Status
@@ -30,8 +30,8 @@ Execution gate: Approved artifacts published; controller-owned implementation ac
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Recover leased scheduled runs | delivered | `feat/leased-scheduler-recovery` | `feat(slice-1): recover interrupted scheduled work` | [#129](https://forge.adrianpk.com/hatmax/hatmax/pulls/129) | `ops/default/report/slices/durable-background-work/slice-1-leased-runs.md` |
-| Slice 2 | Deliver bounded durable events | reviewing | `feat/bounded-durable-pubsub` | `feat(slice-2): deliver bounded durable events` | [#130](https://forge.adrianpk.com/hatmax/hatmax/pulls/130) | `ops/default/report/slices/durable-background-work/slice-2-durable-events.md` |
-| Slice 3 | Operate retained background work | pending | `feat/durable-work-operations` | `feat(slice-3): operate retained background work` | pending | `ops/default/report/slices/durable-background-work/slice-3-work-operations.md` |
+| Slice 2 | Deliver bounded durable events | delivered | `feat/bounded-durable-pubsub` | `feat(slice-2): deliver bounded durable events` | [#130](https://forge.adrianpk.com/hatmax/hatmax/pulls/130) | `ops/default/report/slices/durable-background-work/slice-2-durable-events.md` |
+| Slice 3 | Operate retained background work | implementing | `feat/durable-work-operations` | `feat(slice-3): operate retained background work` | pending | `ops/default/report/slices/durable-background-work/slice-3-work-operations.md` |
 
 ## Tasks
 
@@ -41,8 +41,8 @@ Execution gate: Approved artifacts published; controller-owned implementation ac
 | T1.2 | completed | `feat(scheduler): expose durable run operations` | `8fe8b7406b3dbf359db0e90edb2c24415b732b7a` |
 | T2.1 | completed | `feat(pubsub): publish bounded messages transactionally` | `ab080c841c2b372a1b6e51a7f2180448bc91b70d` |
 | T2.2 | completed | `feat(pubsub): fence durable subscriber attempts` | `c52d6cb2eb8e7c9a6247fcee1faacb74037ae4b3` |
-| T3.1 | pending | `feat(postgres): inspect and retire durable work` | pending |
-| T3.2 | pending | `docs(background): guide durable work recovery` | pending |
+| T3.1 | completed | `feat(postgres): inspect and retire durable work` | pending |
+| T3.2 | implementing | `docs(background): guide durable work recovery` | pending |
 
 The plan owns each task's deliverables and selected gate. The controller owns
 implementation activation, exact-HEAD validation and integration.
@@ -59,10 +59,10 @@ implementation activation, exact-HEAD validation and integration.
 | Criterion | Owning slices | Evidence status |
 | --- | --- | --- |
 | BW01 | Slice 1 | Slice 1 controller checks passed and PR #129 integrated at `80b183c0e50a6133598ca1abe04b3930b8c0573b` |
-| BW02 | Slice 1, Slice 2 | scheduler and pubsub replicas/killed-worker/stale-claim checks passed; Slice 2 exact-HEAD receipt required |
+| BW02 | Slice 1, Slice 2 | scheduler and pubsub replicas/killed-worker/stale-claim checks passed; PRs #129/#130 integrated |
 | BW03 | Slice 1 | Slice 1 controller checks passed and PR #129 integrated at `80b183c0e50a6133598ca1abe04b3930b8c0573b` |
-| BW04 | Slice 2 | Slice 2 controller checks passed at `93bd762f32990cc22fed5ddb3d0f972574de1f20`; final PR HEAD receipt required |
-| BW05 | Slice 2 | Slice 2 controller checks passed at `93bd762f32990cc22fed5ddb3d0f972574de1f20`; final PR HEAD receipt required |
+| BW04 | Slice 2 | Slice 2 controller checks passed and PR #130 integrated at `ebba2ebaf991d3b49681f835e2629b191059a4f2` |
+| BW05 | Slice 2 | Slice 2 controller checks passed and PR #130 integrated at `ebba2ebaf991d3b49681f835e2629b191059a4f2` |
 | BW06 | Slice 3 | pending |
 | BW07 | Slice 2, Slice 3 | focused concurrent capacity/input/registration checks passed; retention pending |
 | BW08 | Slice 1, Slice 3 | scheduler inspection and pubsub admission/diagnostics checks passed; final operations pending |

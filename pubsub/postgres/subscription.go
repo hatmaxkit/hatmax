@@ -87,11 +87,12 @@ func (b *Broker) registerDurable(ctx context.Context, id, topic string, opts pub
 	var (
 		original string
 		bounded  bool
+		retired  *time.Time
 		stored   subscriptionPolicy
 	)
 
-	err = tx.QueryRowContext(ctx, `SELECT topic,bounded,COALESCE(handler_timeout_ms,0),COALESCE(lease_duration_ms,0),COALESCE(attempt_limit,0),COALESCE(retry_delay_ms,0),COALESCE(history_mode,'')
- FROM pubsub_subscriptions WHERE id=$1 FOR UPDATE`, id).Scan(&original, &bounded, &stored.handler, &stored.lease, &stored.attempts, &stored.delay, &stored.history)
+	err = tx.QueryRowContext(ctx, `SELECT topic,bounded,COALESCE(handler_timeout_ms,0),COALESCE(lease_duration_ms,0),COALESCE(attempt_limit,0),COALESCE(retry_delay_ms,0),COALESCE(history_mode,''),retired_at
+ FROM pubsub_subscriptions WHERE id=$1 FOR UPDATE`, id).Scan(&original, &bounded, &stored.handler, &stored.lease, &stored.attempts, &stored.delay, &stored.history, &retired)
 
 	fresh := errors.Is(err, sql.ErrNoRows)
 	if err != nil && !fresh {
@@ -103,6 +104,10 @@ func (b *Broker) registerDurable(ctx context.Context, id, topic string, opts pub
 	}
 
 	if !fresh {
+		if retired != nil {
+			return ErrSubscriberRetired
+		}
+
 		if original != topic || (!bounded && !configure) {
 			return ErrSubscriptionConflict
 		}
@@ -169,7 +174,7 @@ func lockSubscriber(ctx context.Context, tx *sql.Tx, id string) (string, pubsub.
 	)
 
 	err := tx.QueryRowContext(ctx, `SELECT topic,handler_timeout_ms,lease_duration_ms,attempt_limit,retry_delay_ms
- FROM pubsub_subscriptions WHERE id=$1 AND bounded FOR UPDATE`, id).Scan(&topic, &stored.handler, &stored.lease, &stored.attempts, &stored.delay)
+ FROM pubsub_subscriptions WHERE id=$1 AND bounded AND retired_at IS NULL FOR UPDATE`, id).Scan(&topic, &stored.handler, &stored.lease, &stored.attempts, &stored.delay)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", pubsub.DeliveryPolicy{}, ErrDeliveryClaim
 	}

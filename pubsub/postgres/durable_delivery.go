@@ -29,7 +29,7 @@ type deliveryClaim struct {
 func (b *Broker) pollDurable(ctx context.Context, sub *subscription) error {
 	rows, err := b.db.QueryContext(ctx, `SELECT m.id FROM pubsub_messages m
  LEFT JOIN pubsub_deliveries d ON d.message_id=m.id AND d.subscriber_id=$2
- WHERE m.topic=$1 AND m.bounded AND NOT EXISTS(SELECT 1 FROM pubsub_acknowledgements a WHERE a.subscriber_id=$2 AND a.message_id=m.id)
+ WHERE m.topic=$1 AND m.bounded AND EXISTS(SELECT 1 FROM pubsub_subscriptions s WHERE s.id=$2 AND s.bounded AND s.retired_at IS NULL) AND NOT EXISTS(SELECT 1 FROM pubsub_acknowledgements a WHERE a.subscriber_id=$2 AND a.message_id=m.id)
  AND (d.message_id IS NULL OR (d.state='retry_wait' AND d.retry_at<=clock_timestamp()) OR (d.state='running' AND d.lease_expires_at<=clock_timestamp()))
  ORDER BY m.id LIMIT $3`, sub.topic, sub.id, min(b.cfg.BatchSize, 100))
 	if err != nil {

@@ -7,7 +7,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Slice 2: Deliver bounded durable events
 
-Status: reviewing
+Status: delivered
 Delivery set: durable-background-work
 Plan: [Delivery plan](../../../plan/durable-background-work.md)
 Tracker: [Delivery tracker](../../../tracker/durable-background-work.md)
@@ -41,6 +41,10 @@ starving later work behind terminal failures.
 - Explicit legacy topic/subscriber upgrades preserve successful acknowledgements
   and require an admission audit and selected policy/history. Existing legacy
   subscription calls on unadmitted topics keep their documented delivery behavior.
+
+Merged into `dev` through controller-owned PR #130 at
+`ebba2ebaf991d3b49681f835e2629b191059a4f2`; the required ordered Slice 2 checks
+and whitespace check passed at that head.
 
 ## Implementation Notes
 
