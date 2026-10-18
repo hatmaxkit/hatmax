@@ -13,7 +13,11 @@ Approved: 2026-10-18
 Concern: locale-aware-formatting
 Inspected baseline: `3e1b31b63db934d7d8b1c1287db68b6f500a7c27`
 Existing package: [format](../../../format/readme.md)
-Implementation status: Not started
+Implementation status: Completed
+Completed: 2026-10-18
+Validated candidate: `ff45f00bf867d1763376c21b941946c74878116a`
+Published module: `hatmax.adrianpk.com@v0.6.1-0.20261018112343-ff45f00bf867`
+Report: [Slice 1](../report/slices/locale-aware-formatting/slice-1-exact-formatting.md)
 Plan: [Delivery plan](../plan/locale-aware-formatting.md)
 Tracker: [Delivery tracker](../tracker/locale-aware-formatting.md)
 Planning authorized: 2026-10-18
@@ -26,13 +30,14 @@ presentation operation; it must not change stored values or financial arithmetic
 
 The existing `format.Number` and `format.Integer` use an English printer.
 The price helpers accept floating-point values and a shared currency registry.
-There is no caller-owned locale formatter for exact decimal input. Add that
-capability inside `format`, preserving the existing functions and their output.
+The inspected baseline had no caller-owned locale formatter for exact decimal
+input. The delivered capability lives inside `format` and preserves the
+existing functions and their output.
 
 ## Caller Contract
 
-Provide an immutable formatter constructed from an explicit BCP 47 locale.
-The final exported names are selected during implementation; the behavior is:
+`NewFormatter` constructs an immutable `Formatter` from an explicit BCP 47
+locale. Its `Integer`, `Decimal` and `MinorUnits` methods provide this behavior:
 
 | Operation | Input | Output |
 | --- | --- | --- |

@@ -91,9 +91,16 @@ Task commits: `0078533f8a40999651927592e50edfa68422777a` implements T1.1;
 canonical report. The final PR-reference commit is the controller's validation
 candidate; it does not change runtime behavior.
 
-These are the approved affected-package and documentation checks. The slice is
-delivered; final integrated-candidate validation and delivery-set closure remain
-controller-owned. No external fixture is required for the selected gate.
+The controller's final integrated gate passed at immutable candidate
+`ff45f00bf867d1763376c21b941946c74878116a` on 2026-10-18, in approximately
+35.12 seconds. Receipt `I42QOJY5OSZ4G6X5OSEH2DLKYE` records this exact command:
+
+- `GOWORK=off go vet ./format ./render ./ui && GOWORK=off go test -race -count=1 -timeout=120s ./format ./render ./ui && GOCACHE="$PWD/.tmp/lint/gocache" golangci-lint run --default=none --enable=nlreturn --enable=noinlineerr --enable=wsl_v5 ./format && make docs-check && git diff --check` — passed.
+
+LF01-LF06 passed on that candidate. The slice and delivery set are complete.
+Closure changes only the configured documentation paths; runtime content is
+identical to the tested candidate. No service fixtures were started or require
+cleanup. Runtime checks were not repeated for completion prose.
 
 ## Risks and Follow-ups
 

@@ -8,7 +8,8 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Locale-Aware Formatting Delivery Plan
 
 Date: 2026-10-18
-Status: In progress
+Status: Completed
+Completed: 2026-10-18
 Approved: 2026-10-18
 Specification approved: 2026-10-18
 Planning authorized: 2026-10-18
@@ -21,7 +22,7 @@ Execution authorized: 2026-10-18
 Integration authority: Controller-owned Rebase + Fast-forward into `dev`
 Active slice: None
 Next slice: None
-Execution gate: All slices integrated; controller-owned final gate pending
+Execution gate: Passed at `ff45f00bf867d1763376c21b941946c74878116a`; documentation closure only
 Slice strategy: behavior-first
 Reason: the additive formatter and its complete documentation form one cohesive package capability; no preparatory or testing-only slice is needed.
 
@@ -94,3 +95,13 @@ rerunning unchanged runtime tests solely because completion prose changed.
 After authorized publication of the delivered `dev` commit, a consumer can resolve
 and verify its published Go module pseudo-version. Record the exact commit and
 module identity; do not create a tag or promote main just to satisfy consumption.
+
+Slice 1 of 1 is delivered through [PR #128](https://forge.adrianpk.com/hatmax/hatmax/pulls/128).
+The controller's unchanged full gate passed on 2026-10-18 at immutable candidate
+`ff45f00bf867d1763376c21b941946c74878116a` in approximately 35.12 seconds.
+LF01-LF06 evidence is recorded in the tracker and report. Closure changes only
+the configured specification, plan, tracker and report; runtime files remain
+identical to the validated candidate. No service fixtures were needed or started.
+Go resolved the canonical candidate as
+`hatmax.adrianpk.com@v0.6.1-0.20261018112343-ff45f00bf867`; the tracker records
+the exact query and verified origin identity.

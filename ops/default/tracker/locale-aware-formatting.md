@@ -8,7 +8,8 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Locale-Aware Formatting Delivery Tracker
 
 Date: 2026-10-18
-Status: In progress
+Status: Completed
+Completed: 2026-10-18
 Approved: 2026-10-18
 Specification approved: 2026-10-18
 Planning authorized: 2026-10-18
@@ -22,7 +23,7 @@ Integration authority: Controller-owned Rebase + Fast-forward into `dev`
 Active slice: None
 Next slice: None
 Active tasks: None
-Execution gate: All slices integrated; controller-owned final gate pending
+Execution gate: Passed at `ff45f00bf867d1763376c21b941946c74878116a`; documentation closure only
 
 ## Slice Status
 
@@ -48,17 +49,17 @@ records implemented LF01-LF06 behavior and focused checks.
 - [x] One-slice plan and matching tracker prepared.
 - [x] Planning artifacts committed/pushed; execution and integration activated.
 - [x] Slice 1 implemented and integrated into `dev`.
-- [ ] LF01-LF06 verified at the exact integrated candidate.
-- [ ] Report and delivery metadata closed; published module identity available.
+- [x] LF01-LF06 verified at the exact integrated candidate.
+- [x] Report and delivery metadata closed; published module identity available.
 
 | Criterion | Owning slice | Evidence status |
 | --- | --- | --- |
-| LF01 | Slice 1 | Locale, digit, grouping and fallback cases implemented; integrated gate pending. |
-| LF02 | Slice 1 | Exact precision and scale cases implemented; integrated gate pending. |
-| LF03 | Slice 1 | Minor-unit boundary cases implemented; integrated gate pending. |
-| LF04 | Slice 1 | Admission and rejection cases implemented; integrated gate pending. |
-| LF05 | Slice 1 | Parallel shared-instance cases implemented; integrated race gate pending. |
-| LF06 | Slice 1 | Real escaped template example and legacy helper checks passed; integrated gate pending. |
+| LF01 | Slice 1 | Locale, digit, grouping and fallback cases passed at the validated candidate. |
+| LF02 | Slice 1 | Exact precision and scale cases passed at the validated candidate. |
+| LF03 | Slice 1 | Minor-unit boundary cases passed at the validated candidate. |
+| LF04 | Slice 1 | Admission and rejection cases passed at the validated candidate. |
+| LF05 | Slice 1 | Parallel shared-instance cases passed the candidate's race check. |
+| LF06 | Slice 1 | Real escaped template example, legacy helpers and documentation checks passed at the validated candidate. |
 
 ## Validation Record
 
@@ -72,5 +73,17 @@ Gate prerequisites are available: Go with race support, a C compiler,
 golangci-lint, Make and Bash. The approved format/render/ui and documentation
 gate requires no database, provider, browser or service fixture. The primary
 checkout remains on `dev`; its lint cache is local and ignored. The controller
-owns execution of the unchanged selected gate against the prepared candidate.
-Delivery-set acceptance and closure remain pending that result.
+executed the unchanged selected gate against
+`ff45f00bf867d1763376c21b941946c74878116a` on 2026-10-18. Its exact-command
+receipt `I42QOJY5OSZ4G6X5OSEH2DLKYE` records success in approximately 35.12
+seconds, covering all five commands in the plan's canonical order. The report
+records the full command. No runtime checks were repeated for documentation
+closure; only configured closure paths differ from the validated candidate.
+
+## Published Module Identity
+
+`GOWORK=off go list -m -json hatmax.adrianpk.com@ff45f00bf867d1763376c21b941946c74878116a`
+resolved `hatmax.adrianpk.com@v0.6.1-0.20261018112343-ff45f00bf867` on
+2026-10-18. Go reports the canonical Forgejo repository and full origin hash
+`ff45f00bf867d1763376c21b941946c74878116a`. This is the validated runtime
+candidate; subsequent closure changes are documentation only.
