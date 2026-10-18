@@ -81,10 +81,23 @@ Passed focused local checks:
 
 The focused leased/retry packages reported 1.016 s and 2.559 s; operations reported
 1.285 s. Native owned PostgreSQL shutdown/root removal succeeded after both runs.
-These are focused checks, not the delivery-set gate. Final clean-HEAD validation
-uses the controller receipt for `GOWORK=off scripts/check-durable-background-work.sh slice 1`
-followed by `git diff --check`. The wrapper retains native per-command timings in
-that receipt rather than creating another evidence ledger.
+These are focused checks, not the delivery-set gate.
+
+The controller passed `GOWORK=off scripts/check-durable-background-work.sh slice 1`
+and `git diff --check` at `ccc5fac4a704e186d8512a806b2b2ec00eac6e42` before this
+evidence update. Measured native wall times were:
+
+| Selected command | Seconds |
+| --- | --- |
+| `GOWORK=off go vet ./scheduler ./scheduler/postgres` | 0.31 |
+| `GOWORK=off go test -race -count=1 -p=2 -timeout=180s ./scheduler ./scheduler/postgres` | 4.89 |
+| `GOCACHE="$PWD/.tmp/lint/gocache" golangci-lint run --default=none --enable=nlreturn --enable=noinlineerr --enable=wsl_v5 ./scheduler ./scheduler/postgres` | 0.71 |
+| `make docs-check` | 3.99 |
+
+The owned native PostgreSQL fixture stopped and removed its temporary root.
+These timings are below the estimated 1–3 minute warm-cache budget. The controller
+regenerates the same ordered slice-command/whitespace receipt after this report
+commit; only the receipt for the final clean PR HEAD authorizes integration.
 
 BW01: legacy suites plus capability rejection and unfenced-write tests.
 BW02 (scheduler): concurrent stores, an actually killed worker, lease reclamation

@@ -58,9 +58,9 @@ implementation activation, exact-HEAD validation and integration.
 
 | Criterion | Owning slices | Evidence status |
 | --- | --- | --- |
-| BW01 | Slice 1 | focused capability/legacy/fencing checks passed; exact-HEAD slice receipt required |
+| BW01 | Slice 1 | Slice 1 controller checks passed at `ccc5fac4a704e186d8512a806b2b2ec00eac6e42`; final PR HEAD receipt required |
 | BW02 | Slice 1, Slice 2 | scheduler replicas/killed-worker/stale-claim checks passed; pubsub pending |
-| BW03 | Slice 1 | focused retry/exhaustion/recurrence/shutdown checks passed; exact-HEAD slice receipt required |
+| BW03 | Slice 1 | Slice 1 controller checks passed at `ccc5fac4a704e186d8512a806b2b2ec00eac6e42`; final PR HEAD receipt required |
 | BW04 | Slice 2 | pending |
 | BW05 | Slice 2 | pending |
 | BW06 | Slice 3 | pending |
