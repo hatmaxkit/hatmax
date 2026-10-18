@@ -22,7 +22,7 @@ Execution authorized: 2026-10-18
 Integration authority: Controller-owned Rebase + Fast-forward into `dev`
 Active slice: Slice 3
 Next slice: None (final recorded slice)
-Active tasks: None (Slice 3 PR preparation)
+Active tasks: None (Slice 3 PR #131 awaiting controller integration)
 Execution gate: Approved artifacts published; controller-owned implementation active
 
 ## Slice Status
@@ -31,7 +31,7 @@ Execution gate: Approved artifacts published; controller-owned implementation ac
 | --- | --- | --- | --- | --- | --- | --- |
 | Slice 1 | Recover leased scheduled runs | delivered | `feat/leased-scheduler-recovery` | `feat(slice-1): recover interrupted scheduled work` | [#129](https://forge.adrianpk.com/hatmax/hatmax/pulls/129) | `ops/default/report/slices/durable-background-work/slice-1-leased-runs.md` |
 | Slice 2 | Deliver bounded durable events | delivered | `feat/bounded-durable-pubsub` | `feat(slice-2): deliver bounded durable events` | [#130](https://forge.adrianpk.com/hatmax/hatmax/pulls/130) | `ops/default/report/slices/durable-background-work/slice-2-durable-events.md` |
-| Slice 3 | Operate retained background work | reviewing | `feat/durable-work-operations` | `feat(slice-3): operate retained background work` | pending | `ops/default/report/slices/durable-background-work/slice-3-work-operations.md` |
+| Slice 3 | Operate retained background work | reviewing | `feat/durable-work-operations` | `feat(slice-3): operate retained background work` | [#131](https://forge.adrianpk.com/hatmax/hatmax/pulls/131) | `ops/default/report/slices/durable-background-work/slice-3-work-operations.md` |
 
 ## Tasks
 
@@ -42,7 +42,7 @@ Execution gate: Approved artifacts published; controller-owned implementation ac
 | T2.1 | completed | `feat(pubsub): publish bounded messages transactionally` | `ab080c841c2b372a1b6e51a7f2180448bc91b70d` |
 | T2.2 | completed | `feat(pubsub): fence durable subscriber attempts` | `c52d6cb2eb8e7c9a6247fcee1faacb74037ae4b3` |
 | T3.1 | completed | `feat(postgres): inspect and retire durable work` | `e688a1c11d9b5224efae4f8cc1a37cef05de29ff` |
-| T3.2 | completed | `docs(background): guide durable work recovery` | pending |
+| T3.2 | completed | `docs(background): guide durable work recovery` | `a9b2ee74bb2a8f8e53e287b22ad8dfe7a3f76438` |
 
 The plan owns each task's deliverables and selected gate. The controller owns
 implementation activation, exact-HEAD validation and integration.
@@ -63,7 +63,7 @@ implementation activation, exact-HEAD validation and integration.
 | BW03 | Slice 1 | Slice 1 controller checks passed and PR #129 integrated at `80b183c0e50a6133598ca1abe04b3930b8c0573b` |
 | BW04 | Slice 2 | Slice 2 controller checks passed and PR #130 integrated at `ebba2ebaf991d3b49681f835e2629b191059a4f2` |
 | BW05 | Slice 2 | Slice 2 controller checks passed and PR #130 integrated at `ebba2ebaf991d3b49681f835e2629b191059a4f2` |
-| BW06 | Slice 3 | focused PostgreSQL replay revision, concurrent winner, acknowledgement exclusion and lifetime-limit checks passed; exact-HEAD Slice 3 receipt pending |
+| BW06 | Slice 3 | Slice 3 controller checks passed at `a9b2ee74bb2a8f8e53e287b22ad8dfe7a3f76438`; replay revision, concurrent winner, acknowledgement exclusion and lifetime limits covered; final-HEAD receipt regenerated before handoff |
 | BW07 | Slice 2, Slice 3 | focused admission, fan-out retention, retirement, capacity rollback and concurrent prune/publication checks passed; integrated gate pending |
 | BW08 | Slice 1, Slice 3 | bounded scheduler/delivery inspection and legacy upgrade/retention checks passed; linked operating guidance complete; integrated gate pending |
 
@@ -72,7 +72,7 @@ implementation activation, exact-HEAD validation and integration.
 The final command will be `GOWORK=off scripts/check-durable-background-work.sh`.
 Its selected commands, native PostgreSQL ownership and estimated cost are defined
 in the plan. Current gate status: not run. A required family with no execution or
-skipped evidence is not acceptance. Observed runtime cost: not measured.
+skipped evidence is not acceptance. Integrated runtime cost: not measured. Slice 3 selected commands totaled 16.36 seconds at `a9b2ee74bb2a8f8e53e287b22ad8dfe7a3f76438`; see the Slice 3 report for native per-command timings.
 
 Use the existing controller command receipts and slice reports for the actual
 candidate, elapsed time and BW01-BW08 results; add no parallel ledger or receipt

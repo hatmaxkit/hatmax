@@ -12,7 +12,7 @@ Delivery set: durable-background-work
 Plan: [Delivery plan](../../../plan/durable-background-work.md)
 Tracker: [Delivery tracker](../../../tracker/durable-background-work.md)
 Branch: `feat/durable-work-operations`
-PR: pending
+PR: `#131`
 
 ## Purpose
 
@@ -42,7 +42,8 @@ Complete the linked operating guidance and enable the selected integrated gate.
 
 ## Implementation Notes
 
-T3.1 is `e688a1c11d9b5224efae4f8cc1a37cef05de29ff`. T3.2 introduces this report,
+T3.1 is `e688a1c11d9b5224efae4f8cc1a37cef05de29ff`.
+T3.2 is `a9b2ee74bb2a8f8e53e287b22ad8dfe7a3f76438` and introduces this report,
 operating guidance and the final gate modes. Merged Slice 2 PR #130 is closed in
 its existing report/tracker entries at `ebba2ebaf991d3b49681f835e2629b191059a4f2`.
 The controller owns integration into `dev` and the final no-argument gate.
@@ -99,11 +100,24 @@ PostgreSQL fixture stopped and removed its temporary root. The documentation
 check caught a file-update error; restoring each page's original content and
 applying its intended addition resolved the broken local links.
 
-The controller's required ordered checks are
-`GOWORK=off scripts/check-durable-background-work.sh slice 3` and
-`git diff --check`. Exact-HEAD validation and per-command elapsed measurements
-will be recorded before handoff. The integrated no-argument gate is enabled but
-has not been run; the controller runs it after final integration.
+The controller passed `GOWORK=off scripts/check-durable-background-work.sh slice 3`
+and `git diff --check` at `a9b2ee74bb2a8f8e53e287b22ad8dfe7a3f76438` before this
+PR-reference/evidence update. All six required roots passed with no skipped
+required families. Native measured wall times were:
+
+| Selected command | Seconds |
+| --- | --- |
+| `GOWORK=off go vet ./scheduler ./scheduler/postgres ./pubsub ./pubsub/postgres` | 0.37 |
+| `GOWORK=off go test -v -race -count=1 -p=2 -timeout=180s -run '^(TestWorkOperations|TestLeasedRuns|TestBoundedDeliveries)$' ./scheduler ./scheduler/postgres ./pubsub ./pubsub/postgres` | 8.00 |
+| `GOCACHE="$PWD/.tmp/lint/gocache" golangci-lint run --default=none --enable=nlreturn --enable=noinlineerr --enable=wsl_v5 ./scheduler ./scheduler/postgres ./pubsub ./pubsub/postgres` | 1.99 |
+| `make docs-check` | 6.00 |
+
+The owned native PostgreSQL fixture stopped and removed its temporary root.
+Selected commands totaled 16.36 seconds, below the estimated warm-cache budget.
+The controller regenerates the same ordered receipt after this report commit;
+only evidence for the final clean PR HEAD authorizes integration. The integrated
+no-argument gate is enabled but has not been run; the controller runs it after
+final integration.
 
 BW01: Slice 1 protects legacy construction and unfenced writes. BW02: the recorded
 scheduler/pubsub families exercise competing replicas, killed workers and stale
