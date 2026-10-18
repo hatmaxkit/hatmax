@@ -12,7 +12,7 @@ Delivery set: locale-aware-formatting
 Plan: [Delivery plan](../../../plan/locale-aware-formatting.md)
 Tracker: [Delivery tracker](../../../tracker/locale-aware-formatting.md)
 Branch: `feat/locale-aware-formatting`
-PR: pending
+PR: `#128` ([canonical PR](https://forge.adrianpk.com/hatmax/hatmax/pulls/128))
 
 ## Purpose
 
@@ -83,6 +83,11 @@ belong to the controller receipt; the canonical PR lists successful commands:
 3. `GOCACHE="$PWD/.tmp/lint/gocache" golangci-lint run --default=none --enable=nlreturn --enable=noinlineerr --enable=wsl_v5 ./format`
 4. `make docs-check`
 5. `git diff --check`
+
+Task commits: `0078533f8a40999651927592e50edfa68422777a` implements T1.1;
+`ca0e8d5aeb17b151ee48a001c1e92353d419b186` delivers T1.2 and introduces this
+canonical report. The final PR-reference commit is the controller's validation
+candidate; it does not change runtime behavior.
 
 These are the approved affected-package and documentation checks. Integrated
 candidate validation and delivery-set closure remain controller-owned.

@@ -21,21 +21,21 @@ Execution authorized: 2026-10-18
 Integration authority: Controller-owned Rebase + Fast-forward into `dev`
 Active slice: Slice 1
 Next slice: None
-Active tasks: T1.2
+Active tasks: None; awaiting PR-head validation and controller integration
 Execution gate: Dedicated controller active; prepare and validate the canonical Slice 1 PR
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Exact localized display | reviewing | `feat/locale-aware-formatting` | `feat(slice-1): format exact values by locale` | pending | `ops/default/report/slices/locale-aware-formatting/slice-1-exact-formatting.md` |
+| Slice 1 | Exact localized display | reviewing | `feat/locale-aware-formatting` | `feat(slice-1): format exact values by locale` | [#128](https://forge.adrianpk.com/hatmax/hatmax/pulls/128) | `ops/default/report/slices/locale-aware-formatting/slice-1-exact-formatting.md` |
 
 ## Tasks
 
 | Task | Status | Expected commit | Commit |
 | --- | --- | --- | --- |
 | T1.1 | completed | `feat(format): add exact locale-aware number display` | `0078533f8a40999651927592e50edfa68422777a` |
-| T1.2 | in progress | `docs(format): explain exact localized presentation` | pending |
+| T1.2 | completed | `docs(format): explain exact localized presentation` | `ca0e8d5aeb17b151ee48a001c1e92353d419b186` |
 
 The plan owns task scope and the ordered package/documentation gate. The
 dedicated controller owns integration and the final integrated gate. The
