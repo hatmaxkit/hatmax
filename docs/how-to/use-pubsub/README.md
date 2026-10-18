@@ -164,3 +164,79 @@ Do not run mixed unfenced and durable workers. Configuration changes for future
 deliveries do not reset an existing delivery budget. The
 [bounded reference](../../reference/pubsub/README.md#bounded-durable-events) defines
 input limits, classified outcomes and retained storage.
+
+## Inspect and replay retained failures
+
+Use a separate authorized operator workflow with a finite context:
+
+```go
+inspectCtx, cancelInspect := context.WithTimeout(ctx, 5*time.Second)
+defer cancelInspect()
+
+rows, err := broker.ListDeliveries(inspectCtx, postgres.DeliveryQuery{
+    SubscriberID: "billing-orders", State: "failed", Limit: 50,
+})
+if err != nil {
+    return err
+}
+```
+
+Use the last row's `SubscriberID` and `MessageID` in `DeliveryQuery.After` for the
+next page. Inspect codes and timestamps; payloads and ownership tokens are excluded.
+Check the current domain state and reconcile any previous external effect before
+selecting one failed row for replay. A replay never asserts that an old effect failed.
+
+With `observed` set to that inspected row, grant a finite retry budget:
+
+```go
+err = broker.ReplayDelivery(ctx, postgres.ReplayRequest{
+    SubscriberID: observed.SubscriberID,
+    MessageID: observed.MessageID,
+    Attempt: observed.Attempt,
+    UpdatedAt: observed.UpdatedAt,
+    AdditionalAttempts: 2,
+    Reason: postgres.ReplayDependency,
+})
+if err != nil {
+    return err
+}
+```
+
+A stale revision is refused. Inspect again before deciding on another replay;
+never reset counters or retry acknowledged work. A grant allows at most eight
+additional attempts and the lifetime total stays at or below 32. Continue using
+idempotent domain handlers to reject obsolete effects.
+
+## Retire and retain subscribers
+
+Stop that subscriber's workers and wait for their handlers. Call
+`broker.RetireSubscriber(ctx, "billing-orders", postgres.RetireOptions{})` to retire
+only when every entitled message is terminal. If unfinished work must be discarded,
+make that decision explicitly in the authorized operator path and use
+`postgres.RetireOptions{DiscardPending: true}`. This records failed retained attempts
+and fences old owners; it cannot terminate an old handler or roll back its effects.
+The name remains reserved and cannot be reopened for another topic.
+
+Choose a retention cutoff after considering every entitled subscriber and any
+replay investigation. Run bounded message cleanup with a finite context:
+
+```go
+pruneCtx, cancelPrune := context.WithTimeout(ctx, 5*time.Second)
+defer cancelPrune()
+
+removed, err := broker.PruneMessages(pruneCtx, time.Now().Add(-30*24*time.Hour), 1000)
+if err != nil {
+    return err
+}
+logger.Infof("pruned %d terminal messages", removed)
+```
+
+Repeat batches when needed. Pending, active and retry-waiting work remains;
+recent terminal outcomes remain until their cutoff passes. A failed delivery
+is terminal without a success acknowledgement. Acknowledgement and delivery rows
+are deleted with each eligible message, and its capacity reservation is released
+atomically. Current-only history exclusions remain valid without synthetic attempt
+rows. Legacy subscriptions awaiting upgrade keep their pending entitlement.
+
+For scheduled-run inspection, adoption and terminal cleanup, use the
+[scheduler operating procedure](../run-background-jobs/README.md#inspect-and-retain-history).

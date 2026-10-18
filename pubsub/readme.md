@@ -84,3 +84,14 @@ acknowledgements and retain safe classified failures. Shutdown is cooperative an
 `Stop(ctx)` bounds the wait without closing the application's database. See the
 [bounded contract](../docs/reference/pubsub/README.md#bounded-durable-events) and
 [upgrade procedure](../docs/how-to/use-pubsub/README.md#upgrade-an-existing-topic).
+
+## Operate retained work
+
+`ListDeliveries` returns bounded diagnostic pages, including unclaimed and expired
+work without message bodies or ownership tokens. `ReplayDelivery` matches an
+observed failed revision and grants 1–8 additional attempts within the lifetime
+maximum of 32. `RetireSubscriber` refuses unfinished work unless discarding it is
+explicit; retired names remain reserved. `PruneMessages` removes only eligible
+terminal fan-out history in batches up to 1000, releasing capacity atomically.
+See the [operations reference](../docs/reference/pubsub/README.md#retained-work-operations)
+and [operating procedure](../docs/how-to/use-pubsub/README.md#inspect-and-replay-retained-failures).

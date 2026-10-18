@@ -236,7 +236,8 @@ set before claiming/invoking handlers. It holds no fetch transaction or connecti
 across handler work. Errors, recovered synchronous panics, elapsed cooperative
 handler deadlines and malformed retained data consume the frozen attempt budget.
 Retained codes are `handler_error`, `handler_panic`, `handler_deadline`,
-`invalid_payload`, `invalid_metadata` and `lease_expired`. No arbitrary error or
+`invalid_payload`, `invalid_metadata` and `lease_expired`; explicit retirement
+can record `subscriber_retired` for unfinished attempts. No arbitrary error or
 panic text is stored as diagnostic data.
 
 Bounded polling inherits the `Subscribe` context; cancellation stops new claims
@@ -273,3 +274,84 @@ message foreign key when an eligible message is deleted. Failed delivery state
 refers to the retained original message; there is no copied dead-letter payload.
 This mode has no automatic cleanup. Reaching capacity returns `ErrCapacity`;
 pending work is retained for explicit operator-owned retention.
+
+## Retained-work operations
+
+The PostgreSQL broker exposes bounded operator operations. Applications own their
+authorization, caller contexts, retention cutoff and business-effect reconciliation.
+No inspection result contains payload, metadata, a lease token or raw handler text.
+
+### Inspect deliveries
+
+`ListDeliveries(ctx, DeliveryQuery)` returns 50 rows by default, at most 100.
+Filter by `SubscriberID`, `Topic` and `State`: `pending`, `running`, `expired`,
+`retry_wait`, `succeeded`, `failed`, or empty for all. Invalid bounds or cursors
+return `ErrWorkQuery`. A `DeliveryCursor` contains the last row's `SubscriberID`
+and numeric `MessageID`; ordering is the stable `(subscriber_id, message_id)` key.
+Concurrent changes do not provide a snapshot across multiple pages.
+
+`DeliveryInfo` includes subscriber/message/envelope/topic identity, state, attempt,
+attempt limit, creation/update/terminal/eligibility times, classified failure,
+replay time and reason. `pending` means entitled but unclaimed, with zero attempt
+and budget rather than fabricated history. An expired running lease is reported as
+`expired`. Historical acknowledgements without a delivery row are excluded.
+Retired subscribers expose their retained attempt rows without admitting new work.
+
+### Replay a failed delivery
+
+`ReplayDelivery(ctx, ReplayRequest)` requires the inspected subscriber/message key,
+`Attempt` and `UpdatedAt`. It accepts only failed, unacknowledged, non-retired work.
+`AdditionalAttempts` is 1–8 and the resulting lifetime attempt limit cannot exceed
+32. The new limit is the observed attempt plus that grant; the cumulative attempt
+counter, handler deadline, lease duration and retry delay are preserved.
+
+`Reason` must be `ReplayOperator` (`operator_retry`), `ReplayDependency`
+(`dependency_restored`) or `ReplayDataRepair` (`data_repaired`). A successful replay
+records its reason/time, clears the terminal time and enters `retry_wait` with
+immediate eligibility. It changes no business receipt. Missing, stale, acknowledged,
+active or concurrently changed work returns `ErrReplayConflict`; invalid input or
+a grant beyond the lifetime bound returns `ErrWorkQuery`. Only one concurrent
+request can consume an observed revision. Old claim tokens cannot acknowledge it.
+
+### Retire a subscriber
+
+`RetireSubscriber(ctx, id, RetireOptions{})` refuses unfinished entitled work with
+`ErrPendingDelivery`. After handlers are quiesced, the caller may explicitly set
+`RetireOptions{DiscardPending: true}` to discard pending entitlement. Existing
+active/retry attempts become terminal `failed` with `subscriber_retired`, preserving
+their consumed counters and never inserting a successful acknowledgement.
+Unclaimed work is not assigned invented attempt history.
+
+Retirement atomically stops new entitlement and fences old claims. It cannot stop
+a handler that ignores cancellation. Repeated retirement is idempotent. Retired
+identities remain reserved with their original topic and count toward the 64-name
+registration bound; they cannot be reopened or reconfigured (`ErrSubscriberRetired`).
+New publications are not entitled to a retired subscriber. Retirement does not
+automatically delete messages or tracking history.
+
+### Prune terminal messages
+
+`PruneMessages(ctx, before, limit)` removes at most 1–1000 eligible bounded messages
+and their acknowledgement/delivery rows in one transaction, releasing capacity in
+the same transaction. The cutoff must be nonzero. Use a context deadline. Repeat
+bounded batches when needed; cutoff eligibility does not guarantee removal in one
+call or start an automatic cleanup service.
+
+A message must precede the cutoff, have no active/retry delivery, and have no terminal
+delivery outcome newer than the cutoff. Every still-entitled subscriber must have
+an acknowledgement or terminal delivery. This includes legacy subscribers awaiting
+explicit upgrade. Current-only historical acknowledgements require no fabricated
+attempt history. Explicitly retired subscribers waive entitlement as recorded by
+the retirement operation. Unbounded legacy messages remain untouched.
+
+Pruning serializes entitlement changes and locks candidate messages. It rechecks
+eligibility in a fresh snapshot after acquiring those locks so concurrent replay
+cannot cause active work to be deleted. Retention deletes tracking rows and frees
+the same capacity reservation atomically; failures roll back both. A subscriber
+registered after pruning can admit only the history still retained. Publication
+idempotency/conflict detection applies while a message identity is retained;
+applications own longer-lived domain identity and deduplication.
+
+The retirement upgrade adds nullable `retired_at`; existing subscriptions stay
+active. A delivery message index supports bounded retention lookups. Existing
+schema upgrades, successful acknowledgements and attempt counters remain intact.

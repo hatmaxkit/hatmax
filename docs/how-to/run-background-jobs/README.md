@@ -178,3 +178,13 @@ explicit repair or rescheduling. Repeated stops are safe. Construct a new
 runner rather than calling `Start` on one that has begun shutdown.
 
 See [Scheduler Reference](../../reference/scheduler/README.md).
+
+## Coordinate retained background work
+
+Keep scheduled-run cleanup and event-message cleanup explicit and separate. A
+terminal scheduled run does not prove that every subscriber processed an event,
+and a successful transport acknowledgement is not a domain-effect receipt.
+Inspect classified outcomes and reconcile the application's effects before replay
+or legacy adoption. Use finite contexts and bounded cleanup batches for both.
+The [event operating procedure](../use-pubsub/README.md#inspect-and-replay-retained-failures)
+covers revision-checked replay, subscriber retirement and fan-out-aware retention.

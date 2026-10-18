@@ -87,13 +87,24 @@ The Slice 3 selection is `^(TestWorkOperations|TestLeasedRuns|TestBoundedDeliver
 Introduce/extend these meaningful root families with their owning behavior; they are
 planned names, not proof of implementation. A required absent/skipped family fails
 validation. Reuse equivalent existing coverage rather than duplicating its cases.
+The recorded names are now present in these exact packages:
+
+| Package | Required successful roots |
+| --- | --- |
+| `scheduler` | `TestLeasedRuns` |
+| `scheduler/postgres` | `TestLeasedRuns`, `TestWorkOperations` |
+| `pubsub` | `TestBoundedDeliveries` |
+| `pubsub/postgres` | `TestBoundedDeliveries`, `TestWorkOperations` |
+
+Slice 3 and integrated execution use native verbose test output to reject absent
+or skipped required families; this changes output verbosity, not test selection.
 Each mode also runs affected-package vet, strict lint, documentation and whitespace
 checks. Verify modified Go formatting before commit.
 
 The integrated wrapper executes, in order, against one owned PostgreSQL fixture:
 
 1. `GOWORK=off go vet ./scheduler ./scheduler/postgres ./pubsub ./pubsub/postgres`
-2. `GOWORK=off go test -race -count=1 -p=2 -timeout=180s ./scheduler ./scheduler/postgres ./pubsub ./pubsub/postgres`
+2. `GOWORK=off go test -v -race -count=1 -p=2 -timeout=180s ./scheduler ./scheduler/postgres ./pubsub ./pubsub/postgres`
 3. `GOCACHE="$PWD/.tmp/lint/gocache" golangci-lint run --default=none --enable=nlreturn --enable=noinlineerr --enable=wsl_v5 ./scheduler ./scheduler/postgres ./pubsub ./pubsub/postgres`
 4. `make docs-check`
 5. Owned PostgreSQL cleanup and `git diff --check`.

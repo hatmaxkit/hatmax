@@ -152,6 +152,27 @@ Publishers that only retain a broker interface need no lifecycle entry.
 Subscribers and runners do because they start loops or register durable
 consumers. Reverse shutdown stops consumers before their broker and database.
 
+## Operate Retained Work
+
+Use bounded scheduler run and event delivery inspection to distinguish pending,
+active, expired, retry-waiting and terminal work. Failure codes and attempt counts
+explain the transport outcome without exposing payloads, ownership tokens or raw
+provider diagnostics. Applications decide who can inspect or change retained work.
+
+Reconcile domain effects before replaying a failed delivery. Replay matches the
+inspected attempt and update timestamp and grants at most eight more attempts,
+within a lifetime maximum of 32. It cannot reset acknowledged work or bypass
+idempotent application rules. Quiesce workers before retiring their subscriber;
+discarding unfinished entitlement requires an explicit operator choice.
+
+Use caller-owned terminal cleanup batches for scheduled runs and message history.
+Message pruning waits for every entitled subscriber and the retention cutoff,
+removes tracking rows with the message, and releases capacity atomically. Pending,
+active and retrying work remains. Follow the
+[event operating procedure](../../how-to/use-pubsub/README.md#inspect-and-replay-retained-failures)
+and [scheduled-run procedure](../../how-to/run-background-jobs/README.md#inspect-and-retain-history)
+for the concrete APIs and upgrade steps.
+
 For exact contracts, see [Pubsub](../../reference/pubsub/README.md),
 [Scheduler](../../reference/scheduler/README.md), and the focused
 [pubsub how-to](../../how-to/use-pubsub/README.md).

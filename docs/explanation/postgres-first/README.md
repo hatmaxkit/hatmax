@@ -64,3 +64,22 @@ successful business effect or blocking every future poll. Handler deadlines rema
 cooperative. Applications own deduplication and operator authority; retained capacity
 creates explicit backpressure rather than silently dropping pending work. See the
 [bounded event contract](../../reference/pubsub/README.md#bounded-durable-events).
+
+## Replay, retirement and retention
+
+Replay is a finite authorization to try one observed terminal delivery again. It
+preserves consumed attempts and requires a matching revision, so concurrent operator
+requests cannot multiply a budget or reset acknowledged work. The application still
+owns the decision that an effect is safe or relevant to repeat.
+
+Retirement changes a subscriber's entitlement explicitly. It refuses unfinished
+work unless the caller deliberately discards it, fences old ownership and retains
+the identity/topic binding. Retention then removes only messages whose remaining
+entitled subscribers are terminal and whose cutoff has passed. A replay and a prune
+cannot both successfully claim that the same retained failure remains active.
+
+Keeping tracking deletion and capacity release in the same PostgreSQL transaction
+avoids a second cleanup ledger or approximate counter. Pending fan-out remains
+visible as capacity pressure. Inspection and cleanup are bounded caller-owned work,
+not hidden background services. See the
+[operations contract](../../reference/pubsub/README.md#retained-work-operations).
