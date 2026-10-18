@@ -8,7 +8,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 # Locale-Aware Formatting Delivery Plan
 
 Date: 2026-10-18
-Status: Approved
+Status: In progress
 Approved: 2026-10-18
 Specification approved: 2026-10-18
 Planning authorized: 2026-10-18
@@ -19,9 +19,9 @@ Base branch: `dev`
 Planning base: `3e1b31b63db934d7d8b1c1287db68b6f500a7c27`
 Execution authorized: 2026-10-18
 Integration authority: Controller-owned Rebase + Fast-forward into `dev`
-Active slice: None
-Next slice: Slice 1
-Execution gate: Publish these artifacts, verify exclusive ownership and start the dedicated controller
+Active slice: Slice 1
+Next slice: None
+Execution gate: Dedicated controller active; prepare and validate the canonical Slice 1 PR
 Slice strategy: behavior-first
 Reason: the additive formatter and its complete documentation form one cohesive package capability; no preparatory or testing-only slice is needed.
 

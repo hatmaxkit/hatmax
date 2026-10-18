@@ -109,9 +109,63 @@ rendering a template. The built-in number printer uses English formatting;
 currency registration controls the symbol and its position, not a full locale
 formatting policy.
 
-If product requirements need locale-aware dates, measurements, or currency
-rules beyond these helpers, keep that policy in an application-owned
-presentation adapter. Do not turn preformatted strings into domain values.
+For exact locale-aware display, select the locale in the application and
+construct an immutable formatter before rendering. These contextual calls
+show all three operations:
+
+```go
+formatter, err := format.NewFormatter("de")
+if err != nil {
+	return err
+}
+count := formatter.Integer(1234567)                 // "1.234.567"
+quantity, err := formatter.Decimal("1234567.8900") // "1.234.567,8900"
+if err != nil {
+	return err
+}
+amount, err := formatter.MinorUnits(123450, 2)      // "1.234,50"
+if err != nil {
+	return err
+}
+```
+
+Keep the currency code in the view as `EUR`, with the amount and scale supplied
+by the application's monetary contract. Formatting preserves digits and scale;
+it does not round, calculate totals, convert currencies or infer a currency's
+decimal places. Use canonical decimal text for exact quantities, not a value
+previously converted through floating point.
+
+Bind methods to application-selected template names while retaining the
+existing map:
+
+```go
+funcs := render.MergeFuncMaps(ui.FuncMap(), template.FuncMap{
+	"exactInteger": formatter.Integer,
+	"exactDecimal": formatter.Decimal,
+	"exactMinor":   formatter.MinorUnits,
+})
+```
+
+This fragment imports `html/template`. Install `funcs` when constructing the
+template manager, as above. The two error-returning methods stop template
+execution on invalid input; handle that error at the page boundary.
+
+```html
+<span>{{exactInteger .Count}}</span>
+<span>{{exactDecimal .Quantity}}</span>
+<span>{{.Currency}} {{exactMinor .Amount .Scale}}</span>
+```
+
+The [executable example](../../../format/locale_example_test.go) composes this
+map with all three methods and the historical helpers. Ordinary strings remain
+escaped: application text `<net>` renders as `&lt;net&gt;`. Do not mark these
+values as trusted HTML. Share immutable formatters across requests as needed;
+each instance keeps its caller-selected locale independent of others.
+
+The [Format reference](../../reference/format/README.md) defines locale and
+decimal admission limits. Keep dates, measurements and additional currency
+rules in an application-owned presentation adapter. Do not turn preformatted
+strings into domain values.
 
 ## Translate with the Request Locale
 

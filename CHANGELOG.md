@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Applications can display exact integers, decimal quantities and minor-unit
+  amounts in a caller-selected locale, preserving digits and fractional zeros
+  without rounding or floating-point conversion.
 - Applications can write, inspect, read and delete private local and S3 documents
   with explicit byte limits. Local writes replace complete objects atomically
   within the configured directory. S3 operations preserve access failures and
