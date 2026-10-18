@@ -42,7 +42,8 @@ validate them, as described below.
 non-positive interval or retry backoff with one minute, batch size `20`, one
 worker, and three retry attempts.
 
-`New` and `NewWithConfig` build a runner. `Register` stores one handler per
+`New` and `NewWithConfig` build a runner. Durable options are validated by
+`Start` and `Tick`, including when polling is disabled. `Register` stores one handler per
 task type and replaces an existing type. `Start` returns nil without a
 goroutine when `Enabled` is false. Otherwise it ticks immediately and then on
 `Interval`.
@@ -126,6 +127,8 @@ by the current runner after construction.
 
 ## Retries
 
+This section describes execution without `WithDurableExecution`.
+
 `RetryAttempts` is the maximum total attempts per scheduled slot, including the
 first. It defaults to `3`; `1` disables retries. `RetryBackoff` is a fixed delay
 from failed-attempt completion, defaulting to one minute. There is no exponential
@@ -200,8 +203,102 @@ column is not consulted; the runner's configuration supplies new-slot budgets.
 If a claim or result write is interrupted, the claimed slot remains excluded
 from due batches. Inspect and repair the run before scheduling a later slot.
 Persisted retry waits resume normally, but there is no lease or automatic recovery
-of interrupted pending/running claims. Slot uniqueness does
+of interrupted pending/running claims in legacy mode. Opt into leased execution
+below to recover new attempts automatically. Slot uniqueness does
 not make handler side effects transactional or guarantee exactly-once effects.
+
+## Leased execution
+
+Pass `WithDurableExecution(policy)` to either runner constructor. This opts the
+runner into `DurableStore`: `ListClaimable(ctx, limit)`,
+`ClaimRun(ctx, jobID, scheduledFor, policy)`, and
+`CompleteRun(ctx, claim, output, failure)`. Existing `JobStore` remains unchanged.
+`Start` and `Tick` return `ErrDurableUnsupported` for stores without this capability,
+or `ErrInvalidPolicy` for invalid bounds, before polling or execution.
+
+| ExecutionPolicy field | Default | Admitted values |
+| --- | --- | --- |
+| `HandlerTimeout` | 10 seconds | 1 second through 10 minutes |
+| `LeaseDuration` | 30 seconds | Handler timeout plus 5 seconds through 15 minutes |
+| `MaxAttempts` | 8 | 1 through 32 total attempts |
+| `RetryDelay` | 30 seconds | 1 second through 1 hour |
+
+Durations must be whole milliseconds. `DefaultExecutionPolicy()` returns these
+values. This policy replaces legacy `RetryAttempts` and `RetryBackoff` for durable
+work; the root YAML scheduler settings remain the legacy configuration.
+
+The first claim persists the default policy as `scheduled_jobs.durable_policy`
+when the job has no explicit policy. `Store.ConfigureDurable(ctx, jobID, policy)`
+sets a policy for future slots. Its JSON fields are `handler_timeout_ms`,
+`lease_duration_ms`, `max_attempts`, and `retry_delay_ms`. A run snapshots that policy
+at first claim. Changing job or runner configuration cannot reset existing budgets,
+deadlines or retry delays. Jobs configured for durable execution and all leased
+rows are excluded from legacy polling.
+
+Initial claim creates `running` with attempt 1 and ownership in one transaction.
+Polling returns candidates and closes the result set before handlers run. It
+transfers no ownership. PostgreSQL time controls eligibility; a due retry or expired
+lease keeps the same run and slot, increments the attempt and replaces the token.
+Claim misses return `ErrRunClaim`. At exhaustion an eligible claim transaction
+records `failed` and advances recurrence or retires a one-shot job without invoking
+another handler. Success and terminal failure advance from database-clock completion
+and skip missed slots. Manual rescheduling or disabling is preserved.
+
+`RunClaim` includes run/job/slot identity, attempt, token, expiry and frozen policy.
+Keep its token private. Completion matches the identity, attempt and current token,
+and rejects an expired or replaced claim with `ErrStaleClaim`. Terminal run and
+schedule changes commit together. Repeated completion is stale, rather than a second
+schedule advance. Legacy mutation methods reject durable rows, including terminal
+rows; `UpdateNextRun` rejects a durably configured job or current durable slot.
+
+The runner invokes handlers synchronously with a child context bounded by
+`HandlerTimeout`. A returned handler error, panic, elapsed deadline or invalid output
+records a classified failure and waits the frozen delay while attempts remain.
+Unknown task types terminate immediately. Retained codes are `handler_error`,
+`handler_panic`, `handler_deadline`, `invalid_output`, `unknown_task`, `lease_expired`
+and `legacy_adopted`. Raw errors and panic values are never saved for durable runs.
+Success JSON must fit 8 KiB in both input and PostgreSQL JSONB text form. Invalid or
+oversized output becomes `invalid_output`. Terminal rows clear ownership and retry
+deadlines; failed rows have no output. Existing legacy errors remain unchanged.
+
+Cancellation stops new admission and reaches active handlers. Shutdown still joins
+the same handler invocation and respects the caller's wait deadline. No heartbeat or
+replacement handler goroutine is created. An unreturned handler can outlive its
+context and lease; another process can then own the next attempt. Use domain
+idempotency or transactionally protected deduplication for effects. A lease or
+transport result does not prove exactly-once application effects. The database is
+caller-owned and remains open after `Stop`.
+
+### Run operations
+
+`Store.ListRuns(ctx, RunQuery)` returns up to `Limit` rows: default 50, maximum 100.
+Filter by `JobID` and `State` (`pending`, `running`, `expired`, `retry_wait`, `success`,
+`failed`, or empty for all). Use the previous row's `CreatedAt` and `ID` as
+`RunCursor` in `After`; ordering is `(created_at, id)`. A partial cursor, invalid
+state or invalid limit returns `ErrRunQuery`. Concurrent inserts do not provide a
+snapshot of the whole listing.
+
+`RunInfo` contains identity/task type, state, durable flag, attempts and budget,
+scheduled/created/updated/started/finished times, next eligible time and classified
+failure code. It excludes payload, output, lease token and legacy raw error text.
+An expired running row is reported as `expired`. Applications own operator access.
+
+`Store.PruneRuns(ctx, before, limit)` deletes at most 1–1000 terminal runs older
+than the nonzero cutoff and returns the deleted count. Pending, running and
+retry-waiting rows remain. Use a context deadline and repeat bounded batches as
+needed. Pruning is caller-owned; there is no retention goroutine.
+
+`Store.AdoptLegacyRun(ctx, runID, attempt, updatedAt, policy)` requires quiesced
+legacy workers and an inspected revision. It refuses terminal/durable rows, disabled
+or newer job slots, stale revisions and policies with no remaining budget.
+Adoption retains the consumed attempt, clears unsafe diagnostics, enters `retry_wait`
+and preserves any future retry deadline. The next claim increments the cumulative
+attempt. See the [upgrade procedure](../../how-to/run-background-jobs/README.md#upgrade-and-adopt-legacy-runs).
+
+The additive schema introduces conditional durable-policy/state constraints and
+lease/retry/terminal indexes. Legacy rows keep `durable=false` and are never adopted
+implicitly. Stop old workers before applying new ownership semantics; mixed legacy
+and leased executables are unsupported.
 
 ## Stored schedule format
 

@@ -107,9 +107,22 @@ the first (`3` by default, `1` for no retries). `scheduler.retry_backoff` contro
 the fixed wait after a failed attempt. Retry waits survive restart and keep the
 slot's original budget; they do not hold workers or advance its schedule. Make
 handlers safe to repeat and use the stable `Job.RunID` when tracking effects.
-The next scheduled occurrence is separate from a retry. Interrupted pending or
-running claims still require application repair; see the
-[retry contract](../../reference/scheduler/README.md#retries).
+The next scheduled occurrence is separate from a retry. Without durable opt-in,
+interrupted pending or running claims require explicit repair.
+
+For automatic interruption recovery, add
+`scheduler.WithDurableExecution(scheduler.DefaultExecutionPolicy())` to the constructor
+using the upgraded PostgreSQL store. New runs atomically acquire a 30-second lease
+with a cooperative 10-second handler deadline, eight total attempts and a fixed
+30-second retry delay. An expired attempt can be claimed by another worker; a stale
+completion cannot advance its schedule. Existing runs keep their original budgets
+when configuration changes. A lease does not stop an old handler or deduplicate
+business effects. Use application-owned transactional or external idempotency.
+
+Use bounded run inspection to distinguish active, expired, waiting and terminal
+work. Stop old workers before migrating and explicitly adopt eligible unfinished
+legacy runs. Follow the [recovery procedure](../../how-to/run-background-jobs/README.md#upgrade-and-adopt-legacy-runs)
+and [leased contract](../../reference/scheduler/README.md#leased-execution).
 
 Use deterministic clocks and fake stores in unit tests. Use Postgres tests for
 locking, due-job selection, and persisted run state.

@@ -22,14 +22,14 @@ Execution authorized: 2026-10-18
 Integration authority: Controller-owned Rebase + Fast-forward into `dev`
 Active slice: Slice 1
 Next slice: Slice 2
-Active tasks: T1.2
+Active tasks: None (Slice 1 PR preparation)
 Execution gate: Approved artifacts published; controller-owned implementation active
 
 ## Slice Status
 
 | Slice | Short name | Status | Branch | Expected PR title | PR | Report |
 | --- | --- | --- | --- | --- | --- | --- |
-| Slice 1 | Recover leased scheduled runs | implementing | `feat/leased-scheduler-recovery` | `feat(slice-1): recover interrupted scheduled work` | pending | `ops/default/report/slices/durable-background-work/slice-1-leased-runs.md` |
+| Slice 1 | Recover leased scheduled runs | reviewing | `feat/leased-scheduler-recovery` | `feat(slice-1): recover interrupted scheduled work` | pending | `ops/default/report/slices/durable-background-work/slice-1-leased-runs.md` |
 | Slice 2 | Deliver bounded durable events | pending | `feat/bounded-durable-pubsub` | `feat(slice-2): deliver bounded durable events` | pending | `ops/default/report/slices/durable-background-work/slice-2-durable-events.md` |
 | Slice 3 | Operate retained background work | pending | `feat/durable-work-operations` | `feat(slice-3): operate retained background work` | pending | `ops/default/report/slices/durable-background-work/slice-3-work-operations.md` |
 
@@ -37,8 +37,8 @@ Execution gate: Approved artifacts published; controller-owned implementation ac
 
 | Task | Status | Expected commit | Commit |
 | --- | --- | --- | --- |
-| T1.1 | completed | `feat(scheduler): recover leased job attempts` | pending |
-| T1.2 | implementing | `feat(scheduler): expose durable run operations` | pending |
+| T1.1 | completed | `feat(scheduler): recover leased job attempts` | `fe26565b273132c904da05521fde56e176d4a0e8` |
+| T1.2 | completed | `feat(scheduler): expose durable run operations` | pending |
 | T2.1 | pending | `feat(pubsub): publish bounded messages transactionally` | pending |
 | T2.2 | pending | `feat(pubsub): fence durable subscriber attempts` | pending |
 | T3.1 | pending | `feat(postgres): inspect and retire durable work` | pending |
@@ -58,14 +58,14 @@ implementation activation, exact-HEAD validation and integration.
 
 | Criterion | Owning slices | Evidence status |
 | --- | --- | --- |
-| BW01 | Slice 1 | pending |
-| BW02 | Slice 1, Slice 2 | pending |
-| BW03 | Slice 1 | pending |
+| BW01 | Slice 1 | focused capability/legacy/fencing checks passed; exact-HEAD slice receipt required |
+| BW02 | Slice 1, Slice 2 | scheduler replicas/killed-worker/stale-claim checks passed; pubsub pending |
+| BW03 | Slice 1 | focused retry/exhaustion/recurrence/shutdown checks passed; exact-HEAD slice receipt required |
 | BW04 | Slice 2 | pending |
 | BW05 | Slice 2 | pending |
 | BW06 | Slice 3 | pending |
 | BW07 | Slice 2, Slice 3 | pending |
-| BW08 | Slice 1, Slice 3 | pending |
+| BW08 | Slice 1, Slice 3 | scheduler inspection/migration/diagnostics checks passed; final operations pending |
 
 ## Gate Evidence and Closure
 

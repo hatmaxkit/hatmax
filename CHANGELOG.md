@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Applications can opt scheduled work into finite leased attempts that recover
+  after interruption, reject stale completion and retain retry budgets across
+  restarts. Operators can inspect runs, adopt quiesced legacy attempts and prune
+  terminal history in bounded batches.
 - Applications can display exact integers, decimal quantities and minor-unit
   amounts in a caller-selected locale, preserving digits and fractional zeros
   without rounding or floating-point conversion.

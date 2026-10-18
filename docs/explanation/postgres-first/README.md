@@ -35,3 +35,17 @@ The [Database](../../reference/database/README.md),
 [Pubsub](../../reference/pubsub/README.md), and
 [Scheduler](../../reference/scheduler/README.md) references state the current
 backend behavior.
+
+## Ownership of scheduled attempts
+
+Durable scheduler execution keeps claim, lease expiry, retained budget and terminal
+schedule advancement in PostgreSQL transactions. A fresh token fences the previous
+worker when another process reclaims an expired attempt. The database clock avoids
+using independent process clocks to decide ownership.
+
+This bounds transport attempts and supports recovery after process interruption.
+It cannot stop a handler that ignores cancellation, or prove whether an external
+effect happened before the interruption. Applications still own transactional
+deduplication and external idempotency. Retention removes only terminal history in
+caller-owned batches; it never silently discards unfinished work. See the
+[leased scheduler contract](../../reference/scheduler/README.md#leased-execution).

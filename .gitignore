@@ -41,3 +41,5 @@ bin/
 # OS
 .DS_Store
 Thumbs.db
+.tmp/durable-background-work/
+.tmp/lint/

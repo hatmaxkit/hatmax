@@ -90,8 +90,71 @@ and confirm that the stored slot budget remains unchanged. Set
 
 Tick again at the same time and confirm the old slot does not execute again.
 For one-shot work, check `enabled = false`; for recurring work, check the new
-`next_run_at` and run at that time to confirm a second distinct slot. Claimed
+`next_run_at` and run at that time to confirm a second distinct slot. In legacy mode, claimed
 but unfinished runs stay excluded from due batches and require explicit repair.
+
+## Enable recovery for new attempts
+
+After applying the additive schema, opt into durable execution:
+
+```go
+policy := scheduler.DefaultExecutionPolicy()
+runner := scheduler.NewWithConfig(store, settingsService, cfg, logger,
+    scheduler.WithDurableExecution(policy))
+```
+
+Register handlers before startup. `Start` and direct `Tick` validate the policy and
+store capability. The first claim saves the job's policy; change future slots with
+`store.ConfigureDurable(ctx, jobID, policy)`. Existing runs retain their snapshots.
+
+Stop one worker after it claims a due slot, then start another worker. After the
+stored lease expires, confirm the same run ID and slot, a new attempt and token,
+and a successful or retry-waiting result. Never shorten a production lease merely
+to bypass an active handler. A deadline is cooperative; protect repeated database
+effects transactionally and external effects with application idempotency keys.
+
+## Upgrade and adopt legacy runs
+
+1. Stop every old scheduler worker and confirm all handlers have returned. Keep
+   their database open until shutdown completes. Mixed old/new ownership is unsupported.
+2. Apply `schedulerpostgres.Schema` or the equivalent additive migration. Existing
+   rows remain legacy, including their attempt counts and raw diagnostics.
+3. Inspect `store.ListRuns(ctx, schedulerpostgres.RunQuery{JobID: jobID})`. Check
+   the run's state, `Attempt` and `UpdatedAt`, its current job slot, and whether
+   its application effects already happened. Resolve domain effects before retrying.
+4. For an unfinished current slot, choose a valid policy with `MaxAttempts` greater
+   than its consumed attempt count. Call
+   `store.AdoptLegacyRun(ctx, run.ID, run.Attempt, run.UpdatedAt, policy)` using the
+   inspected revision. Terminal, stale, disabled or superseded work is refused.
+5. Start only the upgraded durable workers. Adoption consumes no extra attempt
+   itself, preserves a future retry wait, and permits the next claim to increment
+   the retained count. Verify the retained code and subsequent terminal outcome.
+
+No automatic scan declares legacy workers abandoned or invents historical budgets.
+If the current attempt already consumed the proposed budget, resolve that run
+explicitly before selecting more attempts; adoption will refuse it.
+
+## Inspect and retain history
+
+Use `ListRuns` with a limit up to 100 and the previous row's `CreatedAt`/`ID` cursor
+for the next page. `expired` exposes reclaimable ownership without exposing tokens,
+payloads, output or arbitrary error text. Filter by job/state to investigate work.
+
+Run bounded terminal cleanup with an application-selected cutoff:
+
+```go
+pruneCtx, cancelPrune := context.WithTimeout(ctx, 5*time.Second)
+defer cancelPrune()
+
+removed, err := store.PruneRuns(pruneCtx, time.Now().Add(-30*24*time.Hour), 1000)
+if err != nil {
+    return err
+}
+logger.Infof("pruned %d terminal runs", removed)
+```
+
+Repeat batches when needed. Pending, running and retry-waiting runs remain;
+retention does not run in a hidden background service.
 
 ## Shut down polling
 

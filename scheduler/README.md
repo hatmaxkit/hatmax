@@ -207,3 +207,17 @@ if _, err := database.ExecContext(ctx, schedulerpostgres.Schema); err != nil {
 Tables:
 - `scheduled_jobs` - Job definitions
 - `job_runs` - One row per scheduled slot, retaining the latest attempt outcome
+
+## Recover interrupted work
+
+Opt into leased PostgreSQL execution with
+`scheduler.WithDurableExecution(scheduler.DefaultExecutionPolicy())` when constructing
+the runner. Apply the additive schema before starting workers. Unsupported stores
+and invalid policies fail at `Start` or `Tick` before execution. Existing constructors
+and `JobStore` implementations continue to work without this option.
+
+Durable attempts use database-clock leases, frozen finite budgets and fenced
+completion. Handler timeouts are cooperative; use transactional deduplication or
+external idempotency for effects that can outlive a worker. A lease does not stop
+an old handler. See the [leased execution contract](../docs/reference/scheduler/README.md#leased-execution)
+and [upgrade and recovery procedure](../docs/how-to/run-background-jobs/README.md#upgrade-and-adopt-legacy-runs).
