@@ -447,7 +447,7 @@ func prepareCommands(value plan.Plan, inventory project.Inventory) ([]Command, e
 	foundSQLC := false
 
 	for _, command := range commands {
-		if command.Kind == project.CommandGeneration && len(command.Args) >= 2 && command.Args[0] == "sqlc" && command.Args[1] == "generate" {
+		if command.Kind == project.CommandGeneration && isSQLCGeneration(command.Args) {
 			foundSQLC = true
 		}
 
@@ -473,6 +473,15 @@ func prepareCommands(value plan.Plan, inventory project.Inventory) ([]Command, e
 	})
 
 	return result, nil
+}
+
+func isSQLCGeneration(args []string) bool {
+	if len(args) >= 2 && args[0] == "sqlc" && args[1] == "generate" {
+		return true
+	}
+
+	return len(args) >= 4 && args[0] == "go" && args[1] == "tool" &&
+		(args[2] == "sqlc" || args[2] == "github.com/sqlc-dev/sqlc/cmd/sqlc") && args[3] == "generate"
 }
 
 func containsString(values []string, expected string) bool {

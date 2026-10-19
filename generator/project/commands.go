@@ -10,9 +10,29 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"golang.org/x/mod/modfile"
 )
 
 func inspectCommands(root string, files []fileRecord) ([]Command, error) {
+	moduleData, err := os.ReadFile(filepath.Join(root, "go.mod"))
+	if err != nil {
+		return nil, unexpectedReadError("go.mod", err)
+	}
+
+	module, err := modfile.Parse("go.mod", moduleData, nil)
+	if err != nil {
+		return nil, projectError("project_go_module_invalid", "go.mod", "%v", err)
+	}
+
+	sqlcArgs := []string{"sqlc", "generate"}
+
+	for _, tool := range module.Tool {
+		if tool.Path == "github.com/sqlc-dev/sqlc/cmd/sqlc" {
+			sqlcArgs = []string{"go", "tool", tool.Path, "generate"}
+		}
+	}
+
 	result := make([]Command, 0)
 
 	for _, file := range files {
@@ -28,7 +48,7 @@ func inspectCommands(root string, files []fileRecord) ([]Command, error) {
 			result = append(result, Command{
 				Kind:   CommandGeneration,
 				Name:   "sqlc",
-				Args:   []string{"sqlc", "generate"},
+				Args:   sqlcArgs,
 				Source: file.path,
 			})
 		}

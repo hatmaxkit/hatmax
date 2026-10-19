@@ -37,6 +37,11 @@ both `hm` and the `hatmax` compatibility alias. The command also requires:
   commands; a Postgres feature normally requires `sqlc`, and project linting
   may require `golangci-lint`.
 
+Applications created with initial PostgreSQL features declare their selected
+generation tools in `go.mod`. Hatmax prepares the module before running
+`go tool sqlc generate`, so SQLC needs no global installation. Project
+inspection also recognizes the declared SQLC tool when reopening the application.
+
 Hatmax checks that the Codex CLI and resident App Server have compatible
 versions before inference. It reports a backend compatibility diagnostic
 instead of restarting an incompatible resident process.

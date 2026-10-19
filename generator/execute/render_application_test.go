@@ -22,6 +22,7 @@ import (
 )
 
 var applicationFoundationOrder = []string{
+	applicationDALRecipe,
 	applicationSQLCRecipe,
 	applicationModuleRecipe,
 	applicationChecksumsRecipe,

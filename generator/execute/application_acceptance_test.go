@@ -13,10 +13,12 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"hatmax.adrianpk.com/generator/intent"
+	"hatmax.adrianpk.com/generator/project"
 )
 
 // Published consumer checks must resolve the corrected module graph without
@@ -146,4 +148,57 @@ func assertPublishedModules(t *testing.T, root string) {
 	if len(expected) != 0 {
 		t.Fatalf("published scaffold lacks required modules: %v", expected)
 	}
+}
+
+// The generated module must prepare its selected tools before invoking them,
+// even when no global executable is available on the consumer's PATH.
+func TestScaffoldOwnedTools(t *testing.T) {
+	goPath, err := exec.LookPath("go")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bin := t.TempDir()
+	err = os.Symlink(goPath, filepath.Join(bin, "go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	paths := []string{bin}
+	for _, directory := range filepath.SplitList(os.Getenv("PATH")) {
+		_, err = os.Stat(filepath.Join(directory, "sqlc"))
+		if os.IsNotExist(err) {
+			paths = append(paths, directory)
+		}
+	}
+
+	t.Setenv("PATH", strings.Join(paths, string(os.PathListSeparator)))
+	_, err = exec.LookPath("sqlc")
+	if err == nil {
+		t.Fatal("global sqlc remains available")
+	}
+
+	root := publishedScaffold(t, intent.InitialFeature{
+		Feature: "invoice",
+		Domain:  intent.Domain{Fields: []intent.Field{{Name: "number", Type: "string", Required: true}}},
+	})
+	publishedCommand(t, root, "go", "tool", "sqlc", "version")
+	publishedCommand(t, root, "go", "test", "-mod=readonly", "./...")
+
+	inventory, err := project.Inspect(t.Context(), root)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, command := range inventory.Commands {
+		if command.Name == "sqlc" {
+			if len(command.Args) < 4 || command.Args[0] != "go" || !isSQLCGeneration(command.Args) {
+				t.Fatalf("reopened SQLC command = %v, want the module-owned tool", command.Args)
+			}
+
+			return
+		}
+	}
+
+	t.Fatal("reopened project has no SQLC generation command")
 }

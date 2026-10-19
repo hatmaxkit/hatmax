@@ -518,7 +518,7 @@ TestObservedSMTPTransport captured X-Review-Injected as a separate header from a
 
 ## Existing ticket retained
 
-[Own generated-project dependencies](../ticket/open/20260929200201-own-generated-project-dependencies.md)
+[Own generated-project dependencies](../ticket/reviewing/20260929200201-own-generated-project-dependencies.md)
 already covers generator tool provisioning and module reconciliation. Source
 review confirmed that application staging runs `go mod tidy`, but an external
 generation tool can still be invoked before its prerequisites are provisioned.

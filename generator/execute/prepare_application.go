@@ -40,16 +40,18 @@ func PrepareApplication(value plan.Plan, target project.TargetInventory, selecte
 		PlanDigest:    value.Digest, SourceFingerprint: value.SourceFingerprint,
 		Intent: value.Intent, TargetPath: target.Target, PreservedPaths: preserved,
 		AllowedSurfaces: append([]string{}, value.AllowedEffects.Surfaces...), Edits: edits,
-		Commands: []Command{},
+		Commands: []Command{
+			{Kind: project.CommandGeneration, Name: "generation.modules", Args: []string{"go", "mod", "tidy"}, WorkingDirectory: ".", Source: "hatmax.application.scaffold"},
+		},
 	}
 	if len(value.Units) > 1 {
 		result.Commands = append(result.Commands,
-			Command{Kind: project.CommandGeneration, Name: "generation.sqlc", Args: []string{"sqlc", "generate"}, WorkingDirectory: ".", Source: "hatmax.application.initial_features"},
+			Command{Kind: project.CommandGeneration, Name: "generation.sqlc", Args: []string{"go", "tool", "sqlc", "generate"}, WorkingDirectory: ".", Source: "hatmax.application.initial_features"},
+			Command{Kind: project.CommandGeneration, Name: "generation.generated_modules", Args: []string{"go", "mod", "tidy"}, WorkingDirectory: ".", Source: "hatmax.application.initial_features"},
 		)
 	}
 
 	result.Commands = append(result.Commands,
-		Command{Kind: project.CommandGeneration, Name: "generation.modules", Args: []string{"go", "mod", "tidy"}, WorkingDirectory: ".", Source: "hatmax.application.scaffold"},
 		Command{Kind: project.CommandValidation, Name: "validation.build", Args: []string{"go", "build", "./..."}, WorkingDirectory: ".", Source: "hatmax.application.scaffold"},
 		Command{Kind: project.CommandValidation, Name: "validation.test", Args: []string{"go", "test", "./..."}, WorkingDirectory: ".", Source: "hatmax.application.scaffold"},
 	)

@@ -48,6 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   database without running schema migrations or workers.
 - S3 upload signing can run concurrently with other signing and object
   operations without racing on shared credentials state.
+- Applications created with initial PostgreSQL features prepare their selected
+  project tools before generation and run SQLC without a global installation.
 
 ## [0.6.0] - 2026-10-09
 

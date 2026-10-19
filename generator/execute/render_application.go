@@ -8,12 +8,15 @@ package execute
 import (
 	"strings"
 
+	"golang.org/x/mod/modfile"
+
 	"hatmax.adrianpk.com/generator/intent"
 	"hatmax.adrianpk.com/generator/plan"
 )
 
 const (
 	applicationModuleRecipe      = "application.module"
+	applicationDALRecipe         = "application.dal_package"
 	applicationChecksumsRecipe   = "application.checksums"
 	applicationIgnoreRecipe      = "application.ignore"
 	applicationCommandsRecipe    = "application.commands"
@@ -33,6 +36,7 @@ type applicationRenderContext struct {
 	HatmaxVersion string
 	Environment   string
 	Database      string
+	SQLCCommand   string
 }
 
 type applicationRecipe struct {
@@ -42,6 +46,11 @@ type applicationRecipe struct {
 }
 
 var applicationFoundationRecipes = map[string]applicationRecipe{
+	applicationDALRecipe: {
+		target:   "internal/dal/doc.go",
+		template: "// Package dal contains the application's generated PostgreSQL query adapters.\npackage dal\n",
+		goSource: true,
+	},
 	applicationSQLCRecipe: {
 		target:   "sqlc.yaml",
 		template: applicationSQLCConfiguration,
@@ -104,7 +113,8 @@ lint:
 	go vet ./...
 
 generate:
-	sqlc generate
+	go mod tidy
+	{{.SQLCCommand}} generate
 	go mod tidy
 
 clean:
@@ -359,6 +369,10 @@ func RenderApplicationFoundation(value plan.Plan, manifest Manifest) ([]Mutation
 			content, renderErr = renderApplicationTemplate(context, recipe)
 		}
 
+		if renderErr == nil && edit.Recipe == applicationModuleRecipe {
+			content, renderErr = renderApplicationTools(content, value.AllowedEffects.Dependencies)
+		}
+
 		if renderErr != nil {
 			return nil, executionError("execution_render_failed", edit.Target, "%v", renderErr)
 		}
@@ -374,6 +388,26 @@ func RenderApplicationFoundation(value plan.Plan, manifest Manifest) ([]Mutation
 	}
 
 	return mutations, nil
+}
+
+func renderApplicationTools(content []byte, dependencies []plan.DependencyEffect) ([]byte, error) {
+	module, err := modfile.Parse("go.mod", content, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, dependency := range dependencies {
+		if dependency.Kind != "tool" {
+			continue
+		}
+
+		err = module.AddTool(dependency.Module)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return module.Format()
 }
 
 func newApplicationRenderContext(value plan.Plan, manifest Manifest) (applicationRenderContext, error) {
@@ -402,11 +436,18 @@ func newApplicationRenderContext(value plan.Plan, manifest Manifest) (applicatio
 
 	environment := strings.ToUpper(strings.ReplaceAll(value.Application.ProjectSlug, "-", "_"))
 	database := strings.ReplaceAll(value.Application.ProjectSlug, "-", "_")
+	sqlcCommand := "sqlc"
+
+	for _, dependency := range value.AllowedEffects.Dependencies {
+		if dependency.Kind == "tool" && dependency.Module == "github.com/sqlc-dev/sqlc/cmd/sqlc" {
+			sqlcCommand = "go tool sqlc"
+		}
+	}
 
 	return applicationRenderContext{
 		DisplayName: value.Application.DisplayName, ProjectSlug: value.Application.ProjectSlug,
 		ModulePath: value.Application.ModulePath, HatmaxVersion: version,
-		Environment: environment, Database: database,
+		Environment: environment, Database: database, SQLCCommand: sqlcCommand,
 	}, nil
 }
 
@@ -418,6 +459,7 @@ func renderApplicationTemplate(context applicationRenderContext, recipe applicat
 		"{{.HatmaxVersion}}", context.HatmaxVersion,
 		"{{.Environment}}", context.Environment,
 		"{{.Database}}", context.Database,
+		"{{.SQLCCommand}}", context.SQLCCommand,
 	)
 	rendered := replacer.Replace(recipe.template)
 
