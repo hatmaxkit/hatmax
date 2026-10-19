@@ -1,0 +1,28 @@
+<!--
+SPDX-FileCopyrightText: 2026 Adrian PK
+SPDX-License-Identifier: Apache-2.0
+
+This file is part of Hatmax. See LICENSE for license terms.
+-->
+
+# Conversational TUI Exploration Closure
+
+Status: reviewing
+Ticket: [TKT-20260929085205](../ticket/closed/20260929085205-explore-conversational-generator-tui.md)
+Branch: `chore/ticket-20260929085205-close-tui-exploration`
+PR: pending
+
+## Resolution
+
+The ticket requested discovery, which the curated quiz and approved surface
+specification already answer. The builder tracker records delivery of the TUI
+and acceptance in PRs #62 and #63. Close the ticket with resolution `answered`
+and link those existing artifacts. Runtime code and delivery trackers do not
+change.
+
+## Validation
+
+Reviewed the quiz, approved specification, delivered tracker and TUI report.
+
+- `GOWORK=off make docs-check`: passed.
+- `git diff --check`: passed.

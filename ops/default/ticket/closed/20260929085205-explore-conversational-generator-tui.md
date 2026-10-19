@@ -1,7 +1,7 @@
 ---
 id: TKT-20260929085205
 title: Explore a constrained conversational TUI for Hatmax generation
-status: open
+status: closed
 kind: research
 severity: unclassified
 priority: unclassified
@@ -10,6 +10,10 @@ tags: generator, tui, product-boundary
 source: chat
 reported_at: 2026-09-29T08:52:05Z
 commits:
+resolution: answered
+closed_at: 2026-10-19T16:56:37Z
+branch: chore/ticket-20260929085205-close-tui-exploration
+pr: pending
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -74,3 +78,14 @@ work. It must not start TUI implementation.
 - Identify unresolved decisions and the evidence needed to resolve them.
 - Promote the result to a specification or implementation work only after
   explicit maintainer approval.
+
+## Resolution
+
+The exploration was answered by the curated
+[application-generation quiz](../../quiz/00001-hatmax-conversational-application-generation/artifact.md)
+and promoted to the approved
+[conversational surface specification](../../spec/conversational-hatmax-surface.md).
+The [builder tracker](../../tracker/conversational-hatmax-builder.md) records
+all eight slices delivered, including the TUI in PR #62 and integrated
+acceptance in PR #63. This closes the discovery ticket administratively;
+there is no additional runtime change.
