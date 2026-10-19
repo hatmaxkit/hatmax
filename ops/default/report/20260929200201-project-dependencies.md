@@ -7,10 +7,13 @@ This file is part of Hatmax. See LICENSE for license terms.
 
 # Generated Project Dependencies
 
-Status: reviewing
-Ticket: [TKT-20260929200201](../ticket/reviewing/20260929200201-own-generated-project-dependencies.md)
+Status: delivered
+Ticket: [TKT-20260929200201](../ticket/solved/20260929200201-own-generated-project-dependencies.md)
 Branch: `fix/ticket-20260929200201-project-dependencies`
 PR: #134
+Integrated into dev: `931220c74a8338142c1409d40eb2e2d823c2ef6b`
+Implementation: `28e5160f5f6175cb84d9adf99f665953b3eedf9f`
+Validated candidate: `931220c74a8338142c1409d40eb2e2d823c2ef6b`
 
 ## Changes
 
@@ -41,3 +44,17 @@ used.
 - `GOWORK=off make lint-strict`: passed.
 - `GOWORK=off make docs-check`: passed.
 - `git diff --check`: passed.
+
+## Integrated Validation
+
+The validated candidate includes PRs #132, #133 and #134. The affected-package
+gate passed against that exact integrated commit with an isolated native
+PostgreSQL instance. The scaffold acceptance excludes global SQLC and verifies
+the application module's own tool, build, readonly tests and reopened commands.
+
+- `GOWORK=off go test ./mailer ./generator/... ./internal/hatmaxcli`: passed.
+- `GOWORK=off go test -tags=acceptance ./generator/execute -run '^Test(ApplicationScaffoldAcceptance|ScaffoldOwnedTools|ScaffoldBaseline|PrepareApplicationCoversExactPlannedScaffold)$' -count=1 -timeout 10m`: passed.
+- `GOWORK=off go vet ./mailer ./generator/... ./internal/hatmaxcli`: passed.
+- `GOWORK=off make lint-strict`: passed.
+
+Post-merge closure: `GOWORK=off make docs-check` and `git diff --check` passed.

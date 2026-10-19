@@ -1,7 +1,7 @@
 ---
 id: TKT-20260929200201
 title: Prepare generated project dependencies before execution
-status: reviewing
+status: solved
 kind: bug
 severity: medium
 priority: normal
@@ -9,12 +9,15 @@ scope: infra
 tags: generator, dependencies, go-modules
 source: manual_test
 reported_at: 2026-09-29T20:02:01Z
-commits: ba8247c7a7b412e2b451f0ceed303bddfe1e20b7
+commits: ba8247c7a7b412e2b451f0ceed303bddfe1e20b7, 28e5160f5f6175cb84d9adf99f665953b3eedf9f
 ready_at: 2026-10-19T17:02:59Z
 started_at: 2026-10-19T17:02:59Z
 reviewed_at: 2026-10-19T17:02:59Z
 branch: fix/ticket-20260929200201-project-dependencies
 pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/134
+closed_at: 2026-10-19T17:11:25Z
+resolution: fixed
+validated_commit: 931220c74a8338142c1409d40eb2e2d823c2ef6b
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
@@ -53,3 +56,9 @@ exception.
   dependencies.
 - Verify the dependency command succeeds from the prepared module.
 - Verify the generated application compiles and its tests can start.
+
+## Resolution
+
+Delivered through PR #134 and verified on integrated `dev` candidate
+`931220c74a8338142c1409d40eb2e2d823c2ef6b`. See the
+[implementation report](../../report/20260929200201-project-dependencies.md) for validation evidence.

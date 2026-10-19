@@ -44,4 +44,4 @@ Named cases cover default and explicit senders, name-only inputs and defaults, a
 
 Only F12 behavior is corrected. SMTP TLS/cancellation, Mailgun attachments, and SMTP header safety remain owned by their existing tickets.
 
-A valid SendGrid message with custom headers exposed a preexisting nil-map panic during the first regression setup. It is captured separately in [TKT-20261001103301](../ticket/reviewing/20261001103301-initialize-sendgrid-custom-headers.md) and is not fixed here. The F12 regression matrix does not send custom headers.
+A valid SendGrid message with custom headers exposed a preexisting nil-map panic during the first regression setup. It is captured separately in [TKT-20261001103301](../ticket/solved/20261001103301-initialize-sendgrid-custom-headers.md) and is not fixed here. The F12 regression matrix does not send custom headers.
