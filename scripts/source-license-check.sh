@@ -54,7 +54,7 @@ while IFS= read -r -d '' path; do
   esac
 
   case "$path" in
-    Makefile | */Makefile | .mailmap | .gitignore | */.gitignore | .githooks/* | *.go | *.mod | *.work | *.js | *.css | *.html | *.md | *.sh | *.sql | *.yaml | *.yml | *.toml)
+    Makefile | */Makefile | .mailmap | .gitignore | */.gitignore | .githooks/* | *.go | *.mod | *.work | *.js | *.css | *.html | *.md | *.sh | *.awk | *.sql | *.yaml | *.yml | *.toml)
       ;;
     *)
       echo "File requires a licensing policy: $path" >&2
