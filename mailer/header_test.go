@@ -8,12 +8,53 @@ package mailer
 import (
 	"context"
 	"io"
+	"maps"
 	"mime"
 	"net/mail"
 	"reflect"
 	"strings"
 	"testing"
 )
+
+// Capture the SDK's HTTP payload: custom headers must survive delivery without
+// initializing or changing the caller's map, including absent and empty maps.
+func TestSendGridHeaders(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		headers map[string]string
+	}{
+		{name: "absent"},
+		{name: "empty", headers: map[string]string{}},
+		{name: "populated", headers: map[string]string{"X-Notice": "invoice: draft", "X-Empty": ""}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			deliveries := make(chan senderDelivery, 1)
+			provider := senderProvider(t, "sendgrid", Address{Email: "default@example.com"}, deliveries)
+			msg := senderMessage(Address{}, false, "")
+			msg.Headers = tc.headers
+			before := *msg
+			before.Headers = maps.Clone(msg.Headers)
+
+			err := provider.Send(t.Context(), msg)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			got := <-deliveries
+			if got.err != nil {
+				t.Fatal(got.err)
+			}
+
+			if !maps.Equal(got.headers, tc.headers) {
+				t.Errorf("delivered headers = %v, want %v", got.headers, tc.headers)
+			}
+
+			if !reflect.DeepEqual(*msg, before) {
+				t.Fatal("Send changed the caller's message")
+			}
+		})
+	}
+}
 
 // Untrusted metadata must not create another field or a premature body. Both
 // public validation and the shared raw builder reject it without partial output.

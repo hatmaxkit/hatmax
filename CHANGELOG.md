@@ -40,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- SendGrid delivers custom email headers without panicking or changing the
+  caller's message.
 - Durable events retain their original occurrence time through delayed
   publication and retries.
 - Operators can inspect retained deliveries using an already-open read-only

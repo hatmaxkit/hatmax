@@ -27,9 +27,10 @@ import (
 )
 
 type senderDelivery struct {
-	from string
-	raw  string
-	err  error
+	from    string
+	raw     string
+	headers map[string]string
+	err     error
 }
 
 // Provider boundaries must send the effective sender without changing the
@@ -158,11 +159,13 @@ func senderProvider(t *testing.T, provider string, from Address, deliveries chan
 		switch provider {
 		case "sendgrid":
 			var payload struct {
-				From struct{ Email, Name string }
+				From    struct{ Email, Name string }
+				Headers map[string]string
 			}
 
 			got.err = json.NewDecoder(r.Body).Decode(&payload)
 			got.from = (Address{Email: payload.From.Email, Name: payload.From.Name}).String()
+			got.headers = payload.Headers
 		case "mailgun", "ses", "ses raw":
 			got.err = r.ParseForm()
 			got.from = r.Form.Get("from")

@@ -1,7 +1,7 @@
 ---
 id: TKT-20261001103301
 title: Initialize SendGrid custom headers before assignment
-status: open
+status: reviewing
 kind: bug
 severity: medium
 priority: normal
@@ -10,6 +10,11 @@ tags: mailer, correctness
 source: implementation
 reported_at: 2026-10-01T10:33:01Z
 commits:
+ready_at: 2026-10-19T16:56:37Z
+started_at: 2026-10-19T16:56:37Z
+reviewed_at: 2026-10-19T16:56:37Z
+branch: fix/ticket-20261001103301-sendgrid-headers
+pr: pending
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK

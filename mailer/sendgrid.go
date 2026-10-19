@@ -73,7 +73,7 @@ func (m *SendGridMailer) Send(ctx context.Context, msg *Message) error {
 	}
 
 	for k, v := range msg.Headers {
-		sgMsg.Headers[k] = v
+		sgMsg.SetHeader(k, v)
 	}
 
 	for _, att := range msg.Attachments {
