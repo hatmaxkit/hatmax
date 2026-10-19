@@ -9,12 +9,12 @@ scope: infra
 tags: generator, dependencies, go-modules
 source: manual_test
 reported_at: 2026-09-29T20:02:01Z
-commits:
+commits: ba8247c7a7b412e2b451f0ceed303bddfe1e20b7
 ready_at: 2026-10-19T17:02:59Z
 started_at: 2026-10-19T17:02:59Z
 reviewed_at: 2026-10-19T17:02:59Z
 branch: fix/ticket-20260929200201-project-dependencies
-pr: pending
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/134
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK

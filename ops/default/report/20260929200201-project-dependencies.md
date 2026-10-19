@@ -10,7 +10,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 Status: reviewing
 Ticket: [TKT-20260929200201](../ticket/reviewing/20260929200201-own-generated-project-dependencies.md)
 Branch: `fix/ticket-20260929200201-project-dependencies`
-PR: pending
+PR: #134
 
 ## Changes
 
