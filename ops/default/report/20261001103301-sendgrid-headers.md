@@ -10,7 +10,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 Status: reviewing
 Ticket: [TKT-20261001103301](../ticket/reviewing/20261001103301-initialize-sendgrid-custom-headers.md)
 Branch: `fix/ticket-20261001103301-sendgrid-headers`
-PR: pending
+PR: #132
 
 ## Changes
 

@@ -9,12 +9,12 @@ scope: domain
 tags: mailer, correctness
 source: implementation
 reported_at: 2026-10-01T10:33:01Z
-commits:
+commits: 2893ef9f61f641ecb7685ffd288e8ea7ddf4a827
 ready_at: 2026-10-19T16:56:37Z
 started_at: 2026-10-19T16:56:37Z
 reviewed_at: 2026-10-19T16:56:37Z
 branch: fix/ticket-20261001103301-sendgrid-headers
-pr: pending
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/132
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
