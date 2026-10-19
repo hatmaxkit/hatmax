@@ -42,13 +42,18 @@ func (v *verification) generatorWorkbench(discovered inventory) error {
 	rootProcedures := ""
 
 	if os.Getenv("HATMAX_DOC_ROOT_PROCEDURES") == "1" {
-		rootInstall, err := sourceBlock(discovered.contents, "README.md", 4)
+		install, err := sourceBlock(discovered.contents, generatorGuide, 1)
 		if err != nil {
 			return err
 		}
 
-		rootProcedures = strings.NewReplacer("__ROOT_INSTALL__", strconv.Quote(rootInstall),
-			"__ROOT_HEAD__", strconv.Quote(v.receipt.Head)).Replace(rootCommandTest)
+		open, err := sourceBlock(discovered.contents, generatorGuide, 2)
+		if err != nil {
+			return err
+		}
+
+		rootProcedures = strings.NewReplacer("__SOURCE_INSTALL__", strconv.Quote(install+"\n"+open),
+			"__SOURCE_HEAD__", strconv.Quote(v.receipt.Head)).Replace(sourceInstallTest)
 	}
 
 	for marker, input := range map[string]struct {

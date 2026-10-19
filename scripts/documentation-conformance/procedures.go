@@ -10,16 +10,13 @@ import (
 	"strings"
 )
 
-// Commands use an immutable local clone and owned ports in the gate. Reject new
+// Commands use published modules and owned ports in the gate. Reject new
 // instructions until the execution harness accounts for their actual behavior.
 var procedureExpectations = map[string]string{
-	"example:docs/how-to/bootstrap-application/README.md#block-1": `git clone --branch dev https://forge.adrianpk.com/hatmax/hatmax.git hatmax
-mkdir myapp
+	"example:docs/how-to/bootstrap-application/README.md#block-1": `mkdir myapp
 cd myapp
 go mod init example.com/myapp
-go mod edit -replace=hatmax.adrianpk.com=../hatmax
-go get hatmax.adrianpk.com
-git -C ../hatmax rev-parse HEAD`,
+go get hatmax.adrianpk.com@v0.6.0`,
 	"example:docs/how-to/bootstrap-application/README.md#block-4": "go mod tidy\ngo run .",
 	"example:docs/how-to/bootstrap-application/README.md#block-5": "curl -fsS http://localhost:8080/ping",
 	"example:examples/guide/README.md#block-1":                    "go run .",

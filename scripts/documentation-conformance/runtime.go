@@ -25,6 +25,8 @@ import (
 	"syscall"
 	"time"
 
+	"golang.org/x/mod/modfile"
+
 	"hatmax.adrianpk.com/modal"
 	"hatmax.adrianpk.com/ui"
 	"hatmax.adrianpk.com/web"
@@ -673,21 +675,9 @@ func awaitHealth(client *http.Client, endpoint string) error {
 
 func (v *verification) processExamples(discovered inventory) error {
 	page := "docs/how-to/bootstrap-application/README.md"
-	clone := filepath.Join(v.fixture, "hatmax")
-
-	err := v.exec(v.root, "git", "clone", "--quiet", "--no-hardlinks", "--no-checkout", v.root, clone)
-	if err != nil {
-		return err
-	}
-
-	err = v.exec(clone, "git", "checkout", "--quiet", "--detach", v.receipt.Head)
-	if err != nil {
-		return err
-	}
-
 	directory := filepath.Join(v.fixture, "myapp")
 
-	err = os.Mkdir(directory, 0o700)
+	err := os.Mkdir(directory, 0o700)
 	if err != nil {
 		return err
 	}
@@ -697,37 +687,35 @@ func (v *verification) processExamples(discovered inventory) error {
 		return err
 	}
 
-	err = v.exec(directory, "go", "mod", "edit", "-replace=hatmax.adrianpk.com=../hatmax")
+	err = v.exec(directory, "go", "get", "hatmax.adrianpk.com@v0.6.0")
 	if err != nil {
 		return err
 	}
 
-	err = v.exec(directory, "go", "get", "hatmax.adrianpk.com")
+	moduleBytes, err := os.ReadFile(filepath.Join(directory, "go.mod"))
 	if err != nil {
 		return err
 	}
 
-	cloneHead, err := command("git", "-C", clone, "rev-parse", "HEAD")
-	if err != nil || strings.TrimSpace(cloneHead) != v.receipt.Head {
-		return fmt.Errorf("bootstrap clone revision mismatch: %v", err)
+	module, err := modfile.Parse("go.mod", moduleBytes, nil)
+	if err != nil {
+		return err
 	}
 
-	for _, source := range []string{"app", "config", "log"} {
-		sources, err := filepath.Glob(source + "/*.go")
-		if err != nil {
-			return err
-		}
+	if len(module.Replace) != 0 {
+		return fmt.Errorf("bootstrap must consume published modules without replacements")
+	}
 
-		for _, file := range sources {
-			cloned, err := os.ReadFile(filepath.Join(clone, file))
-			if err != nil {
-				return err
-			}
+	found := false
 
-			if string(cloned) != discovered.contents[file] {
-				return fmt.Errorf("bootstrap clone source drift: %s", file)
-			}
+	for _, dependency := range module.Require {
+		if dependency.Mod.Path == "hatmax.adrianpk.com" && dependency.Mod.Version == "v0.6.0" {
+			found = true
 		}
+	}
+
+	if !found {
+		return fmt.Errorf("bootstrap published module version mismatch")
 	}
 
 	for number, file := range map[int]string{2: "config.yaml", 3: "main.go"} {
@@ -783,11 +771,11 @@ func (v *verification) processExamples(discovered inventory) error {
 		return fmt.Errorf("bootstrap listener remained after successful shutdown")
 	}
 
-	v.receipt.Observations = append(v.receipt.Observations, "bootstrap: exact published Go/YAML, owned loopback port via MYAPP_SERVER_PORT; GET /ping 200 JSON; Ctrl+C exit 0; listener unavailable after shutdown; local source replacement, no moving remote checkout claim")
+	v.receipt.Observations = append(v.receipt.Observations, "bootstrap: exact published Go/YAML, Hatmax v0.6.0 without module replacements, owned loopback port via MYAPP_SERVER_PORT; GET /ping 200 JSON; Ctrl+C exit 0; listener unavailable after shutdown")
 
 	for _, r := range discovered.rows {
 		if r.slice == 2 && (strings.HasPrefix(r.id, "example:"+page) || r.id == "walkthrough:"+page) {
-			v.record(r, "executed", "published module init/edit/get/tidy executed with immutable local clone; go build plus owned binary execution replaces go run supervisor; HTTP health and Ctrl+C shutdown observed")
+			v.record(r, "executed", "published module init/get/tidy executed with Hatmax v0.6.0 and no replacements; go build plus owned binary execution replaces go run supervisor; HTTP health and Ctrl+C shutdown observed")
 		}
 	}
 

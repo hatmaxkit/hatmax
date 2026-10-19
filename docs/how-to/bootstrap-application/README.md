@@ -11,23 +11,16 @@ Use this procedure to create a minimal Hatmax process with a health endpoint.
 
 ## Create the module
 
-This procedure uses Go 1.27.1 and the caller-owned-server API in Hatmax v0.6.0.
-Clone the source and bind the application dependency to that checkout:
-
+Install Go 1.27.1 or later. Create an application module and add Hatmax v0.6.0:
 
 ```sh
-git clone --branch v0.6.0 https://forge.adrianpk.com/hatmax/hatmax.git hatmax
 mkdir myapp
 cd myapp
 go mod init example.com/myapp
-go mod edit -replace=hatmax.adrianpk.com=../hatmax
-go get hatmax.adrianpk.com
-git -C ../hatmax rev-parse HEAD
+go get hatmax.adrianpk.com@v0.6.0
 ```
 
-Keep that source revision with the application when reproducing this procedure.
-The replacement is local to this application's module; dependency packages use
-ordinary published Go modules. Run the following commands from `myapp`.
+Run the following commands from `myapp`.
 
 Create `config.yaml`:
 

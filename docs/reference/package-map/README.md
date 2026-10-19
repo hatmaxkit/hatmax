@@ -53,6 +53,9 @@ the module `hatmax.adrianpk.com`.
 | `image/local` | Local filesystem image storage |
 | `image/s3` | S3-compatible image storage |
 | `image/stdprocessor` | Standard image decoding and resizing |
+| `storage` | Object storage, access policies, and signed document delivery |
+| `storage/local` | Local filesystem object storage |
+| `storage/s3` | S3-compatible object storage |
 | `mailer` | Mail messages, providers, runtime selection, and settings |
 | `pubsub` | Event envelopes and broker interfaces |
 | `pubsub/postgres` | Durable polling pubsub backend |
@@ -74,12 +77,10 @@ the module `hatmax.adrianpk.com`.
 | `generator` | Typed intent, project inspection, admission, planning, execution, validation, and managed documentation |
 | `generator/book` | Embedded Book selection and capability contracts |
 | `hm` | Conversational TUI, headless generation, conversation selection, and playground preparation |
-| `hatmax` | Playground preparation entrypoint |
+| `hatmax` | Compatibility alias for `hm` |
 
-Use [Generator](../generator/README.md) for compatibility, provider
-prerequisites and failure boundaries. Runtime defects currently block fresh
-scaffold evolution and particular field updates; source generation does not
-establish successful follow-up validation.
+Use [Generator](../generator/README.md) for supported layouts, provider
+prerequisites, and validation outcomes.
 
 Use the [Reference index](../README.md) for package contracts and the
 [How-to Guides](../../how-to/README.md) for integration procedures.

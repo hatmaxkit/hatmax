@@ -23,12 +23,6 @@ type acceptanceReceipt struct {
 }
 
 func acceptanceMethod(r row, _ inventory) (string, error) {
-	for number := 1; number <= 5; number++ {
-		if r.id == fmt.Sprintf("example:README.md#block-%d", number) {
-			return "executed", nil
-		}
-	}
-
 	pages := []string{"CHANGELOG.md", "README.md", "docs/README.md", "docs/explanation/README.md",
 		"docs/how-to/README.md", "docs/reference/README.md", "docs/reference/package-map/README.md",
 		"docs/reference/terminology/README.md", "docs/tutorials/README.md", "docs/tutorials/user-guide/README.md"}
@@ -38,37 +32,6 @@ func acceptanceMethod(r row, _ inventory) (string, error) {
 	}
 
 	return "", fmt.Errorf("unaccounted integrated surface: %s", r.id)
-}
-
-func checkRootBindings(inv inventory) error {
-	for number := 1; number <= 3; number++ {
-		root, err := sourceBlock(inv.contents, "README.md", number)
-		if err != nil {
-			return err
-		}
-
-		tutorial, err := sourceBlock(inv.contents, "docs/how-to/bootstrap-application/README.md", number)
-		if err != nil || root != tutorial {
-			return fmt.Errorf("root bootstrap execution context differs: block %d", number)
-		}
-	}
-
-	root, err := sourceBlock(inv.contents, "README.md", 4)
-	if err != nil || strings.TrimSpace(root) != "cd ../hatmax\ngo install ./cmd/hm\ncd ..\nhm" {
-		return fmt.Errorf("unaccounted root source-install procedure")
-	}
-
-	root, err = sourceBlock(inv.contents, "README.md", 5)
-	if err != nil {
-		return err
-	}
-
-	reference, err := sourceBlock(inv.contents, "docs/reference/generator/README.md", 2)
-	if err != nil || root != reference {
-		return fmt.Errorf("unaccounted root headless request")
-	}
-
-	return nil
 }
 
 func closureCoverage(rows []row) error {
@@ -106,11 +69,6 @@ func runAcceptance(args []string) error {
 	fixture = v.fixture
 
 	err = checkNativeTools(filepath.Join(fixture, "native-tools.tsv"))
-	if err != nil {
-		return err
-	}
-
-	err = checkRootBindings(inv)
 	if err != nil {
 		return err
 	}
@@ -163,13 +121,13 @@ func runAcceptance(args []string) error {
 					return err
 				}
 
-				if namedTestPassed(log, "TestRootCommands") && namedTestPassed(log, "TestHeadless") {
+				if namedTestPassed(log, "TestSourceInstall") && namedTestPassed(log, "TestHeadless") {
 					passed = true
 				}
 			}
 
 			if !passed {
-				return fmt.Errorf("root procedure and headless execution evidence missing")
+				return fmt.Errorf("source installation and headless execution evidence missing")
 			}
 		}
 		// Parent execution has just been verified; copy safe logs into this receipt's
@@ -193,8 +151,8 @@ func runAcceptance(args []string) error {
 	}
 
 	v.receipt.Observations = []string{
-		"Root Go/YAML/module procedure bytes match the fresh executed bootstrap; real config validation, HTTP health and coordinated shutdown, with immutable local clone and owned port.",
-		"Exact root install/TUI shell executed in a native PTY; root headless request equals the production CLI fixture request; bounded interpreter, no authenticated model acceptance.",
+		"Bootstrap guide executed with published Hatmax v0.6.0 and no module replacements; real config validation, HTTP health and coordinated shutdown on an owned port.",
+		"User Guide source-install/TUI shell executed in a native PTY; reference headless request executed through the production CLI fixture; bounded interpreter, no authenticated model acceptance.",
 		"All quadrant anchors and index reachability checked; T7.1 entrypoint intent/package/terminology comparison; index walkthrough is navigation, not a runnable application procedure.",
 	}
 

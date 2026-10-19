@@ -101,7 +101,7 @@ func TestNativeControls(t *testing.T) {
 
 // New published commands require a deliberate execution binding before acceptance.
 func TestAcceptanceBindings(t *testing.T) {
-	for _, id := range []string{"example:README.md#block-6", "page:docs/new-entrypoint.md", "command:unbound"} {
+	for _, id := range []string{"example:README.md#block-1", "example:README.md#block-6", "page:docs/new-entrypoint.md", "command:unbound"} {
 		t.Run(id, func(t *testing.T) {
 			_, err := acceptanceMethod(row{id: id}, inventory{})
 			if err == nil {
