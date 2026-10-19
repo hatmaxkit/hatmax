@@ -10,7 +10,7 @@ This file is part of Hatmax. See LICENSE for license terms.
 Status: reviewing
 Ticket: [TKT-20260929085205](../ticket/closed/20260929085205-explore-conversational-generator-tui.md)
 Branch: `chore/ticket-20260929085205-close-tui-exploration`
-PR: pending
+PR: #133
 
 ## Resolution
 

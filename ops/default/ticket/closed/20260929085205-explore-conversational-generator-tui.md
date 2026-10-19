@@ -9,11 +9,11 @@ scope: ui
 tags: generator, tui, product-boundary
 source: chat
 reported_at: 2026-09-29T08:52:05Z
-commits:
+commits: 341857afdefc00ee174487b963b7097d2739903a
 resolution: answered
 closed_at: 2026-10-19T16:56:37Z
 branch: chore/ticket-20260929085205-close-tui-exploration
-pr: pending
+pr: https://forge.adrianpk.com/hatmax/hatmax/pulls/133
 ---
 <!--
 SPDX-FileCopyrightText: 2026 Adrian PK
